@@ -1,0 +1,9 @@
+# GPT-4o-mini:
+#   api_key: <%= ENV['OPENAI_API_KEY'] %>
+#   model: "GPT-4o-mini"
+#   provider: "openai"
+# 
+# claude-3-5-sonnet:
+#  api_key: <%= ENV['ANTHROPIC_API_KEY'] %>
+#  model: "claude-3-5-sonnet"
+#  provider: "anthropic" 
