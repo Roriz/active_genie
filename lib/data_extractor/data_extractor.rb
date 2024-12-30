@@ -1,30 +1,29 @@
 
+require_relative '../requester/requester.rb'
+
 module ActiveGenerative
   module DataExtractor
     module_function
 
     # Extracts data from user_texts based on the schema defined in data_to_extract.
-    # @param user_texts [Array<String>] The user's text inputs.
-    # @param data_to_extract [Hash] The json schema for extracting desired properties. https://json-schema.org/
-    # @return [Hash] Parsed properties according to data_to_extract.
-    def call(text, data_to_extract)
-      Requester.function_calling(
-        [
-          {  role: 'system', content: PROMPT },
-          {  role: 'user', content: text }
-        ],
-        {
-          type: "function",
-          function: {
-            name: 'data_extractor',
-            description: 'Extract structured and typed data from user messages.',
-            parameters: {
-              type: "object",
-              properties: data_to_extract_with_explaination(data_to_extract),
-            }
-          }
+    # @param text [String] The text to extract data from.
+    # @param data_to_extract [Hash] The schema to extract data from the text.
+    # @return [Hash] The extracted data.
+    def call(text, data_to_extract, options = {})
+      messages = [
+        {  role: 'system', content: PROMPT },
+        {  role: 'user', content: text }
+      ]
+      function = {
+        name: 'data_extractor',
+        description: 'Extract structured and typed data from user messages.',
+        parameters: {
+          type: "object",
+          properties: data_to_extract_with_explaination(data_to_extract),
         }
-      )
+      }
+
+      ::ActiveGenerative::Requester.function_calling(messages, function, options)
     end
 
     PROMPT = <<~PROMPT
@@ -56,10 +55,12 @@ module ActiveGenerative
           description: "The chain of thought that led to the conclusion about: #{field}. Can be blank if the user didn't provide any context",
         }
       end
+
       data_to_extract_with_explaination[:message_litote] = {
         type: 'boolean',
         description: `Return true if the message is a litote. A litote is a figure of speech that uses understatement to emphasize a point by stating a negative to further affirm a positive, often incorporating double negatives for effect.`
       }
+
       data_to_extract_with_explaination[:litote_rephrased] = {
         type: 'string',
         description: `The true meaning of the litote. Rephrase the message to a positive statement.`

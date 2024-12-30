@@ -29,7 +29,7 @@ GPT-4o-mini:
 ```ruby
 require 'active_generative'
 
-puts ActiveGenerative::DataExtractor.call(
+puts ActiveGenerative.data_extractor(
   "Hello, my name is Radamés Roriz",
   data_to_extract: { full_name: { type: 'string' } }
 ) # => { name: "Radamés Roriz" }
@@ -38,6 +38,8 @@ puts ActiveGenerative::DataExtractor.call(
 ### Data Extractor
 The data extractor is a tool that can be used to extract data from a given text. It uses a set of rules to extract the data from the text out of the box. Uses the best practices of prompt engineering and engineering to make the data extraction as accurate as possible.
 Under the hood, it calls possible multiple times the target LLM to discover litotes or sarcasm in the text. 
+
+is expected to make 2 requests and use at least 100 tokens per call.
 
 ```ruby
 require 'active_generative'
@@ -52,7 +54,7 @@ data_to_extract = {
   has_shoelaces: { type: 'boolean' },
 }
 
-data_extracted = ActiveGenerative::DataExtractor.call(
+data_extracted = ActiveGenerative.data_extractor(
   product_title,
   data_to_extract:,
   { model: 'GPT-4o-mini', temperature: 1 } # optional configurations
@@ -66,7 +68,7 @@ text = <<~TEXT
   user: No problem
 TEXT
 
-data_extracted = ActiveGenerative::DataExtractor.call(
+data_extracted = ActiveGenerative.data_extractor(
   text,
   data_to_extract: { user_has_accepted_terms: { type: 'boolean' } },
   { model: 'GPT-4o-mini', temperature: 0.5 } # optional configurations
@@ -74,6 +76,10 @@ data_extracted = ActiveGenerative::DataExtractor.call(
 
 puts data_extracted # => { user_has_accepted_terms: true }
 ```
+
+## Good practices
+- LLMs can take a long time to respond, so avoid putting them in the main thread
+- Do not use the LLMs to extract sensitive or personal data
 
 ## License
 See the [LICENSE](LICENSE)

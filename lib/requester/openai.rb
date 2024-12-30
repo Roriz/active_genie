@@ -4,18 +4,28 @@ module ActiveGenerative
     module Openai
       module_function
 
-      def function_calling(payload, function)
-        # payload[:messages] = payload[:messages] # TODO: convert internal messages to OpenAI format
-        payload[:response_format] = { type: 'json_schema', json_schema: function }
+      def function_calling(messages, function, config)
+        payload = {
+          messages:,
+          response_format: { type: 'json_schema', json_schema: },
+          model: config.fetch('model'),
+        }
+        
+        raise "Model not found" if payload[:model].nil?
 
-        response = request(payload)
+        headers = DEFAULT_HEADERS.merge(
+          'Authorization': "Bearer #{options.fetch(:api_key)}",
+          'Openai-Organization': config.fetch('organization'),
+        ).compact
+
+        response = request(payload, headers)
 
         JSON.parse(response.dig('choices', 0, 'message', 'content'))
       rescue JSON::ParserError
         nil
       end
 
-      def request(payload, headers = default_headers)
+      def request(payload, headers)
         response = Net::HTTP.post(
           URI(API_URL),
           payload.to_json,
@@ -33,21 +43,12 @@ module ActiveGenerative
       private
       
       API_URL = 'https://api.openai.com/v1/chat/completions'.freeze
-      API_KEY = ENV['OPENAI_API_KEY']
+      DEFAULT_HEADERS = {
+        'Content-Type': 'application/json',
+      }
 
       # TODO: add some more rich error handling
       class OpenaiError < StandardError; end
-
-      def default_headers 
-        {
-          'Content-Type': 'application/json',
-          'Authorization': "Bearer #{API_KEY}"
-        }
-      end
-
-      def texts_to_messages(texts, role: 'user')
-        Array(texts).map { |text| { role: 'user', content: text } }
-      end
     end
   end
 end

@@ -1,10 +1,7 @@
 
-require_relative 'active_generative/requester'
-require_relative 'active_generative/data_extractor'
+require_relative 'active_generative/data_extractor/data_extractor.rb'
 
 module ActiveGenerative
-  attr_writer :default_model
-
   module_function
 
   def data_extractor(text, data_to_extract)
