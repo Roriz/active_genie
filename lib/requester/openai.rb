@@ -1,6 +1,6 @@
 require 'json'
 
-module ActiveGenerative
+module ActiveAI
   module Requester
     module Openai
       module_function

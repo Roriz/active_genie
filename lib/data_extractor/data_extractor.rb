@@ -1,7 +1,7 @@
 
 require_relative '../requester/requester.rb'
 
-module ActiveGenerative
+module ActiveAI
   module DataExtractor
     module_function
 
@@ -23,7 +23,7 @@ module ActiveGenerative
         }
       }
 
-      ::ActiveGenerative::Requester.function_calling(messages, function, options)
+      ::ActiveAI::Requester.function_calling(messages, function, options)
     end
 
     PROMPT = <<~PROMPT

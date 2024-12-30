@@ -1,7 +1,7 @@
 require 'net/http'
 require_relative '../../lib/requester/openai.rb'
 
-RSpec.describe ActiveGenerative::Requester::Openai do
+RSpec.describe ActiveAI::Requester::Openai do
   let(:valid_messages) { [{ role: 'user', content: 'Hello' }] }
   let(:valid_function) { { name: 'test', parameters: {} } }
   let(:valid_config) do
@@ -86,7 +86,7 @@ RSpec.describe ActiveGenerative::Requester::Openai do
 
       expect {
         described_class.request(valid_payload, valid_headers)
-      }.to raise_error(ActiveGenerative::Requester::Openai::OpenaiError)
+      }.to raise_error(ActiveAI::Requester::Openai::OpenaiError)
     end
 
     it 'returns nil for empty response body' do

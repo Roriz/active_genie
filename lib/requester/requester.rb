@@ -1,7 +1,7 @@
 
 require_relative 'openai'
 
-module ActiveGenerative
+module ActiveAI
   module Requester
     module_function
 

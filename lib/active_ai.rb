@@ -1,7 +1,7 @@
 
-require_relative 'active_generative/data_extractor/data_extractor.rb'
+require_relative 'active_ai/data_extractor/data_extractor.rb'
 
-module ActiveGenerative
+module ActiveAI
   module_function
 
   def data_extractor(text, data_to_extract)
