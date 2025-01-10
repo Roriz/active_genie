@@ -1,5 +1,5 @@
 
-require_relative 'active_ai/data_extractor/data_extractor.rb'
+require_relative 'data_extractor/data_extractor.rb'
 
 module ActiveAI
   module_function

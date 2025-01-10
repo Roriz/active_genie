@@ -1,17 +1,14 @@
-require 'net/http'
-require_relative '../../lib/requester/openai.rb'
-
 RSpec.describe ActiveAI::Requester::Openai do
-  let(:valid_messages) { [{ role: 'user', content: 'Hello' }] }
-  let(:valid_function) { { name: 'test', parameters: {} } }
-  let(:valid_config) do
+  let(:messages) { [{ role: 'user', content: 'Hello' }] }
+  let(:function) { { name: 'test', parameters: {} } }
+  let(:config) do
     {
-      'model' => 'gpt-3.5-turbo',
-      'api_key' => 'test-key',
+      'model' => 'gpt-4o-mini',
+      'api_key' => 'secret-key',
       'organization' => 'test-org'
     }
   end
-  let(:valid_response) do
+  let(:response) do
     {
       'choices' => [
         { 'message' => { 'content' => '{"result": "test"}' } }
@@ -21,59 +18,61 @@ RSpec.describe ActiveAI::Requester::Openai do
 
   describe '.function_calling' do
     it 'makes successful API call with valid parameters' do
-      allow(described_class).to receive(:request).and_return(valid_response)
+      allow(described_class).to receive(:request).and_return(response)
       
-      result = described_class.function_calling(valid_messages, valid_function, valid_config)
+      result = described_class.function_calling(messages, function, config)
       expect(result).to eq({ 'result' => 'test' })
     end
 
     it 'raises error when model is nil' do
-      config = valid_config.merge('model' => nil)
-      
       expect {
-        described_class.function_calling(valid_messages, valid_function, config)
-      }.to raise_error('Model not found')
+        described_class.function_calling(
+          messages,
+          function,
+          config.merge('model' => nil)
+        )
+      }.to raise_error('Model can\'t be blank')
     end
 
     it 'returns nil when JSON parsing fails' do
-      invalid_response = {
+      response = {
         'choices' => [
           { 'message' => { 'content' => 'invalid-json' } }
         ]
       }
-      allow(described_class).to receive(:request).and_return(invalid_response)
+      allow(described_class).to receive(:request).and_return(response)
       
-      result = described_class.function_calling(valid_messages, valid_function, valid_config)
+      result = described_class.function_calling(messages, function, config)
       expect(result).to be_nil
     end
   end
 
   describe '.request' do
-    let(:valid_headers) do
+    let(:headers) do
       {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer test-key',
+        'Authorization': 'Bearer secret-key',
         'Openai-Organization': 'test-org'
       }
     end
-    let(:valid_payload) do
+    let(:payload) do
       {
-        messages: valid_messages,
-        model: 'gpt-3.5-turbo',
+        messages: messages,
+        model: 'gpt-4o-mini',
       }
     end
 
     it 'handles successful request' do
       http_response = instance_double(Net::HTTPSuccess, 
-        body: valid_response.to_json,
+        body: response.to_json,
         is_a?: true
       )
       allow(Net::HTTP).to receive(:post).and_return(http_response)
 
-      result = described_class.request(valid_payload, valid_headers)
+      result = described_class.request(payload, headers)
       expect(Net::HTTP).to have_received(:post).with(
         URI(described_class::API_URL),
-        valid_payload.to_json, valid_headers
+        payload.to_json, headers
       )
     end
 
@@ -85,7 +84,7 @@ RSpec.describe ActiveAI::Requester::Openai do
       allow(Net::HTTP).to receive(:post).and_return(http_response)
 
       expect {
-        described_class.request(valid_payload, valid_headers)
+        described_class.request(payload, headers)
       }.to raise_error(ActiveAI::Requester::Openai::OpenaiError)
     end
 
@@ -96,18 +95,7 @@ RSpec.describe ActiveAI::Requester::Openai do
       )
       allow(Net::HTTP).to receive(:post).and_return(http_response)
 
-      result = described_class.request(valid_payload, valid_headers)
-      expect(result).to be_nil
-    end
-
-    it 'returns nil for invalid JSON response' do
-      http_response = instance_double(Net::HTTPSuccess,
-        body: 'invalid-json',
-        is_a?: true
-      )
-      allow(Net::HTTP).to receive(:post).and_return(http_response)
-
-      result = described_class.request(valid_payload, valid_headers)
+      result = described_class.request(payload, headers)
       expect(result).to be_nil
     end
 
@@ -115,7 +103,7 @@ RSpec.describe ActiveAI::Requester::Openai do
       allow(Net::HTTP).to receive(:post).and_raise(SocketError)
 
       expect {
-        described_class.request(valid_payload, valid_headers)
+        described_class.request(payload, headers)
       }.to raise_error(SocketError)
     end
   end

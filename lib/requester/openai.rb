@@ -1,10 +1,9 @@
 require 'json'
+require 'net/http'
 
 module ActiveAI
-  module Requester
-    module Openai
-      module_function
-
+  class Openai
+    class << self
       def function_calling(messages, function, config)
         payload = {
           messages:,
@@ -12,7 +11,7 @@ module ActiveAI
           model: config.fetch('model'),
         }
         
-        raise "Model not found" if payload[:model].nil?
+        raise "Model can't be blank" if payload[:model].nil?
 
         headers = DEFAULT_HEADERS.merge(
           'Authorization': "Bearer #{config.fetch('api_key')}",
@@ -34,11 +33,9 @@ module ActiveAI
         )
 
         raise OpenaiError, response.body unless response.is_a?(Net::HTTPSuccess)
-        return nil unless response.body.empty?
+        return nil if response.body.empty?
 
         JSON.parse(response.body)
-      rescue JSON::ParserError
-        nil
       end
 
       private

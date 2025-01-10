@@ -1,4 +1,4 @@
-
+require 'debug'
 require_relative '../lib/active_ai.rb'
 
 RSpec.configure do |config|
