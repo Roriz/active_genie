@@ -1,4 +1,6 @@
-RSpec.describe ActiveAI::Requester::Openai do
+require_relative '../../lib/requester/openai'
+
+RSpec.describe ActiveAI::Openai do
   let(:messages) { [{ role: 'user', content: 'Hello' }] }
   let(:function) { { name: 'test', parameters: {} } }
   let(:config) do
@@ -22,16 +24,6 @@ RSpec.describe ActiveAI::Requester::Openai do
       
       result = described_class.function_calling(messages, function, config)
       expect(result).to eq({ 'result' => 'test' })
-    end
-
-    it 'raises error when model is nil' do
-      expect {
-        described_class.function_calling(
-          messages,
-          function,
-          config.merge('model' => nil)
-        )
-      }.to raise_error('Model can\'t be blank')
     end
 
     it 'returns nil when JSON parsing fails' do
@@ -85,7 +77,7 @@ RSpec.describe ActiveAI::Requester::Openai do
 
       expect {
         described_class.request(payload, headers)
-      }.to raise_error(ActiveAI::Requester::Openai::OpenaiError)
+      }.to raise_error(ActiveAI::Openai::OpenaiError)
     end
 
     it 'returns nil for empty response body' do

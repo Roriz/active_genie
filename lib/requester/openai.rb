@@ -45,15 +45,15 @@ module ActiveAI
         JSON.parse(response.body)
       end
 
-      private
-      
-      API_URL = 'https://api.openai.com/v1/chat/completions'.freeze
-      DEFAULT_HEADERS = {
-        'Content-Type': 'application/json',
-      }
-
-      # TODO: add some more rich error handling
-      class OpenaiError < StandardError; end
     end
+    
+      
+    API_URL = 'https://api.openai.com/v1/chat/completions'.freeze
+    DEFAULT_HEADERS = {
+      'Content-Type': 'application/json',
+    }
+
+    # TODO: add some more rich error handling
+    class OpenaiError < StandardError; end
   end
 end
