@@ -4,18 +4,25 @@ require 'net/http'
 module ActiveAI
   class Openai
     class << self
-      def function_calling(messages, function, config)
+      def function_calling(messages, function, options)
+        app_config = ActiveAI.config_by_model(options[:model])
+
+        model = options[:model] || app_config[:model]
+        
+        raise "Model can't be blank" if model.nil?
+
         payload = {
           messages:,
-          response_format: { type: 'json_schema', json_schema: function },
-          model: config.fetch('model'),
+          response_format: {
+            type: 'json_schema',
+            json_schema: { type: 'function', function: }
+          },
+          model:,
         }
-        
-        raise "Model can't be blank" if payload[:model].nil?
+        api_key = options[:api_key] || app_config[:api_key]
 
         headers = DEFAULT_HEADERS.merge(
-          'Authorization': "Bearer #{config.fetch('api_key')}",
-          'Openai-Organization': config.fetch('organization'),
+          'Authorization': "Bearer #{api_key}"
         ).compact
 
         response = request(payload, headers)

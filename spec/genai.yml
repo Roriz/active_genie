@@ -1,0 +1,3 @@
+tuta_2B:
+  api_key: super-secret
+  provider: openai

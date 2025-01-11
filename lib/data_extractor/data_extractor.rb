@@ -33,11 +33,11 @@ module ActiveAI
         properties = data_to_extract_with_explaination(data_to_extract)
         properties[:message_litote] = {
           type: 'boolean',
-          description: `Return true if the message is a litote. A litote is a figure of speech that uses understatement to emphasize a point by stating a negative to further affirm a positive, often incorporating double negatives for effect.`
+          description: 'Return true if the message is a litote. A litote is a figure of speech that uses understatement to emphasize a point by stating a negative to further affirm a positive, often incorporating double negatives for effect.'
         }
         properties[:litote_rephrased] = {
           type: 'string',
-          description: `The true meaning of the litote. Rephrase the message to a positive statement.`
+          description: 'The true meaning of the litote. Rephrase the message to a positive statement.'
         }
 
         function = {

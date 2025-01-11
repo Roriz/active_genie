@@ -1,24 +1,16 @@
-
-require 'yaml'
-require_relative 'openai'
+require_relative './openai'
 
 module ActiveAI
   class Requester    
     class << self
       def function_calling(messages, function, options = {})
-        config = fetch_config(options.fetch(:model, nil))
+        app_config = ActiveAI.config_by_model(options[:model])
+        
+        provider = options[:provider] || app_config[:provider]
+        provider_sdk = PROVIDER_TO_SDK[provider.to_sym.downcase]
+        raise "Provider still not implemented" if provider_sdk.nil?
 
-        raise "Model can't be blank" if config.nil?
-
-        client = PROVIDER_TO_SDK.fetch(config.fetch('provider'))
-
-        raise "Provider still not implemented" if client.nil?
-
-        response = client.function_calling(
-          messages,
-          { type: 'function', function: },
-          config
-        )
+        response = provider_sdk.function_calling(messages, function, options)
 
         clear_invalid_values(response)
       end
@@ -26,21 +18,9 @@ module ActiveAI
       private
 
       PROVIDER_TO_SDK = {
-        'openai' => Openai,
+        openai: Openai,
       }
 
-      def all_configs
-        return {} if !File.exist?(PATH_TO_CONFIG)
-
-        @all_configs ||= YAML.load_file(PATH_TO_CONFIG) || []
-      end
-
-      def fetch_config(model_name)
-        all_configs.fetch(model_name, nil) || all_configs.first
-      end
-
-      PATH_TO_CONFIG = File.join(__dir__, 'config.yml').freeze
-      
       INVALID_VALUES = [
         'not sure',
         'not clear',

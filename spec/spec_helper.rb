@@ -1,6 +1,10 @@
 require 'debug'
 require_relative '../lib/active_ai.rb'
 
+ActiveAI.configure do |config|
+  config.path_to_config = File.join(__dir__, 'genai.yml')
+end
+
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
