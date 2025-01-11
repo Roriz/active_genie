@@ -1,7 +1,7 @@
 require 'rake'
 
 RSpec.describe 'active_ai:install task' do
-  let(:target_path) { File.join('config', 'genai.yml') }
+  let(:target_path) { File.join('config', 'active_ai.yml') }
 
   before(:each) do
     load File.expand_path("../../lib/tasks/install.rake", __dir__)

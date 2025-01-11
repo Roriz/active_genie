@@ -17,11 +17,10 @@ bundle install
 ```shell
 rails g active_ai:install
 ```
-4. Add the right credentials to the `config/gen_ai.yml` file
+4. Add the right credentials to the `config/active_ai.yml` file
 ```yaml
 GPT-4o-mini:
   api_key: <%= ENV['OPENAI_API_KEY'] %>
-  model: "GPT-4o-mini"
   provider: "openai"
 ```
 
