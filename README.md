@@ -59,9 +59,8 @@ puts data_extracted # => { category: "shoes", has_shoelaces: true }
 ```
 
 *with litotes*
-When the text is not clear, the data extractor can use litotes to make the text clearer. Litotes is a figure of speech that uses understatement to emphasize a point. For example, "not bad" is a litotes that means "good". The data extractor can use litotes to make the text clearer and extract the data more accurately.
 
-warning: this feature can make the data extractor slower and use more tokens.
+When the text is not clear, the data extractor can use litotes to make the text clearer. Litotes is a figure of speech that uses understatement to emphasize a point. For example, "not bad" is a litotes that means "good". The data extractor can use litotes to make the text clearer and extract the data more accurately.
 
 ```ruby
 text = <<~TEXT
@@ -75,6 +74,7 @@ data_to_extract = {
 data_extracted = ActiveAI::DataExtractor.from_informal(text, data_to_extract)
 puts data_extracted # => { user_has_accepted_terms: true }
 ```
+warning: this feature can make the data extractor slower and use more tokens.
 
 ### Summarizer (WIP)
 The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.
