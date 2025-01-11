@@ -29,10 +29,10 @@ GPT-4o-mini:
 ```ruby
 require 'active_ai'
 
-puts ActiveAI.data_extractor(
+puts ActiveAI::DataExtractor.call(
   "Hello, my name is Radamés Roriz",
-  data_to_extract: { full_name: { type: 'string' } }
-) # => { name: "Radamés Roriz" }
+  { full_name: { type: 'string' } }
+) # => { full_name: "Radamés Roriz" }
 ```
 
 ### Data Extractor
@@ -54,27 +54,94 @@ data_to_extract = {
   has_shoelaces: { type: 'boolean' },
 }
 
-data_extracted = ActiveAI.data_extractor(
-  product_title,
-  data_to_extract:,
-  { model: 'GPT-4o-mini', temperature: 1 } # optional configurations
-)
-
+data_extracted = ActiveAI::DataExtractor.call(product_title, data_to_extract)
 puts data_extracted # => { category: "shoes", has_shoelaces: true }
+```
 
-# ============= Example with litotes
+*with litotes*
+When the text is not clear, the data extractor can use litotes to make the text clearer. Litotes is a figure of speech that uses understatement to emphasize a point. For example, "not bad" is a litotes that means "good". The data extractor can use litotes to make the text clearer and extract the data more accurately.
+
+warning: this feature can make the data extractor slower and use more tokens.
+
+```ruby
 text = <<~TEXT
   system: Do you accept the terms of service?
   user: No problem
 TEXT
+data_to_extract = {
+  user_has_accepted_terms: { type: 'boolean' }
+}
 
-data_extracted = ActiveAI.data_extractor(
-  text,
-  data_to_extract: { user_has_accepted_terms: { type: 'boolean' } },
-  { model: 'GPT-4o-mini', temperature: 0.5 } # optional configurations
-)
-
+data_extracted = ActiveAI::DataExtractor.from_informal(text, data_to_extract)
 puts data_extracted # => { user_has_accepted_terms: true }
+```
+
+### Summarizer (WIP)
+The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.
+
+```ruby
+require 'active_ai'
+
+text = "Example text to be summarized. The fox jumps over the dog"
+summarized_text = ActiveAI::Summarizer.call(text)
+puts summarized_text # => "The fox jumps over the dog"
+```
+
+### Scorer (WIP)
+The scorer is a tool that can be used to score a given text. It uses a set of rules to score the text out of the box. Uses the best practices of prompt engineering and engineering to make the scoring as accurate as possible.
+
+```ruby
+require 'active_ai'
+
+text = "Example text to be scored. The fox jumps over the dog"
+criterias = 'Grammar, Relevance'
+score = ActiveAI::Scorer.call(text, criterias)
+puts score # => { 'Grammar' => 0.8, 'Relevance' => 1.0, total: 0.9 }
+```
+
+### Language detector (WIP)
+The language detector is a tool that can be used to detect the language of a given text. It uses a set of rules to detect the language of the text out of the box. Uses the best practices of prompt engineering and engineering to make the language detection as accurate as possible.
+
+```ruby
+require 'active_ai'
+
+text = "Example text to be detected"
+language = ActiveAI::LanguageDetector.call(text)
+puts language # => "en"
+```
+
+### Translator (WIP)
+The translator is a tool that can be used to translate a given text. It uses a set of rules to translate the text out of the box. Uses the best practices of prompt engineering and engineering to make the translation as accurate as possible.
+
+```ruby
+require 'active_ai'
+
+text = "Example text to be translated"
+translated_text = ActiveAI::Translator.call(text, from: 'en', to: 'pt')
+puts translated_text # => "Exemplo de texto a ser traduzido"
+```
+
+### Sentiment analyzer (WIP)
+The sentiment analyzer is a tool that can be used to analyze the sentiment of a given text. It uses a set of rules to analyze the sentiment of the text out of the box. Uses the best practices of prompt engineering and engineering to make the sentiment analysis as accurate as possible.
+
+```ruby
+require 'active_ai'
+
+text = "Example text to be analyzed"
+sentiment = ActiveAI::SentimentAnalyzer.call(text)
+puts sentiment # => "positive"
+```
+
+### Elo ranking (WIP)
+The Elo ranking is a tool that can be used to rank a set of items. It uses a set of rules to rank the items out of the box. Uses the best practices of prompt engineering and engineering to make the ranking as accurate as possible.
+
+```ruby
+require 'active_ai'
+
+items = ['Square', 'Circle', 'Triangle']
+criterias = 'items that look rounded'
+ranked_items = ActiveAI::EloRanking.call(items, criterias, rounds: 10)
+puts ranked_items # => [{ name: "Circle", score: 1500 }, { name: "Square", score: 800 }, { name: "Triangle", score: 800 }]
 ```
 
 ## Good practices
