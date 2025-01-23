@@ -1,6 +1,6 @@
 require 'yaml'
 
-module ActiveAI
+module ActiveGenie
   class Configuration
     attr_accessor :path_to_config
 
@@ -25,7 +25,7 @@ module ActiveAI
 
       YAML.load_file(@path_to_config) || {}
     rescue Psych::SyntaxError => e
-      warn "ActiveAI.warning: Config file '#{@path_to_config}' is not a valid YAML file (#{e.message}), using default configuration"
+      warn "ActiveGenie.warning: Config file '#{@path_to_config}' is not a valid YAML file (#{e.message}), using default configuration"
       {}
     end
   end

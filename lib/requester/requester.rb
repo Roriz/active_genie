@@ -1,10 +1,10 @@
 require_relative './openai'
 
-module ActiveAI
+module ActiveGenie
   class Requester    
     class << self
       def function_calling(messages, function, options = {})
-        app_config = ActiveAI.config_by_model(options[:model])
+        app_config = ActiveGenie.config_by_model(options[:model])
         
         provider = options[:provider] || app_config[:provider]
         provider_sdk = PROVIDER_TO_SDK[provider&.to_sym&.downcase]

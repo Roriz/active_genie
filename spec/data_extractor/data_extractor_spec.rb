@@ -1,4 +1,4 @@
-RSpec.describe ActiveAI::DataExtractor do
+RSpec.describe ActiveGenie::DataExtractor do
   let(:message) { "Hi, my name is John Doe and I'm 30 years old" }
   let(:data_to_extract) do
     {

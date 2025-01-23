@@ -1,6 +1,6 @@
 require_relative '../requester/requester.rb'
 
-module ActiveAI
+module ActiveGenie
   class DataExtractor    
     class << self
       # Extracts data from user_texts based on the schema defined in data_to_extract.
@@ -22,7 +22,7 @@ module ActiveAI
           }
         }
 
-        ::ActiveAI::Requester.function_calling(messages, function, options)
+        ::ActiveGenie::Requester.function_calling(messages, function, options)
       end
 
       def from_informal(text, data_to_extract, options = {})
@@ -46,7 +46,7 @@ module ActiveAI
           schema: { type: "object", properties: }
         }
 
-        ::ActiveAI::Requester.function_calling(messages, function, options)
+        ::ActiveGenie::Requester.function_calling(messages, function, options)
       end
 
       private

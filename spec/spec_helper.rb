@@ -1,8 +1,8 @@
 require 'debug'
-require_relative '../lib/active_ai.rb'
+require_relative '../lib/active_genie.rb'
 
-ActiveAI.configure do |config|
-  config.path_to_config = File.join(__dir__, 'active_ai.yml')
+ActiveGenie.configure do |config|
+  config.path_to_config = File.join(__dir__, 'active_genie.yml')
 end
 
 RSpec.configure do |config|

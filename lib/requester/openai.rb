@@ -1,11 +1,11 @@
 require 'json'
 require 'net/http'
 
-module ActiveAI
+module ActiveGenie
   class Openai
     class << self
       def function_calling(messages, function, options)
-        app_config = ActiveAI.config_by_model(options[:model])
+        app_config = ActiveGenie.config_by_model(options[:model])
 
         model = options[:model] || app_config[:model]
         

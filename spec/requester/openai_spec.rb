@@ -1,6 +1,6 @@
 require_relative '../../lib/requester/openai'
 
-RSpec.describe ActiveAI::Openai do
+RSpec.describe ActiveGenie::Openai do
   let(:messages) { [{ role: 'user', content: 'Hello' }] }
   let(:function) { { name: 'test', parameters: {} } }
   let(:config) do
@@ -77,7 +77,7 @@ RSpec.describe ActiveAI::Openai do
 
       expect {
         described_class.request(payload, headers)
-      }.to raise_error(ActiveAI::Openai::OpenaiError)
+      }.to raise_error(ActiveGenie::Openai::OpenaiError)
     end
 
     it 'returns nil for empty response body' do

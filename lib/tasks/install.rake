@@ -1,12 +1,12 @@
 require 'fileutils'
 
-namespace :active_ai do
-  desc 'Install active_ai configuration file'
+namespace :active_genie do
+  desc 'Install active_genie configuration file'
   task :install do
-    source = File.join('lib', 'tasks', 'templates', 'active_ai.yml')
-    target = File.join('config', 'active_ai.yml')
+    source = File.join('lib', 'tasks', 'templates', 'active_genie.yml')
+    target = File.join('config', 'active_genie.yml')
 
     FileUtils.cp(source, target)
-    puts "Successfully installed config/active_ai.yml to #{target}"
+    puts "Successfully installed config/active_genie.yml to #{target}"
   end
 end

@@ -15,7 +15,7 @@ schema = {
   brand: { type: 'string' },
   model: { type: 'string' }
 }
-result = ActiveAI::DataExtractor.call(text, schema)
+result = ActiveGenie::DataExtractor.call(text, schema)
 # => { brand: "iPhone", model: "14 Pro Max" }
 
 product = "Nike Air Max 90 - Size 42 - $199.99"
@@ -39,7 +39,7 @@ schema = {
   }
 }
 
-result = ActiveAI::DataExtractor.call(product, schema)
+result = ActiveGenie::DataExtractor.call(product, schema)
 # => { brand: "Nike", price: 199.99, size: 42, currency: "USD" }
 ```
 
@@ -64,7 +64,7 @@ data_to_extract = {
   user_consent: { type: 'boolean' }
 }
 
-result = ActiveAI::DataExtractor.from_informal(text, data_to_extract)
+result = ActiveGenie::DataExtractor.from_informal(text, data_to_extract)
 puts result # => { user_consent: true }
 ```
 
