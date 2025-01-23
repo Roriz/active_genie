@@ -2,6 +2,8 @@
 Ruby gem for out of the box AI features. LLMs are just a raw tools that need to be polished and refined to be useful. This gem is a collection of tools that can be used to make LLMs more useful and easier to use.
 Think this gem is like ActiveStorage but for LLMs.
 
+[![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
+
 ## Installation
 Add this line to your application's Gemfile:
 
