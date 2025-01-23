@@ -15,10 +15,11 @@ module ActiveAI
           messages:,
           response_format: {
             type: 'json_schema',
-            json_schema: { type: 'function', function: }
+            json_schema: function
           },
           model:,
         }
+
         api_key = options[:api_key] || app_config[:api_key]
 
         headers = DEFAULT_HEADERS.merge(

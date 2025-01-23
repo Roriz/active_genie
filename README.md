@@ -30,7 +30,8 @@ require 'active_ai'
 
 puts ActiveAI::DataExtractor.call(
   "Hello, my name is Radamés Roriz",
-  { full_name: { type: 'string' } }
+  { full_name: { type: 'string' } },
+  options: { model: 'gpt-4o-mini', api_key: 'your-api-key', provider: 'openai' } # Optional if has config/active_ai.yml
 ) # => { full_name: "Radamés Roriz" }
 ```
 
@@ -45,7 +46,11 @@ schema = {
   brand: { type: 'string' },
   model: { type: 'string' }
 }
-result = ActiveAI::DataExtractor.call(text, schema)
+result = ActiveAI::DataExtractor.call(
+  text,
+  schema,
+  options: { model: 'GPT-4o-mini', api_key: 'your-api-key', provider: 'openai' } # Optional if 
+)
 # => { brand: "iPhone", model: "14 Pro Max" }
 ```
 

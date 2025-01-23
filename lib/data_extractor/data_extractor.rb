@@ -8,7 +8,7 @@ module ActiveAI
       # @param data_to_extract [Hash] The schema to extract data from the text.
       # @param options [Hash] The options to pass to the function.
       # @return [Hash] The extracted data.
-      def call(text, data_to_extract, options = {})
+      def call(text, data_to_extract, options: {})
         messages = [
           {  role: 'system', content: PROMPT },
           {  role: 'user', content: text[0..1000] }
@@ -16,9 +16,9 @@ module ActiveAI
         function = {
           name: 'data_extractor',
           description: 'Extract structured and typed data from user messages.',
-          parameters: {
+          schema: {
             type: "object",
-            properties: data_to_extract_with_explaination(data_to_extract),
+            properties: data_to_extract_with_explaination(data_to_extract)
           }
         }
 
@@ -43,7 +43,7 @@ module ActiveAI
         function = {
           name: 'data_extractor',
           description: 'Extract structured and typed data from user messages.',
-          parameters: { type: "object", properties: }
+          schema: { type: "object", properties: }
         }
 
         ::ActiveAI::Requester.function_calling(messages, function, options)
@@ -71,13 +71,17 @@ module ActiveAI
       PROMPT
 
       def data_to_extract_with_explaination(data_to_extract)
-        data_to_extract.reduce({}) do |acc, (field, value)|
-          acc[field] = value
-          acc["#{field}_explaination"] = {
+        with_explaination = {}
+    
+        data_to_extract.each do |key, value|
+          with_explaination[key] = value
+          with_explaination["#{key}_explanation"] = {
             type: 'string',
-            description: "The chain of thought that led to the conclusion about: #{field}. Can be blank if the user didn't provide any context",
+            description: "The chain of thought that led to the conclusion about: #{key}. Can be blank if the user didn't provide any context",
           }
         end
+        
+        with_explaination
       end
     end
   end

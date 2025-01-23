@@ -1,7 +1,6 @@
-require_relative './active_ai/configuration'
-
 module ActiveAI
-  autoload :DataExtractor, File.expand_path('../data_extractor/data_extractor', __FILE__)
+  autoload :DataExtractor, File.join(__dir__, 'data_extractor/data_extractor')
+  autoload :Configuration, File.join(__dir__, 'active_ai/configuration')
 
   class << self
     def config
@@ -17,7 +16,7 @@ module ActiveAI
     end
 
     def config_by_model(model)
-      config.values[model&.to_s] || config.values.values.first
+      config.values[model&.to_s] || config.values.values.first || {}
     end
   end
 end

@@ -16,9 +16,6 @@ module ActiveAI
         @values[key][:model] = key
         @values[key] = @values[key].transform_keys(&:to_sym)
       end
-    rescue Psych::SyntaxError => e
-      puts 'ActiveAi.warning config file is not a valid YAML file, using default configuration'
-      {}
     end
 
     private
@@ -28,7 +25,8 @@ module ActiveAI
 
       YAML.load_file(@path_to_config) || {}
     rescue Psych::SyntaxError => e
-      puts 'ActiveAi.warning config file is not a valid YAML file, using default configuration'
+      warn "ActiveAI.warning: Config file '#{@path_to_config}' is not a valid YAML file (#{e.message}), using default configuration"
+      {}
     end
   end
 end

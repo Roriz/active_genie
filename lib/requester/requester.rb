@@ -7,8 +7,8 @@ module ActiveAI
         app_config = ActiveAI.config_by_model(options[:model])
         
         provider = options[:provider] || app_config[:provider]
-        provider_sdk = PROVIDER_TO_SDK[provider.to_sym.downcase]
-        raise "Provider still not implemented" if provider_sdk.nil?
+        provider_sdk = PROVIDER_TO_SDK[provider&.to_sym&.downcase]
+        raise "Provider #{provider} not supported" unless provider_sdk
 
         response = provider_sdk.function_calling(messages, function, options)
 
