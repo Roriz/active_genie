@@ -1,4 +1,3 @@
-
 require_relative '../requester/requester.rb'
 
 module ActiveAI
@@ -7,11 +6,12 @@ module ActiveAI
       # Extracts data from user_texts based on the schema defined in data_to_extract.
       # @param text [String] The text to extract data from.
       # @param data_to_extract [Hash] The schema to extract data from the text.
+      # @param options [Hash] The options to pass to the function.
       # @return [Hash] The extracted data.
       def call(text, data_to_extract, options = {})
         messages = [
           {  role: 'system', content: PROMPT },
-          {  role: 'user', content: text }
+          {  role: 'user', content: text[0..1000] }
         ]
         function = {
           name: 'data_extractor',

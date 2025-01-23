@@ -24,7 +24,7 @@ GPT-4o-mini:
   provider: "openai"
 ```
 
-## Usage
+## Quick Example
 ```ruby
 require 'active_ai'
 
@@ -35,45 +35,23 @@ puts ActiveAI::DataExtractor.call(
 ```
 
 ### Data Extractor
-The data extractor is a tool that can be used to extract data from a given text. It uses a set of rules to extract the data from the text out of the box. Uses the best practices of prompt engineering and engineering to make the data extraction as accurate as possible.
-Under the hood, it calls possible multiple times the target LLM to discover litotes or sarcasm in the text. 
-
-is expected to make 2 requests and use at least 100 tokens per call.
+Extract structured data from text using LLM-powered analysis, handling informal language and complex expressions.
 
 ```ruby
 require 'active_ai'
 
-# ============= Example with not clear data to extract
-product_title = "Nike Air Max 90"
-data_to_extract = {
-  category: {
-    type: 'string',
-    enum: ["shoes", "clothing", "accessories"]
-  },
-  has_shoelaces: { type: 'boolean' },
+text = "iPhone 14 Pro Max"
+schema = {
+  brand: { type: 'string' },
+  model: { type: 'string' }
 }
-
-data_extracted = ActiveAI::DataExtractor.call(product_title, data_to_extract)
-puts data_extracted # => { category: "shoes", has_shoelaces: true }
+result = ActiveAI::DataExtractor.call(text, schema)
+# => { brand: "iPhone", model: "14 Pro Max" }
 ```
 
-*with litotes*
-
-When the text is not clear, the data extractor can use litotes to make the text clearer. Litotes is a figure of speech that uses understatement to emphasize a point. For example, "not bad" is a litotes that means "good". The data extractor can use litotes to make the text clearer and extract the data more accurately.
-
-```ruby
-text = <<~TEXT
-  system: Do you accept the terms of service?
-  user: No problem
-TEXT
-data_to_extract = {
-  user_has_accepted_terms: { type: 'boolean' }
-}
-
-data_extracted = ActiveAI::DataExtractor.from_informal(text, data_to_extract)
-puts data_extracted # => { user_has_accepted_terms: true }
-```
-warning: this feature can make the data extractor slower and use more tokens.
+- More examples in the [Data Extractor README](lib/data_extractor/README.md)
+- Extract from ambiguous [from_informal](lib/data_extractor/README.md#extract-from-informal-text)
+- Interface details in the [Interface](lib/data_extractor/README.md#interface)
 
 ### Summarizer (WIP)
 The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.
