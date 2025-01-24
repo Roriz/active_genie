@@ -1,7 +1,7 @@
 require 'json'
 require 'net/http'
 
-module ActiveGenie
+module ActiveGenie::Clients
   class Openai
     class << self
       def function_calling(messages, function, options)

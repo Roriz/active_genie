@@ -1,7 +1,7 @@
 require_relative '../requester/requester.rb'
 
-module ActiveGenie
-  class Scoring    
+module ActiveGenie::Scoring
+  class Scoring
     class << self
       # Extracts data from user_texts based on the schema defined in data_to_extract.
       # @param text [String] The text to extract data from.
@@ -84,49 +84,39 @@ module ActiveGenie
       private
 
       SCORING_PROMPT = <<~PROMPT
-      Review and score the text based on the given criteria, which can include a set of rules, keywords, or patterns.
-      Score should be between 0 and 100, with 100 being the highest score.
+      Evaluate and score the provided text based on predefined criteria, which may include rules, keywords, or patterns. Use a scoring range of 0 to 100, with 100 representing the highest possible score. Follow the instructions below to ensure an accurate and objective assessment.
 
-      Ensure the scoring process is accurate by following the outlined steps.
+      # Evaluation Process
+      1. **Analysis**: Thoroughly compare the text against each criterion to ensure comprehensive evaluation.
+      2. **Document Deviations**: Clearly identify and document any areas where the content does not align with the specified criteria.
+      3. **Highlight Strengths**: Emphasize notable features or elements that enhance the overall quality or effectiveness of the content.
+      4. **Identify Weaknesses**: Specify areas where the content fails to meet the criteria or where improvements could be made.
 
-      # Steps
+      # Output Requirements
+      Provide a detailed review, including:
+        - A final score (0-100)
+        - Specific reasoning for the assigned score, covering all evaluated criteria.
+        - Ensure the reasoning includes both positive aspects and suggested improvements.
 
-      1. **Analyze**: Compare the content against each criterion comprehensively.
-      2. **Document Deviations**: Note parts where the content deviates from the criteria.
-      3. **Highlight Strengths**: Identify and highlight elements that significantly enhance the content’s quality or purpose.
-      4. **Spot Weaknesses**: Pinpoint areas where the content fails to meet the criteria or areas that could be improved.
-
-      # Output Format
-
-      Provide a detailed review score and reasoning for each reviewer.
-
-      # Notes
-
-      - Remain objective and avoid any biases or preconceived notions about the content.
-      - Break down each criterion into actionable items for coherent evaluation.
-      - If details in the text are lacking, use informed judgment to assign a score.
+      # Guidelines
+      - Maintain objectivity, avoiding biases or preconceived notions.
+      - Deconstruct each criterion into actionable components for a systematic evaluation.
+      - If the text lacks information, apply reasonable judgment to assign a score while clearly explaining the rationale.
       PROMPT
 
       DISCOVERING_REVIEWERS_PROMPT = <<~PROMPT
-      Identify reviewers based on the text and given criteria. List the best 3 titles or roles to review the text, ensuring they have subject matter expertise, can provide valuable insights, and offer a diverse but aligned perspective on the content.
+      Identify the top 3 suitable reviewer titles or roles based on the provided text and criteria. Selected reviewers must possess subject matter expertise, offer valuable insights, and ensure diverse yet aligned perspectives on the content.
 
-      # Steps
+      # Instructions
+      1. **Analyze the Text and Criteria**: Examine the content and criteria to identify relevant reviewer titles or roles.
+      2. **Determine Subject Matter Expertise**: Select reviewers with substantial knowledge or experience in the subject area.
+      3. **Evaluate Insight Contribution**: Prioritize titles or roles capable of providing meaningful and actionable feedback on the content.
+      4. **Incorporate Perspective Diversity**: Ensure the selection includes reviewers with varied but complementary viewpoints while maintaining alignment with the criteria.
 
-      1. **Discover Potential Reviewers**: Analyze the text and criteria to find relevant titles or roles.
-      2. **Evaluate Expertise**: Ensure reviewers have significant expertise in the subject matter.
-      3. **Assess Value**: Determine if reviewers can offer valuable insights on the content.
-      4. **Ensure Diverse Perspective**: Choose reviewers who bring different viewpoints but remain aligned with the scoring criteria.
-
-      # Output Format
-
-      Provide a structured list including:
-      - Top 3 Reviewer Titles/Roles
-      - Justification for each choice focusing on expertise and perspective diversity.
-
-      # Notes
-
-      - Reviewers must align with the content and criteria while providing insightful evaluations.
-      - Ensure selected reviewers can contribute to a comprehensive analysis of the text.
+      # Constraints
+      - Selected reviewers must align with the content’s subject matter and criteria.
+      - Include reasoning for how each choice supports a thorough and insightful review.
+      - Avoid redundant or overly similar titles/roles to maintain diversity.
       PROMPT
     end
   end

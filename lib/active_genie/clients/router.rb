@@ -1,23 +1,23 @@
 require_relative './openai'
 
-module ActiveGenie
-  class Requester    
+module ActiveGenie::Clients
+  class Router
     class << self
       def function_calling(messages, function, options = {})
         app_config = ActiveGenie.config_by_model(options[:model])
-        
-        provider = options[:provider] || app_config[:provider]
-        provider_sdk = PROVIDER_TO_SDK[provider&.to_sym&.downcase]
-        raise "Provider #{provider} not supported" unless provider_sdk
 
-        response = provider_sdk.function_calling(messages, function, options)
+        provider = options[:provider] || app_config[:provider]
+        client = PROVIDER_TO_CLIENT[provider&.downcase&.strip&.to_sym]
+        raise "Provider \"#{provider}\" not supported" unless client
+
+        response = client.function_calling(messages, function, options)
 
         clear_invalid_values(response)
       end
 
       private
 
-      PROVIDER_TO_SDK = {
+      PROVIDER_TO_CLIENT = {
         openai: Openai,
       }
 

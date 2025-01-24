@@ -1,5 +1,6 @@
 module ActiveGenie
-  autoload :DataExtractor, File.join(__dir__, 'active_genie/data_extractor/data_extractor')
+  autoload :DataExtractor, File.join(__dir__, 'active_genie/data_extractor')
+  autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
   autoload :Configuration, File.join(__dir__, 'active_genie/configuration')
 
   class << self
@@ -16,7 +17,7 @@ module ActiveGenie
     end
 
     def config_by_model(model)
-      config.values[model&.to_s] || config.values.values.first || {}
+      config.values[model&.to_s&.downcase&.strip] || config.values.values.first || {}
     end
   end
 end
