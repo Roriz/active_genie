@@ -84,7 +84,7 @@ Extracts structured data from text based on a schema.
 ### Parameters
 | Name | Type | Description | Required | Example | Default |
 | --- | --- | --- | --- | --- | --- |
-| `text` | `String` | The text to extract data from. Max 1000 chars. | Yes | "These Nike shoes are red" | - |
+| `text` | `String` | The text to extract data from | Yes | "These Nike shoes are red" | - |
 | `data_to_extract` | `Hash` | [JSON Schema object](https://json-schema.org/understanding-json-schema/reference/object) defining data structure | Yes | `{ category: { type: 'string', enum: ["shoes"] } }` | - |
 | `options` | `Hash` | Additional provider configuration options | No | `{ model: "gpt-4" }` | `{}` |
 

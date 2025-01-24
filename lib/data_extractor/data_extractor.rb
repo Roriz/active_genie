@@ -11,7 +11,7 @@ module ActiveGenie
       def call(text, data_to_extract, options: {})
         messages = [
           {  role: 'system', content: PROMPT },
-          {  role: 'user', content: text[0..1000] }
+          {  role: 'user', content: text }
         ]
         function = {
           name: 'data_extractor',
