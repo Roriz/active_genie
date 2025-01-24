@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
     "rubygems_mfa_required" => "true"
   }
 
-  spec.files         = Dir["{lib,ext}/**/*", "VERSION", "README.md", "LICENSE", "CHANGELOG.md"]
+  spec.files         = Dir["lib/**/*", "VERSION", "README.md", "LICENSE", "CHANGELOG.md"]
   spec.require_paths = ["lib"]
 
   spec.homepage      = "https://github.com/Roriz/active_genie"

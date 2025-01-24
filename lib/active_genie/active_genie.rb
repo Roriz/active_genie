@@ -1,5 +1,5 @@
 module ActiveGenie
-  autoload :DataExtractor, File.join(__dir__, 'data_extractor/data_extractor')
+  autoload :DataExtractor, File.join(__dir__, 'active_genie/data_extractor/data_extractor')
   autoload :Configuration, File.join(__dir__, 'active_genie/configuration')
 
   class << self

@@ -68,6 +68,7 @@ module ActiveGenie
           schema: {
             type: "object",
             properties: {
+              reasoning: { type: 'string' },
               reviewer1: { type: 'string' },
               reviewer2: { type: 'string' },
               reviewer3: { type: 'string' },
