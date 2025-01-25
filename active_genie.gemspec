@@ -4,15 +4,8 @@ Gem::Specification.new do |spec|
   spec.platform      = Gem::Platform::RUBY
   spec.name          = "active_genie"
   spec.version       = version
-  spec.summary       = "Modules and classes to help you build AI features, like data extraction, summarization, scoring, and ranking."
-  spec.description   = <<-DESC
-    ActiveGenie provides a robust toolkit for integrating AI capabilities into Ruby applications.
-    Features include:
-    * Structured data extraction from text
-    * Smart text summarization
-    * Content scoring and ranking
-    * AI-powered classification
-  DESC
+  spec.summary       = "Transform your Ruby application with powerful, production-ready GenAI features"
+  spec.description   = File.read(File.expand_path("README.md", __dir__))
   spec.authors       = ["Radamés Roriz"]
   spec.email         = ["radames@roriz.dev"]
 
