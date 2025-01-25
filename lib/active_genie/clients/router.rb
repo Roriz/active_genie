@@ -3,14 +3,14 @@ require_relative './openai'
 module ActiveGenie::Clients
   class Router
     class << self
-      def function_calling(messages, function, options = {})
+      def function_calling(messages, function, options: {})
         app_config = ActiveGenie.config_by_model(options[:model])
 
         provider = options[:provider] || app_config[:provider]
         client = PROVIDER_TO_CLIENT[provider&.downcase&.strip&.to_sym]
         raise "Provider \"#{provider}\" not supported" unless client
 
-        response = client.function_calling(messages, function, options)
+        response = client.function_calling(messages, function, options:)
 
         clear_invalid_values(response)
       end
