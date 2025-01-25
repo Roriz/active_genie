@@ -22,7 +22,6 @@ Gem::Specification.new do |spec|
     "homepage_uri"      => "https://github.com/Roriz/active_genie",
     "documentation_uri" => "https://github.com/Roriz/active_genie/wiki",
     "changelog_uri"     => "https://github.com/Roriz/active_genie/blob/master/CHANGELOG.md",
-    "source_code_uri"   => "https://github.com/Roriz/active_genie",
     "bug_tracker_uri"   => "https://github.com/Roriz/active_genie/issues",
     "rubygems_mfa_required" => "true"
   }

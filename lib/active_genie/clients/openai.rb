@@ -1,10 +1,10 @@
 require 'json'
 require 'net/http'
 
-module ActiveGenie
+module ActiveGenie::Clients
   class Openai
     class << self
-      def function_calling(messages, function, options)
+      def function_calling(messages, function, options: {})
         app_config = ActiveGenie.config_by_model(options[:model])
 
         model = options[:model] || app_config[:model]
@@ -48,7 +48,6 @@ module ActiveGenie
 
     end
     
-      
     API_URL = 'https://api.openai.com/v1/chat/completions'.freeze
     DEFAULT_HEADERS = {
       'Content-Type': 'application/json',
