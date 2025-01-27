@@ -6,12 +6,12 @@ module ActiveGenie
   module Scoring
     module_function
 
-    def basic(text, criteria, reviewers = [], options: {})
-      Basic.call(text, criteria, reviewers, options:)
+    def basic(*args)
+      Basic.call(*args)
     end
 
-    def recommended_reviews(text, criteria, options: {})
-      RecommendedReviews.call(text, criteria, options:)
+    def recommended_reviews(*args)
+      RecommendedReviews.call(*args)
     end
   end
 end

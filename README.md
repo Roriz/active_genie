@@ -111,6 +111,34 @@ Features:
 
 See the [Scoring README](lib/active_genie/scoring/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
 
+### Battle
+AI-powered battle evaluation system that determines winners between two players based on specified criteria.
+
+```ruby
+require 'active_genie'
+
+player_a = "Implementation uses dependency injection for better testability"
+player_b = "Code has high test coverage but tightly coupled components"
+criteria = "Evaluate code quality and maintainability"
+
+result = ActiveGenie::Battle::Basic.call(player_a, player_b, criteria)
+# => {
+#      winner_player: "Implementation uses dependency injection for better testability",
+#      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection, 
+#                 which allows for easier testing and component replacement. While Player B has good test coverage, 
+#                 the tight coupling makes the code harder to maintain and modify.",
+#      what_could_be_changed_to_avoid_draw: "Focus on specific architectural patterns and design principles"
+#    }
+```
+
+Features:
+- Multi-reviewer evaluation with automatic expert selection
+- Detailed feedback with scoring reasoning
+- Customizable reviewer weights
+- Flexible evaluation criteria
+
+See the [Battle README](lib/active_genie/battle/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
+
 ### Summarizer (WIP)
 The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.
 

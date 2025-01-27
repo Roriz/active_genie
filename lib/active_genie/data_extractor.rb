@@ -6,12 +6,12 @@ module ActiveGenie
   module DataExtractor
     module_function
 
-    def basic(text, data_to_extract, options: {})
-      Basic.call(text, data_to_extract, options:)
+    def basic(*args)
+      Basic.call(*args)
     end
 
-    def from_informal(text, data_to_extract, options: {})
-      FromInformal.call(text, data_to_extract, options:)
+    def from_informal(*args)
+      FromInformal.call(*args)
     end
   end
 end
