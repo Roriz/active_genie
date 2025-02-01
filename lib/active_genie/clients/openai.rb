@@ -28,7 +28,9 @@ module ActiveGenie::Clients
 
         response = request(payload, headers)
 
-        JSON.parse(response.dig('choices', 0, 'message', 'content'))
+        parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'content'))
+        
+        parsed_response.dig('properties') || parsed_response
       rescue JSON::ParserError
         nil
       end

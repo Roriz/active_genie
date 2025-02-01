@@ -17,12 +17,6 @@ module ActiveGenie::Scoring
   #   Basic.call("Sample text", "Evaluate technical accuracy")
   #
   class Basic
-    def self.call(text, criteria, reviewers = [], options: {})
-      new(text, criteria, reviewers, options:).call
-    end
-
-    # Initializes a new scoring evaluation instance
-    #
     # @param text [String] The text content to be evaluated
     # @param criteria [String] The evaluation criteria or rubric to assess against
     # @param reviewers [Array<String>] Optional list of specific reviewers. If empty,
@@ -30,6 +24,13 @@ module ActiveGenie::Scoring
     # @param options [Hash] Additional configuration options that modify the scoring behavior
     # @option options [Boolean] :detailed_feedback Request more detailed feedback in the reasoning
     # @option options [Hash] :reviewer_weights Custom weights for different reviewers
+    # @return [Hash] The evaluation result containing the scores and reasoning
+    #   @return [Number] :final_score The final score of the text based on the criteria and reviewers
+    #   @return [String] :final_reasoning Detailed explanation of why the final score was reached
+    def self.call(text, criteria, reviewers = [], options: {})
+      new(text, criteria, reviewers, options:).call
+    end
+
     def initialize(text, criteria, reviewers = [], options: {})
       @text = text
       @criteria = criteria
