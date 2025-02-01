@@ -23,7 +23,7 @@ module ActiveGenie::Battle
     # @param criteria [String] The evaluation criteria or rules to assess against
     # @param options [Hash] Additional configuration options that modify the battle evaluation behavior
     # @return [Hash] The evaluation result containing the winner and reasoning
-    #   @return [String] :winner_player The @param player_a or player_b
+    #   @return [String] :winner The @param player_a or player_b
     #   @return [String] :reasoning Detailed explanation of why the winner was chosen
     #   @return [String] :what_could_be_changed_to_avoid_draw A suggestion on how to avoid a draw
     def initialize(player_a, player_b, criteria, options: {})
@@ -31,6 +31,7 @@ module ActiveGenie::Battle
       @player_b = player_b
       @criteria = criteria
       @options = options
+      @response = nil
     end
 
     def call
@@ -41,12 +42,9 @@ module ActiveGenie::Battle
         {  role: 'user', content: "player_b: #{player_content(@player_b)}" },
       ]
 
-      response = ::ActiveGenie::Clients::Router.function_calling(messages, FUNCTION, options: @options)
+      @response = ::ActiveGenie::Clients::Router.function_calling(messages, FUNCTION, options: @options)
 
-      response['winner_player'] = @player_a if response['winner_player'] == 'player_a'
-      response['winner_player'] = @player_b if response['winner_player'] == 'player_b'
-
-      response
+      response_formatted
     end
 
     private
@@ -55,6 +53,21 @@ module ActiveGenie::Battle
       return player.dig('content') if player.is_a?(Hash)
 
       player
+    end
+
+    def response_formatted
+      if @response['winner'] == 'player_a'
+        @response['winner'] = @player_a
+        @response['loser'] = @player_b
+      elsif @response['winner'] == 'player_b'
+        @response['winner'] = @player_b
+        @response['loser'] = @player_a
+      else
+        @response['winner'] = nil
+        @response['loser'] = nil
+      end
+
+      @response
     end
 
     PROMPT = <<~PROMPT
@@ -72,12 +85,12 @@ module ActiveGenie::Battle
     # Examples
     - **Example 1**:
       - Input: Player A uses keyword X, follows rule Y, Player B uses keyword Z, breaks rule Y.
-      - Output: winner_player: player_a
+      - Output: winner: player_a
         - Justification: Player A successfully used keyword X and followed rule Y, whereas Player B broke rule Y.
 
     - **Example 2**:
       - Input: Player A matches pattern P, Player B matches pattern P, uses keyword Q.
-      - Output: winner_player: player_b
+      - Output: winner: player_b
         - Justification: Both matched pattern P, but Player B also used keyword Q, meeting more criteria.
 
     # Notes
@@ -92,7 +105,7 @@ module ActiveGenie::Battle
       schema: {
         type: "object",
         properties: {
-          winner_player: {
+          winner: {
             type: 'string',
             description: 'The player who won the battle based on the criteria.',
             enum: ['player_a', 'player_b', 'draw']

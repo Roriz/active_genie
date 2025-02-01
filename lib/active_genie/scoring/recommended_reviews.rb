@@ -55,7 +55,7 @@ module ActiveGenie::Scoring
         }
       }
 
-      ::ActiveGenie::Clients::Router.function_calling(messages, function, options:)
+      ::ActiveGenie::Clients::Router.function_calling(messages, function, options: @options)
     end
 
     private
