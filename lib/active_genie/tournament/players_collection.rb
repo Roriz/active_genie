@@ -10,14 +10,11 @@ module ActiveGenie::EloRanking
     attr_reader :players
 
     def coefficient_of_variation
-      avg = elo_list.sum / elo_list.size
-      stdev = ActiveGenie::Utils::Math.standard_deviation(elo_list)
+      score_list = eligible.map(&:score)
+      avg = score_list.sum / score_list.size
+      stdev = ActiveGenie::Utils::Math.standard_deviation(score_list)
 
       avg / stdev
-    end
-
-    def percentile(percent)
-      ActiveGenie::Utils::Math.percentile(elo_list, percent)
     end
 
     def tier_relegation
@@ -36,33 +33,18 @@ module ActiveGenie::EloRanking
       @players.reject(&:eliminated).size
     end
 
-    def method_missing(...)
-      @players.send(...)
+    def to_h
+      @players.sort_by(&:elo).reverse.map(&:to_h)
     end
 
-    def battle!(player_a, player_b, criteria, options: {})
-      battle_result = ActiveGenie::Battle.basic(player_a, player_b, criteria, options: options)
-      winner, loser = battle_result.values_at('winner', 'loser')
-      puts battle_result
-
-      return battle_result if winner.nil? || loser.nil?
-
-      new_elo = ActiveGenie::Utils::Math.calculate_new_elo(winner.elo, loser.elo)
-      puts "Battle #{player_a.content} (#{player_a.elo}) vs #{player_b.content} (#{player_b.elo}) = #{winner.content} (#{new_elo[0]})"
-      winner.elo = new_elo[0]
-      loser.elo = new_elo[1] - (options[:penalty] || 0)
-
-      battle_result
+    def method_missing(...)
+      @players.send(...)
     end
 
     private
 
     def build(param_players)
       param_players.map { |player| Player.new(player) }
-    end
-
-    def elo_list
-      @players.map(&:elo)
     end
 
     # Returns the number of players to battle in each round

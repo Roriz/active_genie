@@ -14,31 +14,31 @@ module ActiveGenie::EloRanking
     end
 
     attr_reader :id, :content, :score, :elo, :eliminated
-    attr_writer :elo
 
-    def generate_score(criteria, reviewers, options:)
-      return if !@score.nil?
+    def generate_elo_by_score
+      return if !@elo.nil? || @score.nil?
 
-      @score = ActiveGenie::Scoring::Basic.call(
-        @content,
-        criteria,
-        reviewers,
-        options:
-      )['final_score']
-    end
-
-    def generate_elo(base)
-      return if !@elo.nil?
-
-      @elo = base + (@score - 50)
+      @elo = BASE_ELO + (@score - 50)
     end
 
     def eliminate!
       @eliminated = true
     end
 
+    def score=(value)
+      @score = value
+    end
+
+    def elo=(value)
+      @elo = value
+    end
+
     def to_h
       { id:, content:, score:, elo:, eliminated: }
     end
+
+    private
+    
+    BASE_ELO = 1000
   end
 end
