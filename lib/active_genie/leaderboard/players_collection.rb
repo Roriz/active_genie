@@ -1,8 +1,7 @@
-require_relative '../battle/basic'
 require_relative '../utils/math'
 require_relative './player'
 
-module ActiveGenie::EloRanking
+module ActiveGenie::Leaderboard
   class PlayersCollection
     def initialize(param_players)
       @players = build(param_players)
@@ -11,10 +10,13 @@ module ActiveGenie::EloRanking
 
     def coefficient_of_variation
       score_list = eligible.map(&:score)
-      avg = score_list.sum / score_list.size
-      stdev = ActiveGenie::Utils::Math.standard_deviation(score_list)
+      mean = score_list.sum.to_f / score_list.size
+      return nil if mean == 0  # To avoid division by zero
 
-      avg / stdev
+      variance = score_list.map { |num| (num - mean) ** 2 }.sum / score_list.size
+      standard_deviation = Math.sqrt(variance)
+
+      (standard_deviation / mean) * 100
     end
 
     def tier_relegation
@@ -26,7 +28,7 @@ module ActiveGenie::EloRanking
     end
 
     def eligible
-      @players.reject(&:eliminated).sort_by(&:elo)
+      sorted.reject(&:eliminated)
     end
 
     def eligible_size
@@ -34,11 +36,15 @@ module ActiveGenie::EloRanking
     end
 
     def to_h
-      @players.sort_by(&:elo).reverse.map(&:to_h)
+      sorted.map(&:to_h)
     end
 
     def method_missing(...)
       @players.send(...)
+    end
+
+    def sorted
+      @players.sort_by { |p| [-p.league_score, -(p.elo || 0), -p.score] }
     end
 
     private
@@ -56,7 +62,7 @@ module ActiveGenie::EloRanking
     #   - 14 eligible, tier_size: 4
     #  4 rounds to reach top 10 with 50 players
     def tier_size
-      [[(eligible_size / 3).round, 10].max, eligible_size - 9].min
+      [[(eligible_size / 3).ceil, 10].max, eligible_size - 10].min
     end
   end
 end

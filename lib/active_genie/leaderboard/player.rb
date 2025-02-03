@@ -1,7 +1,6 @@
 require 'securerandom'
-require_relative '../scoring/basic'
 
-module ActiveGenie::EloRanking
+module ActiveGenie::Leaderboard
   class Player
     def initialize(params)
       params = { content: params } if params.is_a?(String)
@@ -10,19 +9,20 @@ module ActiveGenie::EloRanking
       @content = params.dig(:content) || params
       @score = params.dig(:score) || nil
       @elo = params.dig(:elo) || nil
-      @eliminated = params.dig(:eliminated) || false
+      @league = {
+        win: params.dig(:league, :win) || 0,
+        lose: params.dig(:league, :lose) || 0,
+        draw: params.dig(:league, :draw) || 0
+      }
+      @eliminated = params.dig(:eliminated) || nil
     end
 
-    attr_reader :id, :content, :score, :elo, :eliminated
+    attr_reader :id, :content, :score, :elo, :league, :eliminated
 
     def generate_elo_by_score
       return if !@elo.nil? || @score.nil?
 
       @elo = BASE_ELO + (@score - 50)
-    end
-
-    def eliminate!
-      @eliminated = true
     end
 
     def score=(value)
@@ -33,8 +33,16 @@ module ActiveGenie::EloRanking
       @elo = value
     end
 
+    def eliminated=(value)
+      @eliminated = value
+    end
+
+    def league_score
+      @league[:win] * 3 + @league[:draw]
+    end
+
     def to_h
-      { id:, content:, score:, elo:, eliminated: }
+      { id:, content:, score:, elo:, eliminated:, league: }
     end
 
     private

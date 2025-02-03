@@ -1,8 +1,10 @@
 require_relative './players_collection'
+require_relative './league'
+require_relative './elo_ranking'
 require_relative '../scoring/recommended_reviews'
 
-module ActiveGenie::EloRanking
-  class Tournament
+module ActiveGenie::Leaderboard
+  class Leaderboard
     def self.call(param_players, criteria, options: {})
       new(param_players, criteria, options:).call
     end
@@ -16,19 +18,19 @@ module ActiveGenie::EloRanking
     def call
       set_initial_score_players
       eliminate_obvious_bad_players
-      run_elo_ranking if @players.eligible_size > 10
+      run_elo_ranking if players.eligible_size > 10
       run_league
 
-      @players.to_h
+      players.to_h
     end
 
     private
 
-    HIGH_ELO_VARIATION_THRESHOLD = 0.3
+    SCORE_VARIATION_THRESHOLD = 10
     MATCHS_PER_PLAYER = 3
 
     def set_initial_score_players
-      @players.each do |player|
+      players.each do |player|
         player.score = generate_score(player.content) # This can take a while, can be parallelized
       end
     end
@@ -38,17 +40,17 @@ module ActiveGenie::EloRanking
     end
 
     def eliminate_obvious_bad_players
-      while @players.coefficient_of_variation >= HIGH_ELO_VARIATION_THRESHOLD
-        @players.eligible.last.eliminate!
+      while players.coefficient_of_variation >= SCORE_VARIATION_THRESHOLD
+        players.eligible.last.eliminated = 'too_low_score'
       end
     end
 
     def run_elo_ranking
-      EloRanking.call(@players, @criteria, options: @options)
+      EloRanking.call(players, @criteria, options: @options)
     end
 
     def run_league
-      League.call(@players, @criteria, options: @options)
+      League.call(players, @criteria, options: @options)
     end
 
     def reviewers
@@ -57,7 +59,7 @@ module ActiveGenie::EloRanking
 
     def recommended_reviews
       @recommended_reviews ||= ActiveGenie::Scoring::RecommendedReviews.call(
-        @players.sample,
+        players.sample,
         @criteria,
         options: @options
       )

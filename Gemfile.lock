@@ -38,7 +38,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  debug (>= 1.0.0)
+  debug (>= 1.10.0)
   rake
   rspec
 

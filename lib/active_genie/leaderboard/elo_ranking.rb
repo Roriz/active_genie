@@ -1,4 +1,7 @@
-module ActiveGenie::Tournament
+require_relative '../battle/basic'
+require_relative '../utils/math'
+
+module ActiveGenie::Leaderboard
   class EloRanking
     def self.call(players, criteria, options: {})
       new(players, criteria, options:).call
@@ -21,7 +24,7 @@ module ActiveGenie::Tournament
           update_elo(winner, loser)
         end
 
-        @players.tier_relegation.each(&:eliminate!)
+        @players.tier_relegation.each { |player| player.eliminated = "relegation/#{@players.eligible_size}" }
       end
 
       @players
