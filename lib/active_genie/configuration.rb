@@ -5,7 +5,7 @@ module ActiveGenie
     attr_accessor :path_to_config
 
     def initialize
-      @path_to_config = File.join(__dir__, 'config', 'gen_ai.yml')
+      @path_to_config = File.join('config', 'active_genie.yml')
     end
 
     def values
@@ -23,7 +23,8 @@ module ActiveGenie
     def load_values
       return {} unless File.exist?(@path_to_config)
 
-      YAML.load_file(@path_to_config) || {}
+      yaml_content = ERB.new(File.read(@path_to_config)).result
+      YAML.safe_load(yaml_content, aliases: true) || {}
     rescue Psych::SyntaxError => e
       warn "ActiveGenie.warning: Config file '#{@path_to_config}' is not a valid YAML file (#{e.message}), using default configuration"
       {}

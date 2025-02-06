@@ -27,7 +27,7 @@ module ActiveGenie
       config.values[key.to_s]
     end
 
-    def config_by_model(model)
+    def config_by_model(model = nil)
       config.values[model&.to_s&.downcase&.strip] || config.values.values.first || {}
     end
   end
