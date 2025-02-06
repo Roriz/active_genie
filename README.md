@@ -28,6 +28,7 @@ bundle install
 
 3. Generate the configuration:
 ```shell
+echo "ActiveGenie.load_tasks" >> Rakefile
 rails g active_genie:install
 ```
 

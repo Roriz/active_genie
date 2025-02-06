@@ -7,15 +7,22 @@ module ActiveGenie
   autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
   autoload :Leaderboard, File.join(__dir__, 'active_genie/leaderboard')
 
-  class << self
+  class << self    
+    def configure
+      yield(config) if block_given?
+    end
+
+    def load_tasks
+      return unless defined?(Rake)
+
+      Rake::Task.define_task(:environment)
+      Dir.glob(File.join(__dir__, 'tasks', '*.rake')).each { |r| load r }
+    end
+
     def config
       @config ||= Configuration.new
     end
 
-    def configure
-      yield(config) if block_given?
-    end
-    
     def [](key)
       config.values[key.to_s]
     end
