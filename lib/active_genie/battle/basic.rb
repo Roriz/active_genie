@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../clients/router'
+require_relative '../client'
 
 module ActiveGenie::Battle
   # The Basic class provides a foundation for evaluating battles between two players
@@ -42,7 +42,7 @@ module ActiveGenie::Battle
         {  role: 'user', content: "player_b: #{player_content(@player_b)}" },
       ]
 
-      @response = ::ActiveGenie::Clients::Router.function_calling(messages, FUNCTION, options: @options)
+      @response = ::ActiveGenie::Client.function_calling(messages, FUNCTION, options:)
 
       response_formatted
     end
@@ -56,18 +56,16 @@ module ActiveGenie::Battle
     end
 
     def response_formatted
-      if @response['winner'] == 'player_a'
-        @response['winner'] = @player_a
-        @response['loser'] = @player_b
-      elsif @response['winner'] == 'player_b'
-        @response['winner'] = @player_b
-        @response['loser'] = @player_a
-      else
-        @response['winner'] = nil
-        @response['loser'] = nil
-      end
+      winner = case @response['winner']
+               when 'player_a' then @player_a
+               when 'player_b' then @player_b
+               end
 
-      @response
+      @response.merge!('winner' => winner, 'loser' => winner ? (winner == @player_a ? @player_b : @player_a) : nil)
+    end
+
+    def options
+      { model_tier: 'lower_tier', **@options }
     end
 
     PROMPT = <<~PROMPT

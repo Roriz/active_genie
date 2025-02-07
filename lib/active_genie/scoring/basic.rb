@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../clients/router'
+require_relative '../client'
 
 module ActiveGenie::Scoring
   # The Basic class provides a foundation for scoring text content against specified criteria
@@ -78,7 +78,7 @@ module ActiveGenie::Scoring
         }
       }
 
-      ::ActiveGenie::Clients::Router.function_calling(messages, function, options: @options)
+      ::ActiveGenie::Client.function_calling(messages, function, options:)
     end
 
     private
@@ -87,10 +87,14 @@ module ActiveGenie::Scoring
       @get_or_recommend_reviewers ||= if @reviewers.count > 0 
         @reviewers
       else
-        recommended_reviews = RecommendedReviews.call(@text, @criteria, options: @options)
+        recommended_reviews = RecommendedReviews.call(@text, @criteria, options:)
 
         [recommended_reviews[:reviewer1], recommended_reviews[:reviewer2], recommended_reviews[:reviewer3]]
       end
+    end
+
+    def options
+      { model_tier: 'lower_tier', **@options }
     end
 
     PROMPT = <<~PROMPT

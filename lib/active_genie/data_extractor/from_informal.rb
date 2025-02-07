@@ -30,10 +30,10 @@ module ActiveGenie::DataExtractor
     end
 
     def call
-      response = Basic.call(@text, data_to_extract_with_litote, options: @options)
+      response = Basic.call(@text, data_to_extract_with_litote, options:)
 
       if response['message_litote']
-        response = Basic.call(response['litote_rephrased'], @data_to_extract, options: @options)
+        response = Basic.call(response['litote_rephrased'], @data_to_extract, options:)
       end
 
       response
@@ -53,6 +53,9 @@ module ActiveGenie::DataExtractor
           description: 'The true meaning of the litote. Rephrase the message to a positive and active statement.'
         }
       }
+    end
+    def options
+      { model_tier: 'lower_tier', **@options }
     end
   end
 end
