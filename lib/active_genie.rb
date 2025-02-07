@@ -1,5 +1,5 @@
 module ActiveGenie
-  autoload :Configuration, File.join(__dir__, 'active_genie/configuration')
+  autoload :Providers, File.join(__dir__, 'active_genie/providers')
 
   # Modules
   autoload :DataExtractor, File.join(__dir__, 'active_genie/data_extractor')
@@ -7,9 +7,14 @@ module ActiveGenie
   autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
   autoload :Leaderboard, File.join(__dir__, 'active_genie/leaderboard')
 
-  class << self    
+  class << self
     def configure
-      yield(config) if block_given?
+      providers.register_internal_providers
+      yield(providers) if block_given?
+    end
+
+    def providers
+      @providers ||= Providers
     end
 
     def load_tasks
@@ -17,18 +22,6 @@ module ActiveGenie
 
       Rake::Task.define_task(:environment)
       Dir.glob(File.join(__dir__, 'tasks', '*.rake')).each { |r| load r }
-    end
-
-    def config
-      @config ||= Configuration.new
-    end
-
-    def [](key)
-      config.values[key.to_s]
-    end
-
-    def config_by_model(model = nil)
-      config.values[model&.to_s&.downcase&.strip] || config.values.values.first || {}
     end
   end
 end

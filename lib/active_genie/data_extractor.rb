@@ -2,7 +2,7 @@ require_relative 'data_extractor/basic'
 require_relative 'data_extractor/from_informal'
 
 module ActiveGenie
-  # Extract structured data from text using AI-powered analysis, handling informal language and complex expressions.
+  # See the [DataExtractor README](lib/active_genie/data_extractor/README.md) for more information.
   module DataExtractor
     module_function
 

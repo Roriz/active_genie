@@ -1,4 +1,4 @@
-require_relative '../clients/router.rb'
+require_relative '../client'
 
 module ActiveGenie::DataExtractor
   class Basic
@@ -47,7 +47,7 @@ module ActiveGenie::DataExtractor
         }
       }
 
-      ::ActiveGenie::Clients::Router.function_calling(messages, function, options: @options)
+      ::ActiveGenie::Client.function_calling(messages, function, options:)
     end
 
     private
@@ -83,6 +83,10 @@ module ActiveGenie::DataExtractor
       end
       
       with_explaination
+    end
+
+    def options
+      { model_tier: 'lower_tier', **@options }
     end
   end
 end

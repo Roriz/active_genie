@@ -10,9 +10,7 @@ ActiveGenie is a Ruby gem that provides a polished, production-ready interface f
 
 - 🎯 **Data Extraction**: Extract structured data from unstructured text with type validation
 - 📊 **Smart Scoring**: Multi-reviewer evaluation system with automatic expert selection
-- 💭 **Sentiment Analysis**: Advanced sentiment analysis with customizable rules
-- 🔒 **Safe & Secure**: Built-in validation and sanitization
-- 🛠️ **Configurable**: Supports multiple GenAI providers and models
+- 💭 **Leaderboard**: Consistent rank items based on custom criteria, using multiple tecniques of ranking
 
 ## Installation
 
@@ -32,18 +30,12 @@ echo "ActiveGenie.load_tasks" >> Rakefile
 rails g active_genie:install
 ```
 
-4. [Optional] Configure your credentials in `config/active_genie.yml`:
-```yaml
-GPT-4o-mini:
-  api_key: <%= ENV['OPENAI_API_KEY'] %>
-  provider: "openai"
-
-claude-3-5-sonnet:
-  api_key: <%= ENV['ANTHROPIC_API_KEY'] %>
-  provider: "anthropic"
+4. Configure your credentials in `config/initializers/active_genie.rb`:
+```ruby
+ActiveGenie.configure do |config|
+  config.openai.api_key = ENV['OPENAI_API_KEY']
+end
 ```
-
-> The first key will be used as default in all modules, in this example `GPT-4o-mini`
 
 ## Quick Start
 
@@ -184,7 +176,7 @@ sentiment = ActiveGenie::SentimentAnalyzer.call(text)
 puts sentiment # => "positive"
 ```
 
-### Elo ranking (WIP)
+### Leaderboard
 The Elo ranking is a tool that can be used to rank a set of items. It uses a set of rules to rank the items out of the box. Uses the best practices of prompt engineering and engineering to make the ranking as accurate as possible.
 
 ```ruby

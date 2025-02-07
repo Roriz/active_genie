@@ -2,7 +2,7 @@ require_relative 'scoring/basic'
 require_relative 'scoring/recommended_reviews'
 
 module ActiveGenie
-  # Text evaluation system that provides detailed scoring and feedback using multiple expert reviewers
+  # See the [Scoring README](lib/active_genie/scoring/README.md) for more information.
   module Scoring
     module_function
 

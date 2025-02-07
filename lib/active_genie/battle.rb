@@ -2,7 +2,7 @@
 require_relative 'battle/basic'
 
 module ActiveGenie
-  # Battle module
+  # See the [Battle README](lib/active_genie/battle/README.md) for more information.
   module Battle
     module_function
 
