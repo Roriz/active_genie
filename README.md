@@ -86,7 +86,7 @@ Text evaluation system that provides detailed scoring and feedback using multipl
 text = "The code implements a binary search algorithm with O(log n) complexity"
 criteria = "Evaluate technical accuracy and clarity"
 
-result = ActiveGenie::Scoring::Basic.call(text, criteria)
+result = ActiveGenie::Scoring.basic(text, criteria)
 # => {
 #      algorithm_expert_score: 95,
 #      algorithm_expert_reasoning: "Accurately describes binary search and its complexity",
@@ -114,7 +114,7 @@ player_a = "Implementation uses dependency injection for better testability"
 player_b = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
-result = ActiveGenie::Battle::Basic.call(player_a, player_b, criteria)
+result = ActiveGenie::Battle.call(player_a, player_b, criteria)
 # => {
 #      winner_player: "Implementation uses dependency injection for better testability",
 #      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection, 
@@ -131,6 +131,29 @@ Features:
 - Flexible evaluation criteria
 
 See the [Battle README](lib/active_genie/battle/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
+
+### League
+The League module provides competitive ranking through multi-stage evaluation:
+
+
+```ruby
+require 'active_genie'
+
+players = ['REST API', 'GraphQL API', 'SOAP API', 'gRPC API', 'Websocket API']
+criteria = "Best one to be used into a high changing environment"
+
+result = ActiveGenie::League.call(players, criteria)
+# => {
+#      winner_player: "gRPC API",
+#      reasoning: "gRPC API is the best one to be used into a high changing environment",
+#    }
+```
+
+- **Multi-phase ranking system** combining expert scoring and ELO algorithms
+- **Automatic elimination** of inconsistent performers using statistical analysis
+- **Dynamic ranking adjustments** based on simulated pairwise battles, from bottom to top
+
+See the [League README](lib/active_genie/league/README.md) for implementation details, configuration options, and advanced ranking strategies.
 
 ### Summarizer (WIP)
 The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.
@@ -176,19 +199,6 @@ sentiment = ActiveGenie::SentimentAnalyzer.call(text)
 puts sentiment # => "positive"
 ```
 
-### Leaderboard
-The Elo ranking is a tool that can be used to rank a set of items. It uses a set of rules to rank the items out of the box. Uses the best practices of prompt engineering and engineering to make the ranking as accurate as possible.
-
-```ruby
-require 'active_genie'
-
-items = ['Square', 'Circle', 'Triangle']
-criterias = 'items that look rounded'
-ranked_items = ActiveGenie::EloRanking.call(items, criterias, rounds: 10)
-puts ranked_items # => [{ name: "Circle", score: 1500 }, { name: "Square", score: 800 }, { name: "Triangle", score: 800 }]
-```
-
-
 ## Configuration Options
 
 | Option | Description | Default |
@@ -211,4 +221,3 @@ puts ranked_items # => [{ name: "Circle", score: 1500 }, { name: "Square", score
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-

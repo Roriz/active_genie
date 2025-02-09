@@ -9,15 +9,15 @@ module ActiveGenie::Leaderboard
       @content = params.dig(:content) || params
       @score = params.dig(:score) || nil
       @elo = params.dig(:elo) || nil
-      @league = {
-        win: params.dig(:league, :win) || 0,
-        lose: params.dig(:league, :lose) || 0,
-        draw: params.dig(:league, :draw) || 0
+      @free_for_all = {
+        win: params.dig(:free_for_all, :win) || 0,
+        lose: params.dig(:free_for_all, :lose) || 0,
+        draw: params.dig(:free_for_all, :draw) || 0
       }
       @eliminated = params.dig(:eliminated) || nil
     end
 
-    attr_reader :id, :content, :score, :elo, :league, :eliminated
+    attr_reader :id, :content, :score, :elo, :free_for_all, :eliminated
 
     def generate_elo_by_score
       return if !@elo.nil? || @score.nil?
@@ -37,12 +37,15 @@ module ActiveGenie::Leaderboard
       @eliminated = value
     end
 
-    def league_score
-      @league[:win] * 3 + @league[:draw]
+    def free_for_all_score
+      @free_for_all[:win] * 3 + @free_for_all[:draw]
     end
 
     def to_h
-      { id:, content:, score:, elo:, eliminated:, league: }
+      {
+        id:, content:, score:, elo:,
+        eliminated:, free_for_all:, free_for_all_score:
+      }
     end
 
     private

@@ -1,7 +1,7 @@
 require_relative '../battle/basic'
 
 module ActiveGenie::Leaderboard
-  class League
+  class FreeForAll
     def self.call(players, criteria, options: {})
       new(players, criteria, options:).call
     end
@@ -17,11 +17,11 @@ module ActiveGenie::Leaderboard
         winner, loser = battle(player_a, player_b)
 
         if winner.nil? || loser.nil?
-          player_a.league[:draw] += 1
-          player_b.league[:draw] += 1
+          player_a.free_for_all[:draw] += 1
+          player_b.free_for_all[:draw] += 1
         else
-          winner.league[:win] += 1
-          loser.league[:lose] += 1
+          winner.free_for_all[:win] += 1
+          loser.free_for_all[:lose] += 1
         end
       end
 
