@@ -1,10 +1,33 @@
 require_relative './players_collection'
-require_relative './league'
+require_relative './free_for_all'
 require_relative './elo_ranking'
 require_relative '../scoring/recommended_reviews'
 
-module ActiveGenie::Leaderboard
-  class Leaderboard
+# This class orchestrates player ranking through multiple evaluation stages
+# using Elo ranking and free-for-all match simulations.
+# 1. Sets initial scores
+# 2. Eliminates low performers
+# 3. Runs Elo ranking (for large groups)
+# 4. Conducts free-for-all matches
+#
+# @example Basic usage
+#   League.call(players, criteria)
+#
+# @param param_players [Array] Collection of player objects to evaluate
+#   Example: ["Circle", "Triangle", "Square"]
+#            or
+#   [
+#     { content: "Circle", score: 10 },
+#     { content: "Triangle", score: 7 },
+#     { content: "Square", score: 5 }
+#   ]
+# @param criteria [String] Evaluation criteria configuration
+#   Example: "What is more similar to the letter 'O'?"
+# @param options [Hash] Additional configuration options
+#   Example: { model: "gpt-4o", api_key: ENV['OPENAI_API_KEY'] }
+# @return [Hash] Final ranked player results
+module ActiveGenie::League
+  class League
     def self.call(param_players, criteria, options: {})
       new(param_players, criteria, options:).call
     end
@@ -19,15 +42,14 @@ module ActiveGenie::Leaderboard
       set_initial_score_players
       eliminate_obvious_bad_players
       run_elo_ranking if players.eligible_size > 10
-      run_league
+      run_free_for_all
 
       players.to_h
     end
 
-    private
-
     SCORE_VARIATION_THRESHOLD = 10
-    MATCHS_PER_PLAYER = 3
+
+    private
 
     def set_initial_score_players
       players.each do |player|
@@ -49,8 +71,8 @@ module ActiveGenie::Leaderboard
       EloRanking.call(players, @criteria, options: @options)
     end
 
-    def run_league
-      League.call(players, @criteria, options: @options)
+    def run_free_for_all
+      FreeForAll.call(players, @criteria, options: @options)
     end
 
     def reviewers
@@ -59,7 +81,7 @@ module ActiveGenie::Leaderboard
 
     def recommended_reviews
       @recommended_reviews ||= ActiveGenie::Scoring::RecommendedReviews.call(
-        players.sample,
+        [players.sample.content, players.sample.content].join("\n\n"),
         @criteria,
         options: @options
       )

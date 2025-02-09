@@ -1,5 +1,4 @@
 require_relative '../battle/basic'
-require_relative '../utils/math'
 
 module ActiveGenie::Leaderboard
   class EloRanking
@@ -35,6 +34,7 @@ module ActiveGenie::Leaderboard
     MATCHS_PER_PLAYER = 3
     LOSE_PENALTY = 15
     MINIMAL_PLAYERS_TO_BATTLE = 10
+    K = 32
 
     # Create a round of matches
     # each round is exactly 1 regation player vs 3 defense players for all regation players
@@ -71,7 +71,7 @@ module ActiveGenie::Leaderboard
     def update_elo(winner, loser)
       return if winner.nil? || loser.nil?
 
-      new_winner_elo, new_loser_elo = ActiveGenie::Utils::Math.calculate_new_elo(winner.elo, loser.elo)
+      new_winner_elo, new_loser_elo = calculate_new_elo(winner.elo, loser.elo)
 
       winner.elo = [new_winner_elo, max_defense_elo].min
       loser.elo = [new_loser_elo - LOSE_PENALTY, min_relegation_elo].max
@@ -83,6 +83,17 @@ module ActiveGenie::Leaderboard
 
     def min_relegation_elo
       @players.tier_relegation.min_by(&:elo).elo
+    end
+
+    # Read more about the formula on https://en.wikipedia.org/wiki/Elo_rating_system
+    def calculate_new_elo(winner_elo, loser_elo)
+      expected_score_a = 1 / (1 + 10**((loser_elo - winner_elo) / 400))
+      expected_score_b = 1 - expected_score_a
+
+      new_elo_winner = winner_elo + K * (1 - expected_score_a)
+      new_elo_loser = loser_elo + K * (1 - expected_score_b)
+
+      [new_elo_winner, new_elo_loser]
     end
   end
 end
