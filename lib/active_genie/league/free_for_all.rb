@@ -10,6 +10,7 @@ module ActiveGenie::Leaderboard
       @players = players
       @criteria = criteria
       @options = options
+      @start_time = Time.now
     end
 
     def call
@@ -23,6 +24,8 @@ module ActiveGenie::Leaderboard
           winner.free_for_all[:win] += 1
           loser.free_for_all[:lose] += 1
         end
+
+        ActiveGenie::Logger.info({**log, step: :free_for_all_battle, winner_id: winner&.id, player_a_id: player_a.id, player_a_free_for_all_score: player_a.free_for_all_score, player_b_id: player_b.id, player_b_free_for_all_score: player_b.free_for_all_score })
       end
 
       @players
@@ -37,12 +40,23 @@ module ActiveGenie::Leaderboard
     end
 
     def battle(player_a, player_b)
-      ActiveGenie::Battle.basic(
+      result = ActiveGenie::Battle.basic(
         player_a,
         player_b,
         @criteria,
-        options: @options
-      ).values_at('winner', 'loser')
+        options:
+      )
+
+
+      result.values_at('winner', 'loser')
+    end
+
+    def options
+      { **@options }
+    end
+
+    def log
+      { **(@options.dig(:log) || {}), duration: Time.now - @start_time }
     end
   end
 end

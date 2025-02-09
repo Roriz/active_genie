@@ -1,3 +1,5 @@
+require_relative 'active_genie/logger'
+
 module ActiveGenie
   autoload :Providers, File.join(__dir__, 'active_genie/providers')
 

@@ -64,10 +64,6 @@ module ActiveGenie::Battle
       @response.merge!('winner' => winner, 'loser' => winner ? (winner == @player_a ? @player_b : @player_a) : nil)
     end
 
-    def options
-      { model_tier: 'lower_tier', **@options }
-    end
-
     PROMPT = <<~PROMPT
     Evaluate a battle between player_a and player_b using predefined criteria and identify the winner.
 
@@ -119,5 +115,17 @@ module ActiveGenie::Battle
         }
       }
     }
+
+    def options
+      {
+        model_tier: 'lower_tier',
+        log: {
+          **(@options.dig(:log) || {}),
+          start_time: @options.dig(:start_time) || Time.now,
+          trace: self.class.name,
+        },
+        **@options
+      }
+    end
   end
 end
