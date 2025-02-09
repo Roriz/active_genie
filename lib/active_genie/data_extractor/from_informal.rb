@@ -54,8 +54,17 @@ module ActiveGenie::DataExtractor
         }
       }
     end
+
     def options
-      { model_tier: 'lower_tier', **@options }
+      {
+        model_tier: 'lower_tier',
+        log: {
+          **(@options.dig(:log) || {}),
+          start_time: @options.dig(:start_time) || Time.now,
+          trace: self.class.name,
+        },
+        **@options
+      }
     end
   end
 end

@@ -10,6 +10,7 @@ module ActiveGenie::Leaderboard
       @players = players
       @criteria = criteria
       @options = options
+      @start_time = Time.now
     end
 
     def call
@@ -21,9 +22,10 @@ module ActiveGenie::Leaderboard
         round.each do |player_a, player_b|
           winner, loser = battle(player_a, player_b) # This can take a while, can be parallelized
           update_elo(winner, loser)
+          ActiveGenie::Logger.info({ **log, step: :elo_battle, winner_id: winner.id, loser_id: loser.id, winner_elo: winner.elo, loser_elo: loser.elo })
         end
 
-        @players.tier_relegation.each { |player| player.eliminated = "relegation/#{@players.eligible_size}" }
+        eliminate_all_relegation_players
       end
 
       @players
@@ -64,7 +66,7 @@ module ActiveGenie::Leaderboard
         player_a,
         player_b,
         @criteria,
-        options: @options
+        options:
       ).values_at('winner', 'loser')
     end
 
@@ -94,6 +96,23 @@ module ActiveGenie::Leaderboard
       new_elo_loser = loser_elo + K * (1 - expected_score_b)
 
       [new_elo_winner, new_elo_loser]
+    end
+
+    def eliminate_all_relegation_players
+      eliminations = @players.tier_relegation.size
+      @players.tier_relegation.each { |player| player.eliminated = 'tier_relegation' }
+      ActiveGenie::Logger.info({ **log, step: :elo_round, eligible_size: @players.eligible_size, eliminations: })
+    end
+
+    def options
+      { **@options }
+    end
+
+    def log
+      {
+        **(@options.dig(:log) || {}),
+        duration: Time.now - @start_time
+      }
     end
   end
 end

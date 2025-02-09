@@ -20,9 +20,13 @@ module ActiveGenie::Leaderboard
     attr_reader :id, :content, :score, :elo, :free_for_all, :eliminated
 
     def generate_elo_by_score
-      return if !@elo.nil? || @score.nil?
+      return if !@elo.nil?
 
-      @elo = BASE_ELO + (@score - 50)
+      if @score.nil?
+        @elo = BASE_ELO
+      else
+        @elo = BASE_ELO + (@score - 50)
+      end
     end
 
     def score=(value)

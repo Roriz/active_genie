@@ -93,10 +93,6 @@ module ActiveGenie::Scoring
       end
     end
 
-    def options
-      { model_tier: 'lower_tier', **@options }
-    end
-
     PROMPT = <<~PROMPT
     Evaluate and score the provided text based on predefined criteria, which may include rules, keywords, or patterns. Use a scoring range of 0 to 100, with 100 representing the highest possible score. Follow the instructions below to ensure an accurate and objective assessment.
 
@@ -117,5 +113,17 @@ module ActiveGenie::Scoring
     - Deconstruct each criterion into actionable components for a systematic evaluation.
     - If the text lacks information, apply reasonable judgment to assign a score while clearly explaining the rationale.
     PROMPT
+
+    def options
+      {
+        model_tier: 'lower_tier',
+        log: {
+          **(@options.dig(:log) || {}),
+          start_time: @options.dig(:start_time) || Time.now,
+          trace: self.class.name,
+        },
+        **@options
+      }
+    end
   end
 end
