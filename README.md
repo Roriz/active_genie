@@ -153,7 +153,7 @@ result = ActiveGenie::League.call(players, criteria)
 - **Automatic elimination** of inconsistent performers using statistical analysis
 - **Dynamic ranking adjustments** based on simulated pairwise battles, from bottom to top
 
-See the [League README](lib/active_genie/league/README.md) for implementation details, configuration options, and advanced ranking strategies.
+See the [League README](lib/active_genie/league/README.md) for implementation details, configuration, and advanced ranking strategies.
 
 ### Summarizer (WIP)
 The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.
@@ -199,9 +199,9 @@ sentiment = ActiveGenie::SentimentAnalyzer.call(text)
 puts sentiment # => "positive"
 ```
 
-## Configuration Options
+## Configuration
 
-| Option | Description | Default |
+| Config | Description | Default |
 |--------|-------------|---------|
 | `provider` | LLM provider (openai, anthropic, etc) | `nil` |
 | `model` | Model to use | `nil` |
@@ -209,7 +209,7 @@ puts sentiment # => "positive"
 | `timeout` | Request timeout in seconds | `5` |
 | `max_retries` | Maximum retry attempts | `3` |
 
-> **Note:** Each module can append its own set of configuration options, see the individual module documentation for details.
+> **Note:** Each module can append its own set of configuration, see the individual module documentation for details.
 
 ## Contributing
 

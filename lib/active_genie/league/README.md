@@ -27,12 +27,12 @@ The league system performs the following steps:
 Call the league using:
 
 ```ruby
-result = ActiveGenie::League::league.call(players, criteria, options: {})
+result = ActiveGenie::League::league.call(players, criteria, config: {})
 ```
 
 - `players`: A collection of player instances, each containing textual content to be scored.
 - `criteria`: A string defining the evaluation criteria used by the scoring system.
-- `options`: A hash of additional parameters for customization (e.g., model, api_key).
+- `config`: A hash of additional parameters for customization (e.g., model, api_key).
 
 The method processes the players through scoring, elimination, and ranking phases, then returns a hash containing the player statistics and rankings.
 

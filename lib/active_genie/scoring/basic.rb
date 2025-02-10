@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../client'
+require_relative '../clients/unified_client'
 
 module ActiveGenie::Scoring
   # The Basic class provides a foundation for scoring text content against specified criteria
@@ -21,21 +21,19 @@ module ActiveGenie::Scoring
     # @param criteria [String] The evaluation criteria or rubric to assess against
     # @param reviewers [Array<String>] Optional list of specific reviewers. If empty,
     #   reviewers will be automatically recommended based on the content and criteria
-    # @param options [Hash] Additional configuration options that modify the scoring behavior
-    # @option options [Boolean] :detailed_feedback Request more detailed feedback in the reasoning
-    # @option options [Hash] :reviewer_weights Custom weights for different reviewers
+    # @param config [Hash] Additional configuration config that modify the scoring behavior
     # @return [Hash] The evaluation result containing the scores and reasoning
     #   @return [Number] :final_score The final score of the text based on the criteria and reviewers
     #   @return [String] :final_reasoning Detailed explanation of why the final score was reached
-    def self.call(text, criteria, reviewers = [], options: {})
-      new(text, criteria, reviewers, options:).call
+    def self.call(text, criteria, reviewers = [], config: {})
+      new(text, criteria, reviewers, config:).call
     end
 
-    def initialize(text, criteria, reviewers = [], options: {})
+    def initialize(text, criteria, reviewers = [], config: {})
       @text = text
       @criteria = criteria
       @reviewers = Array(reviewers).compact.uniq
-      @options = options
+      @config = config
     end
 
     def call
@@ -78,7 +76,7 @@ module ActiveGenie::Scoring
         }
       }
 
-      ::ActiveGenie::Client.function_calling(messages, function, options:)
+      ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, function, config:)
     end
 
     private
@@ -87,7 +85,7 @@ module ActiveGenie::Scoring
       @get_or_recommend_reviewers ||= if @reviewers.count > 0 
         @reviewers
       else
-        recommended_reviews = RecommendedReviews.call(@text, @criteria, options:)
+        recommended_reviews = RecommendedReviews.call(@text, @criteria, config:)
 
         [recommended_reviews[:reviewer1], recommended_reviews[:reviewer2], recommended_reviews[:reviewer3]]
       end
@@ -114,15 +112,14 @@ module ActiveGenie::Scoring
     - If the text lacks information, apply reasonable judgment to assign a score while clearly explaining the rationale.
     PROMPT
 
-    def options
+    def config
       {
-        model_tier: 'lower_tier',
+        all_providers: { model_tier: 'lower_tier' },
         log: {
-          **(@options.dig(:log) || {}),
-          start_time: @options.dig(:start_time) || Time.now,
+          **(@config.dig(:log) || {}),
           trace: self.class.name,
         },
-        **@options
+        **@config
       }
     end
   end

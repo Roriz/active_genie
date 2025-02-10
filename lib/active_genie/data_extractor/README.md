@@ -95,7 +95,7 @@ result = ActiveGenie::DataExtractor.from_informal(text, schema)
 
 ## Interface
 
-### `.call(text, data_to_extract, options = {})`
+### `.call(text, data_to_extract, config = {})`
 Extracts structured data from text based on a predefined schema.
 
 #### Parameters
@@ -103,9 +103,9 @@ Extracts structured data from text based on a predefined schema.
 | --- | --- | --- | --- | --- |
 | `text` | `String` | The text to analyze and extract data from | Yes | "John Doe is 25 years old" |
 | `data_to_extract` | `Hash` | Schema defining the data structure to extract | Yes | `{ name: { type: 'string' } }` |
-| `options` | `Hash` | Additional extraction configuration | No | `{ model: "gpt-4" }` |
+| `config` | `Hash` | Additional extraction configuration | No | `{ model: "gpt-4" }` |
 
-#### Options
+#### config
 | Name | Type | Description |
 | --- | --- | --- |
 | `model` | `String` | The model to use for the extraction |
@@ -117,7 +117,7 @@ Extracts structured data from text based on a predefined schema.
 - Explanation field for each extracted value
 - Additional analysis fields when using `from_informal`
 
-### `.from_informal(text, data_to_extract, options = {})`
+### `.from_informal(text, data_to_extract, config = {})`
 Extends basic extraction with rhetorical analysis, particularly for litotes.
 
 #### Additional Return Fields

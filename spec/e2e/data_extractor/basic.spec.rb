@@ -12,7 +12,9 @@ require "minitest/autorun"
 require "active_genie"
 
 ActiveGenie.configure do |config|
-  config.openai.api_key = ENV['OPENAI_API_KEY']
+  config.providers.openai.api_key = ENV['OPENAI_API_KEY']
+
+  config.log.log_level = nil
 end
 
 class ActiveGenie::DataExtractor::BasicTest < Minitest::Test

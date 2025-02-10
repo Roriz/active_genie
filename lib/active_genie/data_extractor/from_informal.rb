@@ -1,7 +1,7 @@
 module ActiveGenie::DataExtractor
   class FromInformal
-    def self.call(text, data_to_extract, options: {})
-      new(text, data_to_extract, options:).call()
+    def self.call(text, data_to_extract, config: {})
+      new(text, data_to_extract, config:).call()
     end
 
     # Extracts data from informal text while also detecting litotes and their meanings.
@@ -9,7 +9,7 @@ module ActiveGenie::DataExtractor
     #
     # @param text [String] The informal text to analyze
     # @param data_to_extract [Hash] Schema defining the data structure to extract
-    # @param options [Hash] Additional options for the extraction process
+    # @param config [Hash] Additional config for the extraction process
     #
     # @return [Hash] The extracted data including litote analysis. In addition to the
     #   schema-defined fields, includes:
@@ -23,17 +23,17 @@ module ActiveGenie::DataExtractor
     #   # => { mood: "positive", mood_explanation: "Speaker views weather favorably",
     #   #      message_litote: true,
     #   #      litote_rephrased: "The weather is good today" }
-    def initialize(text, data_to_extract, options: {})
+    def initialize(text, data_to_extract, config: {})
       @text = text
       @data_to_extract = data_to_extract
-      @options = options
+      @config = ActiveGenie::Configuration.to_h(config)
     end
 
     def call
-      response = Basic.call(@text, data_to_extract_with_litote, options:)
+      response = Basic.call(@text, data_to_extract_with_litote, config:)
 
       if response['message_litote']
-        response = Basic.call(response['litote_rephrased'], @data_to_extract, options:)
+        response = Basic.call(response['litote_rephrased'], @data_to_extract, config:)
       end
 
       response
@@ -55,15 +55,14 @@ module ActiveGenie::DataExtractor
       }
     end
 
-    def options
+    def config
       {
-        model_tier: 'lower_tier',
+        all_providers: { model_tier: 'lower_tier' },
+        **@config,
         log: {
-          **(@options.dig(:log) || {}),
-          start_time: @options.dig(:start_time) || Time.now,
+          **@config.dig(:log),
           trace: self.class.name,
         },
-        **@options
       }
     end
   end

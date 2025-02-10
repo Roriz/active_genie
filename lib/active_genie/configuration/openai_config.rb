@@ -1,7 +1,7 @@
-require_relative 'client'
+require_relative '../clients/openai_client'
 
-module ActiveGenie::Providers::Openai
-  class Configuration
+module ActiveGenie::Configuration
+  class OpenaiConfig
     attr_writer :api_key, :organization, :api_url, :client,
       :lower_tier_model, :middle_tier_model, :upper_tier_model
 
@@ -38,7 +38,19 @@ module ActiveGenie::Providers::Openai
     end
 
     def client
-      @client ||= Client.new(self)
+      @client ||= ::ActiveGenie::Clients::OpenaiClient.new(self)
+    end
+
+    def to_h(config = {})
+      {
+        api_key:,
+        organization:,
+        api_url:,
+        lower_tier_model:,
+        middle_tier_model:,
+        upper_tier_model:,
+        **config
+      }
     end
   end
 end
