@@ -27,11 +27,11 @@ result = ActiveGenie::Battle::Basic.call(player_a, player_b, criteria)
 ```
 
 ## Interface
-### Basic.call(player_a, player_b, criteria, options: {})
+### Basic.call(player_a, player_b, criteria, config: {})
 - `player_a` [String, Hash] - The content or submission from the first player
 - `player_b` [String, Hash] - The content or submission from the second player
 - `criteria` [String] - The evaluation criteria or rules to assess against
-- `options` [Hash] - Additional configuration options that modify the battle evaluation behavior
+- `config` [Hash] - Additional configuration config that modify the battle evaluation behavior
 
 Returns a Hash containing:
 - `winner_player` [String, Hash] - The winning player's content (either player_a or player_b)

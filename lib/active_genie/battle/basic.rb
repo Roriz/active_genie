@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../client'
+require_relative '../clients/unified_client'
 
 module ActiveGenie::Battle
   # The Basic class provides a foundation for evaluating battles between two players
@@ -14,23 +14,23 @@ module ActiveGenie::Battle
   #   Basic.call("Player A content", "Player B content", "Evaluate keyword usage and pattern matching")
   #
   class Basic
-    def self.call(player_a, player_b, criteria, options: {})
-      new(player_a, player_b, criteria, options:).call
+    def self.call(player_a, player_b, criteria, config: {})
+      new(player_a, player_b, criteria, config:).call
     end
 
     # @param player_a [String] The content or submission from the first player
     # @param player_b [String] The content or submission from the second player
     # @param criteria [String] The evaluation criteria or rules to assess against
-    # @param options [Hash] Additional configuration options that modify the battle evaluation behavior
+    # @param config [Hash] Additional configuration config that modify the battle evaluation behavior
     # @return [Hash] The evaluation result containing the winner and reasoning
     #   @return [String] :winner The @param player_a or player_b
     #   @return [String] :reasoning Detailed explanation of why the winner was chosen
     #   @return [String] :what_could_be_changed_to_avoid_draw A suggestion on how to avoid a draw
-    def initialize(player_a, player_b, criteria, options: {})
+    def initialize(player_a, player_b, criteria, config: {})
       @player_a = player_a
       @player_b = player_b
       @criteria = criteria
-      @options = options
+      @config = config
       @response = nil
     end
 
@@ -42,7 +42,7 @@ module ActiveGenie::Battle
         {  role: 'user', content: "player_b: #{player_content(@player_b)}" },
       ]
 
-      @response = ::ActiveGenie::Client.function_calling(messages, FUNCTION, options:)
+      @response = ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, FUNCTION, config:)
 
       response_formatted
     end
@@ -116,15 +116,14 @@ module ActiveGenie::Battle
       }
     }
 
-    def options
+    def config
       {
-        model_tier: 'lower_tier',
+        all_providers: { model_tier: 'lower_tier' },
         log: {
-          **(@options.dig(:log) || {}),
-          start_time: @options.dig(:start_time) || Time.now,
+          **(@config.dig(:log) || {}),
           trace: self.class.name,
         },
-        **@options
+        **@config
       }
     end
   end

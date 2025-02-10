@@ -2,14 +2,14 @@ require_relative '../battle/basic'
 
 module ActiveGenie::Leaderboard
   class FreeForAll
-    def self.call(players, criteria, options: {})
-      new(players, criteria, options:).call
+    def self.call(players, criteria, config: {})
+      new(players, criteria, config:).call
     end
 
-    def initialize(players, criteria, options: {})
+    def initialize(players, criteria, config: {})
       @players = players
       @criteria = criteria
-      @options = options
+      @config = config
       @start_time = Time.now
     end
 
@@ -25,7 +25,7 @@ module ActiveGenie::Leaderboard
           loser.free_for_all[:lose] += 1
         end
 
-        ActiveGenie::Logger.info({**log, step: :free_for_all_battle, winner_id: winner&.id, player_a_id: player_a.id, player_a_free_for_all_score: player_a.free_for_all_score, player_b_id: player_b.id, player_b_free_for_all_score: player_b.free_for_all_score })
+        ActiveGenie::Logger.trace({**log, step: :free_for_all_battle, winner_id: winner&.id, player_a_id: player_a.id, player_a_free_for_all_score: player_a.free_for_all_score, player_b_id: player_b.id, player_b_free_for_all_score: player_b.free_for_all_score })
       end
 
       @players
@@ -44,19 +44,19 @@ module ActiveGenie::Leaderboard
         player_a,
         player_b,
         @criteria,
-        options:
+        config:
       )
 
 
       result.values_at('winner', 'loser')
     end
 
-    def options
-      { **@options }
+    def config
+      { **@config }
     end
 
     def log
-      { **(@options.dig(:log) || {}), duration: Time.now - @start_time }
+      { **(@config.dig(:log) || {}), duration: Time.now - @start_time }
     end
   end
 end

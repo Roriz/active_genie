@@ -25,19 +25,19 @@ require_relative '../scoring/recommended_reviews'
 #   ]
 # @param criteria [String] Evaluation criteria configuration
 #   Example: "What is more similar to the letter 'O'?"
-# @param options [Hash] Additional configuration options
+# @param config [Hash] Additional configuration config
 #   Example: { model: "gpt-4o", api_key: ENV['OPENAI_API_KEY'] }
 # @return [Hash] Final ranked player results
 module ActiveGenie::League
   class League
-    def self.call(param_players, criteria, options: {})
-      new(param_players, criteria, options:).call
+    def self.call(param_players, criteria, config: {})
+      new(param_players, criteria, config:).call
     end
 
-    def initialize(param_players, criteria, options: {})
+    def initialize(param_players, criteria, config: {})
       @param_players = param_players
       @criteria = criteria
-      @options = options
+      @config = config
       @league_id = SecureRandom.uuid
       @start_time = Time.now
     end
@@ -60,14 +60,14 @@ module ActiveGenie::League
       players_without_score = players.reject { |player| player.score }
       players_without_score.each do |player|
         player.score = generate_score(player.content) # This can take a while, can be parallelized
-        ActiveGenie::Logger.info({ **log, step: :player_score, player_id: player.id, score: player.score })
+        ActiveGenie::Logger.trace({ **log, step: :player_score, player_id: player.id, score: player.score })
       end
 
       ActiveGenie::Logger.info({ **log, step: :initial_score, evaluated_players: players_without_score.size })
     end
 
     def generate_score(content)
-      ActiveGenie::Scoring::Basic.call(content, @criteria, reviewers, options:)['final_score']
+      ActiveGenie::Scoring::Basic.call(content, @criteria, reviewers, config:)['final_score']
     end
 
     def eliminate_obvious_bad_players
@@ -81,11 +81,11 @@ module ActiveGenie::League
     end
 
     def run_elo_ranking
-      EloRanking.call(players, @criteria, options:)
+      EloRanking.call(players, @criteria, config:)
     end
 
     def run_free_for_all
-      FreeForAll.call(players, @criteria, options:)
+      FreeForAll.call(players, @criteria, config:)
     end
 
     def reviewers
@@ -96,7 +96,7 @@ module ActiveGenie::League
       @recommended_reviews ||= ActiveGenie::Scoring::RecommendedReviews.call(
         [players.sample.content, players.sample.content].join("\n\n"),
         @criteria,
-        options:
+        config:
       )
     end
 
@@ -104,13 +104,13 @@ module ActiveGenie::League
       @players ||= PlayersCollection.new(@param_players)
     end
 
-    def options
-      { log:, **@options }
+    def config
+      { log:, **@config }
     end
 
     def log
       {
-        **(@options.dig(:log) || {}),
+        **(@config.dig(:log) || {}),
         league_id: @league_id,
         league_start_time: @start_time,
         duration: Time.now - @start_time

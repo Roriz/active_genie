@@ -2,32 +2,35 @@ require_relative '../battle/basic'
 
 module ActiveGenie::Leaderboard
   class EloRanking
-    def self.call(players, criteria, options: {})
-      new(players, criteria, options:).call
+    def self.call(players, criteria, config: {})
+      new(players, criteria, config:).call
     end
 
-    def initialize(players, criteria, options: {})
+    def initialize(players, criteria, config: {})
       @players = players
       @criteria = criteria
-      @options = options
+      @config = config
       @start_time = Time.now
     end
 
     def call
       @players.each(&:generate_elo_by_score)
 
+      round_count = 0
       while @players.eligible_size > MINIMAL_PLAYERS_TO_BATTLE
         round = create_round(@players.tier_relegation, @players.tier_defense)
 
         round.each do |player_a, player_b|
           winner, loser = battle(player_a, player_b) # This can take a while, can be parallelized
           update_elo(winner, loser)
-          ActiveGenie::Logger.info({ **log, step: :elo_battle, winner_id: winner.id, loser_id: loser.id, winner_elo: winner.elo, loser_elo: loser.elo })
+          ActiveGenie::Logger.trace({ **log, step: :elo_battle, winner_id: winner.id, loser_id: loser.id, winner_elo: winner.elo, loser_elo: loser.elo })
         end
 
         eliminate_all_relegation_players
+        round_count += 1
       end
 
+      ActiveGenie::Logger.info({ **log, step: :elo_end, round_count:, eligible_size: @players.eligible_size })
       @players
     end
 
@@ -66,7 +69,7 @@ module ActiveGenie::Leaderboard
         player_a,
         player_b,
         @criteria,
-        options:
+        config:
       ).values_at('winner', 'loser')
     end
 
@@ -101,16 +104,16 @@ module ActiveGenie::Leaderboard
     def eliminate_all_relegation_players
       eliminations = @players.tier_relegation.size
       @players.tier_relegation.each { |player| player.eliminated = 'tier_relegation' }
-      ActiveGenie::Logger.info({ **log, step: :elo_round, eligible_size: @players.eligible_size, eliminations: })
+      ActiveGenie::Logger.trace({ **log, step: :elo_round, eligible_size: @players.eligible_size, eliminations: })
     end
 
-    def options
-      { **@options }
+    def config
+      { **@config }
     end
 
     def log
       {
-        **(@options.dig(:log) || {}),
+        **(@config.dig(:log) || {}),
         duration: Time.now - @start_time
       }
     end

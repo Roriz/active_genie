@@ -1,9 +1,10 @@
-require_relative '../client'
+
+require_relative '../clients/unified_client'
 
 module ActiveGenie::DataExtractor
   class Basic
-    def self.call(text, data_to_extract, options: {})
-      new(text, data_to_extract, options:).call
+    def self.call(text, data_to_extract, config: {})
+      new(text, data_to_extract, config:).call
     end
 
     # Extracts structured data from text based on a predefined schema.
@@ -11,9 +12,7 @@ module ActiveGenie::DataExtractor
     # @param text [String] The input text to analyze and extract data from
     # @param data_to_extract [Hash] Schema defining the data structure to extract.
     #   Each key in the hash represents a field to extract, and its value defines the expected type and constraints.
-    # @param options [Hash] Additional options for the extraction process
-    #   @option options [String] :model The model to use for the extraction
-    #   @option options [String] :api_key The API key to use for the extraction
+    # @param config [Hash] Additional config for the extraction process
     #
     # @return [Hash] The extracted data matching the schema structure. Each field will include
     #   both the extracted value and an explanation of how it was derived.
@@ -27,10 +26,10 @@ module ActiveGenie::DataExtractor
     #   DataExtractor.call(text, schema)
     #   # => { name: "John Doe", name_explanation: "Found directly in text",
     #   #      age: 25, age_explanation: "Explicitly stated as 25 years old" }
-    def initialize(text, data_to_extract, options: {})
+    def initialize(text, data_to_extract, config: {})
       @text = text
       @data_to_extract = data_to_extract
-      @options = options
+      @config = ActiveGenie::Configuration.to_h(config)
     end
 
     def call
@@ -47,7 +46,7 @@ module ActiveGenie::DataExtractor
         }
       }
 
-      ::ActiveGenie::Client.function_calling(messages, function, options:)
+      ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, function, config:)
     end
 
     private
@@ -85,15 +84,14 @@ module ActiveGenie::DataExtractor
       with_explaination
     end
 
-    def options
+    def config
       {
-        model_tier: 'lower_tier',
+        all_providers: { model_tier: 'lower_tier' },
         log: {
-          **(@options.dig(:log) || {}),
-          start_time: @options.dig(:start_time) || Time.now,
+          **(@config.dig(:log) || {}),
           trace: self.class.name,
         },
-        **@options
+        **@config
       }
     end
   end

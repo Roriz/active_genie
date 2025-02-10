@@ -1,9 +1,7 @@
 require_relative 'active_genie/logger'
+require_relative 'active_genie/configuration'
 
 module ActiveGenie
-  autoload :Providers, File.join(__dir__, 'active_genie/providers')
-
-  # Modules
   autoload :DataExtractor, File.join(__dir__, 'active_genie/data_extractor')
   autoload :Battle, File.join(__dir__, 'active_genie/battle')
   autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
@@ -11,12 +9,11 @@ module ActiveGenie
 
   class << self
     def configure
-      providers.register_internal_providers
-      yield(providers) if block_given?
+      yield(configuration) if block_given?
     end
 
-    def providers
-      @providers ||= Providers
+    def configuration
+      @configuration ||= Configuration
     end
 
     def load_tasks

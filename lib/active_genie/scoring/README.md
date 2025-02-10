@@ -49,26 +49,22 @@ result = ActiveGenie::Scoring::Basic.call(text, criteria)
 
 ## Interface
 
-### `Basic.call(text, criteria, reviewers = [], options: {})`
+### `Basic.call(text, criteria, reviewers = [], config: {})`
 Main interface for scoring text content.
 
 #### Parameters
 - `text` [String] - The text content to be evaluated
 - `criteria` [String] - The evaluation criteria or rubric to assess against
 - `reviewers` [Array<String>] - Optional list of specific reviewers
-- `options` [Hash] - Additional configuration options
-  - `:detailed_feedback` [Boolean] - Request more detailed feedback (WIP)
-  - `:reviewer_weights` [Hash] - Custom weights for different reviewers (WIP)
+- `config` [Hash] - Additional configuration config
 
-### `RecommendedReviews.call(text, criteria, options: {})`
+### `RecommendedReviews.call(text, criteria, config: {})`
 Recommends appropriate reviewers based on content and criteria.
 
 #### Parameters
 - `text` [String] - The text content to analyze
 - `criteria` [String] - The evaluation criteria
-- `options` [Hash] - Additional configuration options
-  - `:prefer_technical` [Boolean] - Favor technical expertise (WIP)
-  - `:prefer_domain` [Boolean] - Favor domain expertise (WIP)
+- `config` [Hash] - Additional configuration config
 
 ### Usage Notes
 - Best suited for objective evaluation of text content

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../clients/router.rb'
+require_relative '../clients/unified_client'
 
 module ActiveGenie::Scoring
   # The RecommendedReviews class intelligently suggests appropriate reviewer roles
@@ -17,21 +17,19 @@ module ActiveGenie::Scoring
   #   #      reviewer3: "Developer Advocate", reasoning: "..." }
   #
   class RecommendedReviews
-    def self.call(text, criteria, options: {})
-      new(text, criteria, options:).call
+    def self.call(text, criteria, config: {})
+      new(text, criteria, config:).call
     end
 
     # Initializes a new reviewer recommendation instance
     #
     # @param text [String] The text content to analyze for reviewer recommendations
     # @param criteria [String] The evaluation criteria that will guide reviewer selection
-    # @param options [Hash] Additional configuration options that modify the recommendation process
-    # @option options [Boolean] :prefer_technical Whether to favor technical expertise
-    # @option options [Boolean] :prefer_domain Whether to favor domain expertise
-    def initialize(text, criteria, options: {})
+    # @param config [Hash] Additional configuration config that modify the recommendation process
+    def initialize(text, criteria, config: {})
       @text = text
       @criteria = criteria
-      @options = options
+      @config = config
     end
 
     def call
@@ -55,7 +53,7 @@ module ActiveGenie::Scoring
         }
       }
 
-      ::ActiveGenie::Clients::Router.function_calling(messages, function, options: @options)
+      ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, function, config: @config)
     end
 
     private
