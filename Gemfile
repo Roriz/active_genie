@@ -2,6 +2,6 @@
 
 source "https://rubygems.org"
 
-gem 'rspec'
+gem 'minitest'
 gem 'rake'
 gem "debug", ">= 1.10.0"

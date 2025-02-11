@@ -65,7 +65,6 @@ The `from_informal` method extends the basic extraction by analyzing rhetorical 
 - Litotes ("not bad", "isn't terrible")
 - Affirmative expressions ("sure", "no problem")
 - Negative expressions ("nah", "not really")
-- Hedging ("maybe", "I guess")
 
 ### Example
 
