@@ -1,7 +1,6 @@
-require_relative '../utils/math'
 require_relative './player'
 
-module ActiveGenie::Leaderboard
+module ActiveGenie::League
   class PlayersCollection
     def initialize(param_players)
       @players = build(param_players)
@@ -39,12 +38,12 @@ module ActiveGenie::Leaderboard
       sorted.map(&:to_h)
     end
 
-    def method_missing(...)
-      @players.send(...)
+    def sorted
+      @players.sort_by { |p| [-p.free_for_all_score, -(p.elo || 0), -p.score] }
     end
 
-    def sorted
-      @players.sort_by { |p| [-p.league_score, -(p.elo || 0), -p.score] }
+    def method_missing(...)
+      @players.send(...)
     end
 
     private

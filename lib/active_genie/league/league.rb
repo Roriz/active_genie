@@ -44,8 +44,10 @@ module ActiveGenie::League
 
     def call
       set_initial_score_players
-      eliminate_obvious_bad_players
-      run_elo_ranking if players.eligible_size > 10
+      if players.eligible_size > 10
+        eliminate_obvious_bad_players
+        run_elo_ranking
+      end
       run_free_for_all
 
       ActiveGenie::Logger.info({ **log, step: :league_end, top5: players.first(5).map(&:id) })

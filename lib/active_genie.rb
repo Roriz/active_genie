@@ -5,7 +5,7 @@ module ActiveGenie
   autoload :DataExtractor, File.join(__dir__, 'active_genie/data_extractor')
   autoload :Battle, File.join(__dir__, 'active_genie/battle')
   autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
-  autoload :Leaderboard, File.join(__dir__, 'active_genie/leaderboard')
+  autoload :League, File.join(__dir__, 'active_genie/league')
 
   class << self
     def configure
