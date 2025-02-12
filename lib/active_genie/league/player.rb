@@ -1,6 +1,6 @@
 require 'securerandom'
 
-module ActiveGenie::Leaderboard
+module ActiveGenie::League
   class Player
     def initialize(params)
       params = { content: params } if params.is_a?(String)

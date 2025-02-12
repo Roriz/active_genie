@@ -1,6 +1,6 @@
 require_relative '../battle/basic'
 
-module ActiveGenie::Leaderboard
+module ActiveGenie::League
   class FreeForAll
     def self.call(players, criteria, config: {})
       new(players, criteria, config:).call

@@ -6,7 +6,7 @@ module ActiveGenie
     module_function
 
     def call(...)
-      league.call(...)
+      League.call(...)
     end
   end
 end
