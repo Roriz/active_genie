@@ -4,6 +4,9 @@ require 'net/http'
 module ActiveGenie::Clients
   class OpenaiClient
     MAX_RETRIES = 3
+    
+    class OpenaiError < StandardError; end
+    class RateLimitError < OpenaiError; end
 
     def initialize(config)
       @app_config = config
@@ -49,6 +52,10 @@ module ActiveGenie::Clients
           headers
         )
 
+        if response.is_a?(Net::HTTPTooManyRequests)
+          raise RateLimitError, "OpenAI API rate limit exceeded: #{response.body}"
+        end
+
         raise OpenaiError, response.body unless response.is_a?(Net::HTTPSuccess)
 
         return nil if response.body.empty?
@@ -57,6 +64,32 @@ module ActiveGenie::Clients
         log_response(start_time, parsed_body, config:)
 
         parsed_body
+      rescue RateLimitError => e
+        # Special handling for rate limit errors
+        if retries > 0
+          retries -= 1
+          # Use a longer backoff for rate limit errors
+          backoff_time = calculate_backoff(MAX_RETRIES - retries) * 2
+          ActiveGenie::Logger.trace(
+            {
+              category: :llm,
+              trace: "#{config.dig(:log, :trace)}/#{self.class.name}",
+              message: "Rate limit exceeded. Retrying after longer backoff: #{e.message}. Attempts remaining: #{retries}",
+              backoff_time: backoff_time
+            }
+          )
+          sleep(backoff_time)
+          retry
+        else
+          ActiveGenie::Logger.trace(
+            {
+              category: :llm,
+              trace: "#{config.dig(:log, :trace)}/#{self.class.name}",
+              message: "Max retries reached after rate limit errors. Failing with error: #{e.message}"
+            }
+          )
+          raise
+        end
       rescue OpenaiError, Net::HTTPError, JSON::ParserError, Errno::ECONNRESET, Errno::ETIMEDOUT, Net::OpenTimeout, Net::ReadTimeout => e
         if retries > 0
           retries -= 1
@@ -110,8 +143,5 @@ module ActiveGenie::Clients
         }
       )
     end
-
-    # TODO: add some more rich error handling
-    class OpenaiError < StandardError; end
   end
 end
