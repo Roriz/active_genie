@@ -18,6 +18,7 @@ module ActiveGenie::League
     end
 
     attr_reader :id, :content, :score, :elo, :free_for_all, :eliminated
+    attr_accessor :rank
 
     def generate_elo_by_score
       return if !@elo.nil?
@@ -45,10 +46,10 @@ module ActiveGenie::League
       @free_for_all[:win] * 3 + @free_for_all[:draw]
     end
 
-    def to_h
+    def to_h(rank:)
       {
         id:, content:, score:, elo:,
-        eliminated:, free_for_all:, free_for_all_score:
+        eliminated:, free_for_all:, free_for_all_score:, rank:
       }
     end
 

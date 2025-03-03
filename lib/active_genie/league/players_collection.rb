@@ -10,7 +10,7 @@ module ActiveGenie::League
     def coefficient_of_variation
       score_list = eligible.map(&:score)
       mean = score_list.sum.to_f / score_list.size
-      return nil if mean == 0  # To avoid division by zero
+      return nil if mean == 0
 
       variance = score_list.map { |num| (num - mean) ** 2 }.sum / score_list.size
       standard_deviation = Math.sqrt(variance)
@@ -35,11 +35,11 @@ module ActiveGenie::League
     end
 
     def to_h
-      sorted.map(&:to_h)
+      sorted.map.with_index(1) { |p, rank| p.to_h(rank:) }
     end
 
     def sorted
-      @players.sort_by { |p| [-p.free_for_all_score, -(p.elo || 0), -p.score] }
+      @players.sort_by { |p| [-p.free_for_all_score, -(p.elo || 0), -(p.score || 0)] }
     end
 
     def method_missing(...)

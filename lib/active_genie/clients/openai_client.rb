@@ -3,6 +3,8 @@ require 'net/http'
 
 module ActiveGenie::Clients
   class OpenaiClient
+    MAX_RETRIES = 3
+
     def initialize(config)
       @app_config = config
     end
@@ -37,20 +39,58 @@ module ActiveGenie::Clients
     private
 
     def request(payload, headers, config:)
+      retries = config[:max_retries] || MAX_RETRIES
       start_time = Time.now
-      response = Net::HTTP.post(
-        URI("#{@app_config.api_url}/chat/completions"),
-        payload.to_json,
-        headers
-      )
+      
+      begin
+        response = Net::HTTP.post(
+          URI("#{@app_config.api_url}/chat/completions"),
+          payload.to_json,
+          headers
+        )
 
-      raise OpenaiError, response.body unless response.is_a?(Net::HTTPSuccess)
-      return nil if response.body.empty?
+        raise OpenaiError, response.body unless response.is_a?(Net::HTTPSuccess)
 
-      parsed_body = JSON.parse(response.body)
-      log_response(start_time, parsed_body, config:)
+        return nil if response.body.empty?
 
-      parsed_body
+        parsed_body = JSON.parse(response.body)
+        log_response(start_time, parsed_body, config:)
+
+        parsed_body
+      rescue OpenaiError, Net::HTTPError, JSON::ParserError, Errno::ECONNRESET, Errno::ETIMEDOUT, Net::OpenTimeout, Net::ReadTimeout => e
+        if retries > 0
+          retries -= 1
+          backoff_time = calculate_backoff(MAX_RETRIES - retries)
+          ActiveGenie::Logger.trace(
+            {
+              category: :llm,
+              trace: "#{config.dig(:log, :trace)}/#{self.class.name}",
+              message: "Retrying request after error: #{e.message}. Attempts remaining: #{retries}",
+              backoff_time: backoff_time
+            }
+          )
+          sleep(backoff_time)
+          retry
+        else
+          ActiveGenie::Logger.trace(
+            {
+              category: :llm,
+              trace: "#{config.dig(:log, :trace)}/#{self.class.name}",
+              message: "Max retries reached. Failing with error: #{e.message}"
+            }
+          )
+          raise
+        end
+      end
+    end
+
+    BASE_DELAY = 0.5
+    def calculate_backoff(retry_count)
+      # Exponential backoff with jitter: 2^retry_count + random jitter
+      # Base delay is 0.5 seconds, doubles each retry, plus up to 0.5 seconds of random jitter
+      # Simplified example: 0.5, 1, 2, 4, 8, 12, 16, 20, 24, 28, 30 seconds
+      jitter = rand * BASE_DELAY
+      [BASE_DELAY * (2 ** retry_count) + jitter, 30].min # Cap at 30 seconds
     end
 
     DEFAULT_HEADERS = {
