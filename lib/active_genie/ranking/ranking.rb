@@ -13,7 +13,7 @@ require_relative '../scoring/recommended_reviews'
 # 4. Conducts free-for-all matches
 #
 # @example Basic usage
-#   League.call(players, criteria)
+#   Ranking.call(players, criteria)
 #
 # @param param_players [Array] Collection of player objects to evaluate
 #   Example: ["Circle", "Triangle", "Square"]
@@ -28,8 +28,8 @@ require_relative '../scoring/recommended_reviews'
 # @param config [Hash] Additional configuration config
 #   Example: { model: "gpt-4o", api_key: ENV['OPENAI_API_KEY'] }
 # @return [Hash] Final ranked player results
-module ActiveGenie::League
-  class League
+module ActiveGenie::Ranking
+  class Ranking
     def self.call(param_players, criteria, config: {})
       new(param_players, criteria, config:).call
     end
@@ -38,7 +38,7 @@ module ActiveGenie::League
       @param_players = param_players
       @criteria = criteria
       @config = config
-      @league_id = SecureRandom.uuid
+      @ranking_id = SecureRandom.uuid
       @start_time = Time.now
     end
 
@@ -50,7 +50,7 @@ module ActiveGenie::League
       end
       run_free_for_all
 
-      ActiveGenie::Logger.info({ **log, step: :league_end, top5: players.first(5).map(&:id) })
+      ActiveGenie::Logger.info({ **log, step: :ranking_end, top5: players.first(5).map(&:id) })
       players.to_h
     end
 
@@ -113,8 +113,8 @@ module ActiveGenie::League
     def log
       {
         **(@config.dig(:log) || {}),
-        league_id: @league_id,
-        league_start_time: @start_time,
+        ranking_id: @ranking_id,
+        ranking_start_time: @start_time,
         duration: Time.now - @start_time
       }
     end

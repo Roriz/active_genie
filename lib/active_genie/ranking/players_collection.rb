@@ -1,6 +1,6 @@
 require_relative './player'
 
-module ActiveGenie::League
+module ActiveGenie::Ranking
   class PlayersCollection
     def initialize(param_players)
       @players = build(param_players)
