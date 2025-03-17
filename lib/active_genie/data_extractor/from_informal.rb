@@ -1,7 +1,7 @@
 module ActiveGenie::DataExtractor
   class FromInformal
-    def self.call(text, data_to_extract, config: {})
-      new(text, data_to_extract, config:).call()
+    def self.call(...)
+      new(...).call()
     end
 
     # Extracts data from informal text while also detecting litotes and their meanings.
@@ -30,10 +30,10 @@ module ActiveGenie::DataExtractor
     end
 
     def call
-      response = Basic.call(@text, data_to_extract_with_litote, config:)
+      response = Basic.call(@text, data_to_extract_with_litote, config: @config)
 
       if response['message_litote']
-        response = Basic.call(response['litote_rephrased'], @data_to_extract, config:)
+        response = Basic.call(response['litote_rephrased'], @data_to_extract, config: @config)
       end
 
       response
@@ -52,17 +52,6 @@ module ActiveGenie::DataExtractor
           type: 'string',
           description: 'The true meaning of the litote. Rephrase the message to a positive and active statement.'
         }
-      }
-    end
-
-    def config
-      {
-        all_providers: { model_tier: 'lower_tier' },
-        **@config,
-        log: {
-          **@config.dig(:log),
-          trace: self.class.name,
-        },
       }
     end
   end

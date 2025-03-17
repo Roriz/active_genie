@@ -1,5 +1,5 @@
 require_relative 'scoring/basic'
-require_relative 'scoring/recommended_reviews'
+require_relative 'scoring/recommended_reviewers'
 
 module ActiveGenie
   # See the [Scoring README](lib/active_genie/scoring/README.md) for more information.
@@ -10,8 +10,8 @@ module ActiveGenie
       Basic.call(...)
     end
 
-    def recommended_reviews(...)
-      RecommendedReviews.call(...)
+    def recommended_reviewers(...)
+      RecommendedReviewers.call(...)
     end
   end
 end

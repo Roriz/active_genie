@@ -12,10 +12,8 @@ module ActiveGenie::Clients
       @app_config = config
     end
 
-    def function_calling(messages, function, config: {})
-      model = config[:model]
-      model = @app_config.tier_to_model(config.dig(:all_providers, :model_tier)) if model.nil? && config.dig(:all_providers, :model_tier)
-      model = @app_config.lower_tier_model if model.nil?
+    def function_calling(messages, function, model_tier: nil, config: {})
+      model = config[:model] || @app_config.tier_to_model(model_tier)
 
       payload = {
         messages:,
@@ -61,7 +59,7 @@ module ActiveGenie::Clients
         return nil if response.body.empty?
 
         parsed_body = JSON.parse(response.body)
-        log_response(start_time, parsed_body, config:)
+        # log_response(start_time, parsed_body, config:)
 
         parsed_body
       rescue OpenaiError, Net::HTTPError, JSON::ParserError, Errno::ECONNRESET, Errno::ETIMEDOUT, Net::OpenTimeout, Net::ReadTimeout => e
@@ -104,7 +102,7 @@ module ActiveGenie::Clients
       'Content-Type': 'application/json',
     }
 
-    def log_response(start_time, response, config:)
+    def log_response(start_time, response, config: {})
       ActiveGenie::Logger.trace(
         {
           **config.dig(:log),

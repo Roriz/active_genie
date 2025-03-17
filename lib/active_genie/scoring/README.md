@@ -58,7 +58,7 @@ Main interface for scoring text content.
 - `reviewers` [Array<String>] - Optional list of specific reviewers
 - `config` [Hash] - Additional configuration config
 
-### `RecommendedReviews.call(text, criteria, config: {})`
+### `RecommendedReviewers.call(text, criteria, config: {})`
 Recommends appropriate reviewers based on content and criteria.
 
 #### Parameters

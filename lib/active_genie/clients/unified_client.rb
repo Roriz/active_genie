@@ -1,13 +1,13 @@
 module ActiveGenie::Clients
   class UnifiedClient
     class << self
-      def function_calling(messages, function, config: {})
+      def function_calling(messages, function, model_tier: nil, config: {})
         provider_name = config[:provider]&.downcase&.strip&.to_sym
         provider = ActiveGenie.configuration.providers.all[provider_name] || ActiveGenie.configuration.providers.default
 
         raise InvalidProviderError if provider.nil? || provider.client.nil?
 
-        provider.client.function_calling(messages, function, config:)
+        provider.client.function_calling(messages, function, model_tier:, config:)
       end
 
       private

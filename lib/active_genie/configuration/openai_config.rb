@@ -13,6 +13,14 @@ module ActiveGenie::Configuration
       @organization || ENV['OPENAI_ORGANIZATION']
     end
 
+    def api_url
+      @api_url || 'https://api.openai.com/v1'
+    end
+
+    def client
+      @client ||= ::ActiveGenie::Clients::OpenaiClient.new(self)
+    end
+
     def lower_tier_model
       @lower_tier_model || 'gpt-4o-mini'
     end
@@ -30,15 +38,7 @@ module ActiveGenie::Configuration
         lower_tier: lower_tier_model,
         middle_tier: middle_tier_model,
         upper_tier: upper_tier_model
-      }[tier&.to_sym]
-    end
-
-    def api_url
-      @api_url || 'https://api.openai.com/v1'
-    end
-
-    def client
-      @client ||= ::ActiveGenie::Clients::OpenaiClient.new(self)
+      }[tier&.to_sym] || lower_tier_model
     end
 
     def to_h(config = {})

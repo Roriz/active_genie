@@ -1,9 +1,7 @@
-require 'securerandom'
-
 require_relative './players_collection'
 require_relative './free_for_all'
-require_relative './elo_ranking'
-require_relative '../scoring/recommended_reviews'
+require_relative './elo_round'
+require_relative './ranking_scoring'
 
 # This class orchestrates player ranking through multiple evaluation stages
 # using Elo ranking and free-for-all match simulations.
@@ -15,7 +13,7 @@ require_relative '../scoring/recommended_reviews'
 # @example Basic usage
 #   Ranking.call(players, criteria)
 #
-# @param param_players [Array] Collection of player objects to evaluate
+# @param param_players [Array<Hash|String>] Collection of player objects to evaluate
 #   Example: ["Circle", "Triangle", "Square"]
 #            or
 #   [
@@ -30,93 +28,71 @@ require_relative '../scoring/recommended_reviews'
 # @return [Hash] Final ranked player results
 module ActiveGenie::Ranking
   class Ranking
-    def self.call(param_players, criteria, config: {})
-      new(param_players, criteria, config:).call
+    def self.call(...)
+      new(...).call
     end
 
-    def initialize(param_players, criteria, config: {})
+    def initialize(param_players, criteria, reviewers: [], config: {})
       @param_players = param_players
       @criteria = criteria
-      @config = config
-      @ranking_id = SecureRandom.uuid
-      @start_time = Time.now
+      @reviewers = Array(reviewers).compact.uniq
+      @config = ActiveGenie::Configuration.to_h(config)
+      @players = nil
     end
 
     def call
-      set_initial_score_players
-      if players.eligible_size > 10
-        eliminate_obvious_bad_players
-        run_elo_ranking
-      end
-      run_free_for_all
+      @players = PlayersCollection.new(@param_players)
 
-      ActiveGenie::Logger.info({ **log, step: :ranking_end, top5: players.first(5).map(&:id) })
-      players.to_h
+      ActiveGenie::Logger.with_context(log_context) do
+        set_initial_player_scores!
+        eliminate_obvious_bad_players!
+
+        while @players.elo_eligible?
+          run_elo_round!
+          eliminate_relegation_players!
+        end
+  
+        run_free_for_all!
+      end
+
+      @players.sorted
     end
 
     private
 
     SCORE_VARIATION_THRESHOLD = 10
 
-    def set_initial_score_players
-      players_without_score = players.reject { |player| player.score }
-      players_without_score.each do |player|
-        player.score = generate_score(player.content) # This can take a while, can be parallelized
-        ActiveGenie::Logger.trace({ **log, step: :player_score, player_id: player.id, score: player.score })
+    def set_initial_player_scores!
+      RankingScoring.call(@players, @criteria, reviewers: @reviewers, config: @config)
+    end
+
+    def eliminate_obvious_bad_players!
+      while @players.coefficient_of_variation >= SCORE_VARIATION_THRESHOLD
+        @players.eligible.last.eliminated = 'variation_too_high'
       end
-
-      ActiveGenie::Logger.info({ **log, step: :initial_score, evaluated_players: players_without_score.size })
     end
 
-    def generate_score(content)
-      ActiveGenie::Scoring::Basic.call(content, @criteria, reviewers, config:)['final_score']
+    def run_elo_round!
+      EloRound.call(@players, @criteria, config: @config)
     end
 
-    def eliminate_obvious_bad_players
-      eliminated_count = 0
-      while players.coefficient_of_variation >= SCORE_VARIATION_THRESHOLD
-        players.eligible.last.eliminated = 'variation_too_high'
-        eliminated_count += 1
-      end
-
-      ActiveGenie::Logger.info({ **log, step: :eliminate_obvious_bad_players, eliminated_count: })
+    def eliminate_relegation_players!
+      @players.calc_relegation_tier.each { |player| player.eliminated = 'relegation_tier' }
     end
 
-    def run_elo_ranking
-      EloRanking.call(players, @criteria, config:)
+    def run_free_for_all!
+      FreeForAll.call(@players, @criteria, config: @config)
     end
 
-    def run_free_for_all
-      FreeForAll.call(players, @criteria, config:)
+    def log_context
+      { config: @config[:log], ranking_id: }
     end
 
-    def reviewers
-      [recommended_reviews['reviewer1'], recommended_reviews['reviewer2'], recommended_reviews['reviewer3']]
-    end
+    def ranking_id
+      player_ids = @players.map(&:id).join(',')
+      ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
 
-    def recommended_reviews
-      @recommended_reviews ||= ActiveGenie::Scoring::RecommendedReviews.call(
-        [players.sample.content, players.sample.content].join("\n\n"),
-        @criteria,
-        config:
-      )
-    end
-
-    def players
-      @players ||= PlayersCollection.new(@param_players)
-    end
-
-    def config
-      { log:, **@config }
-    end
-
-    def log
-      {
-        **(@config.dig(:log) || {}),
-        ranking_id: @ranking_id,
-        ranking_start_time: @start_time,
-        duration: Time.now - @start_time
-      }
+      Digest::MD5.hexdigest(ranking_unique_key)
     end
   end
 end
