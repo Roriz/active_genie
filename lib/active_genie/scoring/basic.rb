@@ -25,15 +25,15 @@ module ActiveGenie::Scoring
     # @return [Hash] The evaluation result containing the scores and reasoning
     #   @return [Number] :final_score The final score of the text based on the criteria and reviewers
     #   @return [String] :final_reasoning Detailed explanation of why the final score was reached
-    def self.call(text, criteria, reviewers = [], config: {})
-      new(text, criteria, reviewers, config:).call
+    def self.call(...)
+      new(...).call
     end
 
     def initialize(text, criteria, reviewers = [], config: {})
       @text = text
       @criteria = criteria
       @reviewers = Array(reviewers).compact.uniq
-      @config = config
+      @config = ActiveGenie::Configuration.to_h(config)
     end
 
     def call
@@ -76,7 +76,12 @@ module ActiveGenie::Scoring
         }
       }
 
-      ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, function, config:)
+      ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        messages,
+        function,
+        model_tier: 'lower_tier',
+        config: @config
+      )
     end
 
     private
@@ -85,9 +90,9 @@ module ActiveGenie::Scoring
       @get_or_recommend_reviewers ||= if @reviewers.count > 0 
         @reviewers
       else
-        recommended_reviews = RecommendedReviews.call(@text, @criteria, config:)
+        result = RecommendedReviewers.call(@text, @criteria, config: @config)
 
-        [recommended_reviews['reviewer1'], recommended_reviews['reviewer2'], recommended_reviews['reviewer3']]
+        [result['reviewer1'], result['reviewer2'], result['reviewer3']]
       end
     end
 
@@ -142,16 +147,5 @@ module ActiveGenie::Scoring
     - Consider edge cases where the text may partially align with criteria.
     - If lacking information, reasonably judge and explain your scoring approach.
     PROMPT
-
-    def config
-      {
-        all_providers: { model_tier: 'lower_tier' },
-        log: {
-          **(@config.dig(:log) || {}),
-          trace: self.class.name,
-        },
-        **@config
-      }
-    end
   end
 end

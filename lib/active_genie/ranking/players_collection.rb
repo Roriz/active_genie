@@ -8,7 +8,9 @@ module ActiveGenie::Ranking
     attr_reader :players
 
     def coefficient_of_variation
-      score_list = eligible.map(&:score)
+      score_list = eligible.map(&:score).compact
+      return nil if score_list.empty?
+
       mean = score_list.sum.to_f / score_list.size
       return nil if mean == 0
 
@@ -18,11 +20,11 @@ module ActiveGenie::Ranking
       (standard_deviation / mean) * 100
     end
 
-    def tier_relegation
+    def calc_relegation_tier
       eligible[(tier_size*-1)..-1]
     end
 
-    def tier_defense
+    def calc_defender_tier
       eligible[(tier_size*-2)...(tier_size*-1)]
     end
 
@@ -34,12 +36,18 @@ module ActiveGenie::Ranking
       @players.reject(&:eliminated).size
     end
 
-    def to_h
-      sorted.map.with_index(1) { |p, rank| p.to_h(rank:) }
+    def elo_eligible?
+      eligible.size > 15
     end
 
     def sorted
-      @players.sort_by { |p| [-p.free_for_all_score, -(p.elo || 0), -(p.score || 0)] }
+      @players.sort_by { |p| [-p.ffa_score, -(p.elo || 0), -(p.score || 0)] }
+      @players.each_with_index { |p, i| p.rank = i + 1 }
+      @players
+    end
+
+    def to_h
+      sorted.map { |p| p.to_h }
     end
 
     def method_missing(...)

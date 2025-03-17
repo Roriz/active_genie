@@ -3,8 +3,8 @@ require_relative '../clients/unified_client'
 
 module ActiveGenie::DataExtractor
   class Basic
-    def self.call(text, data_to_extract, config: {})
-      new(text, data_to_extract, config:).call
+    def self.call(...)
+      new(...).call
     end
 
     # Extracts structured data from text based on a predefined schema.
@@ -46,7 +46,12 @@ module ActiveGenie::DataExtractor
         }
       }
 
-      ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, function, config:)
+      ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        messages,
+        function,
+        model_tier: 'lower_tier',
+        config: @config
+      )
     end
 
     private
@@ -59,10 +64,6 @@ module ActiveGenie::DataExtractor
     1. **Identify Data Types**: Determine the types of data to collect, such as names, dates, email addresses, phone numbers, etc.
     2. **Extract Information**: Use pattern recognition and language understanding to identify and extract the relevant pieces of data from the user message.
     3. **Categorize Data**: Assign the extracted data to the appropriate predefined fields.
-    4. **Structure Data**: Format the extracted and categorized data in a structured format, such as JSON.
-
-    # Output Format
-    The output should be a JSON object containing fields with their corresponding extracted values. If a value is not found, the field should still be included with a null value.
 
     # Notes
     - Handle missing or partial information gracefully.
@@ -82,17 +83,6 @@ module ActiveGenie::DataExtractor
       end
       
       with_explaination
-    end
-
-    def config
-      {
-        all_providers: { model_tier: 'lower_tier' },
-        log: {
-          **(@config.dig(:log) || {}),
-          trace: self.class.name,
-        },
-        **@config
-      }
     end
   end
 end

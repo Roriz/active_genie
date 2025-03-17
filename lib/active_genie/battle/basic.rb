@@ -14,8 +14,8 @@ module ActiveGenie::Battle
   #   Basic.call("Player A content", "Player B content", "Evaluate keyword usage and pattern matching")
   #
   class Basic
-    def self.call(player_a, player_b, criteria, config: {})
-      new(player_a, player_b, criteria, config:).call
+    def self.call(...)
+      new(...).call
     end
 
     # @param player_a [String] The content or submission from the first player
@@ -30,65 +30,55 @@ module ActiveGenie::Battle
       @player_a = player_a
       @player_b = player_b
       @criteria = criteria
-      @config = config
-      @response = nil
+      @config = ActiveGenie::Configuration.to_h(config)
     end
 
     def call
       messages = [
         {  role: 'system', content: PROMPT },
         {  role: 'user', content: "criteria: #{@criteria}" },
-        {  role: 'user', content: "player_a: #{player_content(@player_a)}" },
-        {  role: 'user', content: "player_b: #{player_content(@player_b)}" },
+        {  role: 'user', content: "player_a: #{@player_a}" },
+        {  role: 'user', content: "player_b: #{@player_b}" },
       ]
 
-      @response = ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, FUNCTION, config:)
+      response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        messages,
+        FUNCTION,
+        model_tier: 'lower_tier',
+        config: @config
+      )
 
-      response_formatted
+      response_formatted(response)
     end
 
     private
 
-    def player_content(player)
-      return player.dig('content') if player.is_a?(Hash)
+    def response_formatted(response)
+      winner = response['impartial_judge_winner']
+      loser = case response['impartial_judge_winner']
+              when 'player_a' then 'player_b'
+              when 'player_b' then 'player_a'
+              else 'draw'
+              end
 
-      player
-    end
-
-    def response_formatted
-      winner = case @response['winner']
-               when 'player_a' then @player_a
-               when 'player_b' then @player_b
-               end
-
-      @response.merge!('winner' => winner, 'loser' => winner ? (winner == @player_a ? @player_b : @player_a) : nil)
+      { winner:, loser:, reasoning: response['impartial_judge_winner_reasoning'] }
     end
 
     PROMPT = <<~PROMPT
-    Evaluate a battle between player_a and player_b using predefined criteria and identify the winner.
-
-    Consider rules, keywords, and patterns as the criteria for evaluation. Analyze the content from both players objectively, focusing on who meets the criteria most effectively. Explain your decision clearly, with specific reasoning on how the chosen player fulfilled the criteria better than the other. Avoid selecting a draw unless absolutely necessary.
+    Based on two players, player_a and player_b, they will battle against each other based on criteria. Criteria are vital as they provide a clear metric to compare the players. Follow these criteria strictly.
 
     # Steps
-    1. **Review Predefined Criteria**: Understand the specific rules, keywords, and patterns that serve as the basis for evaluation.
-    2. **Analyze Content**: Examine the contributions of both player_a and player_b. Look for how each player meets or fails to meet the criteria.
-    3. **Comparison**: Compare both players against each criterion to determine who aligns better with the standards set.
-    4. **Decision-Making**: Based on the analysis, determine the player who meets the most or all criteria effectively.
-    5. **Provide Justification**: Offer a clear and concise reason for your choice detailing how the winner outperformed the other.
+    1. Player_a sells himself, highlighting his strengths and how he meets the criteria. Max of 100 words.
+    2. Player_b sells himself, highlighting his strengths and how he meets the criteria. Max of 100 words.
+    3. Player_a argues why he is the winner compared to player_b. Max of 100 words.
+    4. Player_b counter-argues why he is the winner compared to player_a. Max of 100 words.
+    5. The impartial judge chooses which player as the winner.
 
-    # Examples
-    - **Example 1**:
-      - Input: Player A uses keyword X, follows rule Y, Player B uses keyword Z, breaks rule Y.
-      - Output: winner: player_a
-        - Justification: Player A successfully used keyword X and followed rule Y, whereas Player B broke rule Y.
-
-    - **Example 2**:
-      - Input: Player A matches pattern P, Player B matches pattern P, uses keyword Q.
-      - Output: winner: player_b
-        - Justification: Both matched pattern P, but Player B also used keyword Q, meeting more criteria.
+    # Output Format
+    - The impartial judge chooses this player as the winner.
 
     # Notes
-    - Avoid drawing if a clear winner can be discerned.
+    - Avoid resulting in a draw. Use reasoning or make fair assumptions if needed.
     - Critically assess each player's adherence to the criteria.
     - Clearly communicate the reasoning behind your decision.
     PROMPT
@@ -99,32 +89,33 @@ module ActiveGenie::Battle
       schema: {
         type: "object",
         properties: {
-          winner: {
+          player_a_sell_himself: {
             type: 'string',
-            description: 'The player who won the battle based on the criteria.',
+            description: 'player_a sell himself, highlighting his strengths and how he meets the criteria. Max of 100 words.',
+          },
+          player_b_sell_himself: {
+            type: 'string',
+            description: 'player_b sell himself, highlighting his strengths and how he meets the criteria. Max of 100 words.',
+          },
+          player_a_arguments: {
+            type: 'string',
+            description: 'player_a arguments why he is the winner compared to player_b. Max of 100 words.',
+          },
+          player_b_counter: {
+            type: 'string',
+            description: 'player_b counter arguments why he is the winner compared to player_a. Max of 100 words.',
+          },
+          impartial_judge_winner_reasoning: {
+            type: 'string',
+            description: 'The detailed reasoning about why the impartial judge chose the winner. Max of 100 words.',
+          },
+          impartial_judge_winner: {
+            type: 'string',
+            description: 'The impartial judge chose this player as the winner.',
             enum: ['player_a', 'player_b', 'draw']
           },
-          reasoning_of_winner: {
-            type: 'string',
-            description: 'The detailed reasoning about why the winner won based on the criteria.',
-          },
-          what_could_be_changed_to_avoid_draw: {
-            type: 'string',
-            description: 'Suggestions on how to avoid a draw based on the criteria. Be as objective and short as possible. Can be empty.',
-          }
         }
       }
     }
-
-    def config
-      {
-        all_providers: { model_tier: 'lower_tier' },
-        log: {
-          **(@config.dig(:log) || {}),
-          trace: self.class.name,
-        },
-        **@config
-      }
-    end
   end
 end

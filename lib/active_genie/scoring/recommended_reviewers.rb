@@ -3,7 +3,7 @@
 require_relative '../clients/unified_client'
 
 module ActiveGenie::Scoring
-  # The RecommendedReviews class intelligently suggests appropriate reviewer roles
+  # The RecommendedReviewers class intelligently suggests appropriate reviewer roles
   # for evaluating text content based on specific criteria. It uses AI to analyze
   # the content and criteria to identify the most suitable subject matter experts.
   #
@@ -11,14 +11,14 @@ module ActiveGenie::Scoring
   # three distinct reviewer roles with complementary expertise and perspectives.
   #
   # @example Getting recommended reviewers for technical content
-  #   RecommendedReviews.call("Technical documentation about API design", 
+  #   RecommendedReviewers.call("Technical documentation about API design", 
   #                           "Evaluate technical accuracy and clarity")
   #   # => { reviewer1: "API Architect", reviewer2: "Technical Writer", 
   #   #      reviewer3: "Developer Advocate", reasoning: "..." }
   #
-  class RecommendedReviews
-    def self.call(text, criteria, config: {})
-      new(text, criteria, config:).call
+  class RecommendedReviewers
+    def self.call(...)
+      new(...).call
     end
 
     # Initializes a new reviewer recommendation instance
@@ -29,7 +29,7 @@ module ActiveGenie::Scoring
     def initialize(text, criteria, config: {})
       @text = text
       @criteria = criteria
-      @config = config
+      @config = ActiveGenie::Configuration.to_h(config)
     end
 
     def call
@@ -53,7 +53,14 @@ module ActiveGenie::Scoring
         }
       }
 
-      ::ActiveGenie::Clients::UnifiedClient.function_calling(messages, function, config: @config)
+      result = client.function_calling(
+        messages,
+        function,
+        model_tier: 'lower_tier',
+        config: @config
+      )
+
+      result
     end
 
     private
@@ -72,5 +79,9 @@ module ActiveGenie::Scoring
     - Include reasoning for how each choice supports a thorough and insightful review.
     - Avoid redundant or overly similar titles/roles to maintain diversity.
     PROMPT
+
+    def client
+      ::ActiveGenie::Clients::UnifiedClient
+    end
   end
 end

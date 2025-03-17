@@ -2,39 +2,38 @@ require_relative '../battle/basic'
 
 module ActiveGenie::Ranking
   class FreeForAll
-    def self.call(players, criteria, config: {})
-      new(players, criteria, config:).call
+    def self.call(...)
+      new(...).call
     end
 
     def initialize(players, criteria, config: {})
       @players = players
       @criteria = criteria
       @config = config
-      @start_time = Time.now
     end
 
     def call
-      matches.each do |player_a, player_b|
-        winner, loser = battle(player_a, player_b)
-
-        if winner.nil? || loser.nil?
-          player_a.free_for_all[:draw] += 1
-          player_b.free_for_all[:draw] += 1
-        else
-          winner.free_for_all[:win] += 1
-          loser.free_for_all[:lose] += 1
+      ActiveGenie::Logger.with_context(log_context) do
+        matches.each do |player_a, player_b|
+          winner, loser = battle(player_a, player_b)
+          
+          if winner.nil? || loser.nil?
+            player_a.draw!
+            player_b.draw!
+          else
+            winner.win!
+            loser.lose!
+          end
         end
 
-        ActiveGenie::Logger.trace({**log, step: :free_for_all_battle, winner_id: winner&.id, player_a_id: player_a.id, player_a_free_for_all_score: player_a.free_for_all_score, player_b_id: player_b.id, player_b_free_for_all_score: player_b.free_for_all_score })
+        # TODO: add a freeForAll report. Duration, Elo changes, etc.
       end
-
-      @players
     end
 
     private
 
     # TODO: reduce the number of matches based on transitivity.
-    #       For example, if A is better than B, and B is better than C, then A should clearly be better than C
+    #       For example, if A is better than B, and B is better than C, then battle between A and C should be auto win A
     def matches
       @players.eligible.combination(2).to_a
     end
@@ -44,19 +43,34 @@ module ActiveGenie::Ranking
         player_a,
         player_b,
         @criteria,
-        config:
+        config: @config
       )
 
+      winner, loser = case result['winner']
+        when 'player_a' then [player_a, player_b, result['reasoning']]
+        when 'player_b' then [player_b, player_a, result['reasoning']]
+        when 'draw' then [nil, nil, result['reasoning']]
+      end
 
-      result.values_at('winner', 'loser')
+      ActiveGenie::Logger.debug({
+        step: :free_for_all_battle,
+        player_ids: [player_a.id, player_b.id],
+        winner_id: winner&.id,
+        loser_id: loser&.id,
+        reasoning: result['reasoning']
+      })
+
+      [winner, loser]
     end
 
-    def config
-      { **@config }
+    def log_context
+      { free_for_all_id: }
     end
 
-    def log
-      { **(@config.dig(:log) || {}), duration: Time.now - @start_time }
+    def free_for_all_id
+      eligible_ids = @players.eligible.map(&:id).join(',')
+      ranking_unique_key = [eligible_ids, @criteria, @config.to_json].join('-')
+      Digest::MD5.hexdigest(ranking_unique_key)
     end
   end
 end
