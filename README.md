@@ -1,16 +1,17 @@
 # ActiveGenie 🧞‍♂️
-> Transform your Ruby application with powerful, production-ready GenAI features
+> The lodash for GenAI, stop reinventing the wheel
 
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/ruby.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/ruby.yml)
 
-ActiveGenie is a Ruby gem that provides a polished, production-ready interface for working with Generative AI (GenAI) models. Just like ActiveStorage simplifies file handling in Rails, ActiveGenie makes it effortless to integrate GenAI capabilities into your Ruby applications.
+ActiveGenie is a Ruby gem that provides a polished, production-ready interface for working with Generative AI (GenAI) models. Just like Lodash or ActiveStorage, ActiveGenie simplifies GenAI integration in your Ruby applications.
 
 ## Features
 
 - 🎯 **Data Extraction**: Extract structured data from unstructured text with type validation
-- 📊 **Smart Scoring**: Multi-reviewer evaluation system with automatic expert selection
-- 💭 **Leaderboard**: Consistent rank items based on custom criteria, using multiple tecniques of ranking
+- 📊 **Data Scoring**: Multi-reviewer evaluation system
+- ⚔️ **Data Battle**: Battle between two data like a political debate
+- 💭 **Data Ranking**: Consistent rank data using scoring + elo ranking + battles
 
 ## Installation
 
@@ -79,7 +80,7 @@ Features:
 
 See the [Data Extractor README](lib/active_genie/data_extractor/README.md) for informal text processing, advanced schemas, and detailed interface documentation.
 
-### Scoring
+### Data Scoring
 Text evaluation system that provides detailed scoring and feedback using multiple expert reviewers. Get balanced scoring through AI-powered expert reviewers that automatically adapt to your content.
 
 ```ruby
@@ -104,7 +105,7 @@ Features:
 
 See the [Scoring README](lib/active_genie/scoring/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
 
-### Battle
+### Data Battle
 AI-powered battle evaluation system that determines winners between two players based on specified criteria.
 
 ```ruby
@@ -132,7 +133,7 @@ Features:
 
 See the [Battle README](lib/active_genie/battle/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
 
-### Ranking
+### Data Ranking
 The Ranking module provides competitive ranking through multi-stage evaluation:
 
 
@@ -155,49 +156,10 @@ result = ActiveGenie::Ranking.call(players, criteria)
 
 See the [Ranking README](lib/active_genie/ranking/README.md) for implementation details, configuration, and advanced ranking strategies.
 
-### Summarizer (WIP)
-The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.
-
-```ruby
-require 'active_genie'
-
-text = "Example text to be summarized. The fox jumps over the dog"
-summarized_text = ActiveGenie::Summarizer.call(text)
-puts summarized_text # => "The fox jumps over the dog"
-```
-
-### Language detector (WIP)
-The language detector is a tool that can be used to detect the language of a given text. It uses a set of rules to detect the language of the text out of the box. Uses the best practices of prompt engineering and engineering to make the language detection as accurate as possible.
-
-```ruby
-require 'active_genie'
-
-text = "Example text to be detected"
-language = ActiveGenie::LanguageDetector.call(text)
-puts language # => "en"
-```
-
-### Translator (WIP)
-The translator is a tool that can be used to translate a given text. It uses a set of rules to translate the text out of the box. Uses the best practices of prompt engineering and engineering to make the translation as accurate as possible.
-
-```ruby
-require 'active_genie'
-
-text = "Example text to be translated"
-translated_text = ActiveGenie::Translator.call(text, from: 'en', to: 'pt')
-puts translated_text # => "Exemplo de texto a ser traduzido"
-```
-
-### Sentiment analyzer (WIP)
-The sentiment analyzer is a tool that can be used to analyze the sentiment of a given text. It uses a set of rules to analyze the sentiment of the text out of the box. Uses the best practices of prompt engineering and engineering to make the sentiment analysis as accurate as possible.
-
-```ruby
-require 'active_genie'
-
-text = "Example text to be analyzed"
-sentiment = ActiveGenie::SentimentAnalyzer.call(text)
-puts sentiment # => "positive"
-```
+### Text Summarizer (Future)
+### Language detector (Future)
+### Translator (Future)
+### Sentiment analyzer (Future)
 
 ## Configuration
 
@@ -218,6 +180,7 @@ puts sentiment # => "positive"
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
 ## License
 
 This project is licensed under the Apache License 2.0 License - see the [LICENSE](LICENSE) file for details.
