@@ -132,8 +132,8 @@ Features:
 
 See the [Battle README](lib/active_genie/battle/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
 
-### League
-The League module provides competitive ranking through multi-stage evaluation:
+### Ranking
+The Ranking module provides competitive ranking through multi-stage evaluation:
 
 
 ```ruby
@@ -142,7 +142,7 @@ require 'active_genie'
 players = ['REST API', 'GraphQL API', 'SOAP API', 'gRPC API', 'Websocket API']
 criteria = "Best one to be used into a high changing environment"
 
-result = ActiveGenie::League.call(players, criteria)
+result = ActiveGenie::Ranking.call(players, criteria)
 # => {
 #      winner_player: "gRPC API",
 #      reasoning: "gRPC API is the best one to be used into a high changing environment",
@@ -153,7 +153,7 @@ result = ActiveGenie::League.call(players, criteria)
 - **Automatic elimination** of inconsistent performers using statistical analysis
 - **Dynamic ranking adjustments** based on simulated pairwise battles, from bottom to top
 
-See the [League README](lib/active_genie/league/README.md) for implementation details, configuration, and advanced ranking strategies.
+See the [Ranking README](lib/active_genie/ranking/README.md) for implementation details, configuration, and advanced ranking strategies.
 
 ### Summarizer (WIP)
 The summarizer is a tool that can be used to summarize a given text. It uses a set of rules to summarize the text out of the box. Uses the best practices of prompt engineering and engineering to make the summarization as accurate as possible.

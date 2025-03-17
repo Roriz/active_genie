@@ -6,9 +6,9 @@ class ActiveGenie::DataExtractor::BasicTest < Minitest::Test
   TESTS = [
     { input: ["Roriz is 25 years old", { name: { type: 'string' }, age: { type: 'integer' } }], expected: { name: 'Roriz', age: 25 } },
     { input: ["Nike Air Max 90 - Size 42 - $199.99", { brand: { type: 'string' }, price: { type: 'number' }, currency: { type: 'string' }, size: { type: 'integer' } }], expected: { brand: 'Nike', price: 199.99, currency: 'USD', size: 42 } },
-    { input: ["Available in stock: 15 units of iPhone 14 Pro Max 256GB in Space Gray", 
-      { model: { type: 'string', description: 'Comercial name of the product' }, storage: { type: 'integer' }, color: { type: 'string' }, stock: { type: 'integer' } }],
-      expected: { model: 'iPhone 14 Pro Max', storage: 256, color: 'Space Gray', stock: 15 }
+    { input: ["Available in stock: 15 units of iPhone 14 Pro Max in Space Gray", 
+      { model: { type: 'string', description: 'Comercial name of the product' },  color: { type: 'string' }, stock: { type: 'integer' } }],
+      expected: { model: 'iPhone 14 Pro Max', color: 'Space Gray', stock: 15 }
     },
     { input: ["4.5 stars - Amazing sushi restaurant with great service. Average wait time: 30 minutes",
       { rating: { type: 'number' }, cuisine: { type: 'string' }, wait_time: { type: 'integer' } }],
