@@ -76,12 +76,23 @@ module ActiveGenie::Scoring
         }
       }
 
-      ::ActiveGenie::Clients::UnifiedClient.function_calling(
+      result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
         messages,
         function,
         model_tier: 'lower_tier',
         config: @config
       )
+
+      ActiveGenie::Logger.debug({
+        step: :scoring,
+        text: @text[0..30],
+        criteria: @criteria[0..30],
+        reviewers: get_or_recommend_reviewers,
+        score: result['final_score'],
+        reasoning: result['final_reasoning']
+      })
+
+      result
     end
 
     private

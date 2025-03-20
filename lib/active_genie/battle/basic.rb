@@ -48,6 +48,15 @@ module ActiveGenie::Battle
         config: @config
       )
 
+      ActiveGenie::Logger.debug({
+        step: :battle,
+        player_a: @player_a.content[0..30],
+        player_b: @player_b.content[0..30],
+        criteria: @criteria[0..30],
+        winner: response['impartial_judge_winner'],
+        reasoning: response['impartial_judge_winner_reasoning']
+      })
+
       response_formatted(response)
     end
 

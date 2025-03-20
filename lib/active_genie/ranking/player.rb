@@ -22,7 +22,6 @@ module ActiveGenie::Ranking
 
     def score=(value)
       @score = value
-      ActiveGenie::Logger.debug({ step: :new_score, player_id: id, score: value })
     end
 
     def elo

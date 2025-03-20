@@ -10,10 +10,12 @@ module ActiveGenie::Ranking
       @players = players
       @criteria = criteria
       @config = config
+      @start_time = Time.now
+      @total_tokens = 0
     end
 
     def call
-      ActiveGenie::Logger.with_context(log_context) do
+      ActiveGenie::Logger.with_context(log_context, observer: method(:log_observer)) do
         matches.each do |player_a, player_b|
           winner, loser = battle(player_a, player_b)
           
@@ -25,9 +27,11 @@ module ActiveGenie::Ranking
             loser.lose!
           end
         end
-
-        # TODO: add a freeForAll report. Duration, Elo changes, etc.
       end
+
+      ActiveGenie::Logger.info({ step: :free_for_all_report, **report })
+
+      report
     end
 
     private
@@ -71,6 +75,19 @@ module ActiveGenie::Ranking
       eligible_ids = @players.eligible.map(&:id).join(',')
       ranking_unique_key = [eligible_ids, @criteria, @config.to_json].join('-')
       Digest::MD5.hexdigest(ranking_unique_key)
+    end
+
+    def report
+      {
+        free_for_all_id:,
+        battles_count: matches.size,
+        duration_seconds: Time.now - @start_time,
+        total_tokens: @total_tokens,
+      }
+    end
+
+    def log_observer(log)
+      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
     end
   end
 end

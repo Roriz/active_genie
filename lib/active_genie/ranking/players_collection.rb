@@ -57,7 +57,7 @@ module ActiveGenie::Ranking
     private
 
     def build(param_players)
-      param_players.map { |player| Player.new(player) }
+      param_players.map { |p| Player.new(p) }
     end
 
     # Returns the number of players to battle in each round

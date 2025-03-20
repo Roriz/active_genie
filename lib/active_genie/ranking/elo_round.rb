@@ -13,6 +13,8 @@ module ActiveGenie::Ranking
       @criteria = criteria
       @config = config
       @tmp_defenders = []
+      @start_time = Time.now
+      @total_tokens = 0
     end
 
     def call
@@ -55,28 +57,26 @@ module ActiveGenie::Ranking
     end
 
     def battle(player_a, player_b)
-      result = ActiveGenie::Battle.basic(
-        player_a,
-        player_b,
-        @criteria,
-        config: @config
-      )
-      
-      winner, loser = case result['winner']
-        when 'player_a' then [player_a, player_b]
-        when 'player_b' then [player_b, player_a]
-        when 'draw' then [nil, nil]
+      ActiveGenie::Logger.with_context({ player_a: player_a.id, player_b: player_b.id }) do
+        result = ActiveGenie::Battle.basic(
+          player_a,
+          player_b,
+          @criteria,
+          config: @config
+        )
+
+        winner, loser = case result['winner']
+          when 'player_a' then [player_a, player_b]
+          when 'player_b' then [player_b, player_a]
+          when 'draw' then [nil, nil]
+        end
+
+        [winner, loser]
       end
 
-      ActiveGenie::Logger.debug({
-        step: :elo_round_battle,
-        player_ids: [player_a.id, player_b.id],
-        winner_id: winner&.id,
-        loser_id: loser&.id,
-        reasoning: result['reasoning']
-      })
+      ActiveGenie::Logger.info({ step: :elo_round_report, **report })
 
-      [winner, loser]
+      report
     end
 
     # INFO: Read more about the Elo rating system on https://en.wikipedia.org/wiki/Elo_rating_system
@@ -108,6 +108,19 @@ module ActiveGenie::Ranking
 
       ranking_unique_key = [relegation_tier_ids, defender_tier_ids, @criteria, @config.to_json].join('-')
       Digest::MD5.hexdigest(ranking_unique_key)
+    end
+
+    def report
+      {
+        elo_round_id:,
+        battles_count: matches.size,
+        duration_seconds: Time.now - @start_time,
+        total_tokens: @total_tokens,
+      }
+    end
+
+    def log_observer(log)
+      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
     end
   end
 end
