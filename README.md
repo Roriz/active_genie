@@ -111,11 +111,11 @@ AI-powered battle evaluation system that determines winners between two players 
 ```ruby
 require 'active_genie'
 
-player_a = "Implementation uses dependency injection for better testability"
+player_1 = "Implementation uses dependency injection for better testability"
 player_b = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
-result = ActiveGenie::Battle.call(player_a, player_b, criteria)
+result = ActiveGenie::Battle.call(player_1, player_b, criteria)
 # => {
 #      winner_player: "Implementation uses dependency injection for better testability",
 #      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection, 
@@ -157,6 +157,7 @@ result = ActiveGenie::Ranking.call(players, criteria)
 See the [Ranking README](lib/active_genie/ranking/README.md) for implementation details, configuration, and advanced ranking strategies.
 
 ### Text Summarizer (Future)
+### Categorizer (Future)
 ### Language detector (Future)
 ### Translator (Future)
 ### Sentiment analyzer (Future)

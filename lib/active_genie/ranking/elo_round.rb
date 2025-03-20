@@ -19,9 +19,9 @@ module ActiveGenie::Ranking
 
     def call
       ActiveGenie::Logger.with_context(log_context) do
-        matches.each do |player_a, player_b|
+        matches.each do |player_1, player_2|
           # TODO: battle can take a while, can be parallelized
-          winner, loser = battle(player_a, player_b)
+          winner, loser = battle(player_1, player_2)
 
           next if winner.nil? || loser.nil?
 
@@ -30,9 +30,11 @@ module ActiveGenie::Ranking
           winner.elo = new_winner_elo
           loser.elo = new_loser_elo
         end
-
-        # TODO: add a round report. Duration, Elo changes, etc.
       end
+
+      ActiveGenie::Logger.info({ step: :elo_round_report, **report })
+
+      report
     end
 
     private
@@ -53,30 +55,26 @@ module ActiveGenie::Ranking
     def next_defense_player
       @tmp_defenders = @defender_tier if @tmp_defenders.size.zero?
 
-      @tmp_defenders.shuffle.pop!
+      @tmp_defenders.shuffle.pop
     end
 
-    def battle(player_a, player_b)
-      ActiveGenie::Logger.with_context({ player_a: player_a.id, player_b: player_b.id }) do
+    def battle(player_1, player_2)
+      ActiveGenie::Logger.with_context({ player_1_id: player_1.id, player_2_id: player_2.id }) do
         result = ActiveGenie::Battle.basic(
-          player_a,
-          player_b,
+          player_1,
+          player_2,
           @criteria,
           config: @config
         )
 
         winner, loser = case result['winner']
-          when 'player_a' then [player_a, player_b]
-          when 'player_b' then [player_b, player_a]
+          when 'player_1' then [player_1, player_2]
+          when 'player_2' then [player_2, player_1]
           when 'draw' then [nil, nil]
         end
 
         [winner, loser]
       end
-
-      ActiveGenie::Logger.info({ step: :elo_round_report, **report })
-
-      report
     end
 
     # INFO: Read more about the Elo rating system on https://en.wikipedia.org/wiki/Elo_rating_system

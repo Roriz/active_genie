@@ -1,3 +1,4 @@
+require_relative '../concerns/loggable'
 require_relative './players_collection'
 require_relative './free_for_all'
 require_relative './elo_round'
@@ -28,16 +29,17 @@ require_relative './ranking_scoring'
 # @return [Hash] Final ranked player results
 module ActiveGenie::Ranking
   class Ranking
+    include ActiveGenie::Concerns::Loggable
+
     def self.call(...)
       new(...).call
     end
 
     def initialize(param_players, criteria, reviewers: [], config: {})
-      @param_players = param_players
       @criteria = criteria
       @reviewers = Array(reviewers).compact.uniq
       @config = ActiveGenie::Configuration.to_h(config)
-      @players = nil
+      @players = PlayersCollection.new(param_players)
       @elo_rounds_played = 0
       @elo_round_battle_count = 0
       @free_for_all_battle_count = 0
@@ -46,34 +48,33 @@ module ActiveGenie::Ranking
     end
 
     def call
-      @players = PlayersCollection.new(@param_players)
+      initial_log
 
-      ActiveGenie::Logger.with_context(log_context, observer: method(:log_observer)) do
-        starting_log
+      set_initial_player_scores!
+      eliminate_obvious_bad_players!
 
-        set_initial_player_scores!
-        eliminate_obvious_bad_players!
-
-        while @players.elo_eligible?
-          run_elo_round!
-          eliminate_relegation_players!
-        end
-  
-        run_free_for_all!
+      while @players.elo_eligible?
+        run_elo_round!
+        eliminate_relegation_players!
       end
 
-      ActiveGenie::Logger.info({ step: :ranking_report, **report })
+      run_free_for_all!
+      final_logs
 
       @players.sorted
     end
 
     private
 
-    SCORE_VARIATION_THRESHOLD = 10
+    SCORE_VARIATION_THRESHOLD = 15
     ELIMINATION_VARIATION = 'variation_too_high'
     ELIMINATION_RELEGATION = 'relegation_tier'
+    
+    with_logging_context :log_context, ->(log) { 
+      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
+    }
 
-    def starting_log
+    def initial_log
       @players.each { |p| ActiveGenie::Logger.debug({ step: :new_player, player: p.to_h }) }
     end
 
@@ -119,13 +120,14 @@ module ActiveGenie::Ranking
         duration_seconds: Time.now - @start_time,
       }
     end
+    
+    def final_logs
+      ActiveGenie::Logger.debug({ step: :ranking_final, players: @players.sorted.map(&:to_h) })
+      ActiveGenie::Logger.info({ step: :ranking_report, **report })
+    end
 
     def log_context
       { config: @config[:log], ranking_id: }
-    end
-
-    def log_observer(log)
-      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
     end
 
     def ranking_id

@@ -40,7 +40,7 @@ module ActiveGenie
 
     def call(data, level: :info)
       log = {
-        **@context,
+        **(@context || {}),
         **(data || {}),
         timestamp: Time.now,
         level: level.to_s.upcase,
@@ -83,6 +83,8 @@ module ActiveGenie
     end
 
     def call_observers(log)
+      return if @observers.nil? || @observers.size.zero?
+
       @observers.each { |observer| observer.call(log) }
     end
   end
