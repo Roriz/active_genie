@@ -21,23 +21,19 @@ module ActiveGenie::Ranking
     attr_accessor :rank
 
     def score=(value)
+      ActiveGenie::Logger.debug({ step: :new_score, player_id: id, score: value }) if value != @score
       @score = value
-    end
-
-    def elo
-      generate_elo_by_score if @elo.nil?
-
-      @elo
+      @elo = generate_elo_by_score
     end
 
     def elo=(value)
+      ActiveGenie::Logger.debug({ step: :new_elo, player_id: id, elo: value }) if value != @elo
       @elo = value
-      ActiveGenie::Logger.debug({ step: :new_elo, player_id: id, elo: value })
     end
 
     def eliminated=(value)
+      ActiveGenie::Logger.debug({ step: :new_eliminated, player_id: id, eliminated: value }) if value != @eliminated
       @eliminated = value
-      ActiveGenie::Logger.debug({ step: :new_eliminated, player_id: id, eliminated: value })
     end
 
     def draw!
@@ -85,12 +81,12 @@ module ActiveGenie::Ranking
       method_name == :[] || super
     end
 
+    def generate_elo_by_score
+      BASE_ELO + ((@score || 0) - 50)
+    end
+
     private
     
     BASE_ELO = 1000
-
-    def generate_elo_by_score
-      @elo = BASE_ELO + ((@score || 0) - 50)
-    end
   end
 end

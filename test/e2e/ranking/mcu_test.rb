@@ -70,9 +70,10 @@ The Collector;In the MCU, The Collector showcased formidable abilities in his co
     The strongest should win in a fight against the opponent where anything is valid: any weapon, any strategy, anything.
     If both characters can win in some scenarios, decide who is a more consistent winner.
     CRITERIA
+    # result = ActiveGenie::Ranking.call(characters, fight_criteria)
     result = ActiveGenie::Ranking.call(characters, fight_criteria, config: { model: 'gpt-4o' })
 
-    debugger
+    puts result.map { |r| [r.rank, r.content[0..30], r.score, r.elo, r.ffa_win_count, r.ffa_lose_count, r.ffa_draw_count, r.eliminated] }.to_json
     tony_stark = result.find { |r| r[:content].include? "Tony Stark" }
     thanos = result.find { |r| r[:content].include? "Thanos" }
 

@@ -54,8 +54,9 @@ module ActiveGenie::Ranking
       eliminate_obvious_bad_players!
 
       while @players.elo_eligible?
-        run_elo_round!
+        elo_report = run_elo_round!
         eliminate_relegation_players!
+        rebalance_players!(elo_report)
       end
 
       run_free_for_all!
@@ -94,10 +95,22 @@ module ActiveGenie::Ranking
       elo_report = EloRound.call(@players, @criteria, config: @config)
 
       @elo_round_battle_count += elo_report[:battles_count]
+
+      elo_report
     end
 
     def eliminate_relegation_players!
       @players.calc_relegation_tier.each { |player| player.eliminated = ELIMINATION_RELEGATION }
+    end
+
+    def rebalance_players!(elo_report)
+      return if elo_report[:highest_elo_diff].negative?
+
+      @players.eligible.each do |player|
+        next if elo_report[:players_in_round].include?(player.id)
+
+        player.elo += elo_report[:highest_elo_diff]
+      end
     end
 
     def run_free_for_all!

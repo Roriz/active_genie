@@ -50,8 +50,8 @@ module ActiveGenie::Battle
 
       ActiveGenie::Logger.debug({
         step: :battle,
-        player_1: @player_1.content[0..30],
-        player_2: @player_2.content[0..30],
+        player_1: @player_1[0..30],
+        player_2: @player_2[0..30],
         criteria: @criteria[0..30],
         winner: response['impartial_judge_winner'],
         reasoning: response['impartial_judge_winner_reasoning']

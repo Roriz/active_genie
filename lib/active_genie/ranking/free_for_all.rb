@@ -44,8 +44,8 @@ module ActiveGenie::Ranking
 
     def battle(player_1, player_2)
       result = ActiveGenie::Battle.basic(
-        player_1,
-        player_2,
+        player_1.content,
+        player_2.content,
         @criteria,
         config: @config
       )

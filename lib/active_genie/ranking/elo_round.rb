@@ -15,20 +15,20 @@ module ActiveGenie::Ranking
       @tmp_defenders = []
       @start_time = Time.now
       @total_tokens = 0
+      @previous_elo = {}
+      @previous_highest_elo = @defender_tier.max_by(&:elo).elo
     end
 
     def call
       ActiveGenie::Logger.with_context(log_context) do
+        save_previous_elo
         matches.each do |player_1, player_2|
           # TODO: battle can take a while, can be parallelized
           winner, loser = battle(player_1, player_2)
-
           next if winner.nil? || loser.nil?
 
-          new_winner_elo, new_loser_elo = calculate_new_elo(winner.elo, loser.elo)
-
-          winner.elo = new_winner_elo
-          loser.elo = new_loser_elo
+          winner.elo = calculate_new_elo(winner.elo, loser.elo, 1)
+          loser.elo = calculate_new_elo(loser.elo, winner.elo, 0)
         end
       end
 
@@ -40,8 +40,11 @@ module ActiveGenie::Ranking
     private
 
     BATTLE_PER_PLAYER = 3
-    LOSE_PENALTY = 15
     K = 32
+
+    def save_previous_elo
+      @previous_elo = @players.map { |player| [player.id, player.elo] }.to_h
+    end
 
     def matches
       @relegation_tier.reduce([]) do |matches, attack_player|
@@ -61,8 +64,8 @@ module ActiveGenie::Ranking
     def battle(player_1, player_2)
       ActiveGenie::Logger.with_context({ player_1_id: player_1.id, player_2_id: player_2.id }) do
         result = ActiveGenie::Battle.basic(
-          player_1,
-          player_2,
+          player_1.content,
+          player_2.content,
           @criteria,
           config: @config
         )
@@ -78,22 +81,10 @@ module ActiveGenie::Ranking
     end
 
     # INFO: Read more about the Elo rating system on https://en.wikipedia.org/wiki/Elo_rating_system
-    def calculate_new_elo(winner_elo, loser_elo)
-      expected_score_a = 1 / (1 + 10**((loser_elo - winner_elo) / 400))
-      expected_score_b = 1 - expected_score_a
-
-      new_winner_elo = [winner_elo + K * (1 - expected_score_a), max_defense_elo].min
-      new_loser_elo = [loser_elo + K * (1 - expected_score_b) - LOSE_PENALTY, min_relegation_elo].max
-
-      [new_winner_elo, new_loser_elo]
-    end
-
-    def max_defense_elo
-      @defender_tier.max_by(&:elo).elo
-    end
-
-    def min_relegation_elo
-      @relegation_tier.min_by(&:elo).elo
+    def calculate_new_elo(player_rating, opponent_rating, score)
+      expected_score = 1.0 / (1.0 + 10.0 ** ((opponent_rating - player_rating) / 400.0))
+      
+      player_rating + (K * (score - expected_score)).round
     end
 
     def log_context
@@ -111,10 +102,29 @@ module ActiveGenie::Ranking
     def report
       {
         elo_round_id:,
+        players_in_round: players_in_round.map(&:id),
         battles_count: matches.size,
         duration_seconds: Time.now - @start_time,
         total_tokens: @total_tokens,
+        previous_highest_elo: @previous_highest_elo,
+        highest_elo:,
+        highest_elo_diff: highest_elo - @previous_highest_elo,
+        players_elo_diff:,
       }
+    end
+
+    def players_in_round
+      @defender_tier + @relegation_tier
+    end
+
+    def highest_elo
+      players_in_round.max_by(&:elo).elo
+    end
+
+    def players_elo_diff
+      players_in_round.map do |player|
+        [player.id, player.elo - @previous_elo[player.id]]
+      end.sort_by { |_, diff| -diff }.to_h
     end
 
     def log_observer(log)
