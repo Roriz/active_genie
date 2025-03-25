@@ -56,9 +56,9 @@ module ActiveGenie::Ranking
     end
 
     def next_defense_player
-      @tmp_defenders = @defender_tier if @tmp_defenders.size.zero?
+      @tmp_defenders = @defender_tier.shuffle if @tmp_defenders.size.zero?
 
-      @tmp_defenders.shuffle.pop
+      @tmp_defenders.pop
     end
 
     def battle(player_1, player_2)
