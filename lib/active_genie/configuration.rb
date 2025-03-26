@@ -1,5 +1,6 @@
 require_relative 'configuration/providers_config'
 require_relative 'configuration/openai_config'
+require_relative 'configuration/gemini_config'
 require_relative 'configuration/log_config'
 
 module ActiveGenie
@@ -10,6 +11,7 @@ module ActiveGenie
       @providers ||= begin 
         p = ProvidersConfig.new
         p.register(:openai, ActiveGenie::Configuration::OpenaiConfig)
+        p.register(:gemini, ActiveGenie::Configuration::GeminiConfig)
         p
       end
     end
