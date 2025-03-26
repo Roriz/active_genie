@@ -70,26 +70,18 @@ module ActiveGenie
         start_time = Time.now
 
         retry_with_backoff(config:) do
-          http = Net::HTTP.new(url.host, url.port)
-          http.use_ssl = (url.scheme == 'https')
-
-          post_request = Net::HTTP::Post.new(url.request_uri, DEFAULT_HEADERS)
-          post_request.body = payload.to_json
-
-          response = http.request(post_request)
+          response = Net::HTTP.post(url, payload.to_json, DEFAULT_HEADERS)
 
           case response
           when Net::HTTPSuccess
-            # Success
             return nil if response.body.nil? || response.body.empty?
 
             parsed_body = JSON.parse(response.body)
 
-            # Log usage statistics from Gemini's response format
             usage_metadata = parsed_body['usageMetadata'] || {}
             prompt_tokens = usage_metadata['promptTokenCount'] || 0
-            candidates_tokens = usage_metadata['candidatesTokenCount'] || 0 # Note: Might be just one candidate
-            total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens) # Use provided total if available
+            candidates_tokens = usage_metadata['candidatesTokenCount'] || 0
+            total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens)
 
             ActiveGenie::Logger.trace({
               step: :llm_stats,
