@@ -5,10 +5,10 @@ require_relative './helpers/retry'
 
 module ActiveGenie
   module Clients
-    # Client for interacting with the Google Gemini API.
-    class GeminiClient
-      class GeminiError < StandardError; end
-      class RateLimitError < GeminiError; end
+    # Client for interacting with the Google Generative Language API.
+    class GoogleClient
+      class GoogleError < StandardError; end
+      class RateLimitError < GoogleError; end
 
       API_VERSION_PATH = '/v1beta/models'.freeze
       DEFAULT_HEADERS = {
@@ -19,11 +19,11 @@ module ActiveGenie
         @app_config = config
       end
 
-      # Requests structured JSON output from the Gemini model based on a schema.
+      # Requests structured JSON output from the Google Generative Language model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
       #   Each hash should have :role ('user' or 'model') and :content (String).
-      #   Gemini uses 'user' and 'model' roles.
+      #   Google Generative Language uses 'user' and 'model' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @param model_tier [Symbol, nil] A symbolic representation of the model quality/size tier.
       # @param config [Hash] Optional configuration overrides:
@@ -97,32 +97,32 @@ module ActiveGenie
 
           when Net::HTTPTooManyRequests
             # Rate Limit Error
-            raise RateLimitError, "Gemini API rate limit exceeded (HTTP 429): #{response.body}"
+            raise RateLimitError, "Google API rate limit exceeded (HTTP 429): #{response.body}"
 
           else
             # Other Errors
-            raise GeminiError, "Gemini API error (HTTP #{response.code}): #{response.body}"
+            raise GoogleError, "Google API error (HTTP #{response.code}): #{response.body}"
           end
         end
       rescue JSON::ParserError => e
-          raise GeminiError, "Failed to parse Gemini API response body: #{e.message} - Body: #{response&.body}"
+          raise GoogleError, "Failed to parse Google API response body: #{e.message} - Body: #{response&.body}"
       end
 
-      ROLE_TO_GEMINI_ROLE = {
+      ROLE_TO_GOOGLE_ROLE = {
         user: 'user',
         assistant: 'model',
         system: 'system'
       }
 
-      # Converts standard message format to Gemini's 'contents' format
+      # Converts standard message format to Google's 'contents' format
       # and injects JSON schema instructions.
       # @param messages [Array<Hash>] Array of { role: 'user'/'assistant'/'system', content: '...' }
       # @param function_schema [Hash] The JSON schema for the desired output.
-      # @return [Array<Hash>] Array formatted for Gemini's 'contents' field.
+      # @return [Array<Hash>] Array formatted for Google's 'contents' field.
       def convert_messages_to_contents(messages, function_schema)
         messages.map do |message|
           {
-            role: ROLE_TO_GEMINI_ROLE[message[:role].to_sym],
+            role: ROLE_TO_GOOGLE_ROLE[message[:role].to_sym],
             parts: [{ text: message[:content] }]
           }
         end

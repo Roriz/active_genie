@@ -4,9 +4,9 @@ require 'net/http'
 require_relative './helpers/retry'
 
 module ActiveGenie::Clients
-  class OpenaiClient    
-    class OpenaiError < StandardError; end
-    class RateLimitError < OpenaiError; end
+  class DeepseekClient    
+    class DeepseekError < StandardError; end
+    class RateLimitError < DeepseekError; end
 
     def initialize(config)
       @app_config = config
@@ -74,7 +74,7 @@ module ActiveGenie::Clients
           raise RateLimitError, "OpenAI API rate limit exceeded: #{response.body}"
         end
 
-        raise OpenaiError, response.body unless response.is_a?(Net::HTTPSuccess)
+        raise DeepseekError, response.body unless response.is_a?(Net::HTTPSuccess)
 
         return nil if response.body.empty?
 
