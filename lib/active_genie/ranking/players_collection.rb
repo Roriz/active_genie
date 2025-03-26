@@ -41,9 +41,9 @@ module ActiveGenie::Ranking
     end
 
     def sorted
-      @players.sort_by { |p| [-p.ffa_score, -(p.elo || 0), -(p.score || 0)] }
-      @players.each_with_index { |p, i| p.rank = i + 1 }
-      @players
+      sorted_players = @players.sort_by { |p| [-p.ffa_score, -(p.elo || 0), -(p.score || 0)] }
+      sorted_players.each_with_index { |p, i| p.rank = i + 1 }
+      sorted_players
     end
 
     def to_h
@@ -57,7 +57,7 @@ module ActiveGenie::Ranking
     private
 
     def build(param_players)
-      param_players.map { |player| Player.new(player) }
+      param_players.map { |p| Player.new(p) }
     end
 
     # Returns the number of players to battle in each round

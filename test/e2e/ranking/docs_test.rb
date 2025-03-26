@@ -51,7 +51,6 @@ class ActiveGenie::Ranking::RankingTest < Minitest::Test
     CRITERIA
     result = ActiveGenie::Ranking.call(docs, pr_description)
 
-    debugger
     feature_flag = result.find { |r| r[:content].include? "Feature Flagging & Rollout" }
 
     # clear worst ranks

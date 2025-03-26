@@ -46,12 +46,21 @@ module ActiveGenie::DataExtractor
         }
       }
 
-      ::ActiveGenie::Clients::UnifiedClient.function_calling(
+      result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
         messages,
         function,
         model_tier: 'lower_tier',
         config: @config
       )
+
+      ActiveGenie::Logger.debug({
+        step: :data_extractor,
+        text: @text[0..30],
+        data_to_extract: @data_to_extract,
+        extracted_data: result
+      })
+
+      result
     end
 
     private

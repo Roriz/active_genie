@@ -10,24 +10,28 @@ module ActiveGenie::Ranking
       @players = players
       @criteria = criteria
       @config = config
+      @start_time = Time.now
+      @total_tokens = 0
     end
 
     def call
-      ActiveGenie::Logger.with_context(log_context) do
-        matches.each do |player_a, player_b|
-          winner, loser = battle(player_a, player_b)
+      ActiveGenie::Logger.with_context(log_context, observer: method(:log_observer)) do
+        matches.each do |player_1, player_2|
+          winner, loser = battle(player_1, player_2)
           
           if winner.nil? || loser.nil?
-            player_a.draw!
-            player_b.draw!
+            player_1.draw!
+            player_2.draw!
           else
             winner.win!
             loser.lose!
           end
         end
-
-        # TODO: add a freeForAll report. Duration, Elo changes, etc.
       end
+
+      ActiveGenie::Logger.info({ step: :free_for_all_report, **report })
+
+      report
     end
 
     private
@@ -38,23 +42,23 @@ module ActiveGenie::Ranking
       @players.eligible.combination(2).to_a
     end
 
-    def battle(player_a, player_b)
+    def battle(player_1, player_2)
       result = ActiveGenie::Battle.basic(
-        player_a,
-        player_b,
+        player_1.content,
+        player_2.content,
         @criteria,
         config: @config
       )
 
       winner, loser = case result['winner']
-        when 'player_a' then [player_a, player_b, result['reasoning']]
-        when 'player_b' then [player_b, player_a, result['reasoning']]
+        when 'player_1' then [player_1, player_2, result['reasoning']]
+        when 'player_2' then [player_2, player_1, result['reasoning']]
         when 'draw' then [nil, nil, result['reasoning']]
       end
 
       ActiveGenie::Logger.debug({
         step: :free_for_all_battle,
-        player_ids: [player_a.id, player_b.id],
+        player_ids: [player_1.id, player_2.id],
         winner_id: winner&.id,
         loser_id: loser&.id,
         reasoning: result['reasoning']
@@ -71,6 +75,19 @@ module ActiveGenie::Ranking
       eligible_ids = @players.eligible.map(&:id).join(',')
       ranking_unique_key = [eligible_ids, @criteria, @config.to_json].join('-')
       Digest::MD5.hexdigest(ranking_unique_key)
+    end
+
+    def report
+      {
+        free_for_all_id:,
+        battles_count: matches.size,
+        duration_seconds: Time.now - @start_time,
+        total_tokens: @total_tokens,
+      }
+    end
+
+    def log_observer(log)
+      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
     end
   end
 end

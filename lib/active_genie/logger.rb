@@ -5,55 +5,54 @@ module ActiveGenie
   module Logger
     module_function
 
-    def with_context(context)
+    def with_context(context, observer: nil)
       @context ||= {}
+      @observers ||= []
       begin
         @context = @context.merge(context)
+        @observers << observer if observer
         yield if block_given?
       ensure
         @context.delete_if { |key, _| context.key?(key) }
+        @observers.delete(observer)
       end
     end
 
     def info(log)
-      save(log, level: :info)
+      call(log, level: :info)
     end
 
     def error(log)
-      save(log, level: :error)
+      call(log, level: :error)
     end
 
     def warn(log)
-      save(log, level: :warn)
+      call(log, level: :warn)
     end
 
     def debug(log)
-      save(log, level: :debug)
+      call(log, level: :debug)
     end
 
     def trace(log)
-      save(log, level: :trace)
+      call(log, level: :trace)
     end
 
-    def save(data, level: :info)
-      log = @context.merge(data || {})
-      log[:timestamp] = Time.now
-      log[:level] = level.to_s.upcase
-      log[:process_id] = Process.pid
-      config_log_level = LOG_LEVELS[log.dig(:config, :log_level)] || LOG_LEVELS[:info]
+    def call(data, level: :info)
+      log = {
+        **(@context || {}),
+        **(data || {}),
+        timestamp: Time.now,
+        level: level.to_s.upcase,
+        process_id: Process.pid
+      }
 
-      FileUtils.mkdir_p('logs')
-      File.write('logs/active_genie.log', "#{JSON.generate(log)}\n", mode: 'a')
-      if config_log_level >= LOG_LEVELS[level]
-        $stdout.puts log
-      else
-        $stdout.print '.'
-      end
+      append_to_file(log)
+      output(log, level)
+      call_observers(log)
 
       log
     end
-
-    private
 
     # Log Levels
     # 
@@ -68,5 +67,25 @@ module ActiveGenie
     LOG_LEVELS = { info: 0, error: 0, warn: 1, debug: 2, trace: 3 }.freeze
 
     attr_accessor :context
+    
+    def append_to_file(log)
+      FileUtils.mkdir_p('logs')
+      File.write('logs/active_genie.log', "#{JSON.generate(log)}\n", mode: 'a')
+    end
+
+    def output(log, level)
+      config_log_level = LOG_LEVELS[log.dig(:config, :log_level)] || LOG_LEVELS[:info]
+      if config_log_level >= LOG_LEVELS[level]
+        $stdout.puts log
+      else
+        $stdout.print '.'
+      end
+    end
+
+    def call_observers(log)
+      return if @observers.nil? || @observers.size.zero?
+
+      @observers.each { |observer| observer.call(log) }
+    end
   end
 end

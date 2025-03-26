@@ -18,17 +18,17 @@ module ActiveGenie::Battle
       new(...).call
     end
 
-    # @param player_a [String] The content or submission from the first player
-    # @param player_b [String] The content or submission from the second player
+    # @param player_1 [String] The content or submission from the first player
+    # @param player_2 [String] The content or submission from the second player
     # @param criteria [String] The evaluation criteria or rules to assess against
-    # @param config [Hash] Additional configuration config that modify the battle evaluation behavior
+    # @param config [Hash] Additional configuration options that modify the battle evaluation behavior
     # @return [Hash] The evaluation result containing the winner and reasoning
-    #   @return [String] :winner The @param player_a or player_b
+    #   @return [String] :winner The winner, either player_1 or player_2
     #   @return [String] :reasoning Detailed explanation of why the winner was chosen
     #   @return [String] :what_could_be_changed_to_avoid_draw A suggestion on how to avoid a draw
-    def initialize(player_a, player_b, criteria, config: {})
-      @player_a = player_a
-      @player_b = player_b
+    def initialize(player_1, player_2, criteria, config: {})
+      @player_1 = player_1
+      @player_2 = player_2
       @criteria = criteria
       @config = ActiveGenie::Configuration.to_h(config)
     end
@@ -37,8 +37,8 @@ module ActiveGenie::Battle
       messages = [
         {  role: 'system', content: PROMPT },
         {  role: 'user', content: "criteria: #{@criteria}" },
-        {  role: 'user', content: "player_a: #{@player_a}" },
-        {  role: 'user', content: "player_b: #{@player_b}" },
+        {  role: 'user', content: "player_1: #{@player_1}" },
+        {  role: 'user', content: "player_2: #{@player_2}" },
       ]
 
       response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
@@ -48,6 +48,15 @@ module ActiveGenie::Battle
         config: @config
       )
 
+      ActiveGenie::Logger.debug({
+        step: :battle,
+        player_1: @player_1[0..30],
+        player_2: @player_2[0..30],
+        criteria: @criteria[0..30],
+        winner: response['impartial_judge_winner'],
+        reasoning: response['impartial_judge_winner_reasoning']
+      })
+
       response_formatted(response)
     end
 
@@ -56,23 +65,22 @@ module ActiveGenie::Battle
     def response_formatted(response)
       winner = response['impartial_judge_winner']
       loser = case response['impartial_judge_winner']
-              when 'player_a' then 'player_b'
-              when 'player_b' then 'player_a'
-              else 'draw'
+              when 'player_1' then 'player_2'
+              when 'player_2' then 'player_1'
               end
 
-      { winner:, loser:, reasoning: response['impartial_judge_winner_reasoning'] }
+      { 'winner' => winner, 'loser' => loser, 'reasoning' => response['impartial_judge_winner_reasoning'] }
     end
 
     PROMPT = <<~PROMPT
-    Based on two players, player_a and player_b, they will battle against each other based on criteria. Criteria are vital as they provide a clear metric to compare the players. Follow these criteria strictly.
+    Based on two players, player_1 and player_2, they will battle against each other based on criteria. Criteria are vital as they provide a clear metric to compare the players. Follow these criteria strictly.
 
     # Steps
-    1. Player_a sells himself, highlighting his strengths and how he meets the criteria. Max of 100 words.
-    2. Player_b sells himself, highlighting his strengths and how he meets the criteria. Max of 100 words.
-    3. Player_a argues why he is the winner compared to player_b. Max of 100 words.
-    4. Player_b counter-argues why he is the winner compared to player_a. Max of 100 words.
-    5. The impartial judge chooses which player as the winner.
+    1. player_1 presents their strengths and how they meet the criteria. Max of 100 words.
+    2. player_2 presents their strengths and how they meet the criteria. Max of 100 words.
+    3. player_1 argues why they should be the winner compared to player_2. Max of 100 words.
+    4. player_2 counter-argues why they should be the winner compared to player_1. Max of 100 words.
+    5. The impartial judge chooses the winner.
 
     # Output Format
     - The impartial judge chooses this player as the winner.
@@ -85,25 +93,25 @@ module ActiveGenie::Battle
 
     FUNCTION =  {
       name: 'battle_evaluation',
-      description: 'Evaluate a battle between player_a and player_b using predefined criteria and identify the winner.',
+      description: 'Evaluate a battle between player_1 and player_2 using predefined criteria and identify the winner.',
       schema: {
         type: "object",
         properties: {
-          player_a_sell_himself: {
+          player_1_sell_himself: {
             type: 'string',
-            description: 'player_a sell himself, highlighting his strengths and how he meets the criteria. Max of 100 words.',
+            description: 'player_1 presents their strengths and how they meet the criteria. Max of 100 words.',
           },
-          player_b_sell_himself: {
+          player_2_sell_himself: {
             type: 'string',
-            description: 'player_b sell himself, highlighting his strengths and how he meets the criteria. Max of 100 words.',
+            description: 'player_2 presents their strengths and how they meet the criteria. Max of 100 words.',
           },
-          player_a_arguments: {
+          player_1_arguments: {
             type: 'string',
-            description: 'player_a arguments why he is the winner compared to player_b. Max of 100 words.',
+            description: 'player_1 arguments for why they should be the winner compared to player_2. Max of 100 words.',
           },
-          player_b_counter: {
+          player_2_counter: {
             type: 'string',
-            description: 'player_b counter arguments why he is the winner compared to player_a. Max of 100 words.',
+            description: 'player_2 counter arguments for why they should be the winner compared to player_1. Max of 100 words.',
           },
           impartial_judge_winner_reasoning: {
             type: 'string',
@@ -111,8 +119,8 @@ module ActiveGenie::Battle
           },
           impartial_judge_winner: {
             type: 'string',
-            description: 'The impartial judge chose this player as the winner.',
-            enum: ['player_a', 'player_b', 'draw']
+            description: 'Who is the winner based on the impartial judge reasoning?',
+            enum: ['player_1', 'player_2']
           },
         }
       }
