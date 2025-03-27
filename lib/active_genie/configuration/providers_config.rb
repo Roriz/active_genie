@@ -5,8 +5,9 @@ module ActiveGenie::Configuration
       @default = nil
     end
 
-    def register(name, provider_class)
+    def register(provider_class)
       @all ||= {}
+      name = provider_class::NAME
       @all[name] = provider_class.new
       define_singleton_method(name) do
         instance_variable_get("@#{name}") || instance_variable_set("@#{name}", @all[name])
@@ -16,11 +17,12 @@ module ActiveGenie::Configuration
     end
 
     def default
-      @default || @all.values.first
+      @default || @all.values.find { |p| p.api_key }.class::NAME
     end
 
-    def all
-      @all
+    def valid
+      valid_provider_keys = @all.keys.select { |k| @all[k].valid? }
+      @all.slice(*valid_provider_keys)
     end
 
     def to_h(config = {})
@@ -32,6 +34,7 @@ module ActiveGenie::Configuration
     end
 
     private
+
     attr_writer :default
   end
 end

@@ -1,0 +1,115 @@
+require 'json'
+require 'net/http'
+require 'uri'
+require_relative './helpers/retry'
+
+module ActiveGenie
+  module Clients
+    # Client for interacting with the Anthropic (Claude) API with json response
+    class AnthropicClient
+      class AnthropicError < StandardError; end
+      class RateLimitError < AnthropicError; end
+
+      def initialize(config)
+        @app_config = config
+      end
+
+      # Requests structured JSON output from the Anthropic Claude model based on a schema.
+      #
+      # @param messages [Array<Hash>] A list of messages representing the conversation history.
+      #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
+      #   Claude uses 'user', 'assistant', and 'system' roles.
+      # @param function [Hash] A JSON schema definition describing the desired output format.
+      # @param model_tier [Symbol, nil] A symbolic representation of the model quality/size tier.
+      # @param config [Hash] Optional configuration overrides:
+      #   - :api_key [String] Override the default API key.
+      #   - :model [String] Override the model name directly.
+      #   - :max_retries [Integer] Max retries for the request.
+      #   - :retry_delay [Integer] Initial delay for retries.
+      #   - :anthropic_version [String] Override the default Anthropic API version.
+      # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
+      def function_calling(messages, function, model_tier: nil, config: {})
+        model = config[:runtime][:model] || @app_config.tier_to_model(model_tier)
+
+        system_message = messages.find { |m| m[:role] == 'system' }&.dig(:content) || ''
+        user_messages = messages.select { |m| m[:role] == 'user' || m[:role] == 'assistant' }
+          .map { |m| { role: m[:role], content: m[:content] } }
+
+        # Add schema instruction to the system message if not already present
+        if !system_message.include?('JSON schema') && !system_message.include?('json schema')
+          system_message += "\n\nYour response must conform to the following JSON schema: #{function.to_json}"
+        end
+
+        payload = {
+          model:,
+          system: system_message,
+          messages: user_messages,
+          max_tokens: config[:runtime][:max_tokens],
+          temperature: config[:runtime][:temperature] || 0,
+          response_format: { type: 'json_object' }
+        }
+
+        api_key = config[:runtime][:api_key] || @app_config.api_key
+        headers = DEFAULT_HEADERS.merge(
+          'x-api-key': api_key,
+          'anthropic-version': config[:anthropic_version] || ANTHROPIC_VERSION
+        ).compact
+
+        retry_with_backoff(config:) do
+          response = request(payload, headers, config:)
+        
+          content = response.dig('content', 0, 'text')
+          return nil if content.nil? || content.empty?
+        
+          parsed_response = JSON.parse(content)
+          parsed_response = parsed_response.dig('properties') || parsed_response
+        
+          ActiveGenie::Logger.trace({step: :function_calling, payload:, parsed_response: })
+        
+          parsed_response
+        end
+      end
+
+      private
+
+      DEFAULT_HEADERS = {
+        'Content-Type': 'application/json',
+      }
+      ANTHROPIC_VERSION = '2023-06-01'
+
+      def request(payload, headers, config:)
+        start_time = Time.now
+
+        retry_with_backoff(config:) do
+          response = Net::HTTP.post(
+            URI("#{@app_config.api_url}/v1/messages"),
+            payload.to_json,
+            headers
+          )
+
+          if response.is_a?(Net::HTTPTooManyRequests)
+            raise RateLimitError, "Anthropic API rate limit exceeded: #{response.body}"
+          end
+
+          raise AnthropicError, response.body unless response.is_a?(Net::HTTPSuccess)
+
+          return nil if response.body.empty?
+
+          parsed_body = JSON.parse(response.body)
+
+          ActiveGenie::Logger.trace({
+            step: :llm_stats,
+            input_tokens: parsed_body.dig('usage', 'input_tokens'),
+            output_tokens: parsed_body.dig('usage', 'output_tokens'),
+            total_tokens: parsed_body.dig('usage', 'input_tokens') + parsed_body.dig('usage', 'output_tokens'),
+            model: payload[:model],
+            duration: Time.now - start_time,
+            usage: parsed_body.dig('usage')
+          })
+
+          parsed_body
+        end
+      end
+    end
+  end
+end

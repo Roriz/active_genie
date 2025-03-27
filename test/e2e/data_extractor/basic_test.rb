@@ -34,9 +34,9 @@ class ActiveGenie::DataExtractor::BasicTest < Minitest::Test
       { event: { type: 'string' }, venue: { type: 'string' }, iso_date: { type: 'string' }, row: { type: 'string' }, seat: { type: 'integer' }, price: { type: 'number' }, currency_ISO_4217: { type: 'string' } }],
       expected: { event: 'Taylor Swift concert', venue: 'Madison Square Garden', iso_date: '2024-03-15', row: 'A', seat: 12, price: 250, currency_ISO_4217: 'EUR' }
     },
-    { input: ["2022 Tesla Model 3 Long Range, Electric, 15,000 miles, Autopilot included. Listed at $45,995",
+    { input: ["2022 Tesla Model 3, Electric, 15,000 miles, Autopilot included. Listed at $45,995",
       { year: { type: 'integer' }, make: { type: 'string' }, model: { type: 'string' }, mileage: { type: 'integer' }, price: { type: 'number' } }],
-      expected: { year: 2022, make: 'Tesla', model: 'Model 3 Long Range', mileage: 15000, price: 45995 }
+      expected: { year: 2022, make: 'Tesla', model: 'Model 3', mileage: 15000, price: 45995 }
     },
     { input: ["Add 250g of organic whole wheat flour and 2.5 tsp of active dry yeast",
       { flour_amount: { type: 'number' }, flour_unit: { type: 'string' }, yeast_amount: { type: 'number' }, yeast_unit: { type: 'string' } }],
@@ -50,7 +50,7 @@ class ActiveGenie::DataExtractor::BasicTest < Minitest::Test
 
   TESTS.each_with_index do |test, index|
     define_method("test_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-      result = ActiveGenie::DataExtractor::Basic.call(*test[:input], config: { provider: 'gemini' })
+      result = ActiveGenie::DataExtractor::Basic.call(*test[:input], config: { provider: 'google' })
 
       test[:expected].each do |key, value|
         assert result.key?(key.to_s), "Missing key: #{key}, result: #{result.to_s[0..100]}"

@@ -6,10 +6,23 @@ on:
 
 env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test_file:
+        provider:
+          - name: openai
+            model: gpt-4o-mini
+          - name: google
+            model: gemini-2.0-flash-lite
+    env:
+      MODEL: ${{ matrix.provider.model }}
+      PROVIDER: ${{ matrix.provider.name }}
 
     steps:
     - uses: actions/checkout@v4
@@ -22,6 +35,21 @@ jobs:
     
     - name: Install dependencies
       run: bundle install
+
+    - name: Run battle tests
+      run: ruby test/e2e/battle/basic_test.rb
+
+    - name: Run data extractor tests
+      run: ruby test/e2e/data_extractor/basic_test.rb
       
-    - name: Run tests
-      run: bundle exec rake test
+    - name: Run data extractor from informal tests
+      run: ruby test/e2e/data_extractor/from_informal_test.rb
+      
+    - name: Run ranking tests
+      run: ruby test/e2e/ranking/docs_test.rb
+      
+    - name: Run ranking MCU tests
+      run: ruby test/e2e/ranking/mcu_test.rb
+      
+    - name: Run scoring tests
+      run: ruby test/e2e/scoring/basic_test.rb

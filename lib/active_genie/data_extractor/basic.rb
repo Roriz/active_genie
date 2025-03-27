@@ -29,7 +29,7 @@ module ActiveGenie::DataExtractor
     def initialize(text, data_to_extract, config: {})
       @text = text
       @data_to_extract = data_to_extract
-      @config = ActiveGenie::Configuration.to_h(config)
+      @config = ActiveGenie::Configuration.to_h(runtime: config)
     end
 
     def call

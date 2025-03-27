@@ -8,7 +8,7 @@ module ActiveGenie::Configuration
     end
 
     def to_h(config = {})
-      { log_level:, **config }
+      self.attributes.merge(config)
     end
   end
 end

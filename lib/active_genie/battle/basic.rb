@@ -30,7 +30,7 @@ module ActiveGenie::Battle
       @player_1 = player_1
       @player_2 = player_2
       @criteria = criteria
-      @config = ActiveGenie::Configuration.to_h(config)
+      @config = ActiveGenie::Configuration.to_h(runtime: config)
     end
 
     def call

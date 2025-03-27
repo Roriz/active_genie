@@ -1,7 +1,10 @@
 require_relative 'configuration/providers_config'
-require_relative 'configuration/openai_config'
-require_relative 'configuration/gemini_config'
+require_relative 'configuration/providers/openai_config'
+require_relative 'configuration/providers/google_config'
+require_relative 'configuration/providers/anthropic_config'
+require_relative 'configuration/providers/deepseek_config'
 require_relative 'configuration/log_config'
+require_relative 'configuration/runtime_config'
 
 module ActiveGenie
   module Configuration
@@ -10,8 +13,10 @@ module ActiveGenie
     def providers
       @providers ||= begin 
         p = ProvidersConfig.new
-        p.register(:openai, ActiveGenie::Configuration::OpenaiConfig)
-        p.register(:gemini, ActiveGenie::Configuration::GeminiConfig)
+        p.register(ActiveGenie::Configuration::Providers::OpenaiConfig)
+        p.register(ActiveGenie::Configuration::Providers::GoogleConfig)
+        p.register(ActiveGenie::Configuration::Providers::AnthropicConfig)
+        p.register(ActiveGenie::Configuration::Providers::DeepseekConfig)
         p
       end
     end
@@ -20,10 +25,15 @@ module ActiveGenie
       @log ||= LogConfig.new
     end
 
+    def runtime
+      @runtime ||= RuntimeConfig.new
+    end
+
     def to_h(configs = {})
       {
         providers: providers.to_h(configs.dig(:providers) || {}),
-        log: log.to_h(configs.dig(:log) || {})
+        log: log.to_h(configs.dig(:log) || {}),
+        runtime: runtime.to_h(configs.dig(:runtime) || {})
       }
     end
   end
