@@ -1,4 +1,4 @@
-name: Tests
+name: Benchmark
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
 jobs:
-  test:
+  benchmark:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,8 +17,8 @@ jobs:
         provider:
           - name: openai
             model: gpt-4o-mini
-          - name: google
-            model: gemini-2.0-flash-lite
+          # - name: google
+          #   model: gemini-2.0-flash-lite
     env:
       MODEL: ${{ matrix.provider.model }}
       PROVIDER: ${{ matrix.provider.name }}
@@ -37,19 +37,22 @@ jobs:
       run: bundle install
 
     - name: Run battle tests
-      run: ruby test/e2e/battle/basic_test.rb
+      run: bin/test battle
 
     - name: Run data extractor tests
-      run: ruby test/e2e/data_extractor/basic_test.rb
-      
-    - name: Run data extractor from informal tests
-      run: ruby test/e2e/data_extractor/from_informal_test.rb
-      
+      run: bin/test data_extractor
+
     - name: Run ranking tests
-      run: ruby test/e2e/ranking/docs_test.rb
-      
-    - name: Run ranking MCU tests
-      run: ruby test/e2e/ranking/mcu_test.rb
-      
+      run: bin/test ranking
+
     - name: Run scoring tests
-      run: ruby test/e2e/scoring/basic_test.rb
+      run: bin/test scoring
+
+    - name: Upload results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: benchmark.md
+
+    - name: Show on summary
+      run: cat benchmark.md >> $GITHUB_STEP_SUMMARY
