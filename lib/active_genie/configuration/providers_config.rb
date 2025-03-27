@@ -34,6 +34,7 @@ module ActiveGenie::Configuration
     end
 
     private
+
     attr_writer :default
   end
 end

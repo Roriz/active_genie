@@ -3,8 +3,8 @@ require "minitest/autorun"
 require_relative "../lib/active_genie"
 
 ActiveGenie.configure do |config|
-  config.providers.openai.api_key = ENV['OPENAI_API_KEY']
-  config.providers.google.api_key = ENV['GENERATIVE_LANGUAGE_GOOGLE_API_KEY']
-
   config.log.log_level = -1
+  config.runtime.model = ENV['MODEL']
+  config.runtime.provider = ENV['PROVIDER']
+  config.runtime.api_key = ENV['API_KEY']
 end

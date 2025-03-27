@@ -4,12 +4,11 @@ require_relative 'configuration/providers/google_config'
 require_relative 'configuration/providers/anthropic_config'
 require_relative 'configuration/providers/deepseek_config'
 require_relative 'configuration/log_config'
+require_relative 'configuration/runtime_config'
 
 module ActiveGenie
   module Configuration
     module_function
-
-    attr_writer :provider
 
     def providers
       @providers ||= begin 
@@ -22,19 +21,19 @@ module ActiveGenie
       end
     end
 
-    def provider
-      @provider || providers.default.class::NAME
-    end
-
     def log
       @log ||= LogConfig.new
     end
 
+    def runtime
+      @runtime ||= RuntimeConfig.new
+    end
+
     def to_h(configs = {})
       {
-        provider: configs[:provider] || provider,
         providers: providers.to_h(configs.dig(:providers) || {}),
-        log: log.to_h(configs.dig(:log) || {})
+        log: log.to_h(configs.dig(:log) || {}),
+        runtime: runtime.to_h(configs.dig(:runtime) || {})
       }
     end
   end

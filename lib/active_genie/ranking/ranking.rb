@@ -38,7 +38,7 @@ module ActiveGenie::Ranking
     def initialize(param_players, criteria, reviewers: [], config: {})
       @criteria = criteria
       @reviewers = Array(reviewers).compact.uniq
-      @config = ActiveGenie::Configuration.to_h(config)
+      @config = ActiveGenie::Configuration.to_h(runtime: config)
       @players = PlayersCollection.new(param_players)
       @elo_rounds_played = 0
       @elo_round_battle_count = 0

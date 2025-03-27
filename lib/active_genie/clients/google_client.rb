@@ -33,8 +33,8 @@ module ActiveGenie
       #   - :retry_delay [Integer] Initial delay for retries.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function, model_tier: nil, config: {})
-        model = config[:model] || @app_config.tier_to_model(model_tier)
-        api_key = config[:api_key] || @app_config.api_key
+        model = config[:runtime][:model] || @app_config.tier_to_model(model_tier)
+        api_key = config[:runtime][:api_key] || @app_config.api_key
 
         contents = convert_messages_to_contents(messages, function)
         contents << output_as_json_schema(function)
@@ -111,8 +111,7 @@ module ActiveGenie
       ROLE_TO_GOOGLE_ROLE = {
         user: 'user',
         assistant: 'model',
-        system: 'system'
-      }
+      }.freeze
 
       # Converts standard message format to Google's 'contents' format
       # and injects JSON schema instructions.
@@ -122,7 +121,7 @@ module ActiveGenie
       def convert_messages_to_contents(messages, function_schema)
         messages.map do |message|
           {
-            role: ROLE_TO_GOOGLE_ROLE[message[:role].to_sym],
+            role: ROLE_TO_GOOGLE_ROLE[message[:role].to_sym] || 'user',
             parts: [{ text: message[:content] }]
           }
         end
