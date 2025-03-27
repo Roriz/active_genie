@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
 
 rake "test[test/e2e/$1]" | tee >(cat) > test_output.tmp
 output=$(cat test_output.tmp)
