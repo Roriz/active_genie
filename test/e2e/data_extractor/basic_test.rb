@@ -50,7 +50,7 @@ class ActiveGenie::DataExtractor::BasicTest < Minitest::Test
 
   TESTS.each_with_index do |test, index|
     define_method("test_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-      result = ActiveGenie::DataExtractor::Basic.call(*test[:input], config: { provider: 'google' })
+      result = ActiveGenie::DataExtractor::Basic.call(*test[:input])
 
       test[:expected].each do |key, value|
         assert result.key?(key.to_s), "Missing key: #{key}, result: #{result.to_s[0..100]}"
