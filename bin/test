@@ -1,7 +1,6 @@
 #!/usr/bin/sh
 
-# Run the test with unbuffered output to see results in real-time
-rake test[test/e2e/$1] | tee >(cat) > test_output.tmp
+rake "test[test/e2e/$1]" | tee >(cat) > test_output.tmp
 output=$(cat test_output.tmp)
 rm test_output.tmp
 echo ""
