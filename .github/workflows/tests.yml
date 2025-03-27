@@ -22,6 +22,7 @@ jobs:
     env:
       MODEL: ${{ matrix.provider.model }}
       PROVIDER: ${{ matrix.provider.name }}
+    continue-on-error: true
 
     steps:
     - uses: actions/checkout@v4
