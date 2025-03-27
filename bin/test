@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+touch test_output.tmp
 rake "test[test/e2e/$1]" | tee >(cat) > test_output.tmp
 output=$(cat test_output.tmp)
 rm test_output.tmp
@@ -10,6 +11,6 @@ if [ -n "$result_line" ]; then
   failures=$(echo $result_line | grep -oE '[0-9]+ failures' | grep -oE '[0-9]+')
   successes=$((runs - failures))
   precision=$(awk "BEGIN {printf \"%.2f\", $successes/$runs}")
-  duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+ seconds' | grep -oE '[0-9]+\.[0-9]+')
-  echo "| Battle | $PROVIDER | $MODEL | $runs/$successes/$failures | $precision | $duration |" >> results.md
+  duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+s' | grep -oE '[0-9]+\.[0-9]+')
+  echo "| Battle | $PROVIDER | $MODEL | $runs/$successes/$failures | $precision | $duration |" >> benchmark.md
 fi

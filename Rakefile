@@ -23,7 +23,11 @@ task :test, [:folder_path] do |_, args|
     t.warning = false
   end
   
-  Rake::Task[:run_tests].invoke
+  begin
+    Rake::Task[:run_tests].invoke
+  rescue => e
+    puts e
+  end
 end
 
 task default: :test
