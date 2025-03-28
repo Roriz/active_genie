@@ -58,7 +58,7 @@ module ActiveGenie
   
           parsed_response = JSON.parse(json_string)
   
-          ActiveGenie::Logger.trace({ step: :function_calling, payload:, parsed_response: })
+          ActiveGenie::Logger.trace({ code: :function_calling, payload:, parsed_response: })
   
           parsed_response
         end
@@ -84,7 +84,7 @@ module ActiveGenie
             total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens)
 
             ActiveGenie::Logger.trace({
-              step: :llm_stats,
+              code: :llm_stats,
               input_tokens: prompt_tokens,
               output_tokens: candidates_tokens,
               total_tokens: total_tokens,

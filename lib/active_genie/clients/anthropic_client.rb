@@ -64,7 +64,7 @@ module ActiveGenie
           parsed_response = JSON.parse(content)
           parsed_response = parsed_response.dig('properties') || parsed_response
         
-          ActiveGenie::Logger.trace({step: :function_calling, payload:, parsed_response: })
+          ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
         
           parsed_response
         end
@@ -98,7 +98,7 @@ module ActiveGenie
           parsed_body = JSON.parse(response.body)
 
           ActiveGenie::Logger.trace({
-            step: :llm_stats,
+            code: :llm_stats,
             input_tokens: parsed_body.dig('usage', 'input_tokens'),
             output_tokens: parsed_body.dig('usage', 'output_tokens'),
             total_tokens: parsed_body.dig('usage', 'input_tokens') + parsed_body.dig('usage', 'output_tokens'),

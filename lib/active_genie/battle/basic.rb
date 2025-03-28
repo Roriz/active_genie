@@ -49,7 +49,7 @@ module ActiveGenie::Battle
       )
 
       ActiveGenie::Logger.debug({
-        step: :battle,
+        code: :battle,
         player_1: @player_1[0..30],
         player_2: @player_2[0..30],
         criteria: @criteria[0..30],

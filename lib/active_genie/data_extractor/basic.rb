@@ -54,7 +54,7 @@ module ActiveGenie::DataExtractor
       )
 
       ActiveGenie::Logger.debug({
-        step: :data_extractor,
+        code: :data_extractor,
         text: @text[0..30],
         data_to_extract: @data_to_extract,
         extracted_data: result
