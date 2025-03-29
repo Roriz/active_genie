@@ -53,7 +53,6 @@ jobs:
         name: latest-benchmark
         path: benchmark/latest.csv
         merge-multiple: true
-        if-no-files-found: ignore
 
     - name: Upload results
       uses: actions/upload-artifact@v4
@@ -61,6 +60,8 @@ jobs:
         name: latest-benchmark
         path: benchmark/latest.csv
         retention-days: 1
+        overwrite: true
+        if-no-files-found: ignore
 
   build_report:
     runs-on: ubuntu-latest
