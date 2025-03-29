@@ -8,7 +8,7 @@ def retry_with_backoff(config: {})
     yield
   rescue => e
     if retries > 0
-      ActiveGenie::Logger.warn({ step: :retry_with_backoff, message: "Retrying request after error: #{e.message}. Attempts remaining: #{retries}" })
+      ActiveGenie::Logger.warn({ code: :retry_with_backoff, message: "Retrying request after error: #{e.message}. Attempts remaining: #{retries}" })
 
       retries -= 1
       backoff_time = calculate_backoff(MAX_RETRIES - retries)

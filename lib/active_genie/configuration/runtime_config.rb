@@ -15,7 +15,7 @@ module ActiveGenie::Configuration
     end
 
     def provider
-      @provider ||= ActiveGenie.configuration.providers.default.class::NAME
+      @provider ||= ActiveGenie.configuration.providers.default
     end
 
     def api_key
@@ -27,7 +27,9 @@ module ActiveGenie::Configuration
     end
 
     def to_h(config = {})
-      self.attributes.merge(config)
+      {
+        max_tokens:, temperature:, model:, provider:, api_key:, max_retries:,
+      }.merge(config)
     end
   end
 end

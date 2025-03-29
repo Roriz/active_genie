@@ -32,7 +32,7 @@ module ActiveGenie::Ranking
         end
       end
 
-      ActiveGenie::Logger.info({ step: :elo_round_report, **report })
+      ActiveGenie::Logger.info({ code: :elo_round_report, **report })
 
       report
     end
@@ -128,7 +128,7 @@ module ActiveGenie::Ranking
     end
 
     def log_observer(log)
-      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
+      @total_tokens += log[:total_tokens] if log[:code] == :llm_stats
     end
   end
 end

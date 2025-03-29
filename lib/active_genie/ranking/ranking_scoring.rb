@@ -38,7 +38,7 @@ module ActiveGenie::Ranking
         config: @config
       ).values_at('final_score', 'final_reasoning')
 
-      ActiveGenie::Logger.debug({step: :new_score, player_id: player.id, score:, reasoning: })
+      ActiveGenie::Logger.debug({ code: :new_score, player_id: player.id, score:, reasoning: })
 
       score
     end
@@ -52,7 +52,7 @@ module ActiveGenie::Ranking
         config: @config
       ).values_at('reviewer1', 'reviewer2', 'reviewer3')
       
-      ActiveGenie::Logger.debug({step: :new_reviewers, reviewers: [reviewer1, reviewer2, reviewer3] })
+      ActiveGenie::Logger.debug({ code: :new_reviewers, reviewers: [reviewer1, reviewer2, reviewer3] })
 
       [reviewer1, reviewer2, reviewer3]
     end

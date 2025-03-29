@@ -47,7 +47,7 @@ module ActiveGenie::Clients
       parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'content'))
       parsed_response = parsed_response.dig('properties') || parsed_response
 
-      ActiveGenie::Logger.trace({step: :function_calling, payload:, parsed_response: })
+      ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
 
       parsed_response
     rescue JSON::ParserError
@@ -81,7 +81,7 @@ module ActiveGenie::Clients
         parsed_body = JSON.parse(response.body)
 
         ActiveGenie::Logger.trace({
-          step: :llm_stats,
+          code: :llm_stats,
           input_tokens: parsed_body.dig('usage', 'prompt_tokens'),
           output_tokens: parsed_body.dig('usage', 'completion_tokens'),
           total_tokens: parsed_body.dig('usage', 'prompt_tokens') + parsed_body.dig('usage', 'completion_tokens'),

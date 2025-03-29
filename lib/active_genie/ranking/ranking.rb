@@ -72,11 +72,11 @@ module ActiveGenie::Ranking
     ELIMINATION_RELEGATION = 'relegation_tier'
     
     with_logging_context :log_context, ->(log) { 
-      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
+      @total_tokens += log[:total_tokens] if log[:code] == :llm_stats
     }
 
     def initial_log
-      @players.each { |p| ActiveGenie::Logger.debug({ step: :new_player, player: p.to_h }) }
+      @players.each { |p| ActiveGenie::Logger.debug({ code: :new_player, player: p.to_h }) }
     end
 
     def set_initial_player_scores!
@@ -135,8 +135,8 @@ module ActiveGenie::Ranking
     end
     
     def final_logs
-      ActiveGenie::Logger.debug({ step: :ranking_final, players: @players.sorted.map(&:to_h) })
-      ActiveGenie::Logger.info({ step: :ranking_report, **report })
+      ActiveGenie::Logger.debug({ code: :ranking_final, players: @players.sorted.map(&:to_h) })
+      ActiveGenie::Logger.info({ code: :ranking, **report })
     end
 
     def log_context

@@ -84,7 +84,7 @@ module ActiveGenie::Scoring
       )
 
       ActiveGenie::Logger.debug({
-        step: :scoring,
+        code: :scoring,
         text: @text[0..30],
         criteria: @criteria[0..30],
         reviewers: get_or_recommend_reviewers,

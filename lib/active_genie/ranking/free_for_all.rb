@@ -29,7 +29,7 @@ module ActiveGenie::Ranking
         end
       end
 
-      ActiveGenie::Logger.info({ step: :free_for_all_report, **report })
+      ActiveGenie::Logger.info({ code: :free_for_all_report, **report })
 
       report
     end
@@ -57,7 +57,7 @@ module ActiveGenie::Ranking
       end
 
       ActiveGenie::Logger.debug({
-        step: :free_for_all_battle,
+        code: :free_for_all_battle,
         player_ids: [player_1.id, player_2.id],
         winner_id: winner&.id,
         loser_id: loser&.id,
@@ -87,7 +87,7 @@ module ActiveGenie::Ranking
     end
 
     def log_observer(log)
-      @total_tokens += log[:total_tokens] if log[:step] == :llm_stats
+      @total_tokens += log[:total_tokens] if log[:code] == :llm_stats
     end
   end
 end

@@ -2,7 +2,7 @@
 
 require_relative "../../test_helper"
 
-class ActiveGenie::DataExtractor::BasicTest < Minitest::Test
+class ActiveGenie::DataExtractor::PreciseTest < Minitest::Test
   TESTS = [
     { input: ["Roriz is 25 years old", { name: { type: 'string' }, age: { type: 'integer' } }], expected: { name: 'Roriz', age: 25 } },
     { input: ["Nike Air Max 90 - Size 42 - $199.99", { brand: { type: 'string' }, price: { type: 'number' }, currency: { type: 'string' }, size: { type: 'integer' } }], expected: { brand: 'Nike', price: 199.99, currency: 'USD', size: 42 } },
@@ -50,11 +50,11 @@ class ActiveGenie::DataExtractor::BasicTest < Minitest::Test
 
   TESTS.each_with_index do |test, index|
     define_method("test_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-      result = ActiveGenie::DataExtractor::Basic.call(*test[:input], config: { provider: 'google' })
+      result = ActiveGenie::DataExtractor::Basic.call(*test[:input])
 
       test[:expected].each do |key, value|
         assert result.key?(key.to_s), "Missing key: #{key}, result: #{result.to_s[0..100]}"
-        assert_equal value, result[key.to_s]
+        assert_equal value, result[key.to_s], "Expected #{value}, but was #{result[key.to_s]}"
       end
     end
   end
