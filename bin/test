@@ -29,6 +29,5 @@ avg_duration=$(awk "BEGIN {printf \"%.2f\", $duration/$runs}")
 
 touch benchmark/latest.csv
 CSV_LINE="$MODULE,$PROVIDER,$MODEL,$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration"
-echo "ActiveGenie::Module,Provider,Model,Tests (Total/Success/Fails),Precision,Duration (s),Requests,Tokens,Avg. Duration (s)"
 echo "$CSV_LINE"
 echo "$CSV_LINE" >> benchmark/latest.csv

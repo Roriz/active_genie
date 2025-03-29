@@ -20,7 +20,7 @@ jobs:
             name: gpt-4o-mini
           - provider: google
             name: gemini-2.0-flash-lite
-        modules: [data_extractor, scoring, battle, ranking]
+        module: [data_extractor, scoring, battle, ranking]
     env:
       MODEL: ${{ matrix.model.name }}
       PROVIDER: ${{ matrix.model.provider }}
@@ -38,8 +38,13 @@ jobs:
     - name: Run ${{ matrix.module }}
       run: bin/test ${{ matrix.module }}
 
-    - name: Show on summary
-      run: cat benchmark/latest.csv >> $GITHUB_STEP_SUMMARY
+    - name: Shows Summary
+      run: |
+        touch benchmark/latest.md
+        echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
+        echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
+        tail -n +2 benchmark/latest.csv | sed 's/,/ | /g' | sed 's/^/| /' | sed 's/$/ |/' >> benchmark/latest.md
+        cat benchmark/latest.md >> $GITHUB_STEP_SUMMARY
 
     - name: Download results
       uses: actions/download-artifact@v4
