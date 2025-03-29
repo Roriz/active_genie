@@ -28,6 +28,11 @@ done
 avg_duration=$(awk "BEGIN {printf \"%.2f\", $duration/$runs}")
 
 touch benchmark/latest.csv
-CSV_LINE="$MODULE,$PROVIDER,$MODEL,$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration"
-echo "$CSV_LINE"
-echo "$CSV_LINE" >> benchmark/latest.csv
+touch benchmark/latest.md
+echo "$MODULE,$PROVIDER,$MODEL,$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration" >> benchmark/latest.csv
+
+echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
+echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
+echo "| $MODULE | $PROVIDER | $MODEL | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration |" >> benchmark/latest.md
+
+cat benchmark/latest.md

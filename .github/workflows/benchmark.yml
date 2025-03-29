@@ -2,7 +2,7 @@ name: Benchmark
 
 on:
   push:
-    # branches: [ main ]
+    branches: [ main ]
 
 env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -28,6 +28,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Clear benchmark
+      run: |
+        rm -rf benchmark/latest.csv
+        rm -rf benchmark/latest.md
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
@@ -37,14 +41,6 @@ jobs:
 
     - name: Run ${{ matrix.module }}
       run: bin/test ${{ matrix.module }}
-
-    - name: Shows Summary
-      run: |
-        touch benchmark/latest.md
-        echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
-        echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
-        tail -n +2 benchmark/latest.csv | sed 's/,/ | /g' | sed 's/^/| /' | sed 's/$/ |/' >> benchmark/latest.md
-        cat benchmark/latest.md >> $GITHUB_STEP_SUMMARY
 
     - name: Download results
       uses: actions/download-artifact@v4
@@ -75,5 +71,10 @@ jobs:
         merge-multiple: true
         if-no-files-found: ignore
 
-    - name: Show on summary
-      run: cat benchmark/latest.csv >> $GITHUB_STEP_SUMMARY
+    - name: Shows Summary
+      run: |
+        touch benchmark/latest.md
+        echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
+        echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
+        cat benchmark/latest.csv | sed 's/,/ | /g' | sed 's/^/| /' | sed 's/$/ |/' >> benchmark/latest.md
+        cat benchmark/latest.md >> $GITHUB_STEP_SUMMARY
