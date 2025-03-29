@@ -8,22 +8,15 @@ output=$(cat test_output.tmp)
 rm test_output.tmp
 echo ""
 result_line=$(echo "$output" | grep -E '[0-9]+ runs, [0-9]+ assertions, [0-9]+ failures, [0-9]+ errors, [0-9]+ skips' | tail -1)
-runs=0
-failures=0
-successes=0
-precision=0
-duration=0
 if [ -n "$result_line" ]; then
   runs=$(echo $result_line | grep -oE '[0-9]+ runs' | grep -oE '[0-9]+')
   failures=$(echo $result_line | grep -oE '[0-9]+ failures' | grep -oE '[0-9]+')
   successes=$((runs - failures))
   precision=$(($successes*100/$runs))
   duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+s' | grep -oE '[0-9]+\.[0-9]+')
-  
 fi
 
 all_llm_stats=$(cat logs/active_genie.log | grep "llm_stats" | jq -r '.total_tokens')
-total_tokens=0
 requests=$(echo "$all_llm_stats" | wc -l)
 for llm_stat in $all_llm_stats; do
   total_tokens=$((total_tokens + llm_stat))
@@ -31,4 +24,5 @@ done
 
 avg_duration=$(awk "BEGIN {printf \"%.2f\", $duration/$runs}")
 
-echo "| $MODULE | $PROVIDER | $MODEL | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration" >> benchmark.md
+touch benchmark/tmp.md
+echo "| $MODULE | $PROVIDER | $MODEL | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration" >> benchmark/tmp.md

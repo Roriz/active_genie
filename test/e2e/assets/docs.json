@@ -1,0 +1,17 @@
+[
+  "Architecture Overview - High-level description of the system architecture, including key components and interactions.",
+  "API Documentation - Details on available endpoints, authentication, request/response formats, and usage guidelines.",
+  "Onboarding Guide - Step-by-step instructions for new engineers to set up their development environment and understand team workflows.",
+  "Deployment Process - Explanation of how code moves from development to production, including CI/CD pipelines and release strategies.",
+  "Database Schema - Overview of the database structure, key tables, and relationships.",
+  "Code Style Guide - Best practices and conventions for writing and reviewing code within the team.",
+  "Incident Response Plan - Procedures for identifying, responding to, and resolving system incidents or outages.",
+  "Feature Flagging & Rollout - List of feature flags and their corresponding rollout strategies.",
+  "Monitoring & Alerting - Documentation on logging, metrics, and alert configurations to track system health.",
+  "Security Best Practices - Policies and recommendations to ensure secure coding, authentication, and data handling.",
+  "Service Dependencies - Information about external services and internal microservices that the platform relies on.",
+  "Testing Strategy - Approach to unit, integration, and end-to-end testing, including tools and frameworks used.",
+  "Performance Optimization - Guidelines for profiling, scaling, and optimizing the platform for better performance.",
+  "Access & Permissions - Explanation of roles, permissions, and access control mechanisms in the system.",
+  "Retrospective & Postmortem Templates - Standard templates for documenting lessons learned from projects and incidents."
+]

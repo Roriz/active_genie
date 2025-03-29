@@ -17,8 +17,8 @@ jobs:
         provider:
           - name: openai
             model: gpt-4o-mini
-          # - name: google
-          #   model: gemini-2.0-flash-lite
+          - name: google
+            model: gemini-2.0-flash-lite
     env:
       MODEL: ${{ matrix.provider.model }}
       PROVIDER: ${{ matrix.provider.name }}
@@ -32,27 +32,55 @@ jobs:
       with:
         ruby-version: '3'
         bundler-cache: true
-    
-    - name: Install dependencies
-      run: bundle install
 
-    - name: Run battle tests
+    - name: Run battle
       run: bin/test battle
 
-    - name: Run data extractor tests
+    - name: Run data extractor
       run: bin/test data_extractor
 
-    - name: Run ranking tests
+    - name: Run scoring
+      run: bin/test scoring
+
+    - name: Run ranking
       run: bin/test ranking
 
-    - name: Run scoring tests
-      run: bin/test scoring
+    - name: Show on summary
+      run: cat benchmark/latest.md benchmark/tmp.md >> $GITHUB_STEP_SUMMARY
+
+    - name: Download other results
+      uses: actions/download-artifact@v4
+      with:
+        name: tmp-benchmark
+        path: benchmark/tmp.md
+        merge-multiple: true
+        if-no-files-found: ignore
 
     - name: Upload results
       uses: actions/upload-artifact@v4
       with:
-        name: benchmark-results
-        path: benchmark.md
+        name: tmp-benchmark
+        path: benchmark/tmp.md
+        retention-days: 1
 
-    - name: Show on summary
-      run: cat benchmark.md >> $GITHUB_STEP_SUMMARY
+  build_report:
+    runs-on: ubuntu-latest
+    needs: benchmark
+    steps:
+    - name: Download other results
+      uses: actions/download-artifact@v4
+      with:
+        name: tmp-benchmark
+        path: benchmark/tmp.md
+        merge-multiple: true
+        if-no-files-found: ignore
+
+    - name: Merge results
+      run: cat benchmark/latest.md benchmark/tmp.md > benchmark/latest.md
+    
+    - name: Upload latest results
+      uses: actions/upload-artifact@v4
+      with:
+        name: latest-benchmark
+        path: benchmark/latest.md
+        retention-days: 30
