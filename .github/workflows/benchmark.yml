@@ -8,79 +8,69 @@ env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
+.provider_matrix: &provider_matrix
+  model:
+    - provider: openai
+      name: gpt-4o-mini
+    - provider: google
+      name: gemini-2.0-flash-lite
+  modules: [data_extractor, scoring, battle, ranking]
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        provider:
-          - name: openai
-            model: gpt-4o-mini
-          - name: google
-            model: gemini-2.0-flash-lite
+        <<: *provider_matrix  # Reuse the provider matrix
     env:
-      MODEL: ${{ matrix.provider.model }}
-      PROVIDER: ${{ matrix.provider.name }}
-    continue-on-error: true
+      MODEL: ${{ matrix.model.name }}
+      PROVIDER: ${{ matrix.model.provider }}
+      MODULE: ${{ matrix.module }}
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3'
         bundler-cache: true
 
-    - name: Run battle
-      run: bin/test battle
-
-    - name: Run data extractor
-      run: bin/test data_extractor
-
-    - name: Run scoring
-      run: bin/test scoring
-
-    - name: Run ranking
-      run: bin/test ranking
+    - name: Run ${{ matrix.module }}
+      run: bin/test ${{ matrix.module }}
 
     - name: Show on summary
-      run: cat benchmark/latest.md benchmark/tmp.md >> $GITHUB_STEP_SUMMARY
+      run: cat benchmark/latest.csv >> $GITHUB_STEP_SUMMARY
 
-    - name: Download other results
+    - name: Download results
       uses: actions/download-artifact@v4
+      continue-on-error: true
       with:
-        name: tmp-benchmark
-        path: benchmark/tmp.md
+        name: latest-benchmark
+        path: benchmark/latest.csv
         merge-multiple: true
         if-no-files-found: ignore
 
     - name: Upload results
       uses: actions/upload-artifact@v4
       with:
-        name: tmp-benchmark
-        path: benchmark/tmp.md
+        name: latest-benchmark
+        path: benchmark/latest.csv
         retention-days: 1
 
   build_report:
     runs-on: ubuntu-latest
-    needs: benchmark
+    needs: [benchmark]
     steps:
-    - name: Download other results
+    - name: Download results
       uses: actions/download-artifact@v4
       with:
-        name: tmp-benchmark
-        path: benchmark/tmp.md
+        name: latest-benchmark
+        path: benchmark/latest.csv
         merge-multiple: true
         if-no-files-found: ignore
 
-    - name: Merge results
-      run: cat benchmark/latest.md benchmark/tmp.md > benchmark/latest.md
-    
-    - name: Upload latest results
-      uses: actions/upload-artifact@v4
-      with:
-        name: latest-benchmark
-        path: benchmark/latest.md
-        retention-days: 30
+    - name: Show on summary
+      run: cat benchmark/latest.csv >> $GITHUB_STEP_SUMMARY
