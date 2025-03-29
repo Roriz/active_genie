@@ -21,6 +21,8 @@ jobs:
             name: gpt-4o-mini
           - provider: google
             name: gemini-2.0-flash-lite
+          - provider: anthropic
+            name: claude-3-5-haiku-20241022
         module: [data_extractor, scoring, battle, ranking]
     env:
       MODEL: ${{ matrix.model.name }}
