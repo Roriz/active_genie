@@ -81,7 +81,7 @@ module ActiveGenie::Clients
         parsed_body = JSON.parse(response.body)
 
         ActiveGenie::Logger.trace({
-          code: :llm_stats,
+          code: :llm_usage,
           input_tokens: parsed_body.dig('usage', 'prompt_tokens'),
           output_tokens: parsed_body.dig('usage', 'completion_tokens'),
           total_tokens: parsed_body.dig('usage', 'prompt_tokens') + parsed_body.dig('usage', 'completion_tokens'),

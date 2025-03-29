@@ -19,9 +19,9 @@ if [ -n "$result_line" ]; then
   duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+s' | grep -oE '[0-9]+\.[0-9]+')
 fi
 
-all_llm_stats=$(cat logs/active_genie.log | grep "llm_stats" | jq -r '.total_tokens')
-requests=$(echo "$all_llm_stats" | wc -l)
-for llm_stat in $all_llm_stats; do
+all_llm_usage=$(cat logs/active_genie.log | grep "llm_usage" | jq -r '.total_tokens')
+requests=$(echo "$all_llm_usage" | wc -l)
+for llm_stat in $all_llm_usage; do
   total_tokens=$((total_tokens + llm_stat))
 done
 
