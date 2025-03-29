@@ -72,7 +72,7 @@ module ActiveGenie::Ranking
     ELIMINATION_RELEGATION = 'relegation_tier'
     
     with_logging_context :log_context, ->(log) { 
-      @total_tokens += log[:total_tokens] if log[:code] == :llm_stats
+      @total_tokens += log[:total_tokens] if log[:code] == :llm_usage
     }
 
     def initial_log

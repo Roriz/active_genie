@@ -84,7 +84,7 @@ module ActiveGenie
             total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens)
 
             ActiveGenie::Logger.trace({
-              code: :llm_stats,
+              code: :llm_usage,
               input_tokens: prompt_tokens,
               output_tokens: candidates_tokens,
               total_tokens: total_tokens,

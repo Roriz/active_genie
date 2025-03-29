@@ -35,18 +35,18 @@ module ActiveGenie
         user_messages = messages.select { |m| m[:role] == 'user' || m[:role] == 'assistant' }
           .map { |m| { role: m[:role], content: m[:content] } }
 
-        # Add schema instruction to the system message if not already present
-        if !system_message.include?('JSON schema') && !system_message.include?('json schema')
-          system_message += "\n\nYour response must conform to the following JSON schema: #{function.to_json}"
-        end
+        anthropic_function = function
+        anthropic_function[:input_schema] = function[:schema]
+        anthropic_function.delete(:schema)
 
         payload = {
           model:,
           system: system_message,
           messages: user_messages,
+          tools: [anthropic_function],
+          tool_choice: { name: anthropic_function[:name], type: 'tool' },
           max_tokens: config[:runtime][:max_tokens],
           temperature: config[:runtime][:temperature] || 0,
-          response_format: { type: 'json_object' }
         }
 
         api_key = config[:runtime][:api_key] || @app_config.api_key
@@ -57,16 +57,11 @@ module ActiveGenie
 
         retry_with_backoff(config:) do
           response = request(payload, headers, config:)
+          content = response.dig('content', 0, 'input')
+
+          ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: content})
         
-          content = response.dig('content', 0, 'text')
-          return nil if content.nil? || content.empty?
-        
-          parsed_response = JSON.parse(content)
-          parsed_response = parsed_response.dig('properties') || parsed_response
-        
-          ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
-        
-          parsed_response
+          content
         end
       end
 
@@ -98,7 +93,7 @@ module ActiveGenie
           parsed_body = JSON.parse(response.body)
 
           ActiveGenie::Logger.trace({
-            code: :llm_stats,
+            code: :llm_usage,
             input_tokens: parsed_body.dig('usage', 'input_tokens'),
             output_tokens: parsed_body.dig('usage', 'output_tokens'),
             total_tokens: parsed_body.dig('usage', 'input_tokens') + parsed_body.dig('usage', 'output_tokens'),

@@ -19,18 +19,18 @@ if [ -n "$result_line" ]; then
   duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+s' | grep -oE '[0-9]+\.[0-9]+')
 fi
 
-all_llm_stats=$(cat logs/active_genie.log | grep "llm_stats" | jq -r '.total_tokens')
-requests=$(echo "$all_llm_stats" | wc -l)
-for llm_stat in $all_llm_stats; do
+all_llm_usage=$(cat logs/active_genie.log | grep "llm_usage" | jq -r '.total_tokens')
+requests=$(echo "$all_llm_usage" | wc -l)
+for llm_stat in $all_llm_usage; do
   total_tokens=$((total_tokens + llm_stat))
 done
 
 avg_duration=$(awk "BEGIN {printf \"%.2f\", $duration/$runs}")
 
-touch benchmark/latest.csv
-touch benchmark/latest.md
-echo "$MODULE,$PROVIDER,$MODEL,$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration" >> benchmark/latest.csv
+touch benchmark/latest-${MODULE}-${PROVIDER}-${MODEL}.csv
+echo "$MODULE,$PROVIDER,$MODEL,$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration" >> benchmark/latest-${MODULE}-${PROVIDER}-${MODEL}.csv
 
+touch benchmark/latest.md
 echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
 echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
 echo "| $MODULE | $PROVIDER | $MODEL | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration |" >> benchmark/latest.md

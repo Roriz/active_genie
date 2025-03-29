@@ -87,7 +87,7 @@ module ActiveGenie::Ranking
     end
 
     def log_observer(log)
-      @total_tokens += log[:total_tokens] if log[:code] == :llm_stats
+      @total_tokens += log[:total_tokens] if log[:code] == :llm_usage
     end
   end
 end

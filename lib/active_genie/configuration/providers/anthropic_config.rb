@@ -33,21 +33,21 @@ module ActiveGenie
       # Defaults to 'claude-3-haiku'.
       # @return [String] The lower tier model name.
       def lower_tier_model
-        @lower_tier_model || 'claude-3-haiku'
+        @lower_tier_model || 'claude-3-5-haiku-20241022'
       end
 
       # Retrieves the model name designated for the middle tier (e.g., balanced performance).
       # Defaults to 'claude-3-sonnet'.
       # @return [String] The middle tier model name.
       def middle_tier_model
-        @middle_tier_model || 'claude-3-sonnet'
+        @middle_tier_model || 'claude-3-7-sonnet-20250219'
       end
 
       # Retrieves the model name designated for the upper tier (e.g., most capable).
       # Defaults to 'claude-3-opus'.
       # @return [String] The upper tier model name.
       def upper_tier_model
-        @upper_tier_model || 'claude-3-opus'
+        @upper_tier_model || 'claude-3-opus-20240229'
       end
     end
   end
