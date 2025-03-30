@@ -77,11 +77,14 @@ jobs:
         # Process all CSV files and build the consolidated reports
         find benchmark/artifacts -name "*.csv" -type f | while read -r file; do
           tail "$file" >> benchmark/reports/consolidated_report.csv
-          IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$file"
+          
+          line=$(cat "$file")
+          IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$line"
           echo "| $module | $provider | $model | $tests | $precision | $duration | $requests | $tokens | $avg_duration |" >> benchmark/reports/consolidated_report.md
         done
-        
+
         cat benchmark/reports/consolidated_report.md
+        cat benchmark/reports/consolidated_report.md >> $GITHUB_OUTPUT
         
     - name: Upload consolidated report
       uses: actions/upload-artifact@v4
