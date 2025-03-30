@@ -84,7 +84,7 @@ jobs:
         done
 
         cat benchmark/reports/consolidated_report.md
-        echo "$(cat benchmark/reports/consolidated_report.md)" >> $GITHUB_OUTPUT
+        echo "$(cat benchmark/reports/consolidated_report.md)" >> $GITHUB_STEP_SUMMARY
         
     - name: Upload consolidated report
       uses: actions/upload-artifact@v4
