@@ -50,23 +50,48 @@ jobs:
         overwrite: true
         if-no-files-found: ignore
 
-  # build_report:
-  #   runs-on: ubuntu-latest
-  #   needs: [benchmark]
-  #   steps:
-  #   - name: Download multiple artifacts using a script
-  #     run: |
-
-  #       for artifact in "latest-${{ env.MODULE }}-${{ env.PROVIDER }}-${{ env.MODEL }}-benchmark"; do
-  #         gh run download --name "$artifact" --dir "artifacts/$artifact"
-  #       done
-  #     env:
-  #       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #   - name: Shows Summary
-  #     run: |
-  #       touch benchmark/latest.md
-  #       echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
-  #       echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
-  #       cat benchmark/latest.csv | sed 's/,/ | /g' | sed 's/^/| /' | sed 's/$/ |/' >> benchmark/latest.md
-  #       cat benchmark/latest.md >> $GITHUB_STEP_SUMMARY
+  build_report:
+    runs-on: ubuntu-latest
+    needs: [benchmark]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: benchmark/artifacts
+        
+    - name: Build consolidated report
+      run: |
+        mkdir -p benchmark/reports
+        
+        # Create header for the consolidated CSV report
+        echo "Module,Provider,Model,Tests,Precision,Duration,Requests,Tokens,Avg_Duration" > benchmark/reports/consolidated_report.csv
+        
+        # Create header for the markdown report
+        echo "# Benchmark Results" > benchmark/reports/consolidated_report.md
+        echo "" >> benchmark/reports/consolidated_report.md
+        echo "| Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/reports/consolidated_report.md
+        echo "|--------|----------|-------|-------|-----------|--------------|----------|--------|-------------------|" >> benchmark/reports/consolidated_report.md
+        
+        # Process all CSV files and build the consolidated reports
+        find benchmark/artifacts -name "*.csv" -type f | while read -r file; do
+          tail "$file" >> benchmark/reports/consolidated_report.csv
+          
+          line=$(cat "$file")
+          IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$line"
+          echo "| $module | $provider | $model | $tests | $precision | $duration | $requests | $tokens | $avg_duration |" >> benchmark/reports/consolidated_report.md
+        done
+        
+        echo "Consolidated reports created:"
+        echo "- CSV: benchmark/reports/consolidated_report.csv"
+        echo "- Markdown: benchmark/reports/consolidated_report.md"
+        
+        cat benchmark/reports/consolidated_report.md
+        
+    - name: Upload consolidated report
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-consolidated-report
+        path: benchmark/reports/
+        retention-days: 7
