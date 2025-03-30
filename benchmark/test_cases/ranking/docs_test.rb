@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative "../test_helper"
 
 class ActiveGenie::Ranking::DocsTest < Minitest::Test
   def test_what_doc_needs_update

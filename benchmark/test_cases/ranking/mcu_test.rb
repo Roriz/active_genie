@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative "../test_helper"
 
 class ActiveGenie::Ranking::McuTest < Minitest::Test
   def test_rank_strongest_character_from_mcu

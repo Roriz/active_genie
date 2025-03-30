@@ -162,6 +162,29 @@ See the [Ranking README](lib/active_genie/ranking/README.md) for implementation 
 ### Translator (Future)
 ### Sentiment analyzer (Future)
 
+## Benchmarking 🧪
+
+ActiveGenie includes a comprehensive benchmarking system to ensure consistent, high-quality outputs across different LLM models and providers.
+
+```ruby
+# Run all benchmarks
+bundle exec rake active_genie:benchmark
+
+# Run benchmarks for a specific module
+bundle exec rake active_genie:benchmark[data_extractor]
+```
+
+### Latest Results
+
+| Model | Overall Precision |
+|-------|-------------------|
+| claude-3-5-haiku-20241022 | 92.25% |
+| gemini-2.0-flash-lite | 84.25% |
+| gpt-4o-mini | 62.75% |
+| deepseek-chat | 57.25% |
+
+See the [Benchmark README](benchmark/README.md) for detailed results, methodology, and how to contribute to our test suite.
+
 ## Configuration
 
 | Config | Description | Default |
