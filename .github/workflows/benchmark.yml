@@ -2,7 +2,7 @@ name: Benchmark
 
 on:
   push:
-    # branches: [ main ]
+    branches: [ main ]
 
 env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
