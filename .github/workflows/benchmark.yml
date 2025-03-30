@@ -66,29 +66,29 @@ jobs:
         mkdir -p benchmark/reports
         
         # Create header for the consolidated CSV report
-        echo "Module,Provider,Model,Tests,Precision,Duration,Requests,Tokens,Avg_Duration" > benchmark/reports/consolidated_report.csv
+        echo "Module,Provider,Model,Tests,Precision,Duration,Requests,Tokens,Avg_Duration" > benchmark/benchmark.csv
         
         # Create header for the markdown report
-        echo "# Benchmark Results" > benchmark/reports/consolidated_report.md
-        echo "" >> benchmark/reports/consolidated_report.md
-        echo "| Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/reports/consolidated_report.md
-        echo "|--------|----------|-------|-------|-----------|--------------|----------|--------|-------------------|" >> benchmark/reports/consolidated_report.md
+        echo "# Benchmark Results" > benchmark/benchmark.md
+        echo "" >> benchmark/benchmark.md
+        echo "| Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/benchmark.md
+        echo "|--------|----------|-------|-------|-----------|--------------|----------|--------|-------------------|" >> benchmark/benchmark.md
         
         # Process all CSV files and build the consolidated reports
         find benchmark/artifacts -name "*.csv" -type f | while read -r file; do
-          tail "$file" >> benchmark/reports/consolidated_report.csv
+          tail "$file" >> benchmark/benchmark.csv
           
           line=$(cat "$file")
           IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$line"
-          echo "| $module | $provider | $model | $tests | $precision | $duration | $requests | $tokens | $avg_duration |" >> benchmark/reports/consolidated_report.md
+          echo "| $module | $provider | $model | $tests | $precision | $duration | $requests | $tokens | $avg_duration |" >> benchmark/benchmark.md
         done
 
-        cat benchmark/reports/consolidated_report.md
-        echo "$(cat benchmark/reports/consolidated_report.md)" >> $GITHUB_STEP_SUMMARY
+        cat benchmark/benchmark.md
+        echo "$(cat benchmark/benchmark.md)" >> $GITHUB_STEP_SUMMARY
         
     - name: Upload consolidated report
       uses: actions/upload-artifact@v4
       with:
-        name: benchmark-consolidated-report
-        path: benchmark/reports/
+        name: benchmark
+        path: benchmark/benchmark.*
         retention-days: 7
