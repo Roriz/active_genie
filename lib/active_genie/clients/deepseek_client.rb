@@ -28,12 +28,17 @@ module ActiveGenie::Clients
     def function_calling(messages, function, model_tier: nil, config: {})
       model = config[:runtime][:model] || @app_config.tier_to_model(model_tier)
 
+      deepseek_function = function
+      deepseek_function[:parameters] = function[:schema]
+      deepseek_function.delete(:schema)
+
       payload = {
         messages:,
-        response_format: {
-          type: 'json_schema',
-          json_schema: function
-        },
+        tools: [{
+          type: 'function',
+          function: deepseek_function
+        }],
+        tool_choice: { type: 'function', function: { name: deepseek_function[:name] } },
         model:,
       }
 
@@ -43,9 +48,9 @@ module ActiveGenie::Clients
       ).compact
 
       response = request(payload, headers, config:)
-      
-      parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'content'))
-      parsed_response = parsed_response.dig('properties') || parsed_response
+
+      parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
+      parsed_response = parsed_response.dig('message') || parsed_response
 
       ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
 

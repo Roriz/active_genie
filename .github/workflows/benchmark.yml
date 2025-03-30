@@ -8,6 +8,7 @@ env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
 jobs:
   benchmark:
@@ -23,6 +24,8 @@ jobs:
             name: gemini-2.0-flash-lite
           - provider: anthropic
             name: claude-3-5-haiku-20241022
+          - provider: deepseek
+            name: deepseek-chat
         module: [data_extractor, scoring, battle, ranking]
     env:
       MODEL: ${{ matrix.model.name }}
