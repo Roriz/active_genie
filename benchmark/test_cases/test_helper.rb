@@ -1,6 +1,6 @@
 require 'debug'
 require "minitest/autorun"
-require_relative "../lib/active_genie"
+require_relative "../../lib/active_genie"
 
 ActiveGenie.configure do |config|
   config.log.log_level = -1

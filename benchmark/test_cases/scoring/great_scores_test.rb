@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative "../test_helper"
 
 class ActiveGenie::Scoring::GreateScoresTest < Minitest::Test
   GREAT_SCORE_TESTS = [
