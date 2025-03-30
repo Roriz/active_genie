@@ -77,15 +77,9 @@ jobs:
         # Process all CSV files and build the consolidated reports
         find benchmark/artifacts -name "*.csv" -type f | while read -r file; do
           tail "$file" >> benchmark/reports/consolidated_report.csv
-          
-          line=$(cat "$file")
-          IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$line"
+          IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$file"
           echo "| $module | $provider | $model | $tests | $precision | $duration | $requests | $tokens | $avg_duration |" >> benchmark/reports/consolidated_report.md
         done
-        
-        echo "Consolidated reports created:"
-        echo "- CSV: benchmark/reports/consolidated_report.csv"
-        echo "- Markdown: benchmark/reports/consolidated_report.md"
         
         cat benchmark/reports/consolidated_report.md
         
