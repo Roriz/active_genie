@@ -65,13 +65,13 @@ jobs:
 
         avg_duration=$(awk "BEGIN {printf \"%.2f\", $duration/$runs}")
 
-        touch benchmark/latest-${{ matrix.module }}-${{ matrix.provider }}-${{ matrix.model }}.csv
-        echo "${{ matrix.module }},${{ matrix.provider }},${{ matrix.model }},$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration" >> benchmark/latest-${{ matrix.module }}-${{ matrix.provider }}-${{ matrix.model }}.csv
+        touch benchmark/latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}.csv
+        echo "${{ matrix.module }},${{ matrix.model.provider }},${{ matrix.model.name }},$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration" >> benchmark/latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}.csv
 
         touch benchmark/latest.md
         echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
         echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
-        echo "| ${{ matrix.module }} | ${{ matrix.provider }} | ${{ matrix.model }} | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration |" >> benchmark/latest.md
+        echo "| ${{ matrix.module }} | ${{ matrix.model.provider }} | ${{ matrix.model.name }} | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration |" >> benchmark/latest.md
 
         cat benchmark/latest.md
 
@@ -79,8 +79,8 @@ jobs:
     - name: Upload results
       uses: actions/upload-artifact@v4
       with:
-        name: latest-${{ matrix.module }}-${{ matrix.provider }}-${{ matrix.model }}-benchmark
-        path: benchmark/latest-${{ matrix.module }}-${{ matrix.provider }}-${{ matrix.model }}.csv
+        name: latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}-benchmark
+        path: benchmark/latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}.csv
         retention-days: 1
         overwrite: true
         if-no-files-found: ignore
