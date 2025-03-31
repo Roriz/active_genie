@@ -19,7 +19,7 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 ## Latest Benchmark Results
 
 | Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |
-|----------------|-----------|---------------------------|-----------|-----|-------------|-----|------------------|
+|----------------|-----------|---------------------------|-----------|-----|-------------|-----|--------|---------|
 | data_extractor | anthropic | claude-3-5-haiku-20241022 | 23/0 (23) | 100 | 84.806410   | 31  | 29718  | 3.69    |
 | data_extractor | deepseek  | deepseek-chat             | 23/0 (23) | 100 | 229.362400  | 32  | 17618  | 9.97    |
 | data_extractor | google    | gemini-2.0-flash-lite     | 20/3 (23) | 86  | 72.642049   | 26  | 16930  | 3.16    |
