@@ -2,16 +2,10 @@
 > The lodash for GenAI, stop reinventing the wheel
 
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
-[![Ruby](https://github.com/roriz/active_genie/actions/workflows/ruby.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/ruby.yml)
+[![Ruby](https://github.com/roriz/active_genie/actions/workflows/ruby.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-ActiveGenie is a Ruby gem that provides a polished, production-ready interface for working with Generative AI (GenAI) models. Just like Lodash or ActiveStorage, ActiveGenie simplifies GenAI integration in your Ruby applications.
-
-## Features
-
-- 🎯 **Data Extraction**: Extract structured data from unstructured text with type validation
-- 📊 **Data Scoring**: Multi-reviewer evaluation system
-- ⚔️ **Data Battle**: Battle between two data like a political debate
-- 💭 **Data Ranking**: Consistent rank data using scoring + elo ranking + battles
+ActiveGenie is a Ruby gem that provides valuable solutions powered by Generative AI (GenAI) models. Just like Lodash or ActiveStorage, ActiveGenie brings a set of Modules reach real value fast and reliable.
+ActiveGenie is backed by a custom benchmarking system that ensures consistent quality and performance across different models and providers in every release.
 
 ## Installation
 
@@ -41,6 +35,7 @@ end
 ## Quick Start
 
 ### Data Extractor
+
 Extract structured data from text using AI-powered analysis, handling informal language and complex expressions.
 
 ```ruby
@@ -55,13 +50,17 @@ schema = {
     minimum: 0
   },
   size: {
-    type: 'integer',
+    type: 'number',
     minimum: 35,
     maximum: 46
   }
 }
 
-result = ActiveGenie::DataExtractor.call(text, schema)
+result = ActiveGenie::DataExtractor.call(
+  text,
+  schema,
+  config: { provider: :openai, model: 'gpt-4o-mini' } # optional
+)
 # => { 
 #      brand: "Nike", 
 #      brand_explanation: "Brand name found at start of text",
@@ -72,6 +71,8 @@ result = ActiveGenie::DataExtractor.call(text, schema)
 #    }
 ```
 
+*Recommended model*: `gpt-4o-mini`
+
 Features:
 - Structured data extraction with type validation
 - Schema-based extraction with custom constraints
@@ -80,14 +81,18 @@ Features:
 
 See the [Data Extractor README](lib/active_genie/data_extractor/README.md) for informal text processing, advanced schemas, and detailed interface documentation.
 
-### Data Scoring
+### Scoring
 Text evaluation system that provides detailed scoring and feedback using multiple expert reviewers. Get balanced scoring through AI-powered expert reviewers that automatically adapt to your content.
 
 ```ruby
 text = "The code implements a binary search algorithm with O(log n) complexity"
 criteria = "Evaluate technical accuracy and clarity"
 
-result = ActiveGenie::Scoring.basic(text, criteria)
+result = ActiveGenie::Scoring.basic(
+  text,
+  criteria,
+  config: { provider: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
+)
 # => {
 #      algorithm_expert_score: 95,
 #      algorithm_expert_reasoning: "Accurately describes binary search and its complexity",
@@ -97,6 +102,8 @@ result = ActiveGenie::Scoring.basic(text, criteria)
 #    }
 ```
 
+*Recommended model*: `claude-3-5-haiku-20241022`
+
 Features:
 - Multi-reviewer evaluation with automatic expert selection
 - Detailed feedback with scoring reasoning
@@ -105,25 +112,32 @@ Features:
 
 See the [Scoring README](lib/active_genie/scoring/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
 
-### Data Battle
+### Battle
 AI-powered battle evaluation system that determines winners between two players based on specified criteria.
 
 ```ruby
 require 'active_genie'
 
 player_1 = "Implementation uses dependency injection for better testability"
-player_b = "Code has high test coverage but tightly coupled components"
+player_2 = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
-result = ActiveGenie::Battle.call(player_1, player_b, criteria)
+result = ActiveGenie::Battle.call(
+  player_1,
+  player_2,
+  criteria,
+  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
+)
 # => {
 #      winner_player: "Implementation uses dependency injection for better testability",
-#      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection, 
-#                 which allows for easier testing and component replacement. While Player B has good test coverage, 
+#      reasoning: "Player 1 implementation demonstrates better maintainability through dependency injection, 
+#                 which allows for easier testing and component replacement. While Player 2 has good test coverage, 
 #                 the tight coupling makes the code harder to maintain and modify.",
 #      what_could_be_changed_to_avoid_draw: "Focus on specific architectural patterns and design principles"
 #    }
 ```
+
+*Recommended model*: `gemini-2.0-flash-lite`
 
 Features:
 - Multi-reviewer evaluation with automatic expert selection
@@ -133,9 +147,8 @@ Features:
 
 See the [Battle README](lib/active_genie/battle/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
 
-### Data Ranking
+### Ranking
 The Ranking module provides competitive ranking through multi-stage evaluation:
-
 
 ```ruby
 require 'active_genie'
@@ -143,12 +156,18 @@ require 'active_genie'
 players = ['REST API', 'GraphQL API', 'SOAP API', 'gRPC API', 'Websocket API']
 criteria = "Best one to be used into a high changing environment"
 
-result = ActiveGenie::Ranking.call(players, criteria)
+result = ActiveGenie::Ranking.call(
+  players,
+  criteria,
+  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
+)
 # => {
 #      winner_player: "gRPC API",
 #      reasoning: "gRPC API is the best one to be used into a high changing environment",
 #    }
 ```
+
+*Recommended model*: `gemini-2.0-flash-lite`
 
 - **Multi-phase ranking system** combining expert scoring and ELO algorithms
 - **Automatic elimination** of inconsistent performers using statistical analysis

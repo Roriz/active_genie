@@ -18,23 +18,33 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 
 ## Latest Benchmark Results
 
-### Model Performance Comparison
-
-| Model | Overall Precision |
-|-------|-------------------|
-| claude-3-5-haiku-20241022 | 92.25% |
-| gemini-2.0-flash-lite | 84.25% |
-| gpt-4o-mini | 62.75% |
-| deepseek-chat | 57.25% |
+| Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |
+|----------------|-----------|---------------------------|-----------|-----|-------------|-----|------------------|
+| data_extractor | anthropic | claude-3-5-haiku-20241022 | 23/0 (23) | 100 | 84.806410   | 31  | 29718  | 3.69    |
+| data_extractor | deepseek  | deepseek-chat             | 23/0 (23) | 100 | 229.362400  | 32  | 17618  | 9.97    |
+| data_extractor | google    | gemini-2.0-flash-lite     | 20/3 (23) | 86  | 72.642049   | 26  | 16930  | 3.16    |
+| data_extractor | openai    | gpt-4o-mini               | 23/0 (23) | 100 | 42.168443   | 29  | 13244  | 1.83    |
+| scoring        | anthropic | claude-3-5-haiku-20241022 | 9/4 (13)  | 69  | 100.488182  | 13  | 18492  | 7.73    |
+| scoring        | deepseek  | deepseek-chat             | 9/4 (13)  | 69  | 121.876891  | 13  | 10584  | 9.38    |
+| scoring        | openai    | gpt-4o-mini               | 8/5 (13)  | 61  | 30.899037   | 13  | 9959   | 2.38    |
+| scoring        | google    | gemini-2.0-flash-lite     | 8/5 (13)  | 61  | 63.592440   | 12  | 11009  | 4.89    |
+| battle         | anthropic | claude-3-5-haiku-20241022 | 10/0 (10) | 100 | 378.610437  | 1   | 1272   | 37.86   |
+| battle         | deepseek  | deepseek-chat             | 1/9 (10)  | 10  | 69.189029   | 10  | 3933   | 6.92    |
+| battle         | openai    | gpt-4o-mini               | 9/1 (10)  | 90  | 46.945714   | 10  | 8343   | 4.69    |
+| battle         | google    | gemini-2.0-flash-lite     | 9/1 (10)  | 90  | 80.621382   | 10  | 13674  | 8.06    |
+| ranking        | anthropic | claude-3-5-haiku-20241022 | 2/0 (2)   | 100 | 88.662300   | 2   | 2725   | 44.33   |
+| ranking        | deepseek  | deepseek-chat             | 1/1 (2)   | 50  | 3745.800662 | 243 | 313242 | 1872.90 |
+| ranking        | openai    | gpt-4o-mini               | 0/2 (2)   | 0   | 1858.974373 | 288 | 436665 | 929.49  |
+| ranking        | google    | gemini-2.0-flash-lite     | 2/0 (2)   | 100 | 405.893377  | 80  | 133440 | 202.95  |
 
 ### Module Performance Breakdown
 
-| ActiveGenie Module | Overall Precision |
-|--------------------|-------------------|
-| data_extractor | 96.50% |
-| battle | 72.50% |
-| scoring | 65.00% |
-| ranking | 62.50% |
+| ActiveGenie Module | Best Precision | Worst Precision | Recommended Model |
+|--------------------|-------------------|-------------------|-------------------|
+| data_extractor | 100% | 86% | `gpt-4o-mini` |
+| battle | 100% | 10% | `gemini-2.0-flash-lite` |
+| scoring | 69% | 61% | `claude-3-5-haiku-20241022` |
+| ranking | 100% | 0% | `gemini-2.0-flash-lite` |
 
 ## Benchmark Methodology
 
