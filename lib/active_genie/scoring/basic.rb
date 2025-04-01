@@ -43,36 +43,15 @@ module ActiveGenie::Scoring
         {  role: 'user', content: "Text to score: #{@text}" }, 
       ]
 
-      properties = {}
-      get_or_recommend_reviewers.each do |reviewer|
-        properties["#{reviewer}_reasoning"] = {
-          type: 'string',
-          description: "The reasoning of the scoring process by #{reviewer}.",
-        }
-        properties["#{reviewer}_score"] = {
-          type: 'number',
-          description: "The score given by #{reviewer}.",
-          min: 0,
-          max: 100
-        }
-      end
+      properties = build_properties
 
       function = {
         name: 'scoring',
         description: 'Score the text based on the given criteria.',
         schema: {
           type: "object",
-          properties: {
-            **properties,
-            final_score: {
-              type: 'number',
-              description: 'The final score based on the previous reviewers',
-            },
-            final_reasoning: {
-              type: 'string',
-              description: 'The final reasoning based on the previous reviewers',
-            }
-          }
+          properties:,
+          required: properties.keys
         }
       }
 
@@ -96,6 +75,33 @@ module ActiveGenie::Scoring
     end
 
     private
+    
+    def build_properties
+      properties = {}
+      get_or_recommend_reviewers.each do |reviewer|
+        properties["#{reviewer}_reasoning"] = {
+          type: 'string',
+          description: "The reasoning of the scoring process by #{reviewer}.",
+        }
+        properties["#{reviewer}_score"] = {
+          type: 'number',
+          description: "The score given by #{reviewer}.",
+          min: 0,
+          max: 100
+        }
+      end
+
+      properties[:final_score] = {
+        type: 'number',
+        description: 'The final score based on the previous reviewers',
+      }
+      properties[:final_reasoning] = {
+        type: 'string',
+        description: 'The final reasoning based on the previous reviewers',
+      }
+
+      properties
+    end
 
     def get_or_recommend_reviewers
       @get_or_recommend_reviewers ||= if @reviewers.count > 0 

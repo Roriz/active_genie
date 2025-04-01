@@ -94,7 +94,7 @@ module ActiveGenie::Battle
     FUNCTION =  {
       name: 'battle_evaluation',
       description: 'Evaluate a battle between player_1 and player_2 using predefined criteria and identify the winner.',
-      schema: {
+      parameters: {
         type: "object",
         properties: {
           player_1_sell_himself: {
@@ -122,7 +122,15 @@ module ActiveGenie::Battle
             description: 'Who is the winner based on the impartial judge reasoning?',
             enum: ['player_1', 'player_2']
           },
-        }
+        },
+        required: [
+          'player_1_sell_himself',
+          'player_2_sell_himself',
+          'player_1_arguments',
+          'player_2_counter',
+          'impartial_judge_winner_reasoning',
+          'impartial_judge_winner'
+        ]
       }
     }
   end

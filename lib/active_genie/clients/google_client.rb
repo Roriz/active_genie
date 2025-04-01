@@ -59,12 +59,22 @@ module ActiveGenie
           parsed_response = JSON.parse(json_string)
   
           ActiveGenie::Logger.trace({ code: :function_calling, payload:, parsed_response: })
-  
-          parsed_response
+
+          normalize_function_output(parsed_response)
         end
       end
 
       private
+
+      def normalize_function_output(output)
+        output = if output.is_a?(Array)
+          output.dig(0, 'properties') || output.dig(0)
+        else
+          output
+        end
+
+        output.dig('input_schema', 'properties') || output
+      end
 
       def request(url, payload, model, config:)
         start_time = Time.now

@@ -28,17 +28,10 @@ module ActiveGenie::Clients
     def function_calling(messages, function, model_tier: nil, config: {})
       model = config[:runtime][:model] || @app_config.tier_to_model(model_tier)
 
-      deepseek_function = function
-      deepseek_function[:parameters] = function[:schema]
-      deepseek_function.delete(:schema)
-
       payload = {
         messages:,
-        tools: [{
-          type: 'function',
-          function: deepseek_function
-        }],
-        tool_choice: { type: 'function', function: { name: deepseek_function[:name] } },
+        tools: [{ type: 'function', function: }],
+        tool_choice: { type: 'function', function: { name: function[:name] } },
         model:,
       }
 
@@ -47,16 +40,18 @@ module ActiveGenie::Clients
         'Authorization': "Bearer #{api_key}"
       ).compact
 
-      response = request(payload, headers, config:)
+      retry_with_backoff(config:) do
+        response = request(payload, headers, config:)
 
-      parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
-      parsed_response = parsed_response.dig('message') || parsed_response
+        parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
+        parsed_response = parsed_response.dig('message') || parsed_response
 
-      ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
+        raise InvalidResponseError, "Invalid response: #{parsed_response}" if parsed_response.nil? || parsed_response.keys.size.zero?
 
-      parsed_response
-    rescue JSON::ParserError
-      nil
+        ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
+
+        parsed_response
+      end
     end
 
     private

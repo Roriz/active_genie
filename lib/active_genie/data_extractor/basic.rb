@@ -37,12 +37,16 @@ module ActiveGenie::DataExtractor
         {  role: 'system', content: PROMPT },
         {  role: 'user', content: @text }
       ]
+
+      properties = data_to_extract_with_explaination
+
       function = {
         name: 'data_extractor',
         description: 'Extract structured and typed data from user messages.',
         schema: {
           type: "object",
-          properties: data_to_extract_with_explaination
+          properties:,
+          required: properties.keys
         }
       }
 

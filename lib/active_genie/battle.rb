@@ -9,5 +9,9 @@ module ActiveGenie
     def basic(...)
       Basic.call(...)
     end
+
+    def call(...)
+      Basic.call(...)
+    end
   end
 end
