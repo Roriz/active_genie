@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+git_branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$git_branch" != "main" ]; then
+  echo "Error: You must be on the 'main' branch to publish."
+  exit 1
+fi
+
+VERSION=$(cat VERSION)
+
+gem push active_genie-${VERSION}.gem

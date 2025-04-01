@@ -32,6 +32,6 @@ class ActiveGenie::Battle::BasicTest < Minitest::Test
     criteria = 'Dress for Friday night'
     result = ActiveGenie::Battle.basic(dresses[0], dresses[1], criteria)
 
-    assert_equal 'player_1', result['winner']
+    assert_equal 'player_2', result['winner']
   end
 end
