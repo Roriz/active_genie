@@ -10,6 +10,10 @@ module ActiveGenie
       Basic.call(...)
     end
 
+    def call(...)
+      Basic.call(...)
+    end
+
     def from_informal(...)
       FromInformal.call(...)
     end

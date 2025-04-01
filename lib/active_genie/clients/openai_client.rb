@@ -7,6 +7,7 @@ module ActiveGenie::Clients
   class OpenaiClient    
     class OpenaiError < StandardError; end
     class RateLimitError < OpenaiError; end
+    class InvalidResponseError < StandardError; end
 
     def initialize(config)
       @app_config = config
@@ -30,10 +31,9 @@ module ActiveGenie::Clients
 
       payload = {
         messages:,
-        response_format: {
-          type: 'json_schema',
-          json_schema: function
-        },
+        tools: [{ type: 'function', function: }],
+        tool_choice: { type: 'function', function: { name: function[:name] } },
+        stream: false,
         model:,
       }
 
@@ -42,16 +42,18 @@ module ActiveGenie::Clients
         'Authorization': "Bearer #{api_key}"
       ).compact
 
-      response = request(payload, headers, config:)
-      
-      parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'content'))
-      parsed_response = parsed_response.dig('properties') || parsed_response
+      retry_with_backoff(config:) do
+        response = request(payload, headers, config:)
 
-      ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
+        parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
+        parsed_response = parsed_response.dig('message') || parsed_response
 
-      parsed_response
-    rescue JSON::ParserError
-      nil
+        raise InvalidResponseError, "Invalid response: #{parsed_response}" if parsed_response.nil? || parsed_response.keys.size.zero?
+
+        ActiveGenie::Logger.trace({code: :function_calling, payload:, parsed_response: })
+
+        parsed_response
+      end
     end
 
     private
@@ -63,35 +65,33 @@ module ActiveGenie::Clients
     def request(payload, headers, config:)
       start_time = Time.now
 
-      retry_with_backoff(config:) do
-        response = Net::HTTP.post(
-          URI("#{@app_config.api_url}/chat/completions"),
-          payload.to_json,
-          headers
-        )
+      response = Net::HTTP.post(
+        URI("#{@app_config.api_url}/chat/completions"),
+        payload.to_json,
+        headers
+      )
 
-        if response.is_a?(Net::HTTPTooManyRequests)
-          raise RateLimitError, "OpenAI API rate limit exceeded: #{response.body}"
-        end
-
-        raise OpenaiError, response.body unless response.is_a?(Net::HTTPSuccess)
-
-        return nil if response.body.empty?
-
-        parsed_body = JSON.parse(response.body)
-
-        ActiveGenie::Logger.trace({
-          code: :llm_usage,
-          input_tokens: parsed_body.dig('usage', 'prompt_tokens'),
-          output_tokens: parsed_body.dig('usage', 'completion_tokens'),
-          total_tokens: parsed_body.dig('usage', 'prompt_tokens') + parsed_body.dig('usage', 'completion_tokens'),
-          model: payload[:model],
-          duration: Time.now - start_time,
-          usage: parsed_body.dig('usage')
-        })
-
-        parsed_body
+      if response.is_a?(Net::HTTPTooManyRequests)
+        raise RateLimitError, "OpenAI API rate limit exceeded: #{response.body}"
       end
+
+      raise OpenaiError, response.body unless response.is_a?(Net::HTTPSuccess)
+
+      return nil if response.body.empty?
+
+      parsed_body = JSON.parse(response.body)
+
+      ActiveGenie::Logger.trace({
+        code: :llm_usage,
+        input_tokens: parsed_body.dig('usage', 'prompt_tokens'),
+        output_tokens: parsed_body.dig('usage', 'completion_tokens'),
+        total_tokens: parsed_body.dig('usage', 'prompt_tokens') + parsed_body.dig('usage', 'completion_tokens'),
+        model: payload[:model],
+        duration: Time.now - start_time,
+        usage: parsed_body.dig('usage')
+      })
+
+      parsed_body
     end
   end
 end

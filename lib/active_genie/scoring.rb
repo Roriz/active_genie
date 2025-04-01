@@ -9,6 +9,9 @@ module ActiveGenie
     def basic(...)
       Basic.call(...)
     end
+    def call(...)
+      Basic.call(...)
+    end
 
     def recommended_reviewers(...)
       RecommendedReviewers.call(...)
