@@ -33,7 +33,7 @@ module ActiveGenie::Scoring
       @text = text
       @criteria = criteria
       @reviewers = Array(reviewers).compact.uniq
-      @config = ActiveGenie::Configuration.to_h(runtime: config)
+      @config = ActiveGenie::Configuration.to_h(config)
     end
 
     def call
@@ -61,6 +61,8 @@ module ActiveGenie::Scoring
         model_tier: 'lower_tier',
         config: @config
       )
+
+      result['final_score'] = 0 if result['final_score'].nil?
 
       ActiveGenie::Logger.debug({
         code: :scoring,

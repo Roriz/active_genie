@@ -1,4 +1,4 @@
-require_relative '../../clients/deepseek_client'
+require_relative '../../clients/openai_client'
 require_relative './base_config'
 
 module ActiveGenie
@@ -22,11 +22,11 @@ module ActiveGenie
         @api_url || 'https://api.deepseek.com/v1'
       end
 
-      # Lazily initializes and returns an instance of the DeepseekClient.
+      # Lazily initializes and returns an instance of the OpenaiClient.
       # Passes itself (the config object) to the client's constructor.
-      # @return [ActiveGenie::Clients::DeepseekClient] The client instance.
+      # @return [ActiveGenie::Clients::OpenaiClient] The client instance.
       def client
-        @client ||= ::ActiveGenie::Clients::DeepseekClient.new(self)
+        @client ||= ::ActiveGenie::Clients::OpenaiClient.new(self)
       end
 
       # Retrieves the model name designated for the lower tier (e.g., cost-effective, faster).
