@@ -30,10 +30,12 @@ module ActiveGenie
     end
 
     def to_h(configs = {})
+      normalized_configs = configs.dig(:runtime) ? configs : { runtime: configs }
+
       {
-        providers: providers.to_h(configs.dig(:providers) || {}),
-        log: log.to_h(configs.dig(:log) || {}),
-        runtime: runtime.to_h(configs.dig(:runtime) || {})
+        providers: providers.to_h(normalized_configs.dig(:providers) || {}),
+        log: log.to_h(normalized_configs.dig(:log) || {}),
+        runtime: runtime.to_h(normalized_configs.dig(:runtime) || {})
       }
     end
   end

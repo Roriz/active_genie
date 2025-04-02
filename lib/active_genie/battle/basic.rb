@@ -30,7 +30,7 @@ module ActiveGenie::Battle
       @player_1 = player_1
       @player_2 = player_2
       @criteria = criteria
-      @config = ActiveGenie::Configuration.to_h(runtime: config)
+      @config = ActiveGenie::Configuration.to_h(config)
     end
 
     def call
@@ -94,7 +94,7 @@ module ActiveGenie::Battle
     FUNCTION =  {
       name: 'battle_evaluation',
       description: 'Evaluate a battle between player_1 and player_2 using predefined criteria and identify the winner.',
-      parameters: {
+      schema: {
         type: "object",
         properties: {
           player_1_sell_himself: {

@@ -31,7 +31,7 @@ module ActiveGenie::Ranking
     end
 
     def generate_score(player)
-      score, reasoning = ActiveGenie::Scoring::Basic.call(
+      score, reasoning = ActiveGenie::Scoring.call(
         player.content,
         @criteria,
         @reviewers,
