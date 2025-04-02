@@ -36,8 +36,8 @@ module ActiveGenie
           .map { |m| { role: m[:role], content: m[:content] } }
 
         anthropic_function = function
-        anthropic_function[:input_schema] = function[:parameters]
-        anthropic_function.delete(:parameters)
+        anthropic_function[:input_schema] = function[:schema]
+        anthropic_function.delete(:schema)
 
         payload = {
           model:,
