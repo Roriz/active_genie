@@ -78,7 +78,7 @@ class ActiveGenie::DataExtractor::PreciseTest < Minitest::Test
       }
     }
 
-    result = ActiveGenie::DataExtractor::Precise.call(thread_messages, data_to_extract)
+    result = ActiveGenie::DataExtractor.call(thread_messages, data_to_extract)
 
     assert_equal result['thread_subject'], 'cat'
     assert_equal result['sentiment'], 'positive'
@@ -106,7 +106,7 @@ class ActiveGenie::DataExtractor::PreciseTest < Minitest::Test
       discipline: { type: 'string', enum: ['Marketing', 'Engineering', 'Education'] },
     }
 
-    result = ActiveGenie::DataExtractor::Precise.call(job_description, data_to_extract)
+    result = ActiveGenie::DataExtractor.call(job_description, data_to_extract)
 
     assert_equal result['need_graduation'], true
     assert_equal result['required_minimal_years_of_experience'], 1
