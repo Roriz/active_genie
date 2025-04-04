@@ -42,7 +42,7 @@ module ActiveGenie::Scoring
       function = {
         name: 'identify_reviewers',
         description: 'Discover reviewers based on the text and given criteria.',
-        schema: {
+        parameters: {
           type: "object",
           properties: {
             reasoning: { type: 'string' },
