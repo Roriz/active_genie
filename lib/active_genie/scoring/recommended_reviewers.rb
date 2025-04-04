@@ -49,7 +49,8 @@ module ActiveGenie::Scoring
             reviewer1: { type: 'string' },
             reviewer2: { type: 'string' },
             reviewer3: { type: 'string' },
-          }
+          },
+          required: ['reasoning', 'reviewer1', 'reviewer2', 'reviewer3']
         }
       }
 
