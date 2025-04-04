@@ -10,7 +10,7 @@ ActiveGenie.configure do |config|
   # config.providers.openai.client = ActiveGenie::Providers::Openai::Client.new(config)
 
   # example how add a new provider
-  # config.providers.register(:internal_company_api, InternalCompanyApi::Configuration)
+  # config.providers.register(InternalCompanyApi::Configuration)
 
   # Logs configuration
   # config.log_level = :debug # default is :info
