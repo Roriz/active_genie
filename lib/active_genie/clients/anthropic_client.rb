@@ -64,8 +64,7 @@ module ActiveGenie::Clients
         response = post(ANTHROPIC_ENDPOINT, payload, headers: headers, config: config)
         
         content = response.dig('content', 0, 'input')
-        debugger
-        # Log usage metrics
+        
         ActiveGenie::Logger.trace({
           code: :llm_usage,
           input_tokens: response.dig('usage', 'input_tokens'),
