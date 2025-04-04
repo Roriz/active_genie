@@ -137,7 +137,7 @@ result = ActiveGenie::Battle.call(
 #    }
 ```
 
-*Recommended model*: `gemini-2.0-flash-lite`
+*Recommended model*: `claude-3-5-haiku`
 
 Features:
 - Multi-reviewer evaluation with automatic expert selection
@@ -215,6 +215,64 @@ See the [Benchmark README](benchmark/README.md) for detailed results, methodolog
 | `max_retries` | Maximum retry attempts | `3` |
 
 > **Note:** Each module can append its own set of configuration, see the individual module documentation for details.
+
+## How to create a new provider
+
+ActiveGenie supports adding custom providers to integrate with different LLM services. To create a new provider:
+
+1. Create a configuration class for your provider in `lib/active_genie/configuration/providers/`:
+
+```ruby
+# Example: lib/active_genie/configuration/providers/internal_company_api_config.rb
+module ActiveGenie
+  module Configuration::Providers
+    class InternalCompanyApiConfig < BaseConfig
+      NAME = :internal_company_api
+      
+      # API key accessor with environment variable fallback
+      def api_key
+        @api_key || ENV['INTERNAL_COMPANY_API_KEY']
+      end
+      
+      # Base API URL
+      def api_url
+        @api_url || 'https://api.internal-company.com/v1'
+      end
+      
+      # Client instantiation
+      def client
+        @client ||= ::ActiveGenie::Clients::InternalCompanyApiClient.new(self)
+      end
+      
+      # Model tier definitions
+      def lower_tier_model
+        @lower_tier_model || 'internal-basic'
+      end
+      
+      def middle_tier_model
+        @middle_tier_model || 'internal-standard'
+      end
+      
+      def upper_tier_model
+        @upper_tier_model || 'internal-premium'
+      end
+    end
+  end
+end
+```
+
+2. Register your provider in your configuration:
+
+```ruby
+# In config/initializers/active_genie.rb
+ActiveGenie.configure do |config|
+  # Register your custom provider
+  config.providers.register(InternalCompanyApi::Configuration)
+  
+  # Configure your provider
+  config.internal_company_api.api_key = ENV['INTERNAL_COMPANY_API_KEY']
+end
+```
 
 ## Contributing
 
