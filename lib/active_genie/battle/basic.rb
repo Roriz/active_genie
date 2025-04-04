@@ -94,7 +94,7 @@ module ActiveGenie::Battle
     FUNCTION =  {
       name: 'battle_evaluation',
       description: 'Evaluate a battle between player_1 and player_2 using predefined criteria and identify the winner.',
-      schema: {
+      parameters: {
         type: "object",
         properties: {
           player_1_sell_himself: {

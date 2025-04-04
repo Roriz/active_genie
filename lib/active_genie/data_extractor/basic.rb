@@ -43,7 +43,7 @@ module ActiveGenie::DataExtractor
       function = {
         name: 'data_extractor',
         description: 'Extract structured and typed data from user messages.',
-        schema: {
+        parameters: {
           type: "object",
           properties:,
           required: properties.keys

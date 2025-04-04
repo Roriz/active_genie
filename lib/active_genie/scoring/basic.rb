@@ -48,7 +48,7 @@ module ActiveGenie::Scoring
       function = {
         name: 'scoring',
         description: 'Score the text based on the given criteria.',
-        schema: {
+        parameters: {
           type: "object",
           properties:,
           required: properties.keys

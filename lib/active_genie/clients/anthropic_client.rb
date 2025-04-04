@@ -39,8 +39,8 @@ module ActiveGenie::Clients
         .map { |m| { role: m[:role], content: m[:content] } }
 
       anthropic_function = function.dup
-      anthropic_function[:input_schema] = function[:schema]
-      anthropic_function.delete(:schema)
+      anthropic_function[:input_schema] = function[:parameters]
+      anthropic_function.delete(:parameters)
 
       payload = {
         model:,

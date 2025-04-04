@@ -31,7 +31,17 @@ module ActiveGenie::Clients
 
       payload = {
         messages:,
-        tools: [{ type: 'function', function: }],
+        tools: [{
+          type: 'function',
+          function: {
+            **function,
+            parameters: {
+              **function[:parameters],
+              additionalProperties: false
+            },
+            strict: true
+          }.compact
+        }],
         tool_choice: { type: 'function', function: { name: function[:name] } },
         stream: false,
         model:,

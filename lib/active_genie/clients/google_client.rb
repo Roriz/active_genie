@@ -120,7 +120,7 @@ module ActiveGenie::Clients
         Generate a JSON object that strictly adheres to the following JSON schema:
 
         ```json
-        #{JSON.pretty_generate(function_schema)}
+        #{JSON.pretty_generate(function_schema[:parameters])}
         ```
 
         IMPORTANT: Only output the raw JSON object. Do not include any other text, explanations, or markdown formatting like ```json ... ``` wrappers around the final output.
