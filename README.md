@@ -4,7 +4,7 @@
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-ActiveGenie is a Ruby gem that provides valuable solutions powered by Generative AI (GenAI) models. Just like Lodash or ActiveStorage, ActiveGenie brings a set of Modules reach real value fast and reliable.
+ActiveGenie is a Ruby gem that provides valuable solutions powered by Generative AI (GenAI) models. Just like Lodash or ActiveStorage, ActiveGenie brings a set of Modules to reach real value fast and reliably.
 ActiveGenie is backed by a custom benchmarking system that ensures consistent quality and performance across different models and providers in every release.
 
 ## Installation
