@@ -122,7 +122,8 @@ module ActiveGenie::Battle
             description: 'Who is the winner based on the impartial judge reasoning?',
             enum: ['player_1', 'player_2']
           },
-        }
+        },
+        required: %w[player_1_sell_himself player_2_sell_himself player_1_arguments player_2_counter impartial_judge_winner_reasoning impartial_judge_winner]
       }
     }
   end

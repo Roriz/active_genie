@@ -6,6 +6,7 @@ module ActiveGenie::Ranking
       params = { content: params } if params.is_a?(String)
 
       @content = params.dig(:content) || params
+      @name = params.dig(:name) || params.dig(:content)[0..10]
       @id = params.dig(:id) || Digest::MD5.hexdigest(@content)
       @score = params.dig(:score) || nil
       @elo = params.dig(:elo) || nil
@@ -15,9 +16,8 @@ module ActiveGenie::Ranking
       @eliminated = params.dig(:eliminated) || nil
     end
 
-    attr_reader :id, :content, :score, :elo, 
-      :ffa_win_count, :ffa_lose_count, :ffa_draw_count,
-      :eliminated
+    attr_reader :id, :content, :score, :elo,  :ffa_win_count,
+      :ffa_lose_count, :ffa_draw_count, :eliminated
     attr_accessor :rank
 
     def score=(value)
@@ -51,15 +51,27 @@ module ActiveGenie::Ranking
       ActiveGenie::Logger.debug({ code: :new_ffa_score, player_id: id, result: 'lose', ffa_score: })
     end
 
+    def name
+      @name
+    end
+
     def ffa_score
       @ffa_win_count * 3 + @ffa_draw_count
     end
 
+    def sort_value
+      (ffa_score * 1000000) + ((elo || 0) * 100) + (score || 0)
+    end
+
+    def to_json
+      to_h.to_json
+    end
+
     def to_h
       {
-        id:, content:, score:, elo:,
+        id:, name:, content:, score:, elo:,
         ffa_win_count:, ffa_lose_count:, ffa_draw_count:,
-        eliminated:, ffa_score:
+        eliminated:, ffa_score:, sort_value:
       }
     end
 

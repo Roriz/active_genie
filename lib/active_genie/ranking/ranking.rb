@@ -67,7 +67,7 @@ module ActiveGenie::Ranking
 
     private
 
-    SCORE_VARIATION_THRESHOLD = 15
+    DEFAULT_SCORE_VARIATION_THRESHOLD = 30
     ELIMINATION_VARIATION = 'variation_too_high'
     ELIMINATION_RELEGATION = 'relegation_tier'
     
@@ -80,27 +80,36 @@ module ActiveGenie::Ranking
     end
 
     def set_initial_player_scores!
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
       RankingScoring.call(@players, @criteria, reviewers: @reviewers, config: @config)
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
     end
 
     def eliminate_obvious_bad_players!
-      while @players.coefficient_of_variation >= SCORE_VARIATION_THRESHOLD
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
+      while @players.coefficient_of_variation >= score_variation_threshold
         @players.eligible.last.eliminated = ELIMINATION_VARIATION
       end
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
     end
 
     def run_elo_round!
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
       @elo_rounds_played += 1
 
       elo_report = EloRound.call(@players, @criteria, config: @config)
 
       @elo_round_battle_count += elo_report[:battles_count]
 
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
       elo_report
     end
 
     def eliminate_relegation_players!
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
       @players.calc_relegation_tier.each { |player| player.eliminated = ELIMINATION_RELEGATION }
+      
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
     end
 
     def rebalance_players!(elo_report)
@@ -111,12 +120,19 @@ module ActiveGenie::Ranking
 
         player.elo += elo_report[:highest_elo_diff]
       end
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
     end
 
     def run_free_for_all!
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
       ffa_report = FreeForAll.call(@players, @criteria, config: @config)
 
       @free_for_all_battle_count += ffa_report[:battles_count]
+      @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
+    end
+
+    def score_variation_threshold
+      @config[:runtime][:score_variation_threshold] || DEFAULT_SCORE_VARIATION_THRESHOLD
     end
 
     def report
