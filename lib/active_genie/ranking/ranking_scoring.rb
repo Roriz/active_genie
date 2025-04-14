@@ -16,10 +16,27 @@ module ActiveGenie::Ranking
     def call
       ActiveGenie::Logger.with_context(log_context) do
         @reviewers = generate_reviewers
+        
+        players_to_score = players_without_score
+        until players_to_score.empty?
+          threads = []
+          mutex = Mutex.new
+          
+          # Take up to 3 players for parallel processing
+          current_batch = players_to_score.shift(3)
 
-        players_without_score.each do |player|
-          # TODO: This can take a while, can be parallelized
-          player.score = generate_score(player)
+          current_batch.each do |player|
+            threads << Thread.new(player) do |p|
+              score = generate_score(p)
+
+              mutex.synchronize do
+                p.score = score
+              end
+            end
+          end
+
+          # Wait for all threads in this batch to complete
+          threads.each(&:join)
         end
       end
     end
@@ -39,6 +56,11 @@ module ActiveGenie::Ranking
       ).values_at('final_score', 'final_reasoning')
 
       ActiveGenie::Logger.debug({ code: :new_score, player_id: player.id, score:, reasoning: })
+      @config[:runtime][:watch_scoring].call({ 
+        player_id: player.id, 
+        player_name: player.content[0..10], 
+        score: player.score 
+      }) if @config[:runtime][:watch_scoring]
 
       score
     end
@@ -65,7 +87,7 @@ module ActiveGenie::Ranking
       player_ids = players_without_score.map(&:id).join(',')
       ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
 
-      Digest::MD5.hexdigest(ranking_unique_key)
+      Digest::MD5.hexdigest(ranking_unique_key) + '-scoring'
     end
   end
 end

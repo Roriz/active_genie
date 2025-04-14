@@ -41,3 +41,33 @@ The method processes the players through scoring, elimination, and ranking phase
 - Adjust each player's content to ensure consistency
 - Support players with images or audio
 - Parallelize processing battles and scoring
+
+## Ranking Configuration
+
+| Config | Description | Default |
+|--------|-------------|---------|
+| `score_variation_threshold` | Threshold for eliminating players with inconsistent scores | `30` |
+
+## Ranking Callbacks
+Callbacks are optional and can be used to watch any changes in players, battles, or scoring.
+
+| Callback | Description |
+|--------|-------------|
+| `watch_players` | Callback to watch any changes in players |
+| `watch_battles` | Callback to watch any changes in battles |
+| `watch_scoring` | Callback to watch any changes in scoring |
+
+Example of callback usage:
+
+```ruby
+result = ActiveGenie::Ranking.call(
+  players,
+  criteria,
+  config: {
+    watch_players: ->(player) { puts player },
+    watch_battles: ->(battle) { puts battle },
+    watch_scoring: ->(scoring) { puts scoring }
+  }
+)
+```
+

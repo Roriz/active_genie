@@ -41,9 +41,13 @@ module ActiveGenie::Ranking
     end
 
     def sorted
-      sorted_players = @players.sort_by { |p| [-p.ffa_score, -(p.elo || 0), -(p.score || 0)] }
+      sorted_players = @players.sort_by { |p| -p.sort_value }
       sorted_players.each_with_index { |p, i| p.rank = i + 1 }
       sorted_players
+    end
+    
+    def to_json
+      to_h.to_json
     end
 
     def to_h
