@@ -33,21 +33,21 @@ module ActiveGenie
       # Defaults to 'gpt-4o-mini'.
       # @return [String] The lower tier model name.
       def lower_tier_model
-        @lower_tier_model || 'gpt-4o-mini'
+        @lower_tier_model || 'gpt-4.1-mini'
       end
 
       # Retrieves the model name designated for the middle tier (e.g., balanced performance).
       # Defaults to 'gpt-4o'.
       # @return [String] The middle tier model name.
       def middle_tier_model
-        @middle_tier_model || 'gpt-4o'
+        @middle_tier_model || 'gpt-4.1'
       end
 
       # Retrieves the model name designated for the upper tier (e.g., most capable).
       # Defaults to 'o1-preview'.
       # @return [String] The upper tier model name.
       def upper_tier_model
-        @upper_tier_model || 'o1-preview'
+        @upper_tier_model || 'o3-mini'
       end
     end
   end
