@@ -73,6 +73,9 @@ To benchmark a specific module:
 
 ```shell
 bundle exec rake active_genie:benchmark[data_extractor]
+bundle exec rake active_genie:benchmark[scoring]
+bundle exec rake active_genie:benchmark[battle]
+bundle exec rake active_genie:benchmark[ranking]
 ```
 
 ## Interpreting Results
