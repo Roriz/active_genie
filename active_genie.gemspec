@@ -5,7 +5,8 @@ Gem::Specification.new do |spec|
   spec.summary       = "Transform your Ruby application with powerful, production-ready GenAI features"
   spec.description   = <<~DESC
     The lodash for GenAI, stop reinventing the wheel
-    ActiveGenie is a Ruby gem that provides valuable solutions powered by Generative AI (GenAI) models. Just like Lodash or ActiveStorage, ActiveGenie brings a set of Modules to reach real value fast and reliably. ActiveGenie is backed by a custom benchmarking system that ensures consistent quality and performance across different models and providers in every release.
+
+    ActiveGenie is a Ruby gem that provides valuable solutions using GenAI. Just like Lodash or ActiveStorage, ActiveGenie brings a set of Modules to reach real value fast and reliably. Backed by a custom benchmarking system that ensures consistent quality and performance across different models and providers in every release.
   DESC
   spec.authors       = ["Radamés Roriz"]
   spec.email         = ["radames@roriz.dev"]
