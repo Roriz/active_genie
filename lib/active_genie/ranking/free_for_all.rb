@@ -26,6 +26,8 @@ module ActiveGenie::Ranking
             winner.win!
             loser.lose!
           end
+          
+          @config[:runtime][:watch_players].call(@players) if @config[:runtime][:watch_players]
         end
       end
 
@@ -56,6 +58,7 @@ module ActiveGenie::Ranking
         when 'draw' then [nil, nil, result['reasoning']]
       end
 
+      @config[:runtime][:watch_battle].call({ id: "#{player_1.id}_#{player_2.id}_#{free_for_all_id}", player_1:, player_2:, winner:, loser:, reasoning: result['reasoning'] }) if @config[:runtime][:watch_battle]
       ActiveGenie::Logger.debug({
         code: :free_for_all_battle,
         player_ids: [player_1.id, player_2.id],
