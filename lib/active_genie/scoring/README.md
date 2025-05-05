@@ -17,7 +17,7 @@ text = "The code implements a binary search algorithm with O(log n) complexity"
 criteria = "Evaluate technical accuracy and clarity"
 reviewers = ["Algorithm Expert", "Technical Writer"]
 
-result = ActiveGenie::Scoring::Basic.call(text, criteria, reviewers)
+result = ActiveGenie::Scoring.call(text, criteria, reviewers)
 # => {
 #      algorithm_expert_score: 95,
 #      algorithm_expert_reasoning: "Accurately describes binary search and its complexity",
@@ -35,7 +35,7 @@ When no reviewers are specified, the system automatically recommends appropriate
 text = "The patient shows signs of improved cardiac function"
 criteria = "Evaluate medical accuracy and clarity"
 
-result = ActiveGenie::Scoring::Basic.call(text, criteria)
+result = ActiveGenie::Scoring.call(text, criteria)
 # => {
 #      cardiologist_score: 88,
 #      cardiologist_reasoning: "Accurate assessment of cardiac improvement",
@@ -49,7 +49,7 @@ result = ActiveGenie::Scoring::Basic.call(text, criteria)
 
 ## Interface
 
-### `Basic.call(text, criteria, reviewers = [], config: {})`
+### `.call(text, criteria, reviewers = [], config: {})`
 Main interface for scoring text content.
 
 #### Parameters

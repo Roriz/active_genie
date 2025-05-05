@@ -1,17 +1,18 @@
+# frozen_string_literal: true
 
-require_relative 'battle/basic'
+require_relative 'battle/generalist'
 
 module ActiveGenie
   # See the [Battle README](lib/active_genie/battle/README.md) for more information.
   module Battle
     module_function
 
-    def basic(...)
-      Basic.call(...)
+    def call(...)
+      Generalist.call(...)
     end
 
-    def call(...)
-      Basic.call(...)
+    def generalist(...)
+      Generalist.call(...)
     end
   end
 end

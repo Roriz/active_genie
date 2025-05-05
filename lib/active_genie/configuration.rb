@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'configuration/providers_config'
 require_relative 'configuration/providers/openai_config'
 require_relative 'configuration/providers/google_config'
@@ -11,7 +13,7 @@ module ActiveGenie
     module_function
 
     def providers
-      @providers ||= begin 
+      @providers ||= begin
         p = ProvidersConfig.new
         p.register(ActiveGenie::Configuration::Providers::OpenaiConfig)
         p.register(ActiveGenie::Configuration::Providers::GoogleConfig)
@@ -30,12 +32,12 @@ module ActiveGenie
     end
 
     def to_h(configs = {})
-      normalized_configs = configs.dig(:runtime) ? configs : { runtime: configs }
+      normalized_configs = configs[:runtime] ? configs : { runtime: configs }
 
       {
-        providers: providers.to_h(normalized_configs.dig(:providers) || {}),
-        log: log.to_h(normalized_configs.dig(:log) || {}),
-        runtime: runtime.to_h(normalized_configs.dig(:runtime) || {})
+        providers: providers.to_h(normalized_configs[:providers] || {}),
+        log: log.to_h(normalized_configs[:log] || {}),
+        runtime: runtime.to_h(normalized_configs[:runtime] || {})
       }
     end
   end

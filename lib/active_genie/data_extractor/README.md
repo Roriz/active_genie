@@ -17,24 +17,24 @@ schema = {
   age: { type: 'integer', description: 'Age in years' }
 }
 result = ActiveGenie::DataExtractor.call(text, schema)
-# => { 
-#      name: "John Doe", 
+# => {
+#      name: "John Doe",
 #      name_explanation: "Found directly in text",
-#      age: 25, 
-#      age_explanation: "Explicitly stated as 25 years old" 
+#      age: 25,
+#      age_explanation: "Explicitly stated as 25 years old"
 #    }
 
 product = "Nike Air Max 90 - Size 42 - $199.99"
 schema = {
-  brand: { 
+  brand: {
     type: 'string',
     enum: ["Nike", "Adidas", "Puma"]
   },
-  price: { 
+  price: {
     type: 'number',
     minimum: 0
   },
-  currency: { 
+  currency: {
     type: 'string',
     enum: ["USD", "EUR"]
   },
@@ -46,8 +46,8 @@ schema = {
 }
 
 result = ActiveGenie::DataExtractor.call(product, schema)
-# => { 
-#      brand: "Nike", 
+# => {
+#      brand: "Nike",
 #      brand_explanation: "Brand name found at start of text",
 #      price: 199.99,
 #      price_explanation: "Price found in USD format at end",
@@ -70,12 +70,12 @@ The `from_informal` method extends the basic extraction by analyzing rhetorical 
 
 ```ruby
 text = "The weather isn't bad today"
-schema = { 
-  mood: { type: 'string', description: 'The mood of the message' } 
+schema = {
+  mood: { type: 'string', description: 'The mood of the message' }
 }
 
 result = ActiveGenie::DataExtractor.from_informal(text, schema)
-# => { 
+# => {
 #      mood: "positive",
 #      mood_explanation: "Speaker views weather favorably",
 #      message_litote: true,
@@ -117,7 +117,7 @@ Extracts structured data from text based on a predefined schema.
 - Additional analysis fields when using `from_informal`
 
 ### `.from_informal(text, data_to_extract, config = {})`
-Extends basic extraction with rhetorical analysis, particularly for litotes.
+Extends  extraction with rhetorical analysis, particularly for litotes.
 
 #### Additional Return Fields
 | Name | Type | Description |

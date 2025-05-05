@@ -1,4 +1,6 @@
-require_relative 'data_extractor/basic'
+# frozen_string_literal: true
+
+require_relative 'data_extractor/generalist'
 require_relative 'data_extractor/from_informal'
 
 module ActiveGenie
@@ -6,12 +8,12 @@ module ActiveGenie
   module DataExtractor
     module_function
 
-    def basic(...)
-      Basic.call(...)
+    def call(...)
+      Generalist.call(...)
     end
 
-    def call(...)
-      Basic.call(...)
+    def generalist(...)
+      Generalist.call(...)
     end
 
     def from_informal(...)

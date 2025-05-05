@@ -16,18 +16,18 @@ player_1 = "Implementation uses dependency injection for better testability"
 player_2 = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
-result = ActiveGenie::Battle::Basic.call(player_1, player_2, criteria)
+result = ActiveGenie::Battle.call(player_1, player_2, criteria)
 # => {
 #      winner_player: "Implementation uses dependency injection for better testability",
-#      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection, 
-#                 which allows for easier testing and component replacement. While Player B has good test coverage, 
+#      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection,
+#                 which allows for easier testing and component replacement. While Player B has good test coverage,
 #                 the tight coupling makes the code harder to maintain and modify.",
 #      what_could_be_changed_to_avoid_draw: "Focus on specific architectural patterns and design principles"
 #    }
 ```
 
 ## Interface
-### Basic.call(player_1, player_2, criteria, config: {})
+### .call(player_1, player_2, criteria, config: {})
 - `player_1` [String, Hash] - The content or submission from the first player
 - `player_2` [String, Hash] - The content or submission from the second player
 - `criteria` [String] - The evaluation criteria or rules to assess against

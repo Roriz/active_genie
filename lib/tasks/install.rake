@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fileutils'
 
 namespace :active_genie do
@@ -7,6 +9,6 @@ namespace :active_genie do
     target = File.join('config', 'initializers', 'active_genie.rb')
 
     FileUtils.cp(source, target)
-    puts "Successfully installed active_genie!"
+    puts 'Successfully installed active_genie!'
   end
 end

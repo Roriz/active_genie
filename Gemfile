@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
+gem 'debug', '>= 1.10.0'
 gem 'minitest'
 gem 'rake'
-gem "debug", ">= 1.10.0"
+gem 'rubocop'

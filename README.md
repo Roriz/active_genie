@@ -41,11 +41,11 @@ Extract structured data from text using AI-powered analysis, handling informal l
 ```ruby
 text = "Nike Air Max 90 - Size 42 - $199.99"
 schema = {
-  brand: { 
+  brand: {
     type: 'string',
     enum: ["Nike", "Adidas", "Puma"]
   },
-  price: { 
+  price: {
     type: 'number',
     minimum: 0
   },
@@ -61,8 +61,8 @@ result = ActiveGenie::DataExtractor.call(
   schema,
   config: { provider: :openai, model: 'gpt-4o-mini' } # optional
 )
-# => { 
-#      brand: "Nike", 
+# => {
+#      brand: "Nike",
 #      brand_explanation: "Brand name found at start of text",
 #      price: 199.99,
 #      price_explanation: "Price found in USD format at end",
@@ -88,7 +88,7 @@ Text evaluation system that provides detailed scoring and feedback using multipl
 text = "The code implements a binary search algorithm with O(log n) complexity"
 criteria = "Evaluate technical accuracy and clarity"
 
-result = ActiveGenie::Scoring.basic(
+result = ActiveGenie::Scoring.call(
   text,
   criteria,
   config: { provider: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
@@ -130,8 +130,8 @@ result = ActiveGenie::Battle.call(
 )
 # => {
 #      winner_player: "Implementation uses dependency injection for better testability",
-#      reasoning: "Player 1 implementation demonstrates better maintainability through dependency injection, 
-#                 which allows for easier testing and component replacement. While Player 2 has good test coverage, 
+#      reasoning: "Player 1 implementation demonstrates better maintainability through dependency injection,
+#                 which allows for easier testing and component replacement. While Player 2 has good test coverage,
 #                 the tight coupling makes the code harder to maintain and modify.",
 #      what_could_be_changed_to_avoid_draw: "Focus on specific architectural patterns and design principles"
 #    }
@@ -228,31 +228,31 @@ module ActiveGenie
   module Configuration::Providers
     class InternalCompanyApiConfig < BaseConfig
       NAME = :internal_company_api
-      
+
       # API key accessor with environment variable fallback
       def api_key
         @api_key || ENV['INTERNAL_COMPANY_API_KEY']
       end
-      
+
       # Base API URL
       def api_url
         @api_url || 'https://api.internal-company.com/v1'
       end
-      
+
       # Client instantiation
       def client
         @client ||= ::ActiveGenie::Clients::InternalCompanyApiClient.new(self)
       end
-      
+
       # Model tier definitions
       def lower_tier_model
         @lower_tier_model || 'internal-basic'
       end
-      
+
       def middle_tier_model
         @middle_tier_model || 'internal-standard'
       end
-      
+
       def upper_tier_model
         @upper_tier_model || 'internal-premium'
       end
@@ -268,7 +268,7 @@ end
 ActiveGenie.configure do |config|
   # Register your custom provider
   config.providers.register(InternalCompanyApi::Configuration)
-  
+
   # Configure your provider
   config.internal_company_api.api_key = ENV['INTERNAL_COMPANY_API_KEY']
 end
