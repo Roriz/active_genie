@@ -1,19 +1,21 @@
-module ActiveGenie::Clients
-  class UnifiedClient
-    class << self
-      def function_calling(messages, function, model_tier: nil, config: {})
-        provider_name = config[:runtime][:provider]&.to_s&.downcase&.strip&.to_sym || ActiveGenie.configuration.providers.default
-        provider_instance = ActiveGenie.configuration.providers.valid[provider_name]
+# frozen_string_literal: true
 
-        raise InvalidProviderError if provider_instance.nil? || provider_instance.client.nil?
+module ActiveGenie
+  module Clients
+    class UnifiedClient
+      class << self
+        def function_calling(messages, function, model_tier: nil, config: {})
+          provider_name = config[:runtime][:provider]&.to_s&.downcase&.strip&.to_sym || ActiveGenie.configuration.providers.default
+          provider_instance = ActiveGenie.configuration.providers.valid[provider_name]
 
-        provider_instance.client.function_calling(messages, function, model_tier:, config:)
+          raise InvalidProviderError if provider_instance.nil? || provider_instance.client.nil?
+
+          provider_instance.client.function_calling(messages, function, model_tier:, config:)
+        end
+
+        # TODO: improve error message
+        class InvalidProviderError < StandardError; end
       end
-
-      private
-
-      # TODO: improve error message
-      class InvalidProviderError < StandardError; end
     end
   end
 end

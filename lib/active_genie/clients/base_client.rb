@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveGenie
   module Clients
     class BaseClient
@@ -9,7 +11,7 @@ module ActiveGenie
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'User-Agent': 'ActiveGenie/1.0',
+        'User-Agent': 'ActiveGenie/1.0'
       }.freeze
 
       DEFAULT_TIMEOUT = 60 # seconds
@@ -88,31 +90,31 @@ module ActiveGenie
       # @return [Hash, nil] The parsed JSON response or nil if empty
       def execute_request(uri, request, headers, config)
         start_time = Time.now
-        
+
         # Apply headers
         apply_headers(request, headers)
-        
+
         # Apply retry logic
         retry_with_backoff(config) do
           http = create_http_client(uri, config)
-          
+
           begin
             response = http.request(request)
-            
+
             # Handle common HTTP errors
             case response
             when Net::HTTPSuccess
               parsed_response = parse_response(response)
-              
+
               # Log request details if logging is enabled
               log_request_details(
-                uri: uri, 
+                uri: uri,
                 method: request.method,
                 status: response.code,
                 duration: Time.now - start_time,
                 response: parsed_response
               )
-              
+
               parsed_response
             when Net::HTTPTooManyRequests
               raise RateLimitError, "Rate limit exceeded: #{response.body}"
@@ -151,7 +153,7 @@ module ActiveGenie
         DEFAULT_HEADERS.each do |key, value|
           request[key] = value
         end
-        
+
         headers.each do |key, value|
           request[key.to_s] = value
         end
@@ -165,11 +167,9 @@ module ActiveGenie
       def build_uri(endpoint, params = {})
         base_url = @app_config.api_url
         uri = URI("#{base_url}#{endpoint}")
-        
-        unless params.empty?
-          uri.query = URI.encode_www_form(params)
-        end
-        
+
+        uri.query = URI.encode_www_form(params) unless params.empty?
+
         uri
       end
 
@@ -179,7 +179,7 @@ module ActiveGenie
       # @return [Hash, nil] Parsed JSON or nil if empty
       def parse_response(response)
         return nil if response.body.nil? || response.body.empty?
-        
+
         begin
           JSON.parse(response.body)
         rescue JSON::ParserError => e
@@ -192,15 +192,15 @@ module ActiveGenie
       # @param details [Hash] Request and response details
       def log_request_details(details)
         return unless defined?(ActiveGenie::Logger)
-        
+
         ActiveGenie::Logger.trace({
-          code: :http_request,
-          uri: details[:uri].to_s,
-          method: details[:method],
-          status: details[:status],
-          duration: details[:duration],
-          response_size: details[:response].to_s.bytesize
-        })
+                                    code: :http_request,
+                                    uri: details[:uri].to_s,
+                                    method: details[:method],
+                                    status: details[:status],
+                                    duration: details[:duration],
+                                    response_size: details[:response].to_s.bytesize
+                                  })
       end
 
       # Retry a block with exponential backoff
@@ -211,29 +211,29 @@ module ActiveGenie
       def retry_with_backoff(config = {})
         max_retries = config.dig(:runtime, :max_retries) || DEFAULT_MAX_RETRIES
         retry_delay = config.dig(:runtime, :retry_delay) || DEFAULT_RETRY_DELAY
-        
+
         retries = 0
-        
+
         begin
           yield
         rescue RateLimitError, NetworkError => e
-          if retries < max_retries
-            sleep_time = retry_delay * (2 ** retries)
-            retries += 1
-            
+          raise unless retries < max_retries
+
+          sleep_time = retry_delay * (2**retries)
+          retries += 1
+
+          if defined?(ActiveGenie::Logger)
             ActiveGenie::Logger.trace({
-              code: :retry_attempt,
-              attempt: retries,
-              max_retries: max_retries,
-              delay: sleep_time,
-              error: e.message
-            }) if defined?(ActiveGenie::Logger)
-            
-            sleep(sleep_time)
-            retry
-          else
-            raise
+                                        code: :retry_attempt,
+                                        attempt: retries,
+                                        max_retries: max_retries,
+                                        delay: sleep_time,
+                                        error: e.message
+                                      })
           end
+
+          sleep(sleep_time)
+          retry
         end
       end
     end

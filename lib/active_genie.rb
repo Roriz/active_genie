@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'active_genie/logger'
 require_relative 'active_genie/configuration'
 

@@ -1,4 +1,6 @@
-require_relative 'scoring/basic'
+# frozen_string_literal: true
+
+require_relative 'scoring/generalist'
 require_relative 'scoring/recommended_reviewers'
 
 module ActiveGenie
@@ -6,11 +8,12 @@ module ActiveGenie
   module Scoring
     module_function
 
-    def basic(...)
-      Basic.call(...)
-    end
     def call(...)
-      Basic.call(...)
+      Generalist.call(...)
+    end
+
+    def generalist(...)
+      Generalist.call(...)
     end
 
     def recommended_reviewers(...)

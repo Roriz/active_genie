@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'fileutils'
 
@@ -55,10 +57,10 @@ module ActiveGenie
     end
 
     # Log Levels
-    # 
-    # LOG_LEVELS defines different levels of logging within the application. 
+    #
+    # LOG_LEVELS defines different levels of logging within the application.
     # Each level serves a specific purpose, balancing verbosity and relevance.
-    # 
+    #
     # - :info  -> General log messages providing an overview of application behavior, ensuring readability without excessive detail.
     # - :warn  -> Indicates unexpected behaviors that do not halt execution but require attention, such as retries, timeouts, or necessary conversions.
     # - :error -> Represents critical errors that prevent the application from functioning correctly.
@@ -67,7 +69,7 @@ module ActiveGenie
     LOG_LEVELS = { info: 0, error: 0, warn: 1, debug: 2, trace: 3 }.freeze
 
     attr_accessor :context
-    
+
     def append_to_file(log)
       FileUtils.mkdir_p('logs')
       File.write('logs/active_genie.log', "#{JSON.generate(log)}\n", mode: 'a')
@@ -83,7 +85,7 @@ module ActiveGenie
     end
 
     def call_observers(log)
-      return if @observers.nil? || @observers.size.zero?
+      return if @observers.nil? || @observers.empty?
 
       @observers.each { |observer| observer.call(log) }
     end
