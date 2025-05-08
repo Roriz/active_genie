@@ -8,7 +8,13 @@ module ActiveGenie
         @default = nil
       end
 
-      def register(provider_class)
+      attr_writer :default
+
+      def default
+        @default || @all.values.find(&:api_key).class::NAME
+      end
+
+      def add(provider_class)
         @all ||= {}
         name = provider_class::NAME
         @all[name] = provider_class.new
@@ -19,26 +25,18 @@ module ActiveGenie
         self
       end
 
-      def default
-        @default || @all.values.find(&:api_key).class::NAME
+      def remove(provider_class)
+        @all.delete(provider_class::NAME)
+        remove_method(provider_class::NAME)
+        self
       end
 
+      # QUESTION: rename valid to usablesl?
       def valid
         valid_provider_keys = @all.keys.select { |k| @all[k].valid? }
         @all.slice(*valid_provider_keys)
       end
 
-      def to_h(config = {})
-        hash_all = {}
-        @all.each do |name, provider|
-          hash_all[name] = provider.to_h(config[name] || {})
-        end
-        hash_all
-      end
-
-      private
-
-      attr_writer :default
     end
   end
 end

@@ -42,16 +42,11 @@ module ActiveGenie
         @criteria = criteria
         @reviewers = Array(reviewers).compact.uniq
         @config = ActiveGenie::Configuration.to_h(config)
-        @players = PlayersCollection.new(param_players)
-        @elo_rounds_played = 0
-        @elo_round_battle_count = 0
-        @free_for_all_battle_count = 0
-        @total_tokens = 0
-        @start_time = Time.now
+        @players = nil
       end
 
       def call
-        initial_log
+        @players = create_players
 
         set_initial_player_scores!
         eliminate_obvious_bad_players!
@@ -63,9 +58,8 @@ module ActiveGenie
         end
 
         run_free_for_all!
-        final_logs
 
-        @players.sorted
+        sorted_players
       end
 
       private
@@ -74,45 +68,31 @@ module ActiveGenie
       ELIMINATION_VARIATION = 'variation_too_high'
       ELIMINATION_RELEGATION = 'relegation_tier'
 
-      with_logging_context :log_context, lambda { |log|
-        @total_tokens += log[:total_tokens] || 0 if log[:code] == :llm_usage
-      }
+      call_with_log_context :log_context
 
-      def initial_log
-        @players.each { |p| ActiveGenie::Logger.debug({ code: :new_player, player: p.to_h }) }
+      def create_players
+        players = PlayersCollection.new(param_players)
+        players.each { |p| logger({ code: :new_player, player: p.to_h }) }
+
+        players
       end
 
       def set_initial_player_scores!
-        @config[:runtime][:watch_players]&.call(@players)
         RankingScoring.call(@players, @criteria, reviewers: @reviewers, config: @config)
-        @config[:runtime][:watch_players]&.call(@players)
       end
 
       def eliminate_obvious_bad_players!
-        @config[:runtime][:watch_players]&.call(@players)
         while @players.coefficient_of_variation >= score_variation_threshold
           @players.eligible.last.eliminated = ELIMINATION_VARIATION
         end
-        @config[:runtime][:watch_players]&.call(@players)
       end
 
       def run_elo_round!
-        @config[:runtime][:watch_players]&.call(@players)
-        @elo_rounds_played += 1
-
-        elo_report = EloRound.call(@players, @criteria, config: @config)
-
-        @elo_round_battle_count += elo_report[:battles_count]
-
-        @config[:runtime][:watch_players]&.call(@players)
-        elo_report
+        EloRound.call(@players, @criteria, config: @config)
       end
 
       def eliminate_relegation_players!
-        @config[:runtime][:watch_players]&.call(@players)
         @players.calc_relegation_tier.each { |player| player.eliminated = ELIMINATION_RELEGATION }
-
-        @config[:runtime][:watch_players]&.call(@players)
       end
 
       def rebalance_players!(elo_report)
@@ -123,43 +103,25 @@ module ActiveGenie
 
           player.elo += elo_report[:highest_elo_diff]
         end
-        @config[:runtime][:watch_players]&.call(@players)
       end
 
       def run_free_for_all!
-        @config[:runtime][:watch_players]&.call(@players)
-        ffa_report = FreeForAll.call(@players, @criteria, config: @config)
-
-        @free_for_all_battle_count += ffa_report[:battles_count]
-        @config[:runtime][:watch_players]&.call(@players)
+        FreeForAll.call(@players, @criteria, config: @config)
       end
 
       def score_variation_threshold
         @config[:runtime][:score_variation_threshold] || DEFAULT_SCORE_VARIATION_THRESHOLD
       end
 
-      def report
-        {
-          ranking_id: ranking_id,
-          players_count: @players.size,
-          variation_too_high: @players.select { |player| player.eliminated == ELIMINATION_VARIATION }.size,
-          elo_rounds_played: @elo_rounds_played,
-          elo_round_battle_count: @elo_round_battle_count,
-          relegation_tier: @players.select { |player| player.eliminated == ELIMINATION_RELEGATION }.size,
-          ffa_round_battle_count: @free_for_all_battle_count,
-          top3: @players.eligible[0..2].map(&:id),
-          total_tokens: @total_tokens,
-          duration_seconds: Time.now - @start_time
-        }
-      end
+      def sorted_players
+        players = @players.sorted
+        logger({ code: :ranking_final, players: players.map(&:to_h) })
 
-      def final_logs
-        ActiveGenie::Logger.debug({ code: :ranking_final, players: @players.sorted.map(&:to_h) })
-        ActiveGenie::Logger.info({ code: :ranking, **report })
+        players.map(&:to_h)
       end
 
       def log_context
-        { config: @config[:log], ranking_id: }
+        { ranking_id: }
       end
 
       def ranking_id

@@ -15,10 +15,10 @@ module ActiveGenie
     def providers
       @providers ||= begin
         p = ProvidersConfig.new
-        p.register(ActiveGenie::Configuration::Providers::OpenaiConfig)
-        p.register(ActiveGenie::Configuration::Providers::GoogleConfig)
-        p.register(ActiveGenie::Configuration::Providers::AnthropicConfig)
-        p.register(ActiveGenie::Configuration::Providers::DeepseekConfig)
+        p.add(ActiveGenie::Configuration::Providers::OpenaiConfig)
+        p.add(ActiveGenie::Configuration::Providers::GoogleConfig)
+        p.add(ActiveGenie::Configuration::Providers::AnthropicConfig)
+        p.add(ActiveGenie::Configuration::Providers::DeepseekConfig)
         p
       end
     end
@@ -29,6 +29,10 @@ module ActiveGenie
 
     def runtime
       @runtime ||= RuntimeConfig.new
+    end
+
+    def observer
+      @observer ||= ObserverConfig.new
     end
 
     def to_h(configs = {})
