@@ -267,7 +267,7 @@ end
 # In config/initializers/active_genie.rb
 ActiveGenie.configure do |config|
   # Register your custom provider
-  config.providers.register(InternalCompanyApi::Configuration)
+  config.providers.add(InternalCompanyApi::Configuration)
 
   # Configure your provider
   config.internal_company_api.api_key = ENV['INTERNAL_COMPANY_API_KEY']

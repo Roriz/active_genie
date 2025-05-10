@@ -31,7 +31,7 @@ module ActiveGenie
       #   - :anthropic_version [String] Override the default Anthropic API version.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function, model_tier: nil, config: {})
-        model = config[:runtime][:model] || @app_config.tier_to_model(model_tier)
+        model = config.model || @app_config.tier_to_model(model_tier)
 
         system_message = messages.find { |m| m[:role] == 'system' }&.dig(:content) || ''
         user_messages = messages.select { |m| %w[user assistant].include?(m[:role]) }
@@ -47,14 +47,14 @@ module ActiveGenie
           messages: user_messages,
           tools: [anthropic_function],
           tool_choice: { name: anthropic_function[:name], type: 'tool' },
-          max_tokens: config[:runtime][:max_tokens],
-          temperature: config[:runtime][:temperature] || 0
+          max_tokens: config.max_tokens,
+          temperature: config.temperature || 0
         }
 
-        api_key = config[:runtime][:api_key] || @app_config.api_key
+        api_key = config.api_key || @app_config.api_key
         headers = {
           'x-api-key': api_key,
-          'anthropic-version': config[:anthropic_version] || ANTHROPIC_VERSION
+          'anthropic-version': config.anthropic_version || ANTHROPIC_VERSION
         }.compact
 
         retry_with_backoff(config:) do

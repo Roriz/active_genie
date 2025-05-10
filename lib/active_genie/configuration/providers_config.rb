@@ -8,16 +8,7 @@ module ActiveGenie
         @default = nil
       end
 
-      def register(provider_class)
-        @all ||= {}
-        name = provider_class::NAME
-        @all[name] = provider_class.new
-        define_singleton_method(name) do
-          instance_variable_get("@#{name}") || instance_variable_set("@#{name}", @all[name])
-        end
-
-        self
-      end
+      attr_writer :default
 
       def default
         @default || @all.values.find(&:api_key).class::NAME
@@ -28,17 +19,35 @@ module ActiveGenie
         @all.slice(*valid_provider_keys)
       end
 
-      def to_h(config = {})
-        hash_all = {}
-        @all.each do |name, provider|
-          hash_all[name] = provider.to_h(config[name] || {})
+      def add(provider_classes)
+        @all ||= {}
+        Array(provider_classes).each do |provider|
+          name = provider::NAME
+          remove([name]) if @all.key?(name)
+
+          @all[name] = provider.new
+          define_singleton_method(name) do
+            instance_variable_get("@#{name}") || instance_variable_set("@#{name}", @all[name])
+          end
         end
-        hash_all
+
+        self
       end
 
-      private
+      def remove(provider_classes)
+        Array(provider_classes).each do |provider|
+          @all.delete(provider::NAME)
+          remove_method(provider::NAME)
+        end
 
-      attr_writer :default
+        self
+      end
+
+      def merge(config_params = {})
+        dup.tap do |config|
+          config.add(config_params[:providers]) if config_params[:providers]
+        end
+      end
     end
   end
 end

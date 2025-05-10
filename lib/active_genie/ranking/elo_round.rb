@@ -78,10 +78,6 @@ module ActiveGenie
                           when 'draw' then [nil, nil]
                           end
 
-          @config[:runtime][:watch_battle]&.call({ id: "#{player_1.id}_#{player_2.id}_#{elo_round_id}", player_1:,
-                                                   player_2:, winner:, loser:, reasoning: result['reasoning'] })
-          @config[:runtime][:watch_players]&.call(@players)
-
           [winner, loser]
         end
       end

@@ -4,7 +4,7 @@ MAX_RETRIES = 3
 BASE_DELAY = 0.5
 
 def retry_with_backoff(config: {})
-  retries = config[:runtime][:max_retries] || MAX_RETRIES
+  retries = config.max_retries || MAX_RETRIES
 
   begin
     yield

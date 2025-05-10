@@ -34,7 +34,7 @@ module ActiveGenie
         @text = text
         @criteria = criteria
         @param_reviewers = Array(reviewers).compact.uniq
-        @config = ActiveGenie::Configuration.to_h(config)
+        @config = ActiveGenie::Configuration.merge(config)
       end
 
       def call

@@ -26,7 +26,7 @@ module ActiveGenie
       #   - :retry_delay [Integer] Initial delay for retries.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function, model_tier: nil, config: {})
-        model = config[:runtime][:model] || @app_config.tier_to_model(model_tier)
+        model = config.model || @app_config.tier_to_model(model_tier)
 
         payload = {
           messages:,
@@ -46,7 +46,7 @@ module ActiveGenie
           model:
         }
 
-        api_key = config[:runtime][:api_key] || @app_config.api_key
+        api_key = config.api_key || @app_config.api_key
         headers = {
           'Authorization': "Bearer #{api_key}"
         }.compact

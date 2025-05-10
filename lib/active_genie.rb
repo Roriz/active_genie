@@ -15,7 +15,12 @@ module ActiveGenie
     end
 
     def configuration
-      @configuration ||= Configuration
+      @configuration ||= Configuration.new do |config|
+        config.providers.add(Providers::OpenaiConfig)
+        config.providers.add(Providers::GoogleConfig)
+        config.providers.add(Providers::AnthropicConfig)
+        config.providers.add(Providers::DeepseekConfig)
+      end
     end
 
     def load_tasks
