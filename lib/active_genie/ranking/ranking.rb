@@ -41,7 +41,7 @@ module ActiveGenie
       def initialize(param_players, criteria, reviewers: [], config: {})
         @criteria = criteria
         @reviewers = Array(reviewers).compact.uniq
-        @config = ActiveGenie::Configuration.to_h(config)
+        @config = ActiveGenie::Configuration.merge(config)
         @players = nil
       end
 
@@ -110,7 +110,7 @@ module ActiveGenie
       end
 
       def score_variation_threshold
-        @config[:runtime][:score_variation_threshold] || DEFAULT_SCORE_VARIATION_THRESHOLD
+        @config.score_variation_threshold || DEFAULT_SCORE_VARIATION_THRESHOLD
       end
 
       def sorted_players

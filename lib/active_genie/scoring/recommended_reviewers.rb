@@ -30,7 +30,7 @@ module ActiveGenie
       def initialize(text, criteria, config: {})
         @text = text
         @criteria = criteria
-        @config = ActiveGenie::Configuration.to_h(config)
+        @config = ActiveGenie::Configuration.merge(config)
       end
 
       def call

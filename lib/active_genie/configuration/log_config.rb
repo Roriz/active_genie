@@ -3,13 +3,17 @@
 module ActiveGenie
   module Configuration
     class LogConfig
-      def add_observer(observer, scope: nil)
+      def add_observer(observers, scope: nil)
         @observers ||= []
-        @observers << { observer:, scope: }
+        Array(observers).each do |observer|
+          @observers << { observer:, scope: }
+        end
       end
 
-      def remove_observer(observer)
-        @observers.delete_if { |obs| obs[:observer] == observer }
+      def remove_observer(observers)
+        Array(observers).each do |observer|
+          @observers.delete_if { |obs| obs[:observer] == observer }
+        end
       end
 
       def clear_observers
@@ -21,6 +25,12 @@ module ActiveGenie
           next unless obs[:scope].nil? || obs[:scope].all? { |key, value| log[key.to_sym] == value }
 
           obs[:observer].call(log)
+        end
+      end
+
+      def merge(config_params = {})
+        dup.tap do |config|
+          config.add_observer(config_params[:observers]) if config_params[:observers]
         end
       end
     end
