@@ -21,14 +21,9 @@ module ActiveGenie
       #   Each hash should have :role ('user' or 'model') and :content (String).
       #   Google Generative Language uses 'user' and 'model' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @param config [Hash] Optional configuration overrides:
-      #   - :api_key [String] Override the default API key.
-      #   - :model [String] Override the model name directly.
-      #   - :max_retries [Integer] Max retries for the request.
-      #   - :retry_delay [Integer] Initial delay for retries.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-      def function_calling(messages, function, config: {})
-        model = config.model || config.providers.google.tier_to_model(config.llm.model_tier)
+      def function_calling(messages, function)
+        model = @config.model || @config.providers.google.tier_to_model(@config.llm.model_tier)
 
         contents = convert_messages_to_contents(messages, function)
         contents << output_as_json_schema(function)
@@ -42,14 +37,14 @@ module ActiveGenie
         }
 
         endpoint = "#{API_VERSION_PATH}/#{model}:generateContent"
-        params = { key: config.providers.google.api_key }
+        params = { key: @config.providers.google.api_key }
         headers = DEFAULT_HEADERS
 
-        retry_with_backoff(config:) do
+        retry_with_backoff do
           start_time = Time.now
-          url = "#{config.providers.google.api_url}#{endpoint}"
+          url = "#{@config.providers.google.api_url}#{endpoint}"
 
-          response = post(url, payload, headers:, params:, config: config)
+          response = post(url, payload, headers:, params:)
 
           json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
           return nil if json_string.nil? || json_string.empty?

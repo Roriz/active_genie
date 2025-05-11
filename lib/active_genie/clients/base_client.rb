@@ -28,12 +28,11 @@ module ActiveGenie
       # @param endpoint [String] The API endpoint to call
       # @param headers [Hash] Additional headers to include in the request
       # @param params [Hash] Query parameters for the request
-      # @param config [Hash] Configuration options including timeout, retries, etc.
       # @return [Hash, nil] The parsed JSON response or nil if empty
-      def get(endpoint, params: {}, headers: {}, config: {})
+      def get(endpoint, params: {}, headers: {})
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Get.new(uri)
-        execute_request(uri, request, headers, config:g)
+        execute_request(uri, request, headers)
       end
 
       # Make a POST request to the specified endpoint
@@ -41,13 +40,12 @@ module ActiveGenie
       # @param endpoint [String] The API endpoint to call
       # @param payload [Hash] The request body to send
       # @param headers [Hash] Additional headers to include in the request
-      # @param config [Hash] Configuration options including timeout, retries, etc.
       # @return [Hash, nil] The parsed JSON response or nil if empty
-      def post(endpoint, payload, params: {}, headers: {}, config: {})
+      def post(endpoint, payload, params: {}, headers: {})
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Post.new(uri)
         request.body = payload.to_json
-        execute_request(uri, request, headers, config:)
+        execute_request(uri, request, headers)
       end
 
       # Make a PUT request to the specified endpoint
@@ -55,13 +53,12 @@ module ActiveGenie
       # @param endpoint [String] The API endpoint to call
       # @param payload [Hash] The request body to send
       # @param headers [Hash] Additional headers to include in the request
-      # @param config [Hash] Configuration options including timeout, retries, etc.
       # @return [Hash, nil] The parsed JSON response or nil if empty
-      def put(endpoint, payload, headers: {}, config: {})
+      def put(endpoint, payload, headers: {})
         uri = build_uri(endpoint)
         request = Net::HTTP::Put.new(uri)
         request.body = payload.to_json
-        execute_request(uri, request, headers, config:)
+        execute_request(uri, request, headers)
       end
 
       # Make a DELETE request to the specified endpoint
@@ -69,12 +66,11 @@ module ActiveGenie
       # @param endpoint [String] The API endpoint to call
       # @param headers [Hash] Additional headers to include in the request
       # @param params [Hash] Query parameters for the request
-      # @param config [Hash] Configuration options including timeout, retries, etc.
       # @return [Hash, nil] The parsed JSON response or nil if empty
-      def delete(endpoint, headers: {}, params: {}, config: {})
+      def delete(endpoint, headers: {}, params: {})
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Delete.new(uri)
-        execute_request(uri, request, headers, config:)
+        execute_request(uri, request, headers)
       end
 
       protected
@@ -84,17 +80,16 @@ module ActiveGenie
       # @param uri [URI] The URI for the request
       # @param request [Net::HTTP::Request] The request object
       # @param headers [Hash] Additional headers to include
-      # @param config [Hash] Configuration options
       # @return [Hash, nil] The parsed JSON response or nil if empty
-      def execute_request(uri, request, headers, config:)
+      def execute_request(uri, request, headers)
         start_time = Time.now
 
         # Apply headers
         apply_headers(request, headers)
 
         # Apply retry logic
-        retry_with_backoff(config:) do
-          http = create_http_client(uri, config)
+        retry_with_backoff do
+          http = create_http_client(uri)
 
           begin
             response = http.request(request)
@@ -132,14 +127,13 @@ module ActiveGenie
       # Create and configure an HTTP client
       #
       # @param uri [URI] The URI for the request
-      # @param config [Hash] Configuration options
       # @return [Net::HTTP] Configured HTTP client
-      def create_http_client(uri, config)
+      def create_http_client(uri)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = (uri.scheme == 'https')
         http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        http.read_timeout = config.llm.read_timeout || DEFAULT_TIMEOUT
-        http.open_timeout = config.llm.open_timeout || DEFAULT_OPEN_TIMEOUT
+        http.read_timeout = @config.llm.read_timeout || DEFAULT_TIMEOUT
+        http.open_timeout = @config.llm.open_timeout || DEFAULT_OPEN_TIMEOUT
         http
       end
 
@@ -200,12 +194,11 @@ module ActiveGenie
 
       # Retry a block with exponential backoff
       #
-      # @param config [Hash] Configuration options
       # @yield The block to retry
       # @return [Object] The result of the block
-      def retry_with_backoff(config:)
-        max_retries = config.llm.max_retries || DEFAULT_MAX_RETRIES
-        retry_delay = config.llm.retry_delay || DEFAULT_RETRY_DELAY
+      def retry_with_backoff
+        max_retries = @config.llm.max_retries || DEFAULT_MAX_RETRIES
+        retry_delay = @config.llm.retry_delay || DEFAULT_RETRY_DELAY
 
         retries = 0
 

@@ -18,14 +18,9 @@ module ActiveGenie
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
       #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @param config [Hash] Optional configuration overrides:
-      #   - :api_key [String] Override the default API key.
-      #   - :model [String] Override the model name directly.
-      #   - :max_retries [Integer] Max retries for the request.
-      #   - :retry_delay [Integer] Initial delay for retries.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-      def function_calling(messages, function, config: {})
-        model = config.llm.model || config.providers.deepseek.tier_to_model(config.llm.model_tier)
+      def function_calling(messages, function)
+        model = @config.llm.model || @config.providers.deepseek.tier_to_model(@config.llm.model_tier)
 
         payload = {
           messages:,
@@ -46,11 +41,11 @@ module ActiveGenie
         }
 
         headers = {
-          'Authorization': "Bearer #{config.providers.deepseek.api_key}"
+          'Authorization': "Bearer #{@config.providers.deepseek.api_key}"
         }.compact
 
-        retry_with_backoff(config:) do
-          response = request_deepseek(payload, headers, config:)
+        retry_with_backoff do
+          response = request_deepseek(payload, headers)
 
           parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
           parsed_response = parsed_response['message'] || parsed_response
@@ -72,13 +67,12 @@ module ActiveGenie
       #
       # @param payload [Hash] The request payload
       # @param headers [Hash] Additional headers
-      # @param config [Hash] Configuration options
       # @return [Hash] The parsed response
-      def request_deepseek(payload, headers, config:)
+      def request_deepseek(payload, headers)
         start_time = Time.now
-        url = "#{config.providers.deepseek.api_url}/chat/completions"
+        url = "#{@config.providers.deepseek.api_url}/chat/completions"
 
-        response = post(url, payload, headers: headers, config: config)
+        response = post(url, payload, headers: headers)
 
         return nil if response.nil?
 

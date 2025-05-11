@@ -18,11 +18,11 @@ module ActiveGenie
 
         def function_calling(messages, function, config: {})
           provider_name = config.llm.provider || config.providers.default
-          client = PROVIDER_NAME_TO_CLIENT[provider_name].new(config)
+          client = PROVIDER_NAME_TO_CLIENT[provider_name]
 
           raise InvalidProviderError, "Provider #{provider_name} is not valid" if client.nil?
 
-          client.function_calling(messages, function, config:)
+          client.new(config).function_calling(messages, function)
         end
 
         # TODO: improve error message

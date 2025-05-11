@@ -22,15 +22,10 @@ module ActiveGenie
       #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
       #   Claude uses 'user', 'assistant', and 'system' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @param config [Hash] Optional configuration overrides:
-      #   - :api_key [String] Override the default API key.
-      #   - :model [String] Override the model name directly.
-      #   - :max_retries [Integer] Max retries for the request.
-      #   - :retry_delay [Integer] Initial delay for retries.
-      #   - :anthropic_version [String] Override the default Anthropic API version.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-      def function_calling(messages, function, config: {})
-        model = config.model || config.providers.anthropic.tier_to_model(config.llm.model_tier)
+      # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
+      def function_calling(messages, function)
+        model = @config.model || @config.providers.anthropic.tier_to_model(@config.llm.model_tier)
 
         system_message = messages.find { |m| m[:role] == 'system' }&.dig(:content) || ''
         user_messages = messages.select { |m| %w[user assistant].include?(m[:role]) }
@@ -46,20 +41,20 @@ module ActiveGenie
           messages: user_messages,
           tools: [anthropic_function],
           tool_choice: { name: anthropic_function[:name], type: 'tool' },
-          max_tokens: config.max_tokens,
-          temperature: config.temperature || 0
+          max_tokens: @config.llm.max_tokens,
+          temperature: @config.llm.temperature || 0
         }
 
         headers = {
-          'x-api-key': config.providers.anthropic.api_key,
-          'anthropic-version': config.providers.anthropic_version || ANTHROPIC_VERSION
+          'x-api-key': @config.providers.anthropic.api_key,
+          'anthropic-version': @config.providers.anthropic_version || ANTHROPIC_VERSION
         }.compact
 
-        retry_with_backoff(config:) do
+        retry_with_backoff do
           start_time = Time.now
-          url = "#{config.providers.anthropic.api_url}#{ANTHROPIC_ENDPOINT}"
+          url = "#{@config.providers.anthropic.api_url}#{ANTHROPIC_ENDPOINT}"
 
-          response = post(url, payload, headers: headers, config: config)
+          response = post(url, payload, headers: headers)
 
           content = response.dig('content', 0, 'input')
 
