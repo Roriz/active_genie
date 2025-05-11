@@ -13,7 +13,6 @@ module ActiveGenie
       class AnthropicError < ClientError; end
       class RateLimitError < AnthropicError; end
 
-      ANTHROPIC_VERSION = '2023-06-01'
       ANTHROPIC_ENDPOINT = '/v1/messages'
 
       # Requests structured JSON output from the Anthropic Claude model based on a schema.
@@ -25,7 +24,7 @@ module ActiveGenie
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function)
-        model = @config.model || @config.providers.anthropic.tier_to_model(@config.llm.model_tier)
+        model = @config.llm.model || @config.providers.anthropic.tier_to_model(@config.llm.model_tier)
 
         system_message = messages.find { |m| m[:role] == 'system' }&.dig(:content) || ''
         user_messages = messages.select { |m| %w[user assistant].include?(m[:role]) }
@@ -47,7 +46,7 @@ module ActiveGenie
 
         headers = {
           'x-api-key': @config.providers.anthropic.api_key,
-          'anthropic-version': @config.providers.anthropic_version || ANTHROPIC_VERSION
+          'anthropic-version': @config.providers.anthropic.anthropic_version
         }.compact
 
         retry_with_backoff do

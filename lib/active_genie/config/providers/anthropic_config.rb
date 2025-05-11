@@ -24,6 +24,13 @@ module ActiveGenie
           @api_url || 'https://api.anthropic.com'
         end
 
+        # Retrieves the Anthropic version.
+        # Defaults to '2023-06-01'.
+        # @return [String] The Anthropic version.
+        def anthropic_version
+          @anthropic_version || '2023-06-01'
+        end
+
         # Retrieves the model name designated for the lower tier (e.g., cost-effective, faster).
         # Defaults to 'claude-3-haiku'.
         # @return [String] The lower tier model name.

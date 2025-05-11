@@ -23,7 +23,7 @@ module ActiveGenie
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function)
-        model = @config.model || @config.providers.google.tier_to_model(@config.llm.model_tier)
+        model = @config.llm.model || @config.providers.google.tier_to_model(@config.llm.model_tier)
 
         contents = convert_messages_to_contents(messages, function)
         contents << output_as_json_schema(function)

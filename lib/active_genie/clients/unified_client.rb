@@ -18,7 +18,7 @@ module ActiveGenie
 
         def function_calling(messages, function, config: {})
           provider_name = config.llm.provider || config.providers.default
-          client = PROVIDER_NAME_TO_CLIENT[provider_name]
+          client = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
 
           raise InvalidProviderError, "Provider #{provider_name} is not valid" if client.nil?
 

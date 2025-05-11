@@ -8,10 +8,12 @@ module ActiveGenie
         @default = nil
       end
 
-      attr_writer :default
-
       def default
         @default || valid.keys.first
+      end
+
+      def default=(provider)
+        @default = provider.to_s.downcase
       end
 
       def valid
