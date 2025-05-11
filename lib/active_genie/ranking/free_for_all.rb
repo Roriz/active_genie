@@ -32,7 +32,7 @@ module ActiveGenie
           end
         end
 
-        ActiveGenie::Logger.info({ code: :free_for_all_report, **report })
+        ActiveGenie::Logger.call({ code: :free_for_all_report, **report })
 
         report
       end
@@ -59,7 +59,7 @@ module ActiveGenie
                         when 'draw' then [nil, nil, result['reasoning']]
                         end
 
-        ActiveGenie::Logger.debug({
+        ActiveGenie::Logger.call({
                                     code: :free_for_all_battle,
                                     player_ids: [player_1.id, player_2.id],
                                     winner_id: winner&.id,

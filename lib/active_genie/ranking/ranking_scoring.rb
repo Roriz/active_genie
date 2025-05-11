@@ -12,7 +12,7 @@ module ActiveGenie
       def initialize(players, criteria, reviewers: [], config: {})
         @players = players
         @criteria = criteria
-        @config = ActiveGenie::Configuration.merge(config)
+        @config = ActiveGenie.configuration.merge(config)
         @reviewers = Array(reviewers).compact.uniq
       end
 
@@ -58,7 +58,7 @@ module ActiveGenie
           config: @config
         ).values_at('final_score', 'final_reasoning')
 
-        ActiveGenie::Logger.debug({ code: :new_score, player_id: player.id, score:, reasoning: })
+        ActiveGenie::Logger.call({ code: :new_score, player_id: player.id, score:, reasoning: })
 
         score
       end
@@ -72,7 +72,7 @@ module ActiveGenie
           config: @config
         ).values_at('reviewer1', 'reviewer2', 'reviewer3')
 
-        ActiveGenie::Logger.debug({ code: :new_reviewers, reviewers: [reviewer1, reviewer2, reviewer3] })
+        ActiveGenie::Logger.call({ code: :new_reviewers, reviewers: [reviewer1, reviewer2, reviewer3] })
 
         [reviewer1, reviewer2, reviewer3]
       end

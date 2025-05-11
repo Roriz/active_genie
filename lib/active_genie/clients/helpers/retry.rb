@@ -11,7 +11,7 @@ def retry_with_backoff(config: {})
   rescue StandardError => e
     raise unless retries.positive?
 
-    ActiveGenie::Logger.warn({ code: :retry_with_backoff,
+    ActiveGenie::Logger.call({ code: :retry_with_backoff,
                                message: "Retrying request after error: #{e.message}. Attempts remaining: #{retries}" })
 
     retries -= 1

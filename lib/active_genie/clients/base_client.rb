@@ -19,10 +19,8 @@ module ActiveGenie
       DEFAULT_MAX_RETRIES = 3
       DEFAULT_RETRY_DELAY = 1 # seconds
 
-      attr_reader :app_config
-
       def initialize(config)
-        @app_config = config
+        @config = config
       end
 
       # Make a GET request to the specified endpoint
@@ -35,7 +33,7 @@ module ActiveGenie
       def get(endpoint, params: {}, headers: {}, config: {})
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Get.new(uri)
-        execute_request(uri, request, headers, config)
+        execute_request(uri, request, headers, config:g)
       end
 
       # Make a POST request to the specified endpoint
@@ -49,7 +47,7 @@ module ActiveGenie
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Post.new(uri)
         request.body = payload.to_json
-        execute_request(uri, request, headers, config)
+        execute_request(uri, request, headers, config:)
       end
 
       # Make a PUT request to the specified endpoint
@@ -63,7 +61,7 @@ module ActiveGenie
         uri = build_uri(endpoint)
         request = Net::HTTP::Put.new(uri)
         request.body = payload.to_json
-        execute_request(uri, request, headers, config)
+        execute_request(uri, request, headers, config:)
       end
 
       # Make a DELETE request to the specified endpoint
@@ -76,7 +74,7 @@ module ActiveGenie
       def delete(endpoint, headers: {}, params: {}, config: {})
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Delete.new(uri)
-        execute_request(uri, request, headers, config)
+        execute_request(uri, request, headers, config:)
       end
 
       protected
@@ -88,14 +86,14 @@ module ActiveGenie
       # @param headers [Hash] Additional headers to include
       # @param config [Hash] Configuration options
       # @return [Hash, nil] The parsed JSON response or nil if empty
-      def execute_request(uri, request, headers, config)
+      def execute_request(uri, request, headers, config:)
         start_time = Time.now
 
         # Apply headers
         apply_headers(request, headers)
 
         # Apply retry logic
-        retry_with_backoff(config) do
+        retry_with_backoff(config:) do
           http = create_http_client(uri, config)
 
           begin
@@ -140,8 +138,8 @@ module ActiveGenie
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = (uri.scheme == 'https')
         http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        http.read_timeout = config.dig(:runtime, :timeout) || DEFAULT_TIMEOUT
-        http.open_timeout = config.dig(:runtime, :open_timeout) || DEFAULT_OPEN_TIMEOUT
+        http.read_timeout = config.llm.read_timeout || DEFAULT_TIMEOUT
+        http.open_timeout = config.llm.open_timeout || DEFAULT_OPEN_TIMEOUT
         http
       end
 
@@ -165,8 +163,7 @@ module ActiveGenie
       # @param params [Hash] Query parameters
       # @return [URI] The constructed URI
       def build_uri(endpoint, params = {})
-        base_url = @app_config.api_url
-        uri = URI("#{base_url}#{endpoint}")
+        uri = endpoint.is_a?(URI) ? endpoint : URI(endpoint)
 
         uri.query = URI.encode_www_form(params) unless params.empty?
 
@@ -191,9 +188,7 @@ module ActiveGenie
       #
       # @param details [Hash] Request and response details
       def log_request_details(details)
-        return unless defined?(ActiveGenie::Logger)
-
-        ActiveGenie::Logger.trace({
+        ActiveGenie::Logger.call({
                                     code: :http_request,
                                     uri: details[:uri].to_s,
                                     method: details[:method],
@@ -208,9 +203,9 @@ module ActiveGenie
       # @param config [Hash] Configuration options
       # @yield The block to retry
       # @return [Object] The result of the block
-      def retry_with_backoff(config = {})
-        max_retries = config.dig(:runtime, :max_retries) || DEFAULT_MAX_RETRIES
-        retry_delay = config.dig(:runtime, :retry_delay) || DEFAULT_RETRY_DELAY
+      def retry_with_backoff(config:)
+        max_retries = config.llm.max_retries || DEFAULT_MAX_RETRIES
+        retry_delay = config.llm.retry_delay || DEFAULT_RETRY_DELAY
 
         retries = 0
 
@@ -223,7 +218,7 @@ module ActiveGenie
           retries += 1
 
           if defined?(ActiveGenie::Logger)
-            ActiveGenie::Logger.trace({
+            ActiveGenie::Logger.call({
                                         code: :retry_attempt,
                                         attempt: retries,
                                         max_retries: max_retries,

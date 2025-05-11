@@ -1,37 +1,50 @@
 # frozen_string_literal: true
 
-require_relative 'configuration/providers_config'
-require_relative 'configuration/log_config'
-require_relative 'configuration/providers/openai_config'
-require_relative 'configuration/providers/google_config'
-require_relative 'configuration/providers/anthropic_config'
-require_relative 'configuration/providers/deepseek_config'
+require_relative 'config/providers_config'
+require_relative 'config/log_config'
+require_relative 'config/ranking_config'
+require_relative 'config/scoring_config'
+require_relative 'config/data_extractor_config'
+require_relative 'config/battle_config'
+require_relative 'config/llm_config'
 
 module ActiveGenie
   class Configuration
-    def initialize(max_tokens: nil, temperature: nil, max_retries: nil, model: nil, api_key: nil)
-      @max_tokens = max_tokens || 4096
-      @temperature = temperature || 0.1
-      @max_retries = max_retries || 3
-      @model = model
-      @api_key = api_key
-    end
-
-    attr_accessor :model, :api_key, :max_tokens, :temperature, :max_retries
-
     def log
-      @log ||= LogConfig.new
+      @log ||= Config::LogConfig.new
     end
 
     def observer
-      @observer ||= ObserverConfig.new
+      @observer ||= Config::ObserverConfig.new
     end
 
     def providers
-      @providers ||= ProvidersConfig.new
+      @providers ||= Config::ProvidersConfig.new
+    end
+
+    def ranking
+      @ranking ||= Config::RankingConfig.new
+    end
+
+    def scoring
+      @scoring ||= Config::ScoringConfig.new
+    end
+
+    def data_extractor
+      @data_extractor ||= Config::DataExtractorConfig.new
+    end
+
+    def battle
+      @battle ||= Config::BattleConfig.new
+    end
+
+    def llm
+      @llm ||= Config::LlmConfig.new
     end
 
     def merge(config_params = {})
+      return config_params if config_params.is_a?(Configuration)
+
       config = dup
 
       config_params.each do |key, value|

@@ -8,12 +8,12 @@ require_relative './base_client'
 
 module ActiveGenie
   module Clients
-    class OpenaiClient < BaseClient
-      class OpenaiError < ClientError; end
-      class RateLimitError < OpenaiError; end
+    class DeepseekClient < BaseClient
+      class DeepseekError < ClientError; end
+      class RateLimitError < DeepseekError; end
       class InvalidResponseError < StandardError; end
 
-      # Requests structured JSON output from the OpenAI model based on a schema.
+      # Requests structured JSON output from the DeepSeek model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
       #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
@@ -25,7 +25,7 @@ module ActiveGenie
       #   - :retry_delay [Integer] Initial delay for retries.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function, config: {})
-        model = config.llm.model || config.providers.openai.tier_to_model(config.llm.model_tier)
+        model = config.llm.model || config.providers.deepseek.tier_to_model(config.llm.model_tier)
 
         payload = {
           messages:,
@@ -46,11 +46,11 @@ module ActiveGenie
         }
 
         headers = {
-          'Authorization': "Bearer #{config.providers.openai.api_key}"
+          'Authorization': "Bearer #{config.providers.deepseek.api_key}"
         }.compact
 
         retry_with_backoff(config:) do
-          response = request_openai(payload, headers, config:)
+          response = request_deepseek(payload, headers, config:)
 
           parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
           parsed_response = parsed_response['message'] || parsed_response
@@ -68,15 +68,15 @@ module ActiveGenie
 
       private
 
-      # Make a request to the OpenAI API
+      # Make a request to the DeepSeek API
       #
       # @param payload [Hash] The request payload
       # @param headers [Hash] Additional headers
       # @param config [Hash] Configuration options
       # @return [Hash] The parsed response
-      def request_openai(payload, headers, config:)
+      def request_deepseek(payload, headers, config:)
         start_time = Time.now
-        url = "#{config.providers.openai.api_url}/chat/completions"
+        url = "#{config.providers.deepseek.api_url}/chat/completions"
 
         response = post(url, payload, headers: headers, config: config)
 

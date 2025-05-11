@@ -35,7 +35,7 @@ module ActiveGenie
           end
         end
 
-        ActiveGenie::Logger.info({ code: :elo_round_report, **report })
+        ActiveGenie::Logger.call({ code: :elo_round_report, **report })
 
         report
       end

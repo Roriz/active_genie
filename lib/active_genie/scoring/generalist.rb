@@ -34,7 +34,7 @@ module ActiveGenie
         @text = text
         @criteria = criteria
         @param_reviewers = Array(reviewers).compact.uniq
-        @config = ActiveGenie::Configuration.merge(config)
+        @config = ActiveGenie.configuration.merge(config)
       end
 
       def call
@@ -59,13 +59,12 @@ module ActiveGenie
         result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
           messages,
           function,
-          model_tier: 'lower_tier',
           config: @config
         )
 
         result['final_score'] = 0 if result['final_score'].nil?
 
-        ActiveGenie::Logger.debug({
+        ActiveGenie::Logger.call({
                                     code: :scoring,
                                     text: @text[0..30],
                                     criteria: @criteria[0..30],

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  module Configuration
+  module Config
     class ProvidersConfig
       def initialize
         @all = {}
@@ -11,7 +11,7 @@ module ActiveGenie
       attr_writer :default
 
       def default
-        @default || @all.values.find(&:api_key).class::NAME
+        @default || valid.keys.first
       end
 
       def valid

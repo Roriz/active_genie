@@ -31,7 +31,7 @@ module ActiveGenie
         @player_1 = player_1
         @player_2 = player_2
         @criteria = criteria
-        @config = ActiveGenie::Configuration.merge(config)
+        @config = ActiveGenie.configuration.merge(config)
       end
 
       def call
@@ -45,11 +45,10 @@ module ActiveGenie
         response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
           messages,
           FUNCTION,
-          model_tier: 'lower_tier',
           config: @config
         )
 
-        ActiveGenie::Logger.debug({
+        ActiveGenie::Logger.call({
                                     code: :battle,
                                     player_1: @player_1[0..30],
                                     player_2: @player_2[0..30],

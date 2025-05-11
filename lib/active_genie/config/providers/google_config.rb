@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-require_relative '../../clients/google_client'
-require_relative './base_config'
+require_relative './provider_base'
 
 module ActiveGenie
-  module Configuration
+  module Config
     module Providers
       # Configuration class for the Google Generative Language API client.
       # Manages API keys, URLs, model selections, and client instantiation.
-      class GoogleConfig < BaseConfig
+      class GoogleConfig < ProviderBase
         NAME = :google
 
         # Retrieves the API key.
@@ -25,13 +24,6 @@ module ActiveGenie
           # NOTE: Google Generative Language API uses a specific path structure like /v1beta/models/{model}:generateContent
           # The base URL here should be just the domain part.
           @api_url || 'https://generativelanguage.googleapis.com'
-        end
-
-        # Lazily initializes and returns an instance of the GoogleClient.
-        # Passes itself (the config object) to the client's constructor.
-        # @return [ActiveGenie::Clients::GoogleClient] The client instance.
-        def client
-          @client ||= ::ActiveGenie::Clients::GoogleClient.new(self)
         end
 
         # Retrieves the model name designated for the lower tier (e.g., cost-effective, faster).

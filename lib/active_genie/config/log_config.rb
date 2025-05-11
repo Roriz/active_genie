@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  module Configuration
+  module Config
     class LogConfig
       def add_observer(observers, scope: nil)
         @observers ||= []

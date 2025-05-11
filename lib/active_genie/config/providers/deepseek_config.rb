@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-require_relative '../../clients/openai_client'
-require_relative './base_config'
+require_relative './provider_base'
 
 module ActiveGenie
-  module Configuration
+  module Config
     module Providers
       # Configuration class for the DeepSeek API client.
       # Manages API keys, organization IDs, URLs, model selections, and client instantiation.
-      class DeepseekConfig < BaseConfig
+      class DeepseekConfig < ProviderBase
         NAME = :deepseek
 
         # Retrieves the API key.
@@ -23,13 +22,6 @@ module ActiveGenie
         # @return [String] The API base URL.
         def api_url
           @api_url || 'https://api.deepseek.com/v1'
-        end
-
-        # Lazily initializes and returns an instance of the OpenaiClient.
-        # Passes itself (the config object) to the client's constructor.
-        # @return [ActiveGenie::Clients::OpenaiClient] The client instance.
-        def client
-          @client ||= ::ActiveGenie::Clients::OpenaiClient.new(self)
         end
 
         # Retrieves the model name designated for the lower tier (e.g., cost-effective, faster).

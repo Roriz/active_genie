@@ -41,7 +41,7 @@ module ActiveGenie
       def initialize(param_players, criteria, reviewers: [], config: {})
         @criteria = criteria
         @reviewers = Array(reviewers).compact.uniq
-        @config = ActiveGenie::Configuration.merge(config)
+        @config = ActiveGenie.configuration.merge(config)
         @players = nil
       end
 
@@ -64,7 +64,6 @@ module ActiveGenie
 
       private
 
-      DEFAULT_SCORE_VARIATION_THRESHOLD = 30
       ELIMINATION_VARIATION = 'variation_too_high'
       ELIMINATION_RELEGATION = 'relegation_tier'
 
@@ -82,7 +81,7 @@ module ActiveGenie
       end
 
       def eliminate_obvious_bad_players!
-        while @players.coefficient_of_variation >= score_variation_threshold
+        while @players.coefficient_of_variation >= @config.ranking.score_variation_threshold
           @players.eligible.last.eliminated = ELIMINATION_VARIATION
         end
       end
@@ -107,10 +106,6 @@ module ActiveGenie
 
       def run_free_for_all!
         FreeForAll.call(@players, @criteria, config: @config)
-      end
-
-      def score_variation_threshold
-        @config.score_variation_threshold || DEFAULT_SCORE_VARIATION_THRESHOLD
       end
 
       def sorted_players

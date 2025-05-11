@@ -31,7 +31,7 @@ module ActiveGenie
       def initialize(text, data_to_extract, config: {})
         @text = text
         @data_to_extract = data_to_extract
-        @config = ActiveGenie::Configuration.merge(config)
+        @config = ActiveGenie.configuration.merge(config)
       end
 
       def call
@@ -55,11 +55,10 @@ module ActiveGenie
         result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
           messages,
           function,
-          model_tier: 'lower_tier',
           config: @config
         )
 
-        ActiveGenie::Logger.debug({
+        ActiveGenie::Logger.call({
                                     code: :data_extractor,
                                     text: @text[0..30],
                                     data_to_extract: @data_to_extract,
@@ -87,6 +86,8 @@ module ActiveGenie
       PROMPT
 
       def data_to_extract_with_explaination
+        return @data_to_extract unless @config.data_extractor.with_explanation
+
         with_explaination = {}
 
         @data_to_extract.each do |key, value|
