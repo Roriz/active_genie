@@ -3,7 +3,6 @@
 require 'json'
 require 'net/http'
 require 'uri'
-require_relative './helpers/retry'
 require_relative './base_client'
 
 module ActiveGenie
@@ -21,7 +20,6 @@ module ActiveGenie
       #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
       #   Claude uses 'user', 'assistant', and 'system' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function)
         model = @config.llm.model || @config.providers.anthropic.tier_to_model(@config.llm.model_tier)

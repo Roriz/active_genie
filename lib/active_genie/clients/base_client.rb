@@ -4,14 +4,11 @@ module ActiveGenie
   module Clients
     class BaseClient
       class ClientError < StandardError; end
-      class RateLimitError < ClientError; end
-      class TimeoutError < ClientError; end
-      class NetworkError < ClientError; end
 
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'User-Agent': 'ActiveGenie/1.0'
+        'User-Agent': "ActiveGenie/#{ActiveGenie::VERSION}"
       }.freeze
 
       DEFAULT_TIMEOUT = 60 # seconds
@@ -87,40 +84,27 @@ module ActiveGenie
         # Apply headers
         apply_headers(request, headers)
 
-        # Apply retry logic
-        retry_with_backoff do
-          http = create_http_client(uri)
+        http = create_http_client(uri)
 
-          begin
-            response = http.request(request)
+        response = http.request(request)
 
-            # Handle common HTTP errors
-            case response
-            when Net::HTTPSuccess
-              parsed_response = parse_response(response)
+        case response
+        when Net::HTTPSuccess
+          parsed_response = parse_response(response)
 
-              # Log request details if logging is enabled
-              log_request_details(
-                uri: uri,
-                method: request.method,
-                status: response.code,
-                duration: Time.now - start_time,
-                response: parsed_response
-              )
+          log_request_details(
+            uri: uri,
+            method: request.method,
+            status: response.code,
+            duration: Time.now - start_time,
+            response: parsed_response
+          )
 
-              parsed_response
-            when Net::HTTPTooManyRequests
-              raise RateLimitError, "Rate limit exceeded: #{response.body}"
-            when Net::HTTPClientError, Net::HTTPServerError
-              raise ClientError, "HTTP Error #{response.code}: #{response.body}"
-            else
-              raise ClientError, "Unexpected response: #{response.code} - #{response.body}"
-            end
-          rescue Timeout::Error, Errno::ETIMEDOUT
-            raise TimeoutError, "Request to #{uri} timed out"
-          rescue Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::EHOSTUNREACH, SocketError => e
-            raise NetworkError, "Network error: #{e.message}"
-          end
+          return parsed_response
+        when Net::HTTPTooManyRequests, Net::HTTPClientError, Net::HTTPServerError
+          raise ClientError.new("HTTP Error: #{response.code} - #{response.body}")
+        else
+          raise ClientError.new("Unexpected response: #{response.code} - #{response.body}")
         end
       end
 
@@ -182,14 +166,16 @@ module ActiveGenie
       #
       # @param details [Hash] Request and response details
       def log_request_details(details)
-        ActiveGenie::Logger.call({
-                                    code: :http_request,
-                                    uri: details[:uri].to_s,
-                                    method: details[:method],
-                                    status: details[:status],
-                                    duration: details[:duration],
-                                    response_size: details[:response].to_s.bytesize
-                                  })
+        ActiveGenie::Logger.call(
+          {
+            code: :http_request,
+            uri: details[:uri].to_s,
+            method: details[:method],
+            status: details[:status],
+            duration: details[:duration],
+            response_size: details[:response].to_s.bytesize
+          }
+        )
       end
 
       # Retry a block with exponential backoff
@@ -210,15 +196,15 @@ module ActiveGenie
           sleep_time = retry_delay * (2**retries)
           retries += 1
 
-          if defined?(ActiveGenie::Logger)
-            ActiveGenie::Logger.call({
-                                        code: :retry_attempt,
-                                        attempt: retries,
-                                        max_retries: max_retries,
-                                        delay: sleep_time,
-                                        error: e.message
-                                      })
-          end
+          ActiveGenie::Logger.call(
+            {
+              code: :retry_attempt,
+              attempt: retries,
+              max_retries: max_retries,
+              delay: sleep_time,
+              error: e.message
+            }
+          )
 
           sleep(sleep_time)
           retry

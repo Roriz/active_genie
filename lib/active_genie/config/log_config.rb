@@ -3,10 +3,14 @@
 module ActiveGenie
   module Config
     class LogConfig
-      def add_observer(observers, scope: nil)
+      def add_observer(observers: [], scope: nil, &block)
         @observers ||= []
+
+        raise ArgumentError, 'Scope must be a hash' if !scope.nil? && !scope.is_a?(Hash)
+
+        @observers << { observer: block, scope: scope || {} } if block_given?
         Array(observers).each do |observer|
-          @observers << { observer:, scope: }
+          @observers << { observer:, scope: scope || {} }
         end
       end
 
@@ -22,9 +26,11 @@ module ActiveGenie
 
       def call_observers(log)
         Array(@observers).each do |obs|
-          next unless obs[:scope].nil? || obs[:scope].all? { |key, value| log[key.to_sym] == value }
+          next if !obs[:scope].all? { |key, value| log[key.to_sym] == value }
 
           obs[:observer].call(log)
+        rescue StandardError => e
+          ActiveGenie::Logger.call(code: :observer_error, **obs, error: e.message)
         end
       end
 

@@ -14,10 +14,6 @@ module ActiveGenie
       @log ||= Config::LogConfig.new
     end
 
-    def observer
-      @observer ||= Config::ObserverConfig.new
-    end
-
     def providers
       @providers ||= Config::ProvidersConfig.new
     end
@@ -47,11 +43,11 @@ module ActiveGenie
 
       config = dup
 
-      config_params.each do |key, value|
-        if config.respond_to?("#{key}=")
-          config.send("#{key}=", value)
-        elsif config.respond_to?(key) && config.send(key).respond_to?(:merge)
-          config.send(key).merge(value)
+      %w[log providers ranking scoring data_extractor battle llm].each do |key|
+        if config_params.key?(key)
+          config.send(key).merge(config_params[key]) if config.send(key).respond_to?(:merge)
+        else
+          config.send(key).merge(config_params) if config.send(key).respond_to?(:merge)
         end
       end
 

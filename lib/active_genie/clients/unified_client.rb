@@ -17,10 +17,14 @@ module ActiveGenie
         }.freeze
 
         def function_calling(messages, function, config: {})
-          provider_name = config.llm.provider || config.providers.default
-          client = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
+          client = config.llm.client
 
-          raise InvalidProviderError, "Provider #{provider_name} is not valid" if client.nil?
+          unless client
+            provider_name = config.llm.provider || config.providers.default
+            client = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
+          end
+
+          raise InvalidProviderError, 'Client is not valid' if client.nil?
 
           client.new(config).function_calling(messages, function)
         end

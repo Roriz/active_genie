@@ -3,7 +3,6 @@
 require 'json'
 require 'net/http'
 
-require_relative './helpers/retry'
 require_relative './base_client'
 
 module ActiveGenie

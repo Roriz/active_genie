@@ -14,6 +14,8 @@ module ActiveGenie
   autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
   autoload :Ranking, File.join(__dir__, 'active_genie/ranking')
 
+  VERSION = File.read(File.expand_path('../VERSION', __dir__)).strip
+
   class << self
     def configure
       yield(configuration) if block_given?

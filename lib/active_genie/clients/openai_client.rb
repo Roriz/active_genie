@@ -3,7 +3,6 @@
 require 'json'
 require 'net/http'
 
-require_relative './helpers/retry'
 require_relative './base_client'
 
 module ActiveGenie
@@ -20,7 +19,7 @@ module ActiveGenie
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function)
-        model = @config.llm.model || @config.providers.openai.tier_to_model(@config.llm.model_tier)
+        model = @config.llm.model || provider_config.tier_to_model(@config.llm.model_tier)
 
         payload = {
           messages:,
@@ -41,7 +40,7 @@ module ActiveGenie
         }
 
         headers = {
-          'Authorization': "Bearer #{@config.providers.openai.api_key}"
+          'Authorization': "Bearer #{provider_config.api_key}"
         }.compact
 
         retry_with_backoff do
@@ -61,6 +60,10 @@ module ActiveGenie
         end
       end
 
+      def provider_config
+        @config.providers.openai
+      end
+
       private
 
       # Make a request to the OpenAI API
@@ -70,7 +73,7 @@ module ActiveGenie
       # @return [Hash] The parsed response
       def request_openai(payload, headers)
         start_time = Time.now
-        url = "#{@config.providers.openai.api_url}/chat/completions"
+        url = "#{provider_config.api_url}/chat/completions"
 
         response = post(url, payload, headers: headers)
 

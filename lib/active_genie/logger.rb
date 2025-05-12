@@ -17,6 +17,7 @@ module ActiveGenie
 
       persist!(log)
       $stdout.puts log
+      ActiveGenie.configuration.log.call_observers(log)
 
       log
     end

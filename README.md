@@ -221,56 +221,41 @@ See the [Benchmark README](benchmark/README.md) for detailed results, methodolog
 ActiveGenie supports adding custom providers to integrate with different LLM services. To create a new provider:
 
 1. Create a configuration class for your provider in `lib/active_genie/configuration/providers/`:
+2. Register your client
 
 ```ruby
-# Example: lib/active_genie/configuration/providers/internal_company_api_config.rb
-module ActiveGenie
-  module Configuration::Providers
-    class InternalCompanyApiConfig < BaseConfig
-      NAME = :internal_company_api
-
-      # API key accessor with environment variable fallback
-      def api_key
-        @api_key || ENV['INTERNAL_COMPANY_API_KEY']
-      end
-
-      # Base API URL
-      def api_url
-        @api_url || 'https://api.internal-company.com/v1'
-      end
-
-      # Client instantiation
-      def client
-        @client ||= ::ActiveGenie::Clients::InternalCompanyApiClient.new(self)
-      end
-
-      # Model tier definitions
-      def lower_tier_model
-        @lower_tier_model || 'internal-basic'
-      end
-
-      def middle_tier_model
-        @middle_tier_model || 'internal-standard'
-      end
-
-      def upper_tier_model
-        @upper_tier_model || 'internal-premium'
-      end
-    end
+class InternalCompanyApi
+  # @param messages [Array<Hash>] A list of messages representing the conversation history.
+  #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
+  # @param function [Hash] A JSON schema definition describing the desired output format.
+  # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
+  def function_calling(messages, function)
+    # ...
   end
 end
+
+ActiveGenie.configure do |config|
+  config.llm.client = InternalCompanyApi
+end
+# or
+ActiveGenie::Battle.call('player_1', 'player_2', 'criteria', { client: InternalCompanyApi })
 ```
 
-2. Register your provider in your configuration:
+## Observability
+Fundamental to managing any production system, observability is crucial for GenAI features. At a minimum, track these key metrics:
+
+- Usage Rate (e.g., uses_per_minute): Detect anomalies like sudden traffic spikes (potential DDoS) or drops (feature outage or declining usage).
+- Failure/Retry Rate (e.g., retry_count, fail_count): Monitor the frequency of errors. Exceeding a defined threshold should trigger downtime or degradation alerts.
+- Token Consumption (e.g., tokens_used): Track usage to monitor costs. Set alerts if tokens_used * price_per_token exceeds budget thresholds.
 
 ```ruby
-# In config/initializers/active_genie.rb
 ActiveGenie.configure do |config|
-  # Register your custom provider
-  config.providers.add(InternalCompanyApi::Configuration)
-
-  # Configure your provider
-  config.internal_company_api.api_key = ENV['INTERNAL_COMPANY_API_KEY']
+  config.log.add_observer(scope: { code: :llm_usage }) do |log|
+    puts "LLM Usage: #{log[:model]} - #{log[:total_tokens]} tokens"
+  end
+  config.log.add_observer(scope: { code: :retry_attempt }) do |log|
+    puts "Retry Attempt: #{log[:attempt]} of #{log[:max_retries]}"
+  end
 end
 ```
 

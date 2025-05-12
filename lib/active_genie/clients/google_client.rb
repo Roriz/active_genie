@@ -3,7 +3,6 @@
 require 'json'
 require 'net/http'
 require 'uri'
-require_relative './helpers/retry'
 require_relative './base_client'
 
 module ActiveGenie
@@ -23,7 +22,7 @@ module ActiveGenie
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function)
-        model = @config.llm.model || @config.providers.google.tier_to_model(@config.llm.model_tier)
+        model = @config.llm.model || provider_config.tier_to_model(@config.llm.model_tier)
 
         contents = convert_messages_to_contents(messages, function)
         contents << output_as_json_schema(function)
@@ -37,12 +36,12 @@ module ActiveGenie
         }
 
         endpoint = "#{API_VERSION_PATH}/#{model}:generateContent"
-        params = { key: @config.providers.google.api_key }
+        params = { key: provider_config.api_key }
         headers = DEFAULT_HEADERS
 
         retry_with_backoff do
           start_time = Time.now
-          url = "#{@config.providers.google.api_url}#{endpoint}"
+          url = "#{provider_config.api_url}#{endpoint}"
 
           response = post(url, payload, headers:, params:)
 
@@ -75,6 +74,10 @@ module ActiveGenie
             raise GoogleError, "Failed to parse Google API response: #{e.message} - Content: #{json_string}"
           end
         end
+      end
+
+      def provider_config
+        @config.providers.google
       end
 
       private
