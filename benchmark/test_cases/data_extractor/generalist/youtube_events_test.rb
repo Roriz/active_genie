@@ -33,7 +33,7 @@ module ActiveGenie
           },
           happened_at: {
             type: "string",
-            description: "ISO-8601 as string formatted date of when the talk happened or 'unknown' if the date is not clear or incomplete.",
+            description: "ISO-8601 as string formatted date of when the talk happened. Do not guess or infer this from other fields like publishedAt.",
           },
           published_at: {
             type: "string",
@@ -68,11 +68,11 @@ module ActiveGenie
         assert_equal result['raw_title'], "Irina Nazarova (CEO @ Evil Martians) - Startup on Rails - Tropical on Rails 2025"
         assert_equal result['speakers'], ["Irina Nazarova"], result['speakers_explanation']
         assert_equal result['event_name'].include?("Tropical on Rails"), true
-        assert_equal result['happened_at'], nil, result['happened_at_explanation']
+        assert_nil result['happened_at'], result['happened_at_explanation']
         assert_equal result['published_at'], "2025-04-25T14:59:40Z", result['published_at_explanation']
-        assert_equal result['announced_at'], nil, result['announced_at_explanation']
+        assert_nil result['announced_at'], result['announced_at_explanation']
         assert_equal result['language'], "english", result['language_explanation']
-        assert_equal result['slides_url'], nil, result['slides_url_explanation']
+        assert_nil result['slides_url'], result['slides_url_explanation']
       end
     end
   end
