@@ -80,7 +80,8 @@ module ActiveGenie
         3. **Categorize Data**: Assign the extracted data to the appropriate predefined fields.
 
         # Notes
-        - Handle missing or partial information gracefully.
+        - If the data is not provided, leave it empty.
+        - If the data is not clear, incomplete or not provided, respond unknown.
         - Manage multiple occurrences of similar data points by prioritizing the first one unless specified otherwise.
         - Be flexible to handle variations in data format and language clues.
       PROMPT
