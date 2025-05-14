@@ -35,7 +35,7 @@ module ActiveGenie
           end
         end
 
-        ActiveGenie::Logger.info({ code: :elo_round_report, **report })
+        ActiveGenie::Logger.call({ code: :elo_round_report, **report })
 
         report
       end
@@ -77,10 +77,6 @@ module ActiveGenie
                           when 'player_2' then [player_2, player_1]
                           when 'draw' then [nil, nil]
                           end
-
-          @config[:runtime][:watch_battle]&.call({ id: "#{player_1.id}_#{player_2.id}_#{elo_round_id}", player_1:,
-                                                   player_2:, winner:, loser:, reasoning: result['reasoning'] })
-          @config[:runtime][:watch_players]&.call(@players)
 
           [winner, loser]
         end

@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-require_relative '../../clients/anthropic_client'
-require_relative './base_config'
+require_relative './provider_base'
 
 module ActiveGenie
-  module Configuration
+  module Config
     module Providers
       # Configuration class for the Anthropic API client.
       # Manages API keys, URLs, model selections, and client instantiation.
-      class AnthropicConfig < BaseConfig
+      class AnthropicConfig < ProviderBase
         NAME = :anthropic
 
         # Retrieves the API key.
@@ -25,11 +24,11 @@ module ActiveGenie
           @api_url || 'https://api.anthropic.com'
         end
 
-        # Lazily initializes and returns an instance of the AnthropicClient.
-        # Passes itself (the config object) to the client's constructor.
-        # @return [ActiveGenie::Clients::AnthropicClient] The client instance.
-        def client
-          @client ||= ::ActiveGenie::Clients::AnthropicClient.new(self)
+        # Retrieves the Anthropic version.
+        # Defaults to '2023-06-01'.
+        # @return [String] The Anthropic version.
+        def anthropic_version
+          @anthropic_version || '2023-06-01'
         end
 
         # Retrieves the model name designated for the lower tier (e.g., cost-effective, faster).

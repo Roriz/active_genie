@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  module Configuration
+  module Config
     module Providers
-      class BaseConfig
+      class ProviderBase
         NAME = :unknown
 
         attr_writer :api_key, :organization, :api_url, :client,

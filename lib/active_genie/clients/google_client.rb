@@ -3,7 +3,6 @@
 require 'json'
 require 'net/http'
 require 'uri'
-require_relative './helpers/retry'
 require_relative './base_client'
 
 module ActiveGenie
@@ -21,16 +20,9 @@ module ActiveGenie
       #   Each hash should have :role ('user' or 'model') and :content (String).
       #   Google Generative Language uses 'user' and 'model' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @param model_tier [Symbol, nil] A symbolic representation of the model quality/size tier.
-      # @param config [Hash] Optional configuration overrides:
-      #   - :api_key [String] Override the default API key.
-      #   - :model [String] Override the model name directly.
-      #   - :max_retries [Integer] Max retries for the request.
-      #   - :retry_delay [Integer] Initial delay for retries.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-      def function_calling(messages, function, model_tier: nil, config: {})
-        model = config[:runtime][:model] || @app_config.tier_to_model(model_tier)
-        api_key = config[:runtime][:api_key] || @app_config.api_key
+      def function_calling(messages, function)
+        model = @config.llm.model || provider_config.tier_to_model(@config.llm.model_tier)
 
         contents = convert_messages_to_contents(messages, function)
         contents << output_as_json_schema(function)
@@ -44,13 +36,14 @@ module ActiveGenie
         }
 
         endpoint = "#{API_VERSION_PATH}/#{model}:generateContent"
-        params = { key: api_key }
+        params = { key: provider_config.api_key }
         headers = DEFAULT_HEADERS
 
-        retry_with_backoff(config:) do
+        retry_with_backoff do
           start_time = Time.now
+          url = "#{provider_config.api_url}#{endpoint}"
 
-          response = post(endpoint, payload, headers:, params:, config: config)
+          response = post(url, payload, headers:, params:)
 
           json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
           return nil if json_string.nil? || json_string.empty?
@@ -64,7 +57,7 @@ module ActiveGenie
             candidates_tokens = usage_metadata['candidatesTokenCount'] || 0
             total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens)
 
-            ActiveGenie::Logger.trace({
+            ActiveGenie::Logger.call({
                                         code: :llm_usage,
                                         input_tokens: prompt_tokens,
                                         output_tokens: candidates_tokens,
@@ -74,13 +67,17 @@ module ActiveGenie
                                         usage: usage_metadata
                                       })
 
-            ActiveGenie::Logger.trace({ code: :function_calling, payload:, parsed_response: })
+            ActiveGenie::Logger.call({ code: :function_calling, payload:, parsed_response: })
 
             normalize_function_output(parsed_response)
           rescue JSON::ParserError => e
             raise GoogleError, "Failed to parse Google API response: #{e.message} - Content: #{json_string}"
           end
         end
+      end
+
+      def provider_config
+        @config.providers.google
       end
 
       private

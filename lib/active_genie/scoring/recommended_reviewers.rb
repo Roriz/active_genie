@@ -30,7 +30,7 @@ module ActiveGenie
       def initialize(text, criteria, config: {})
         @text = text
         @criteria = criteria
-        @config = ActiveGenie::Configuration.to_h(config)
+        @config = ActiveGenie.configuration.merge(config)
       end
 
       def call
@@ -58,7 +58,6 @@ module ActiveGenie
         client.function_calling(
           messages,
           function,
-          model_tier: 'lower_tier',
           config: @config
         )
       end
