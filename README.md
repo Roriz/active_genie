@@ -28,7 +28,7 @@ rails g active_genie:install
 4. Configure your credentials in `config/initializers/active_genie.rb`:
 ```ruby
 ActiveGenie.configure do |config|
-  config.openai.api_key = ENV['OPENAI_API_KEY']
+  config.providers.openai.api_key = ENV['OPENAI_API_KEY']
 end
 ```
 
@@ -59,7 +59,7 @@ schema = {
 result = ActiveGenie::DataExtractor.call(
   text,
   schema,
-  config: { provider: :openai, model: 'gpt-4o-mini' } # optional
+  config: { provider: :openai, model: 'gpt-4.1-mini' } # optional
 )
 # => {
 #      brand: "Nike",
