@@ -13,7 +13,8 @@ module ActiveGenie
       end
 
       def default=(provider)
-        @default = provider.to_s.downcase
+        normalized_provider = provider.to_s.downcase.strip
+        @default = normalized_provider.size > 0 ? normalized_provider : valid.keys.first
       end
 
       def valid

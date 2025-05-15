@@ -11,7 +11,7 @@ module ActiveGenie
         @model = nil
         @provider = nil
         @client = nil
-        @temperature = 0.1
+        @temperature = 0
         @max_tokens = 4096
         @max_retries = nil
         @retry_delay = nil
