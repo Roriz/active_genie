@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Help you leverage ActiveGenie::DataExtract effectively, aligning with a vision of robust, maintainable, and consistent GenAI features
+description: Help you leverage ActiveGenie::DataExtractor effectively, aligning with a vision of robust, maintainable, and consistent GenAI features
 ---
 
 1.  **Purpose-Driven Field Naming (Clarity First):**
