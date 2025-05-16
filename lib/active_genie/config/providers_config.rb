@@ -32,9 +32,6 @@ module ActiveGenie
           remove([name]) if @all.key?(name)
 
           @all[name] = provider.new
-          define_singleton_method(name) do
-            instance_variable_get("@#{name}") || instance_variable_set("@#{name}", @all[name])
-          end
         end
 
         self
@@ -43,7 +40,6 @@ module ActiveGenie
       def remove(provider_classes)
         Array(provider_classes).each do |provider|
           @all.delete(provider::NAME)
-          remove_method(provider::NAME)
         end
 
         self
@@ -53,6 +49,14 @@ module ActiveGenie
         dup.tap do |config|
           config.add(config_params[:providers]) if config_params[:providers]
         end
+      end
+
+      def method_missing(m, *args, &block)
+        @all[m] || super
+      end
+
+      def respond_to_missing?(m, include_private = false)
+        @all.key?(m) || super
       end
     end
   end

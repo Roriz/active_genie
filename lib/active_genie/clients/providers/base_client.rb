@@ -190,7 +190,7 @@ module ActiveGenie
 
         begin
           yield
-        rescue RateLimitError, NetworkError => e
+        rescue Net::HTTPError => e
           raise unless retries < max_retries
 
           sleep_time = retry_delay * (2**retries)

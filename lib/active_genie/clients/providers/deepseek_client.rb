@@ -72,7 +72,6 @@ module ActiveGenie
         url = "#{@config.providers.deepseek.api_url}/chat/completions"
 
         response = post(url, payload, headers: headers)
-
         return nil if response.nil?
 
         ActiveGenie::Logger.call({

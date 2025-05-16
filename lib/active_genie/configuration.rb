@@ -41,17 +41,25 @@ module ActiveGenie
     def merge(config_params = {})
       return config_params if config_params.is_a?(Configuration)
 
-      config = dup
+      new_configuration = dup
 
-      %w[log providers ranking scoring data_extractor battle llm].each do |key|
-        if config_params.key?(key)
-          config.send(key).merge(config_params[key]) if config.send(key).respond_to?(:merge)
-        else
-          config.send(key).merge(config_params) if config.send(key).respond_to?(:merge)
-        end
+      %w[log providers llm ranking scoring data_extractor battle].each do |key|
+        config = new_configuration.send(key)
+
+        next unless config.respond_to?(:merge)
+
+        new_config = if config_params.key?(key)
+                       config.merge(config_params[key])
+                     else
+                       config.merge(config_params)
+                     end
+
+        new_configuration.send("#{key}=", new_config)
       end
 
-      config
+      new_configuration
     end
+
+    attr_writer :log, :providers, :ranking, :scoring, :data_extractor, :battle, :llm
   end
 end
