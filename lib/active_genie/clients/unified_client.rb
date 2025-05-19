@@ -38,7 +38,8 @@ module ActiveGenie
 
         def normalize_response(response)
           response.each do |key, value|
-            response[key] = nil if ['null', 'none', 'undefined', '', 'unknown', '<unknown>'].include?(value.to_s.strip.downcase)
+            response[key] = nil if ['null', 'none', 'undefined', '', 'unknown',
+                                    '<unknown>'].include?(value.to_s.strip.downcase)
           end
 
           response

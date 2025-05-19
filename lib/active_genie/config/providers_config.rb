@@ -16,7 +16,7 @@ module ActiveGenie
 
       def default=(provider)
         normalized_provider = provider.to_s.downcase.strip
-        @default = normalized_provider.size > 0 ? normalized_provider : valid.keys.first
+        @default = normalized_provider.size.positive? ? normalized_provider : valid.keys.first
       end
 
       def valid
@@ -47,6 +47,7 @@ module ActiveGenie
       def merge(config_params = {})
         dup.tap do |config|
           config.add(config_params[:providers]) if config_params[:providers]
+          config.default = config_params[:default] if config_params[:default]
         end
       end
 

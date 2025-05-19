@@ -48,8 +48,10 @@ module ActiveGenie
 
         next unless config.respond_to?(:merge)
 
-        new_config = if config_params.key?(key)
-                       config.merge(config_params[key])
+        new_config = if config_params.key?(key.to_s)
+                       config.merge(config_params[key.to_s])
+                     elsif config_params.key?(key.to_sym)
+                       config.merge(config_params[key.to_sym])
                      else
                        config.merge(config_params)
                      end

@@ -27,8 +27,8 @@ module ActiveGenie
 
         result = ActiveGenie::DataExtractor.call(thread_messages, data_to_extract)
 
-        assert_equal result['thread_subject'], 'cat'
-        assert_equal result['sentiment'], 'positive'
+        assert_equal result[:thread_subject], 'cat'
+        assert_equal result[:sentiment], 'positive'
       end
 
       def test_job_description_extractor
@@ -55,9 +55,9 @@ module ActiveGenie
 
         result = ActiveGenie::DataExtractor.call(job_description, data_to_extract)
 
-        assert_equal result['need_graduation'], true
-        assert_equal result['required_minimal_years_of_experience'], 1
-        assert_equal result['discipline'], 'Marketing'
+        assert_equal result[:need_graduation], true
+        assert_equal result[:required_minimal_years_of_experience], 1
+        assert_equal result[:discipline], 'Marketing'
       end
     end
   end

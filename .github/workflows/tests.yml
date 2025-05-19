@@ -1,11 +1,11 @@
-name: Lint
+name: Tests
 
 on:
   pull_request:
     branches: [ main ]
 
 jobs:
-  lint:
+  tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -16,5 +16,5 @@ jobs:
         ruby-version: '3'
         bundler-cache: true
 
-    - name: Run RuboCop
-      run: bundle exec rubocop --parallel --format progress --fail-on-warnings
+    - name: Run tests
+      run: bundle exec rake test
