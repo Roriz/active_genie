@@ -47,6 +47,7 @@ module ActiveGenie
       def merge(config_params = {})
         dup.tap do |config|
           config.add(config_params[:providers]) if config_params[:providers]
+          config.default = config_params[:default] if config_params[:default]
         end
       end
 
