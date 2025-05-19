@@ -44,9 +44,9 @@ module ActiveGenie
             assert_equal value, result[key], "Expected (#{key}) #{value}, but was #{result[key]}"
           end
 
-          if test[:expected].keys.size.zero?
-            assert_equal result.keys.size, 0, "Expected no keys, but was #{result.keys.size}"
-          end
+          return unless test[:expected].keys.empty?
+
+          assert_equal result.keys.size, 0, "Expected no keys, but was #{result.keys.size}"
         end
       end
     end
