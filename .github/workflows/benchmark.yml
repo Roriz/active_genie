@@ -1,8 +1,8 @@
 name: Benchmark
 
 on:
-  push:
-    branches: [ main ]
+  release:
+    types: [released]
 
 env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -95,29 +95,29 @@ jobs:
     needs: [benchmark]
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
         path: benchmark/artifacts
-        
+
     - name: Build consolidated report
       run: |
         mkdir -p benchmark/reports
-        
+
         # Create header for the consolidated CSV report
         echo "Module,Provider,Model,Tests,Precision,Duration,Requests,Tokens,Avg_Duration" > benchmark/benchmark.csv
-        
+
         # Create header for the markdown report
         echo "# Benchmark Results" > benchmark/benchmark.md
         echo "" >> benchmark/benchmark.md
         echo "| Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/benchmark.md
         echo "|--------|----------|-------|-------|-----------|--------------|----------|--------|-------------------|" >> benchmark/benchmark.md
-        
+
         # Process all CSV files and build the consolidated reports
         find benchmark/artifacts -name "*.csv" -type f | while read -r file; do
           tail "$file" >> benchmark/benchmark.csv
-          
+
           line=$(cat "$file")
           IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$line"
           echo "| $module | $provider | $model | $tests | $precision | $duration | $requests | $tokens | $avg_duration |" >> benchmark/benchmark.md
@@ -125,7 +125,7 @@ jobs:
 
         cat benchmark/benchmark.md
         echo "$(cat benchmark/benchmark.md)" >> $GITHUB_STEP_SUMMARY
-        
+
     - name: Upload consolidated report
       uses: actions/upload-artifact@v4
       with:
