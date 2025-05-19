@@ -8,6 +8,10 @@ module ActiveGenie
         @default = nil
       end
 
+      def all
+        @all
+      end
+
       def default
         @default || valid.keys.first
       end
