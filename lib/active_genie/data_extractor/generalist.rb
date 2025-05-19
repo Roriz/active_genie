@@ -40,11 +40,11 @@ module ActiveGenie
           {  role: 'user', content: @text }
         ]
 
-        properties = data_to_extract_with_explaination
+        properties = data_to_extract_with_explanation
 
         function = {
           name: 'data_extractor',
-          description: 'Extract structured and typed data from user messages.',
+          description: 'Extract structured and typed data from text',
           parameters: {
             type: 'object',
             properties:,
@@ -59,39 +59,24 @@ module ActiveGenie
 
       private
 
-      PROMPT = <<~PROMPT
-        Extract structured and typed data from user messages.
-        Identify relevant information within user messages and categorize it into predefined data fields with specific data types.
-
-        # Steps
-        1. **Identify Data Types**: Determine the types of data to collect, such as names, dates, email addresses, phone numbers, etc.
-        2. **Extract Information**: Use pattern recognition and language understanding to identify and extract the relevant pieces of data from the user message.
-        3. **Categorize Data**: Assign the extracted data to the appropriate predefined fields.
-
-        # Notes
-        - Handle missing or partial information gracefully.
-        - Manage multiple occurrences of similar data points by prioritizing the first one unless specified otherwise.
-        - Be flexible to handle variations in data format and language clues.
-      PROMPT
-
-      def data_to_extract_with_explaination
+      def data_to_extract_with_explanation
         return @data_to_extract unless @config.data_extractor.with_explanation
 
-        with_explaination = {}
+        with_explanation = {}
 
         @data_to_extract.each do |key, value|
-          with_explaination[key] = value
-          with_explaination["#{key}_explanation"] = {
+          with_explanation[key] = value
+          with_explanation["#{key}_explanation"] = {
             type: 'string',
             description: "The chain of thought that led to the conclusion about: #{key}. Can be blank if the user didn't provide any context"
           }
-          with_explaination["#{key}_accuracy"] = {
+          with_explanation["#{key}_accuracy"] = {
             type: 'integer',
             description: 'The accuracy of the extracted data, what is the percentage of confidence? When 100 it means the data is explicitly stated in the text. When 0 it means is no way to discover the data from the text'
           }
         end
 
-        with_explaination
+        with_explanation
       end
 
       def function_calling(messages, function)
@@ -105,7 +90,7 @@ module ActiveGenie
           {
             code: :data_extractor,
             text: @text[0..30],
-            data_to_extract: @data_to_extract,
+            data_to_extract: function[:parameters][:properties],
             extracted_data: response
           }
         )
@@ -119,7 +104,8 @@ module ActiveGenie
         simplified_response = {}
 
         @data_to_extract.each_key do |key|
-          next if !response.key?(key) || response["#{key}_accuracy"] < min_accuracy
+          next if !response.key?(key)
+          next if response.key?("#{key}_accuracy") && response["#{key}_accuracy"] < min_accuracy
 
           simplified_response[key] = response[key]
         end
@@ -132,7 +118,7 @@ module ActiveGenie
       end
 
       def prompt
-        File.read(File.join(__dir__, 'generalist.prompt'))
+        File.read(File.join(__dir__, 'generalist.md'))
       end
     end
   end
