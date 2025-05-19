@@ -104,6 +104,35 @@ module ActiveGenie
           true
         end
       end
+
+      def test_global_provider_configuration
+        ActiveGenie.configure do |config|
+          config.providers.default = 'openai'
+          config.providers.openai.api_key = 'your_api_key'
+        end
+
+        text = 'Input Text'
+        schema = { schema_key: { type: 'string' } }
+
+        ActiveGenie::DataExtractor.call(text, schema)
+
+        assert_requested(:post, 'https://api.openai.com/v1/chat/completions')
+      end
+
+      def test_overwrite_global_provider_configuration
+        ActiveGenie.configure do |config|
+          config.providers.default = 'openai'
+          config.providers.openai.api_key = 'your_api_key'
+        end
+
+        text = 'Input Text'
+        schema = { schema_key: { type: 'string' } }
+
+        ActiveGenie::DataExtractor.call(text, schema, config: { provider: 'google' })
+
+        assert_requested(:post,
+                         %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent})
+      end
     end
   end
 end

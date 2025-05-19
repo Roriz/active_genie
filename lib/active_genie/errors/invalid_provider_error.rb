@@ -9,8 +9,8 @@ module ActiveGenie
       1. Set up global configuration:
          ```ruby
          ActiveGenie.configure do |config|
-           config.provider = 'your_provider'
-           config.api_key = 'your_api_key'
+           config.providers.default = 'openai'
+           config.providers.openai.api_key = 'your_api_key'
            # ... other configuration options
          end
          ```
@@ -21,8 +21,12 @@ module ActiveGenie
            arg1,
            arg2,
            config: {
-             provider: 'your_provider',
-             api_key: 'your_api_key'
+             providers: {
+               default: 'openai',
+               openai: {
+                 api_key: 'your_api_key'
+               }
+             }
            }
          )
          ```

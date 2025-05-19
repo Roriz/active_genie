@@ -104,10 +104,10 @@ module ActiveGenie
         simplified_response = {}
 
         @data_to_extract.each_key do |key|
-          next if !response.key?(key)
+          next if !response.key?(key.to_s)
           next if response.key?("#{key}_accuracy") && response["#{key}_accuracy"] < min_accuracy
 
-          simplified_response[key] = response[key]
+          simplified_response[key] = response[key.to_s]
         end
 
         simplified_response

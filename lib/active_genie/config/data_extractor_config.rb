@@ -13,9 +13,9 @@ module ActiveGenie
 
       def merge(config_params = {})
         dup.tap do |config|
-          config.with_explanation = config_params[:with_explanation] if config_params[:with_explanation]
-          config.min_accuracy = config_params[:min_accuracy] if config_params[:min_accuracy]
-          config.verbose = config_params[:verbose] if config_params[:verbose]
+          config.with_explanation = config_params[:with_explanation] if config_params.key?(:with_explanation)
+          config.min_accuracy = config_params[:min_accuracy] if config_params.key?(:min_accuracy)
+          config.verbose = config_params[:verbose] if config_params.key?(:verbose)
         end
       end
     end
