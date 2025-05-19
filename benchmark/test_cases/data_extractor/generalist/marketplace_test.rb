@@ -167,8 +167,8 @@ module ActiveGenie
           result = ActiveGenie::DataExtractor.call(*test[:input])
 
           test[:expected].each do |key, value|
-            assert result.key?(key.to_s), "Missing key: #{key}, result: #{result.to_s[0..100]}"
-            assert_equal value, result[key.to_s], "Expected #{value}, but was #{result[key.to_s]}"
+            assert result.key?(key), "Missing key: #{key}, result: #{result[0..100]}"
+            assert_equal value, result[key], "Expected #{value}, but was #{result[key]}"
           end
         end
       end

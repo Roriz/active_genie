@@ -64,15 +64,15 @@ module ActiveGenie
           }
         )
 
-        assert_equal result['title'], "Startup on Rails"
-        assert_equal result['raw_title'], "Irina Nazarova (CEO @ Evil Martians) - Startup on Rails - Tropical on Rails 2025"
-        assert_equal result['speakers'], ["Irina Nazarova"], result['speakers_explanation']
-        assert_equal result['event_name'].include?("Tropical on Rails"), true
-        assert_nil result['happened_at'], result['happened_at_explanation']
-        assert_equal result['published_at'], "2025-04-25T14:59:40Z", result['published_at_explanation']
-        assert_nil result['announced_at'], result['announced_at_explanation']
-        assert_equal result['language'], "english", result['language_explanation']
-        assert_nil result['slides_url'], result['slides_url_explanation']
+        assert_equal result[:title], "Startup on Rails"
+        assert_equal result[:raw_title], "Irina Nazarova (CEO @ Evil Martians) - Startup on Rails - Tropical on Rails 2025"
+        assert_equal result[:speakers], ["Irina Nazarova"], result[:speakers_explanation]
+        assert_equal result[:event_name].include?("Tropical on Rails"), true
+        assert_nil result[:happened_at], result[:happened_at_explanation]
+        assert_equal result[:published_at], "2025-04-25T14:59:40Z", result[:published_at_explanation]
+        assert_nil result[:announced_at], result[:announced_at_explanation]
+        assert_equal result[:language], "english", result[:language_explanation]
+        assert_nil result[:slides_url], result[:slides_url_explanation]
       end
     end
   end
