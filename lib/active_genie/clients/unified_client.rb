@@ -8,6 +8,8 @@ require_relative './deepseek_client'
 module ActiveGenie
   module Clients
     class UnifiedClient
+      class InvalidProviderError < StandardError; end
+
       class << self
         PROVIDER_NAME_TO_CLIENT = {
           openai: OpenaiClient,
@@ -26,11 +28,20 @@ module ActiveGenie
 
           raise InvalidProviderError, 'Client is not valid' if client.nil?
 
-          client.new(config).function_calling(messages, function)
+          normalized_response = client.new(config).function_calling(messages, function)
+
+          normalize_response(normalized_response)
         end
 
-        # TODO: improve error message
-        class InvalidProviderError < StandardError; end
+        private
+
+        def normalize_response(response)
+          response.each do |key, value|
+            response[key] = nil if ['null', 'none', 'undefined', '', 'unknown', '<unknown>'].include?(value.to_s.strip.downcase)
+          end
+
+          response
+        end
       end
     end
   end

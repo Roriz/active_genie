@@ -52,20 +52,8 @@ module ActiveGenie
           }
         }
 
-        result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
-          messages,
-          function,
-          config: @config
-        )
-
-        ActiveGenie::Logger.call({
-                                    code: :data_extractor,
-                                    text: @text[0..30],
-                                    data_to_extract: @data_to_extract,
-                                    extracted_data: result
-                                  })
-
-        result
+        result = function_calling(messages, function)
+        result.transform_keys { |key| key.sub('explicit_', '') }
       end
 
       private
@@ -80,10 +68,30 @@ module ActiveGenie
         3. **Categorize Data**: Assign the extracted data to the appropriate predefined fields.
 
         # Notes
-        - Handle missing or partial information gracefully.
+        - If the data is not provided, leave it empty.
+        - If the data is not clear, incomplete or not provided, respond unknown.
+        - Do not infer any information unless there is a clearly stated and unambiguous information in the input data. If not present, leave it empty.
         - Manage multiple occurrences of similar data points by prioritizing the first one unless specified otherwise.
         - Be flexible to handle variations in data format and language clues.
       PROMPT
+
+      def function_calling(messages, function)
+        result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
+          messages,
+          function,
+          config: @config
+        )
+        debugger
+
+        ActiveGenie::Logger.call(
+          code: :data_extractor,
+          text: @text[0..30],
+          data_to_extract: @data_to_extract,
+          extracted_data: result
+        )
+
+        result
+      end
 
       def data_to_extract_with_explaination
         return @data_to_extract unless @config.data_extractor.with_explanation
@@ -91,7 +99,7 @@ module ActiveGenie
         with_explaination = {}
 
         @data_to_extract.each do |key, value|
-          with_explaination[key] = value
+          with_explaination["explicit_#{key}"] = value
           with_explaination["#{key}_explanation"] = {
             type: 'string',
             description: "The chain of thought that led to the conclusion about: #{key}. Can be blank if the user didn't provide any context"
