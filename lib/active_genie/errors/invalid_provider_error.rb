@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module ActiveGenie
   class InvalidProviderError < StandardError
@@ -30,10 +31,7 @@ module ActiveGenie
     TEXT
 
     def initialize(provider)
-      super(TEXT % {
-        provider:,
-        available_providers:
-      })
+      super(format(TEXT, provider:, available_providers:))
     end
 
     def available_providers

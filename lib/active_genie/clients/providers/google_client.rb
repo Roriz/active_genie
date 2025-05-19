@@ -58,14 +58,14 @@ module ActiveGenie
             total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens)
 
             ActiveGenie::Logger.call({
-                                        code: :llm_usage,
-                                        input_tokens: prompt_tokens,
-                                        output_tokens: candidates_tokens,
-                                        total_tokens: total_tokens,
-                                        model: model,
-                                        duration: Time.now - start_time,
-                                        usage: usage_metadata
-                                      })
+                                       code: :llm_usage,
+                                       input_tokens: prompt_tokens,
+                                       output_tokens: candidates_tokens,
+                                       total_tokens: total_tokens,
+                                       model: model,
+                                       duration: Time.now - start_time,
+                                       usage: usage_metadata
+                                     })
 
             ActiveGenie::Logger.call({ code: :function_calling, payload:, parsed_response: })
 

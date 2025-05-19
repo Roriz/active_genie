@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative './openai_client'
-require_relative './anthropic_client'
-require_relative './google_client'
-require_relative './deepseek_client'
+require_relative './providers/openai_client'
+require_relative './providers/anthropic_client'
+require_relative './providers/google_client'
+require_relative './providers/deepseek_client'
 require_relative '../errors/invalid_provider_error'
 
 module ActiveGenie
@@ -27,7 +27,7 @@ module ActiveGenie
             client = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
           end
 
-          raise ActiveGenie::InvalidProviderError.new(provider_name) if client.nil?
+          raise ActiveGenie::InvalidProviderError, provider_name if client.nil?
 
           response = client.new(config).function_calling(messages, function)
 

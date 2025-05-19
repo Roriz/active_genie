@@ -36,15 +36,15 @@ module ActiveGenie
 
       def call
         messages = [
-          {  role: 'system', content: PROMPT },
+          {  role: 'system', content: prompt },
           {  role: 'user', content: @text }
         ]
 
-        properties = data_to_extract_with_explaination
+        properties = data_to_extract_with_explanation
 
         function = {
           name: 'data_extractor',
-          description: 'Extract structured and typed data from user messages.',
+          description: 'Extract structured and typed data from text',
           parameters: {
             type: 'object',
             properties:,
@@ -52,61 +52,73 @@ module ActiveGenie
           }
         }
 
-        result = function_calling(messages, function)
-        result.transform_keys { |key| key.sub('explicit_', '') }
+        response = function_calling(messages, function)
+
+        simplify_response(response)
       end
 
       private
 
-      PROMPT = <<~PROMPT
-        Extract structured and typed data from user messages.
-        Identify relevant information within user messages and categorize it into predefined data fields with specific data types.
+      def data_to_extract_with_explanation
+        return @data_to_extract unless @config.data_extractor.with_explanation
 
-        # Steps
-        1. **Identify Data Types**: Determine the types of data to collect, such as names, dates, email addresses, phone numbers, etc.
-        2. **Extract Information**: Use pattern recognition and language understanding to identify and extract the relevant pieces of data from the user message.
-        3. **Categorize Data**: Assign the extracted data to the appropriate predefined fields.
+        with_explanation = {}
 
-        # Notes
-        - If the data is not provided, leave it empty.
-        - If the data is not clear, incomplete or not provided, respond unknown.
-        - Do not infer any information unless there is a clearly stated and unambiguous information in the input data. If not present, leave it empty.
-        - Manage multiple occurrences of similar data points by prioritizing the first one unless specified otherwise.
-        - Be flexible to handle variations in data format and language clues.
-      PROMPT
+        @data_to_extract.each do |key, value|
+          with_explanation[key] = value
+          with_explanation["#{key}_explanation"] = {
+            type: 'string',
+            description: "The chain of thought that led to the conclusion about: #{key}. Can be blank if the user didn't provide any context"
+          }
+          with_explanation["#{key}_accuracy"] = {
+            type: 'integer',
+            description: 'The accuracy of the extracted data, what is the percentage of confidence? When 100 it means the data is explicitly stated in the text. When 0 it means is no way to discover the data from the text'
+          }
+        end
+
+        with_explanation
+      end
 
       def function_calling(messages, function)
-        result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
           messages,
           function,
           config: @config
         )
-        debugger
 
         ActiveGenie::Logger.call(
-          code: :data_extractor,
-          text: @text[0..30],
-          data_to_extract: @data_to_extract,
-          extracted_data: result
+          {
+            code: :data_extractor,
+            text: @text[0..30],
+            data_to_extract: function[:parameters][:properties],
+            extracted_data: response
+          }
         )
 
-        result
+        response
       end
 
-      def data_to_extract_with_explaination
-        return @data_to_extract unless @config.data_extractor.with_explanation
+      def simplify_response(response)
+        return response if @config.data_extractor.verbose
 
-        with_explaination = {}
+        simplified_response = {}
 
-        @data_to_extract.each do |key, value|
-          with_explaination["explicit_#{key}"] = value
-          with_explaination["#{key}_explanation"] = {
-            type: 'string',
-            description: "The chain of thought that led to the conclusion about: #{key}. Can be blank if the user didn't provide any context"
-          }
+        @data_to_extract.each_key do |key|
+          next if !response.key?(key)
+          next if response.key?("#{key}_accuracy") && response["#{key}_accuracy"] < min_accuracy
+
+          simplified_response[key] = response[key]
         end
 
-        with_explaination
+        simplified_response
+      end
+
+      def min_accuracy
+        @config.data_extractor.min_accuracy # default 70
+      end
+
+      def prompt
+        File.read(File.join(__dir__, 'generalist.md'))
       end
     end
   end

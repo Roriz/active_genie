@@ -26,7 +26,7 @@ module ActiveGenie
 
       def call_observers(log)
         Array(@observers).each do |obs|
-          next if !obs[:scope].all? { |key, value| log[key.to_sym] == value }
+          next unless obs[:scope].all? { |key, value| log[key.to_sym] == value }
 
           obs[:observer].call(log)
         rescue StandardError => e

@@ -100,11 +100,11 @@ module ActiveGenie
             response: parsed_response
           )
 
-          return parsed_response
+          parsed_response
         when Net::HTTPTooManyRequests, Net::HTTPClientError, Net::HTTPServerError
-          raise ClientError.new("HTTP Error: #{response.code} - #{response.body}")
+          raise ClientError, "HTTP Error: #{response.code} - #{response.body}"
         else
-          raise ClientError.new("Unexpected response: #{response.code} - #{response.body}")
+          raise ClientError, "Unexpected response: #{response.code} - #{response.body}"
         end
       end
 
@@ -190,7 +190,7 @@ module ActiveGenie
 
         begin
           yield
-        rescue RateLimitError, NetworkError => e
+        rescue Net::HTTPError => e
           raise unless retries < max_retries
 
           sleep_time = retry_delay * (2**retries)

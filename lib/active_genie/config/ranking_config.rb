@@ -11,7 +11,9 @@ module ActiveGenie
 
       def merge(config_params = {})
         dup.tap do |config|
-          config.score_variation_threshold = config_params[:score_variation_threshold] if config_params[:score_variation_threshold]
+          if config_params[:score_variation_threshold]
+            config.score_variation_threshold = config_params[:score_variation_threshold]
+          end
         end
       end
     end
