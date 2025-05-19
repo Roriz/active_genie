@@ -38,7 +38,7 @@ module ActiveGenie
         new(...).call
       end
 
-      def initialize(param_players, criteria, reviewers: [], config: {})
+      def initialize(_param_players, criteria, reviewers: [], config: {})
         @criteria = criteria
         @reviewers = Array(reviewers).compact.uniq
         @config = ActiveGenie.configuration.merge(config)

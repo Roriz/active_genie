@@ -8,9 +8,7 @@ module ActiveGenie
         @default = nil
       end
 
-      def all
-        @all
-      end
+      attr_reader :all
 
       def default
         @default || valid.keys.first

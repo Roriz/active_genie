@@ -100,11 +100,11 @@ module ActiveGenie
             response: parsed_response
           )
 
-          return parsed_response
+          parsed_response
         when Net::HTTPTooManyRequests, Net::HTTPClientError, Net::HTTPServerError
-          raise ClientError.new("HTTP Error: #{response.code} - #{response.body}")
+          raise ClientError, "HTTP Error: #{response.code} - #{response.body}"
         else
-          raise ClientError.new("Unexpected response: #{response.code} - #{response.body}")
+          raise ClientError, "Unexpected response: #{response.code} - #{response.body}"
         end
       end
 

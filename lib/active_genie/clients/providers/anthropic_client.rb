@@ -56,16 +56,16 @@ module ActiveGenie
           content = response.dig('content', 0, 'input')
 
           ActiveGenie::Logger.call({
-                                      code: :llm_usage,
-                                      input_tokens: response.dig('usage', 'input_tokens'),
-                                      output_tokens: response.dig('usage', 'output_tokens'),
-                                      total_tokens: response.dig('usage',
-                                                                 'input_tokens') + response.dig('usage',
-                                                                                                'output_tokens'),
-                                      model: payload[:model],
-                                      duration: Time.now - start_time,
-                                      usage: response['usage']
-                                    })
+                                     code: :llm_usage,
+                                     input_tokens: response.dig('usage', 'input_tokens'),
+                                     output_tokens: response.dig('usage', 'output_tokens'),
+                                     total_tokens: response.dig('usage',
+                                                                'input_tokens') + response.dig('usage',
+                                                                                               'output_tokens'),
+                                     model: payload[:model],
+                                     duration: Time.now - start_time,
+                                     usage: response['usage']
+                                   })
 
           ActiveGenie::Logger.call({ code: :function_calling, payload:, parsed_response: content })
 

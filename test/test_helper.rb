@@ -6,8 +6,8 @@ require 'webmock/minitest'
 
 require_relative '../lib/active_genie'
 
-include WebMock::API
-
-ActiveGenie.configure do |config|
+ActiveGenie.configure do |_config|
   # Do not configure providers here
+
+  include WebMock::API
 end

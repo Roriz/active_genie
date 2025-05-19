@@ -4,7 +4,7 @@ module ActiveGenie
   module Config
     class LlmConfig
       attr_accessor :model, :temperature, :max_tokens, :max_retries, :retry_delay,
-        :model_tier, :read_timeout, :open_timeout, :client
+                    :model_tier, :read_timeout, :open_timeout, :client
       attr_reader :provider
 
       def initialize
@@ -27,9 +27,7 @@ module ActiveGenie
       def merge(config_params = {})
         dup.tap do |config|
           config_params.each do |key, value|
-            if config.respond_to?("#{key}=")
-              config.send("#{key}=", value)
-            end
+            config.send("#{key}=", value) if config.respond_to?("#{key}=")
           end
         end
       end

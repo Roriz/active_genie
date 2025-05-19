@@ -25,7 +25,7 @@ module ActiveGenie
             client = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
           end
 
-          raise ActiveGenie::InvalidProviderError.new(provider_name) if client.nil?
+          raise ActiveGenie::InvalidProviderError, provider_name if client.nil?
 
           client.new(config).function_calling(messages, function)
         end

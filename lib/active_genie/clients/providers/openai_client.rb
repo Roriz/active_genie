@@ -80,14 +80,14 @@ module ActiveGenie
         return nil if response.nil?
 
         ActiveGenie::Logger.call({
-                                    code: :llm_usage,
-                                    input_tokens: response.dig('usage', 'prompt_tokens'),
-                                    output_tokens: response.dig('usage', 'completion_tokens'),
-                                    total_tokens: response.dig('usage', 'total_tokens'),
-                                    model: payload[:model],
-                                    duration: Time.now - start_time,
-                                    usage: response['usage']
-                                  })
+                                   code: :llm_usage,
+                                   input_tokens: response.dig('usage', 'prompt_tokens'),
+                                   output_tokens: response.dig('usage', 'completion_tokens'),
+                                   total_tokens: response.dig('usage', 'total_tokens'),
+                                   model: payload[:model],
+                                   duration: Time.now - start_time,
+                                   usage: response['usage']
+                                 })
 
         response
       end

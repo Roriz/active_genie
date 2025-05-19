@@ -72,7 +72,7 @@ module ActiveGenie
           }
           with_explaination["#{key}_accuracy"] = {
             type: 'integer',
-            description: "The accuracy of the extracted data, what is the percentage of confidence? When 100 it means the data is explicitly stated in the text. When 0 it means is no way to discover the data from the text"
+            description: 'The accuracy of the extracted data, what is the percentage of confidence? When 100 it means the data is explicitly stated in the text. When 0 it means is no way to discover the data from the text'
           }
         end
 
@@ -103,7 +103,7 @@ module ActiveGenie
 
         simplified_response = {}
 
-        @data_to_extract.each do |key, value|
+        @data_to_extract.each_key do |key|
           next if !response.key?(key) || response["#{key}_accuracy"] < min_accuracy
 
           simplified_response[key] = response[key]

@@ -60,12 +60,12 @@ module ActiveGenie
                         end
 
         ActiveGenie::Logger.call({
-                                    code: :free_for_all_battle,
-                                    player_ids: [player_1.id, player_2.id],
-                                    winner_id: winner&.id,
-                                    loser_id: loser&.id,
-                                    reasoning: result['reasoning']
-                                  })
+                                   code: :free_for_all_battle,
+                                   player_ids: [player_1.id, player_2.id],
+                                   winner_id: winner&.id,
+                                   loser_id: loser&.id,
+                                   reasoning: result['reasoning']
+                                 })
 
         [winner, loser]
       end
