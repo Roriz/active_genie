@@ -1,0 +1,9 @@
+{
+  "name": "scoring",
+  "description": "Score the text based on the given criteria.",
+  "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": {}
+  }
+}

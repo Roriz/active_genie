@@ -42,7 +42,7 @@ module ActiveGenie
         assert_equal 'player_b', result['winner']
       end
 
-      def test_dress_for_friday_night
+      def test_stackoverflow_questions
         stackoverflow_issues = [
           'I\'ve ruled out race conditions, but JIT optimizations might be reordering instructions unpredictably. Profiling suggests a cache coherency issue, possibly tied to memory fences or weak memory ordering on ARM. Has anyone encountered a similar JIT-induced anomaly that only manifests under specific CPU architectures?',
           'How do I print "Hello, World!" in Python?'

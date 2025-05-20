@@ -42,15 +42,9 @@ module ActiveGenie
 
         properties = data_to_extract_with_explanation
 
-        function = {
-          name: 'data_extractor',
-          description: 'Extract structured and typed data from text',
-          parameters: {
-            type: 'object',
-            properties:,
-            required: properties.keys
-          }
-        }
+        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')))
+        function[:parameters][:properties] = properties
+        function[:parameters][:required] = properties.keys
 
         response = function_calling(messages, function)
 

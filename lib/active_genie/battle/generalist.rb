@@ -72,61 +72,8 @@ module ActiveGenie
         { 'winner' => winner, 'loser' => loser, 'reasoning' => response['impartial_judge_winner_reasoning'] }
       end
 
-      PROMPT = <<~PROMPT
-        Based on two players, player_a and player_b, they will battle against each other based on criteria. Criteria are vital as they provide a clear metric to compare the players. Follow these criteria strictly.
-
-        # Steps
-        1. player_a presents their strengths and how they meet the criteria. Max of 100 words.
-        2. player_b presents their strengths and how they meet the criteria. Max of 100 words.
-        3. player_a argues why they should be the winner compared to player_b. Max of 100 words.
-        4. player_b counter-argues why they should be the winner compared to player_a. Max of 100 words.
-        5. The impartial judge chooses the winner.
-
-        # Output Format
-        - The impartial judge chooses this player as the winner.
-
-        # Notes
-        - Avoid resulting in a draw. Use reasoning or make fair assumptions if needed.
-        - Critically assess each player's adherence to the criteria.
-        - Clearly communicate the reasoning behind your decision.
-      PROMPT
-
-      FUNCTION = {
-        name: 'battle_evaluation',
-        description: 'Evaluate a battle between player_a and player_b using predefined criteria and identify the winner.',
-        parameters: {
-          type: 'object',
-          properties: {
-            player_a_sell_himself: {
-              type: 'string',
-              description: 'player_a presents their strengths and how they meet the criteria. Max of 100 words.'
-            },
-            player_b_sell_himself: {
-              type: 'string',
-              description: 'player_b presents their strengths and how they meet the criteria. Max of 100 words.'
-            },
-            player_a_arguments: {
-              type: 'string',
-              description: 'player_a arguments for why they should be the winner compared to player_b. Max of 100 words.'
-            },
-            player_b_counter: {
-              type: 'string',
-              description: 'player_b counter arguments for why they should be the winner compared to player_a. Max of 100 words.'
-            },
-            impartial_judge_winner_reasoning: {
-              type: 'string',
-              description: 'The detailed reasoning about why the impartial judge chose the winner. Max of 100 words.'
-            },
-            impartial_judge_winner: {
-              type: 'string',
-              description: 'Who is the winner based on the impartial judge reasoning?',
-              enum: %w[player_a player_b]
-            }
-          },
-          required: %w[player_a_sell_himself player_b_sell_himself player_a_arguments player_b_counter
-                       impartial_judge_winner_reasoning impartial_judge_winner]
-        }
-      }.freeze
+      PROMPT = File.read(File.join(__dir__, 'generalist.md'))
+      FUNCTION = JSON.parse(File.read(File.join(__dir__, 'generalist.json')))
     end
   end
 end

@@ -1,0 +1,36 @@
+{
+  "name": "battle_evaluation",
+  "description": "Evaluate a battle between player_a and player_b using predefined criteria and identify the winner.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "player_a_sell_himself": {
+        "type": "string",
+        "description": "player_a presents their strengths and how they meet the criteria. Max of 100 words."
+      },
+      "player_b_sell_himself": {
+        "type": "string",
+        "description": "player_b presents their strengths and how they meet the criteria. Max of 100 words."
+      },
+      "player_a_arguments": {
+        "type": "string",
+        "description": "player_a arguments for why they should be the winner compared to player_b. Max of 100 words."
+      },
+      "player_b_counter": {
+        "type": "string",
+        "description": "player_b counter arguments for why they should be the winner compared to player_a. Max of 100 words."
+      },
+      "impartial_judge_winner_reasoning": {
+        "type": "string",
+        "description": "The detailed reasoning about why the impartial judge chose the winner. Max of 100 words."
+      },
+      "impartial_judge_winner": {
+        "type": "string",
+        "description": "Who is the winner based on the impartial judge reasoning?",
+        "enum": ["player_a", "player_b"]
+      }
+    },
+    "required": ["player_a_sell_himself", "player_b_sell_himself", "player_a_arguments", "player_b_counter",
+                 "impartial_judge_winner_reasoning", "impartial_judge_winner"]
+  }
+}
