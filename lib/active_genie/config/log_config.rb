@@ -14,11 +14,11 @@ module ActiveGenie
       end
 
       def output
-        @output || (lambda { |log| $stdout.puts log })
+        @output || ->(log) { $stdout.puts log }
       end
 
       def output=(output)
-        raise InvalidLogOutputError.new(output) unless output.respond_to?(:call)
+        raise InvalidLogOutputError, output unless output.respond_to?(:call)
 
         @output = output
       end

@@ -25,9 +25,9 @@ module ActiveGenie
       def call
         ActiveGenie::Logger.with_context(log_context) do
           save_previous_elo
-          matches.each do |player_1, player_2|
+          matches.each do |player_a, player_b|
             # TODO: battle can take a while, can be parallelized
-            winner, loser = battle(player_1, player_2)
+            winner, loser = battle(player_a, player_b)
             next if winner.nil? || loser.nil?
 
             winner.elo = calculate_new_elo(winner.elo, loser.elo, 1)
@@ -63,18 +63,18 @@ module ActiveGenie
         @tmp_defenders.pop
       end
 
-      def battle(player_1, player_2)
-        ActiveGenie::Logger.with_context({ player_1_id: player_1.id, player_2_id: player_2.id }) do
+      def battle(player_a, player_b)
+        ActiveGenie::Logger.with_context({ player_a_id: player_a.id, player_b_id: player_b.id }) do
           result = ActiveGenie::Battle.call(
-            player_1.content,
-            player_2.content,
+            player_a.content,
+            player_b.content,
             @criteria,
             config: @config
           )
 
           winner, loser = case result['winner']
-                          when 'player_1' then [player_1, player_2]
-                          when 'player_2' then [player_2, player_1]
+                          when 'player_a' then [player_a, player_b]
+                          when 'player_b' then [player_b, player_a]
                           when 'draw' then [nil, nil]
                           end
 
