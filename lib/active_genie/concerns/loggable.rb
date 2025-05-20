@@ -20,11 +20,8 @@ module ActiveGenie
           end
         end
 
-        def logger(data)
-          log = ActiveGenie::Logger.call(data)
-          @config&.log&.call_observers(log)
-
-          log
+        def logger(...)
+          ActiveGenie::Logger.call(...)
         end
       end
     end

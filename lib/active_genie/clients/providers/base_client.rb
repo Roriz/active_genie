@@ -81,7 +81,6 @@ module ActiveGenie
       def execute_request(uri, request, headers)
         start_time = Time.now
 
-        # Apply headers
         apply_headers(request, headers)
 
         http = create_http_client(uri)

@@ -16,8 +16,7 @@ module ActiveGenie
       }
 
       persist!(log)
-      $stdout.puts log
-      ActiveGenie.configuration.log.call_observers(log)
+      config.output_call(log)
 
       log
     end
@@ -35,8 +34,15 @@ module ActiveGenie
     attr_accessor :context
 
     def persist!(log)
-      FileUtils.mkdir_p('log')
-      File.write('log/active_genie.log', "#{JSON.generate(log)}\n", mode: 'a')
+      file_path = log.key?(:fine_tune) && log[:fine_tune] ? config.fine_tune_file_path : config.file_path
+      folder_path = File.dirname(file_path)
+
+      FileUtils.mkdir_p(folder_path)
+      File.write(file_path, "#{JSON.generate(log)}\n", mode: 'a')
+    end
+
+    def config
+      ActiveGenie.configuration.log
     end
   end
 end

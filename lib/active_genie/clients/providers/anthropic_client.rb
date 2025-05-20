@@ -67,7 +67,7 @@ module ActiveGenie
                                      usage: response['usage']
                                    })
 
-          ActiveGenie::Logger.call({ code: :function_calling, payload:, parsed_response: content })
+          ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, parsed_response: content })
 
           content
         end

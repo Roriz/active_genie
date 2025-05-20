@@ -9,7 +9,6 @@ module ActiveGenie
   module Clients
     # Client for interacting with the Google Generative Language API.
     class GoogleClient < BaseClient
-      class GoogleError < ClientError; end
       class RateLimitError < GoogleError; end
 
       API_VERSION_PATH = '/v1beta/models'
@@ -48,31 +47,27 @@ module ActiveGenie
           json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
           return nil if json_string.nil? || json_string.empty?
 
-          begin
-            parsed_response = JSON.parse(json_string)
+          parsed_response = JSON.parse(json_string)
 
-            # Log usage metrics
-            usage_metadata = response['usageMetadata'] || {}
-            prompt_tokens = usage_metadata['promptTokenCount'] || 0
-            candidates_tokens = usage_metadata['candidatesTokenCount'] || 0
-            total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens)
+          # Log usage metrics
+          usage_metadata = response['usageMetadata'] || {}
+          prompt_tokens = usage_metadata['promptTokenCount'] || 0
+          candidates_tokens = usage_metadata['candidatesTokenCount'] || 0
+          total_tokens = usage_metadata['totalTokenCount'] || (prompt_tokens + candidates_tokens)
 
-            ActiveGenie::Logger.call({
-                                       code: :llm_usage,
-                                       input_tokens: prompt_tokens,
-                                       output_tokens: candidates_tokens,
-                                       total_tokens: total_tokens,
-                                       model: model,
-                                       duration: Time.now - start_time,
-                                       usage: usage_metadata
-                                     })
+          ActiveGenie::Logger.call({
+                                      code: :llm_usage,
+                                      input_tokens: prompt_tokens,
+                                      output_tokens: candidates_tokens,
+                                      total_tokens: total_tokens,
+                                      model: model,
+                                      duration: Time.now - start_time,
+                                      usage: usage_metadata
+                                    })
 
-            ActiveGenie::Logger.call({ code: :function_calling, payload:, parsed_response: })
+          ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, parsed_response: })
 
-            normalize_function_output(parsed_response)
-          rescue JSON::ParserError => e
-            raise GoogleError, "Failed to parse Google API response: #{e.message} - Content: #{json_string}"
-          end
+          normalize_function_output(parsed_response)
         end
       end
 

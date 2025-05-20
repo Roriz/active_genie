@@ -54,7 +54,7 @@ module ActiveGenie
                   "Invalid response: #{parsed_response}"
           end
 
-          ActiveGenie::Logger.call({ code: :function_calling, payload:, parsed_response: })
+          ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, parsed_response: })
 
           parsed_response
         end
