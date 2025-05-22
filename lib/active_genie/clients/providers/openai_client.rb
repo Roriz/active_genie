@@ -19,8 +19,6 @@ module ActiveGenie
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
       def function_calling(messages, function)
-        model = @config.llm.model || provider_config.tier_to_model(@config.llm.model_tier)
-
         payload = {
           messages:,
           tools: [{
@@ -39,12 +37,8 @@ module ActiveGenie
           model:
         }
 
-        headers = {
-          'Authorization': "Bearer #{provider_config.api_key}"
-        }.compact
-
         retry_with_backoff do
-          response = request_openai(payload, headers)
+          response = request(payload)
 
           parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
           parsed_response = parsed_response['message'] || parsed_response
@@ -60,36 +54,44 @@ module ActiveGenie
         end
       end
 
-      def provider_config
-        @config.providers.openai
-      end
-
       private
 
-      # Make a request to the OpenAI API
-      #
-      # @param payload [Hash] The request payload
-      # @param headers [Hash] Additional headers
-      # @return [Hash] The parsed response
-      def request_openai(payload, headers)
-        start_time = Time.now
-        url = "#{provider_config.api_url}/chat/completions"
-
+      def request(payload)
         response = post(url, payload, headers: headers)
 
         return nil if response.nil?
 
-        ActiveGenie::Logger.call({
-                                   code: :llm_usage,
-                                   input_tokens: response.dig('usage', 'prompt_tokens'),
-                                   output_tokens: response.dig('usage', 'completion_tokens'),
-                                   total_tokens: response.dig('usage', 'total_tokens'),
-                                   model: payload[:model],
-                                   duration: Time.now - start_time,
-                                   usage: response['usage']
-                                 })
+        ActiveGenie::Logger.call(
+          {
+            code: :llm_usage,
+            input_tokens: response.dig('usage', 'prompt_tokens'),
+            output_tokens: response.dig('usage', 'completion_tokens'),
+            total_tokens: response.dig('usage', 'total_tokens'),
+            model:,
+            usage: response['usage']
+          }
+        )
 
         response
+      end
+
+      def model
+        @config.llm.model || provider_config.tier_to_model(@config.llm.model_tier)
+      end
+
+      def url
+        "#{provider_config.api_url}/chat/completions"
+      end
+
+      def headers
+        {
+          'Authorization': "Bearer #{provider_config.api_key}",
+          'Content-Type': 'application/json'
+        }.compact
+      end
+
+      def provider_config
+        @config.providers.openai
       end
     end
   end
