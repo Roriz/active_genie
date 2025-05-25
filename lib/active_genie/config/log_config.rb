@@ -3,6 +3,38 @@
 module ActiveGenie
   module Config
     class LogConfig
+      attr_writer :file_path, :fine_tune_file_path
+
+      def file_path
+        @file_path || 'log/active_genie.log'
+      end
+
+      def fine_tune_file_path
+        @fine_tune_file_path || 'log/active_genie_fine_tune.log'
+      end
+
+      def output
+        @output || (lambda { |log| $stdout.puts log })
+      end
+
+      def output=(output)
+        raise InvalidLogOutputError.new(output) unless output.respond_to?(:call)
+
+        @output = output
+      end
+
+      def output_call(log)
+        output.call(log)
+
+        Array(@observers).each do |obs|
+          next unless obs[:scope].all? { |key, value| log[key.to_sym] == value }
+
+          obs[:observer].call(log)
+        rescue StandardError => e
+          ActiveGenie::Logger.call(code: :observer_error, **obs, error: e.message)
+        end
+      end
+
       def add_observer(observers: [], scope: nil, &block)
         @observers ||= []
 
@@ -22,16 +54,6 @@ module ActiveGenie
 
       def clear_observers
         @observers = []
-      end
-
-      def call_observers(log)
-        Array(@observers).each do |obs|
-          next unless obs[:scope].all? { |key, value| log[key.to_sym] == value }
-
-          obs[:observer].call(log)
-        rescue StandardError => e
-          ActiveGenie::Logger.call(code: :observer_error, **obs, error: e.message)
-        end
       end
 
       def merge(config_params = {})
