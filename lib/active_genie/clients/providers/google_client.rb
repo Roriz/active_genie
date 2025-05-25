@@ -9,8 +9,6 @@ module ActiveGenie
   module Clients
     # Client for interacting with the Google Generative Language API.
     class GoogleClient < BaseClient
-      class RateLimitError < GoogleError; end
-
       API_VERSION_PATH = '/v1beta/models'
 
       # Requests structured JSON output from the Google Generative Language model based on a schema.
