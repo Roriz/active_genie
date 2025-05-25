@@ -9,8 +9,6 @@ module ActiveGenie
   module Clients
     # Client for interacting with the Google Generative Language API.
     class GoogleClient < BaseClient
-      class RateLimitError < GoogleError; end
-
       # Requests structured JSON output from the Google Generative Language model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
@@ -42,8 +40,6 @@ module ActiveGenie
       end
 
       private
-
-      API_VERSION_PATH = '/v1beta/models'
 
       def request(payload, params)
         response = post(url, payload, headers: DEFAULT_HEADERS, params:)
