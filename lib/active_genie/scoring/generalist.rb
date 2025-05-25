@@ -44,15 +44,9 @@ module ActiveGenie
           {  role: 'user', content: "Text to score: #{@text}" }
         ]
 
-        properties = build_properties
-
-        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')))
-        function[:parameters][:properties] = properties
-        function[:parameters][:required] = properties.keys
-
         result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
           messages,
-          function,
+          build_function,
           config: @config
         )
 
@@ -71,6 +65,16 @@ module ActiveGenie
       end
 
       private
+
+      def build_function
+        properties = build_properties
+
+        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')))
+        function[:parameters][:properties] = properties
+        function[:parameters][:required] = properties.keys
+
+        function
+      end
 
       def build_properties
         properties = {}

@@ -21,25 +21,8 @@ module ActiveGenie
           @reviewers = generate_reviewers
 
           players_to_score = players_without_score
-          until players_to_score.empty?
-            threads = []
-            mutex = Mutex.new
-
-            # Take up to 3 players for parallel processing
-            current_batch = players_to_score.shift(3)
-
-            current_batch.each do |player|
-              threads << Thread.new(player) do |p|
-                score = generate_score(p)
-
-                mutex.synchronize do
-                  p.score = score
-                end
-              end
-            end
-
-            # Wait for all threads in this batch to complete
-            threads.each(&:join)
+          players_to_score.each do |player|
+            player.score = generate_score(player)
           end
         end
       end
