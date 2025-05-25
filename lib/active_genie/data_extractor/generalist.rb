@@ -62,11 +62,18 @@ module ActiveGenie
           with_explanation[key] = value
           with_explanation["#{key}_explanation"] = {
             type: 'string',
-            description: "The chain of thought that led to the conclusion about: #{key}. Can be blank if the user didn't provide any context"
+            description: "
+            The chain of thought that led to the conclusion about: #{key}.
+            Can be blank if the user didn't provide any context
+            "
           }
           with_explanation["#{key}_accuracy"] = {
             type: 'integer',
-            description: 'The accuracy of the extracted data, what is the percentage of confidence? When 100 it means the data is explicitly stated in the text. When 0 it means is no way to discover the data from the text'
+            description: '
+            The accuracy of the extracted data, what is the percentage of confidence?
+            When 100 it means the data is explicitly stated in the text.
+            When 0 it means is no way to discover the data from the text
+            '
           }
         end
 

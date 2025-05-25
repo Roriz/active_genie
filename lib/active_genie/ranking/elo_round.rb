@@ -16,28 +16,21 @@ module ActiveGenie
         @criteria = criteria
         @config = config
         @tmp_defenders = []
-        @start_time = Time.now
         @total_tokens = 0
-        @previous_elo = {}
+        @previous_elo = players.map { |player| [player.id, player.elo] }.to_h
         @previous_highest_elo = @defender_tier.max_by(&:elo).elo
       end
 
       def call
         ActiveGenie::Logger.with_context(log_context) do
-          save_previous_elo
           matches.each do |player_a, player_b|
             # TODO: battle can take a while, can be parallelized
             winner, loser = battle(player_a, player_b)
-            next if winner.nil? || loser.nil?
-
-            winner.elo = calculate_new_elo(winner.elo, loser.elo, 1)
-            loser.elo = calculate_new_elo(loser.elo, winner.elo, 0)
+            update_players_elo(winner, loser)
           end
         end
 
-        ActiveGenie::Logger.call({ code: :elo_round_report, **report })
-
-        report
+        build_report
       end
 
       private
@@ -82,6 +75,13 @@ module ActiveGenie
         end
       end
 
+      def update_players_elo(winner, loser)
+        return if winner.nil? || loser.nil?
+
+        winner.elo = calculate_new_elo(winner.elo, loser.elo, 1)
+        loser.elo = calculate_new_elo(loser.elo, winner.elo, 0)
+      end
+
       # INFO: Read more about the Elo rating system on https://en.wikipedia.org/wiki/Elo_rating_system
       def calculate_new_elo(player_rating, opponent_rating, score)
         expected_score = 1.0 / (1.0 + 10.0**((opponent_rating - player_rating) / 400.0))
@@ -101,18 +101,21 @@ module ActiveGenie
         Digest::MD5.hexdigest(ranking_unique_key)
       end
 
-      def report
-        {
+      def build_report
+        report = {
           elo_round_id:,
           players_in_round: players_in_round.map(&:id),
           battles_count: matches.size,
-          duration_seconds: Time.now - @start_time,
           total_tokens: @total_tokens,
           previous_highest_elo: @previous_highest_elo,
           highest_elo:,
           highest_elo_diff: highest_elo - @previous_highest_elo,
           players_elo_diff:
         }
+
+        ActiveGenie::Logger.call({ code: :elo_round_report, **report })
+
+        report
       end
 
       def players_in_round
@@ -124,9 +127,10 @@ module ActiveGenie
       end
 
       def players_elo_diff
-        players_in_round.map do |player|
+        elo_diffs = players_in_round.map do |player|
           [player.id, player.elo - @previous_elo[player.id]]
-        end.sort_by { |_, diff| -diff }.to_h
+        end
+        elo_diffs.sort_by { |_, diff| -diff }.to_h
       end
 
       def log_observer(log)

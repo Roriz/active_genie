@@ -22,19 +22,11 @@ module ActiveGenie
           matches.each do |player_a, player_b|
             winner, loser = battle(player_a, player_b)
 
-            if winner.nil? || loser.nil?
-              player_a.draw!
-              player_b.draw!
-            else
-              winner.win!
-              loser.lose!
-            end
+            update_players_score(winner, loser)
           end
         end
 
-        ActiveGenie::Logger.call({ code: :free_for_all_report, **report })
-
-        report
+        build_report
       end
 
       private
@@ -70,6 +62,18 @@ module ActiveGenie
         [winner, loser]
       end
 
+      def update_players_score(winner, loser)
+        return if winner.nil? || loser.nil?
+
+        if winner.nil? || loser.nil?
+          player_a.draw!
+          player_b.draw!
+        else
+          winner.win!
+          loser.lose!
+        end
+      end
+
       def log_context
         { free_for_all_id: }
       end
@@ -80,13 +84,17 @@ module ActiveGenie
         Digest::MD5.hexdigest(ranking_unique_key)
       end
 
-      def report
-        {
+      def build_report
+        report = {
           free_for_all_id:,
           battles_count: matches.size,
           duration_seconds: Time.now - @start_time,
           total_tokens: @total_tokens
         }
+
+        ActiveGenie::Logger.call({ code: :free_for_all_report, **report })
+
+        report
       end
 
       def log_observer(log)

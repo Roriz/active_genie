@@ -8,8 +8,6 @@ require_relative './base_client'
 module ActiveGenie
   module Clients
     class OpenaiClient < BaseClient
-      class OpenaiError < ClientError; end
-      class RateLimitError < OpenaiError; end
       class InvalidResponseError < StandardError; end
 
       # Requests structured JSON output from the OpenAI model based on a schema.
@@ -21,17 +19,7 @@ module ActiveGenie
       def function_calling(messages, function)
         payload = {
           messages:,
-          tools: [{
-            type: 'function',
-            function: {
-              **function,
-              parameters: {
-                **function[:parameters],
-                additionalProperties: false
-              },
-              strict: true
-            }.compact
-          }],
+          tools: [function_to_tool(function)],
           tool_choice: { type: 'function', function: { name: function[:name] } },
           stream: false,
           model:
@@ -40,17 +28,14 @@ module ActiveGenie
         retry_with_backoff do
           response = request(payload)
 
-          parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
-          parsed_response = parsed_response['message'] || parsed_response
-
-          if parsed_response.nil? || parsed_response.keys.empty?
+          if response.nil? || response.keys.empty?
             raise InvalidResponseError,
-                  "Invalid response: #{parsed_response}"
+                  "Invalid response: #{response}"
           end
 
-          ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, parsed_response: })
+          ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
 
-          parsed_response
+          response
         end
       end
 
@@ -72,7 +57,22 @@ module ActiveGenie
           }
         )
 
-        response
+        parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
+        parsed_response['message'] || parsed_response
+      end
+
+      def function_to_tool(function)
+        {
+          type: 'function',
+          function: {
+            **function,
+            parameters: {
+              **function[:parameters],
+              additionalProperties: false
+            },
+            strict: true
+          }.compact
+        }
       end
 
       def model

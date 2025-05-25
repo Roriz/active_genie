@@ -29,7 +29,8 @@ module ActiveGenie
       def get(endpoint, params: {}, headers: {})
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Get.new(uri)
-        execute_request(uri, request, headers)
+        apply_headers(request, headers)
+        execute_request(uri, request)
       end
 
       # Make a POST request to the specified endpoint
@@ -42,7 +43,8 @@ module ActiveGenie
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Post.new(uri)
         request.body = payload.to_json
-        execute_request(uri, request, headers)
+        apply_headers(request, headers)
+        execute_request(uri, request)
       end
 
       # Make a PUT request to the specified endpoint
@@ -55,7 +57,8 @@ module ActiveGenie
         uri = build_uri(endpoint)
         request = Net::HTTP::Put.new(uri)
         request.body = payload.to_json
-        execute_request(uri, request, headers)
+        apply_headers(request, headers)
+        execute_request(uri, request)
       end
 
       # Make a DELETE request to the specified endpoint
@@ -67,41 +70,24 @@ module ActiveGenie
       def delete(endpoint, headers: {}, params: {})
         uri = build_uri(endpoint, params)
         request = Net::HTTP::Delete.new(uri)
-        execute_request(uri, request, headers)
+        apply_headers(request, headers)
+        execute_request(uri, request)
       end
 
       protected
 
-      # Execute a request with retry logic and proper error handling
-      #
-      # @param uri [URI] The URI for the request
-      # @param request [Net::HTTP::Request] The request object
-      # @param headers [Hash] Additional headers to include
-      # @return [Hash, nil] The parsed JSON response or nil if empty
-      def execute_request(uri, request, headers)
+      def execute_request(uri, request)
         start_time = Time.now
 
-        apply_headers(request, headers)
-
-        http = create_http_client(uri)
-
-        response = http.request(request)
+        response = http_request(request, uri)
 
         case response
         when Net::HTTPSuccess
           parsed_response = parse_response(response)
 
-          log_request_details(
-            uri: uri,
-            method: request.method,
-            status: response.code,
-            duration: Time.now - start_time,
-            response: parsed_response
-          )
+          log_request_details(uri:, request:, response:, start_time:, parsed_response:)
 
           parsed_response
-        when Net::HTTPTooManyRequests, Net::HTTPClientError, Net::HTTPServerError
-          raise ClientError, "HTTP Error: #{response.code} - #{response.body}"
         else
           raise ClientError, "Unexpected response: #{response.code} - #{response.body}"
         end
@@ -111,13 +97,13 @@ module ActiveGenie
       #
       # @param uri [URI] The URI for the request
       # @return [Net::HTTP] Configured HTTP client
-      def create_http_client(uri)
+      def http_request(request, uri)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = (uri.scheme == 'https')
         http.verify_mode = OpenSSL::SSL::VERIFY_PEER
         http.read_timeout = @config.llm.read_timeout || DEFAULT_TIMEOUT
         http.open_timeout = @config.llm.open_timeout || DEFAULT_OPEN_TIMEOUT
-        http
+        http.request(request)
       end
 
       # Apply headers to the request
@@ -164,15 +150,15 @@ module ActiveGenie
       # Log request details if logging is enabled
       #
       # @param details [Hash] Request and response details
-      def log_request_details(details)
+      def log_request_details(uri:, request:, response:, start_time:, parsed_response:)
         ActiveGenie::Logger.call(
           {
             code: :http_request,
-            uri: details[:uri].to_s,
-            method: details[:method],
-            status: details[:status],
-            duration: details[:duration],
-            response_size: details[:response].to_s.bytesize
+            uri: uri.to_s,
+            method: request.method,
+            status: response.code,
+            duration: Time.now - start_time,
+            response_size: parsed_response.to_s.bytesize
           }
         )
       end
@@ -182,32 +168,35 @@ module ActiveGenie
       # @yield The block to retry
       # @return [Object] The result of the block
       def retry_with_backoff
-        max_retries = @config.llm.max_retries || DEFAULT_MAX_RETRIES
-        retry_delay = @config.llm.retry_delay || DEFAULT_RETRY_DELAY
-
         retries = 0
 
         begin
           yield
-        rescue Net::HTTPError => e
-          raise unless retries < max_retries
+        rescue Net::HTTPError, ClientError => e
+          raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)
           retries += 1
 
           ActiveGenie::Logger.call(
-            {
-              code: :retry_attempt,
-              attempt: retries,
-              max_retries: max_retries,
-              delay: sleep_time,
-              error: e.message
-            }
+            code: :retry_attempt,
+            attempt: retries,
+            max_retries: max_retries,
+            delay: sleep_time,
+            error: e.message
           )
 
           sleep(sleep_time)
           retry
         end
+      end
+
+      def max_retries
+        @config.llm.max_retries || DEFAULT_MAX_RETRIES
+      end
+
+      def retry_delay
+        @config.llm.retry_delay || DEFAULT_RETRY_DELAY
       end
     end
   end

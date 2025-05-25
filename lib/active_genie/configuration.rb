@@ -38,28 +38,36 @@ module ActiveGenie
       @llm ||= Config::LlmConfig.new
     end
 
+    SUB_CONFIGS = %w[log providers llm ranking scoring data_extractor battle].freeze
+
     def merge(config_params = {})
       return config_params if config_params.is_a?(Configuration)
 
       new_configuration = dup
 
-      %w[log providers llm ranking scoring data_extractor battle].each do |key|
+      SUB_CONFIGS.each do |key|
         config = new_configuration.send(key)
 
         next unless config.respond_to?(:merge)
 
-        new_config = if config_params.key?(key.to_s)
-                       config.merge(config_params[key.to_s])
-                     elsif config_params.key?(key.to_sym)
-                       config.merge(config_params[key.to_sym])
-                     else
-                       config.merge(config_params)
-                     end
+        new_config = sub_config_merge(config, key, config_params)
 
         new_configuration.send("#{key}=", new_config)
       end
 
       new_configuration
+    end
+
+    def sub_config_merge(config, key, config_params)
+      if config_params.key?(key.to_s)
+        config.merge(config_params[key.to_s])
+      elsif config_params.key?(key.to_sym)
+        config.merge(config_params[key.to_sym])
+      else
+        config.merge(config_params)
+      end
+
+      config
     end
 
     attr_writer :log, :providers, :ranking, :scoring, :data_extractor, :battle, :llm
