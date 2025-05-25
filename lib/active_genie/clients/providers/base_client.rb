@@ -163,10 +163,8 @@ module ActiveGenie
         )
       end
 
-      # Retry a block with exponential backoff
-      #
-      # @yield The block to retry
-      # @return [Object] The result of the block
+      # FIXME:
+      # rubocop:disable Metrics/MethodLength
       def retry_with_backoff
         retries = 0
 
@@ -190,6 +188,7 @@ module ActiveGenie
           retry
         end
       end
+      # rubocop:enable Metrics/MethodLength
 
       def max_retries
         @config.llm.max_retries || DEFAULT_MAX_RETRIES
