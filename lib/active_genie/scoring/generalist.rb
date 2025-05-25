@@ -69,7 +69,7 @@ module ActiveGenie
       def build_function
         properties = build_properties
 
-        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')))
+        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
         function[:parameters][:properties] = properties
         function[:parameters][:required] = properties.keys
 

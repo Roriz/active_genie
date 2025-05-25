@@ -42,7 +42,7 @@ module ActiveGenie
 
         properties = data_to_extract_with_explanation
 
-        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')))
+        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
         function[:parameters][:properties] = properties
         function[:parameters][:required] = properties.keys
 

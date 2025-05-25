@@ -163,7 +163,7 @@ module ActiveGenie
         )
       end
 
-      # FIXME:
+      # FIXME: split the retry_with_backoff method into a separate class
       # rubocop:disable Metrics/MethodLength
       def retry_with_backoff
         retries = 0

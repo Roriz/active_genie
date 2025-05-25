@@ -47,7 +47,7 @@ module ActiveGenie
       private
 
       def data_to_extract_with_litote
-        parameters = JSON.parse(File.read(File.join(__dir__, 'from_informal.json')))
+        parameters = JSON.parse(File.read(File.join(__dir__, 'from_informal.json')), symbolize_names: true)
 
         @data_to_extract.merge(parameters)
       end

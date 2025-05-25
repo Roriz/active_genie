@@ -79,6 +79,7 @@ module ActiveGenie
         output.dig('input_schema', 'properties') || output
       end
 
+      API_VERSION_PATH = 'v1beta/models'
       ROLE_TO_GOOGLE_ROLE = {
         user: 'user',
         assistant: 'model'

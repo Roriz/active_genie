@@ -73,7 +73,7 @@ module ActiveGenie
       end
 
       PROMPT = File.read(File.join(__dir__, 'generalist.md'))
-      FUNCTION = JSON.parse(File.read(File.join(__dir__, 'generalist.json')))
+      FUNCTION = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
     end
   end
 end
