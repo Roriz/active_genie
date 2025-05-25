@@ -19,6 +19,7 @@ Metrics/MethodLength:
   CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
   Exclude:
     - 'test/**/*'
+    - 'benchmark/**/*'
 
 Metrics/ClassLength:
   CountComments: false
@@ -26,7 +27,10 @@ Metrics/ClassLength:
 
 Layout/LineLength:
   AllowedPatterns: ['\s#']
+  Exclude:
+    - 'benchmark/**/*'
 
 Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
+    - 'benchmark/**/*'

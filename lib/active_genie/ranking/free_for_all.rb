@@ -19,22 +19,14 @@ module ActiveGenie
 
       def call
         ActiveGenie::Logger.with_context(log_context, observer: method(:log_observer)) do
-          matches.each do |player_1, player_2|
-            winner, loser = battle(player_1, player_2)
+          matches.each do |player_a, player_b|
+            winner, loser = battle(player_a, player_b)
 
-            if winner.nil? || loser.nil?
-              player_1.draw!
-              player_2.draw!
-            else
-              winner.win!
-              loser.lose!
-            end
+            update_players_score(winner, loser)
           end
         end
 
-        ActiveGenie::Logger.call({ code: :free_for_all_report, **report })
-
-        report
+        build_report
       end
 
       private
@@ -45,29 +37,41 @@ module ActiveGenie
         @players.eligible.combination(2).to_a
       end
 
-      def battle(player_1, player_2)
+      def battle(player_a, player_b)
         result = ActiveGenie::Battle.call(
-          player_1.content,
-          player_2.content,
+          player_a.content,
+          player_b.content,
           @criteria,
           config: @config
         )
 
         winner, loser = case result['winner']
-                        when 'player_1' then [player_1, player_2, result['reasoning']]
-                        when 'player_2' then [player_2, player_1, result['reasoning']]
+                        when 'player_a' then [player_a, player_b, result['reasoning']]
+                        when 'player_b' then [player_b, player_a, result['reasoning']]
                         when 'draw' then [nil, nil, result['reasoning']]
                         end
 
         ActiveGenie::Logger.call({
                                    code: :free_for_all_battle,
-                                   player_ids: [player_1.id, player_2.id],
+                                   player_ids: [player_a.id, player_b.id],
                                    winner_id: winner&.id,
                                    loser_id: loser&.id,
                                    reasoning: result['reasoning']
                                  })
 
         [winner, loser]
+      end
+
+      def update_players_score(winner, loser)
+        return if winner.nil? || loser.nil?
+
+        if winner.nil? || loser.nil?
+          player_a.draw!
+          player_b.draw!
+        else
+          winner.win!
+          loser.lose!
+        end
       end
 
       def log_context
@@ -80,13 +84,17 @@ module ActiveGenie
         Digest::MD5.hexdigest(ranking_unique_key)
       end
 
-      def report
-        {
+      def build_report
+        report = {
           free_for_all_id:,
           battles_count: matches.size,
           duration_seconds: Time.now - @start_time,
           total_tokens: @total_tokens
         }
+
+        ActiveGenie::Logger.call({ code: :free_for_all_report, **report })
+
+        report
       end
 
       def log_observer(log)

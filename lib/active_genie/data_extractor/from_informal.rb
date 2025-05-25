@@ -47,17 +47,9 @@ module ActiveGenie
       private
 
       def data_to_extract_with_litote
-        {
-          **@data_to_extract,
-          message_litote: {
-            type: 'boolean',
-            description: 'Return true if the message is a litote. A litote is a figure of speech that uses understatement to emphasize a point by stating a negative to further affirm a positive, often incorporating double negatives for effect.'
-          },
-          litote_rephrased: {
-            type: 'string',
-            description: 'The true meaning of the litote. Rephrase the message to a positive and active statement.'
-          }
-        }
+        parameters = JSON.parse(File.read(File.join(__dir__, 'from_informal.json')), symbolize_names: true)
+
+        @data_to_extract.merge(parameters)
       end
     end
   end

@@ -42,15 +42,9 @@ module ActiveGenie
 
         properties = data_to_extract_with_explanation
 
-        function = {
-          name: 'data_extractor',
-          description: 'Extract structured and typed data from text',
-          parameters: {
-            type: 'object',
-            properties:,
-            required: properties.keys
-          }
-        }
+        function = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
+        function[:parameters][:properties] = properties
+        function[:parameters][:required] = properties.keys
 
         response = function_calling(messages, function)
 
@@ -68,11 +62,18 @@ module ActiveGenie
           with_explanation[key] = value
           with_explanation["#{key}_explanation"] = {
             type: 'string',
-            description: "The chain of thought that led to the conclusion about: #{key}. Can be blank if the user didn't provide any context"
+            description: "
+            The chain of thought that led to the conclusion about: #{key}.
+            Can be blank if the user didn't provide any context
+            "
           }
           with_explanation["#{key}_accuracy"] = {
             type: 'integer',
-            description: 'The accuracy of the extracted data, what is the percentage of confidence? When 100 it means the data is explicitly stated in the text. When 0 it means is no way to discover the data from the text'
+            description: '
+            The accuracy of the extracted data, what is the percentage of confidence?
+            When 100 it means the data is explicitly stated in the text.
+            When 0 it means is no way to discover the data from the text
+            '
           }
         end
 

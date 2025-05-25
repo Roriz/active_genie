@@ -1,0 +1,11 @@
+
+{
+  "message_litote": {
+    "type": "boolean",
+    "description": "Return true if the message is a litote. A litote is a figure of speech that uses understatement to emphasize a point by stating a negative to further affirm a positive, often incorporating double negatives for effect."
+  },
+  "litote_rephrased": {
+    "type": "string",
+    "description": "The true meaning of the litote. Rephrase the message to a positive and active statement."
+  }
+}

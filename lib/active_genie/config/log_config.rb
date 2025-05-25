@@ -14,11 +14,11 @@ module ActiveGenie
       end
 
       def output
-        @output || (lambda { |log| $stdout.puts log })
+        @output || ->(log) { $stdout.puts log }
       end
 
       def output=(output)
-        raise InvalidLogOutputError.new(output) unless output.respond_to?(:call)
+        raise InvalidLogOutputError, output unless output.respond_to?(:call)
 
         @output = output
       end
@@ -38,7 +38,7 @@ module ActiveGenie
       def add_observer(observers: [], scope: nil, &block)
         @observers ||= []
 
-        raise ArgumentError, 'Scope must be a hash' if !scope.nil? && !scope.is_a?(Hash)
+        raise ArgumentError, 'Scope must be a hash' unless scope.is_a?(Hash)
 
         @observers << { observer: block, scope: scope || {} } if block_given?
         Array(observers).each do |observer|

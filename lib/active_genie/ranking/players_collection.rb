@@ -11,16 +11,24 @@ module ActiveGenie
       attr_reader :players
 
       def coefficient_of_variation
-        score_list = eligible.map(&:score).compact
-        return nil if score_list.empty?
+        mean = score_mean
 
-        mean = score_list.sum.to_f / score_list.size
         return nil if mean.zero?
 
-        variance = score_list.map { |num| (num - mean)**2 }.sum / score_list.size
+        variance = all_scores.map { |num| (num - mean)**2 }.sum / all_scores.size
         standard_deviation = Math.sqrt(variance)
 
         (standard_deviation / mean) * 100
+      end
+
+      def all_scores
+        eligible.map(&:score).compact
+      end
+
+      def score_mean
+        return 0 if all_scores.empty?
+
+        all_scores.sum.to_f / all_scores.size
       end
 
       def calc_relegation_tier

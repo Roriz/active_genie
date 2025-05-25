@@ -51,12 +51,12 @@ module ActiveGenie
         end
       end
 
-      def method_missing(m, *args, &block)
-        @all[m] || super
+      def method_missing(method_name, *args, &block)
+        @all[method_name] || super
       end
 
-      def respond_to_missing?(m, include_private = false)
-        @all.key?(m) || super
+      def respond_to_missing?(method_name, include_private = false)
+        @all.key?(method_name) || super
       end
     end
   end

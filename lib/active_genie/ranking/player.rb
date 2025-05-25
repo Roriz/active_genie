@@ -6,19 +6,47 @@ module ActiveGenie
   module Ranking
     class Player
       def initialize(params)
-        params = { content: params } if params.is_a?(String)
-
-        @content = params[:content] || params
-        @name = params[:name] || params[:content][0..10]
-        @id = params[:id] || Digest::MD5.hexdigest(@content)
-        @score = params[:score] || nil
-        @elo = params[:elo] || nil
-        @ffa_win_count = params[:ffa_win_count] || 0
-        @ffa_lose_count = params[:ffa_lose_count] || 0
-        @ffa_draw_count = params[:ffa_draw_count] || 0
-        @eliminated = params[:eliminated] || nil
+        @params = params.is_a?(String) ? { content: params } : params.dup
+        @params[:content] ||= @params
       end
+
       attr_accessor :rank
+
+      def content
+        @content ||= @params[:content]
+      end
+
+      def name
+        @name ||= @params[:name] || content[0..10]
+      end
+
+      def id
+        @id ||= @params[:id] || Digest::MD5.hexdigest(content.to_s)
+      end
+
+      def score
+        @score ||= @params[:score]
+      end
+
+      def elo
+        @elo ||= @params[:elo]
+      end
+
+      def ffa_win_count
+        @ffa_win_count ||= @params[:ffa_win_count] || 0
+      end
+
+      def ffa_lose_count
+        @ffa_lose_count ||= @params[:ffa_lose_count] || 0
+      end
+
+      def ffa_draw_count
+        @ffa_draw_count ||= @params[:ffa_draw_count] || 0
+      end
+
+      def eliminated
+        @eliminated ||= @params[:eliminated]
+      end
 
       def score=(value)
         ActiveGenie::Logger.call({ code: :new_score, player_id: id, score: value }) if value != @score
@@ -50,8 +78,6 @@ module ActiveGenie
         @ffa_lose_count += 1
         ActiveGenie::Logger.call({ code: :new_ffa_score, player_id: id, result: 'lose', ffa_score: })
       end
-
-      attr_reader :id, :content, :score, :elo, :ffa_win_count, :ffa_lose_count, :ffa_draw_count, :eliminated, :name
 
       def ffa_score
         @ffa_win_count * 3 + @ffa_draw_count
@@ -89,6 +115,8 @@ module ActiveGenie
       def respond_to_missing?(method_name, include_private = false)
         method_name == :[] || super
       end
+
+      private
 
       def generate_elo_by_score
         BASE_ELO + ((@score || 0) - 50)

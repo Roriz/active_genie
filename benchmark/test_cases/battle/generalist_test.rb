@@ -6,17 +6,17 @@ module ActiveGenie
   module Battle
     class GeneralistTest < Minitest::Test
       TESTS = [
-        { input: ['american food', 'brazilian food', 'less fat is better'], expected: 'player_2' },
-        { input: ['rainning day', 'sunny day', 'go to park with family'], expected: 'player_2' },
-        { input: ['python', 'javascript', 'data science and machine learning tasks'], expected: 'player_1' },
-        { input: ['bicycle', 'car', 'environmentally friendly urban commuting'], expected: 'player_1' },
-        { input: ['reading a book', 'watching tv', 'cognitive development and relaxation'], expected: 'player_1' },
-        { input: ['yoga', 'weightlifting', 'stress relief and flexibility improvement'], expected: 'player_1' },
+        { input: ['american food', 'brazilian food', 'less fat is better'], expected: 'player_b' },
+        { input: ['rainning day', 'sunny day', 'go to park with family'], expected: 'player_b' },
+        { input: ['python', 'javascript', 'data science and machine learning tasks'], expected: 'player_a' },
+        { input: ['bicycle', 'car', 'environmentally friendly urban commuting'], expected: 'player_a' },
+        { input: ['reading a book', 'watching tv', 'cognitive development and relaxation'], expected: 'player_a' },
+        { input: ['yoga', 'weightlifting', 'stress relief and flexibility improvement'], expected: 'player_a' },
         { input: ['online course', 'in-person class', 'flexible schedule and cost effectiveness'],
-          expected: 'player_1' },
-        { input: ['video call', 'text message', 'discussing complex emotional topics'], expected: 'player_1' },
-        { input: ['remote work', 'office work', 'work-life balance and productivity'], expected: 'player_1' },
-        { input: ['Kiki', 'Bouba', 'what sounds is more aggressive?'], expected: 'player_1' }
+          expected: 'player_a' },
+        { input: ['video call', 'text message', 'discussing complex emotional topics'], expected: 'player_a' },
+        { input: ['remote work', 'office work', 'work-life balance and productivity'], expected: 'player_a' },
+        { input: ['Kiki', 'Bouba', 'what sounds is more aggressive?'], expected: 'player_a' }
       ].freeze
 
       TESTS.each_with_index do |test, index|
@@ -39,10 +39,10 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal 'player_2', result['winner']
+        assert_equal 'player_b', result['winner']
       end
 
-      def test_dress_for_friday_night
+      def test_stackoverflow_questions
         stackoverflow_issues = [
           'I\'ve ruled out race conditions, but JIT optimizations might be reordering instructions unpredictably. Profiling suggests a cache coherency issue, possibly tied to memory fences or weak memory ordering on ARM. Has anyone encountered a similar JIT-induced anomaly that only manifests under specific CPU architectures?',
           'How do I print "Hello, World!" in Python?'
@@ -54,7 +54,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal 'player_1', result['winner']
+        assert_equal 'player_a', result['winner']
       end
     end
   end

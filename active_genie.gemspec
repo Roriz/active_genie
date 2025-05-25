@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Radamés Roriz']
   spec.email         = ['radames@roriz.dev']
 
-  spec.required_ruby_version = '>= 3.3.0'
+  spec.required_ruby_version = '>= 3.4.0'
 
   spec.metadata = {
     'homepage_uri' => 'https://github.com/Roriz/active_genie',

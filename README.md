@@ -118,13 +118,13 @@ AI-powered battle evaluation system that determines winners between two players 
 ```ruby
 require 'active_genie'
 
-player_1 = "Implementation uses dependency injection for better testability"
-player_2 = "Code has high test coverage but tightly coupled components"
+player_a = "Implementation uses dependency injection for better testability"
+player_b = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
 result = ActiveGenie::Battle.call(
-  player_1,
-  player_2,
+  player_a,
+  player_b,
   criteria,
   config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
 )
@@ -238,7 +238,7 @@ ActiveGenie.configure do |config|
   config.llm.client = InternalCompanyApi
 end
 # or
-ActiveGenie::Battle.call('player_1', 'player_2', 'criteria', { client: InternalCompanyApi })
+ActiveGenie::Battle.call('player_a', 'player_b', 'criteria', { client: InternalCompanyApi })
 ```
 
 ## Observability
