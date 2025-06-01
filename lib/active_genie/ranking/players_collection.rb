@@ -61,10 +61,6 @@ module ActiveGenie
         to_h.to_json
       end
 
-      def to_h
-        sorted.map(&:to_h)
-      end
-
       def method_missing(...)
         @players.send(...)
       end

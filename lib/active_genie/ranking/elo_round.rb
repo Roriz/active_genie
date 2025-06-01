@@ -17,11 +17,13 @@ module ActiveGenie
         @config = config
         @tmp_defenders = []
         @total_tokens = 0
-        @previous_elo = players.to_h { |player| [player.id, player.elo] }
+        @previous_elo = {}
         @previous_highest_elo = @defender_tier.max_by(&:elo).elo
       end
 
       def call
+        @previous_elo = @players.to_h { |player| [player.id, player.elo] }
+
         ActiveGenie::Logger.with_context(log_context) do
           matches.each do |player_a, player_b|
             # TODO: battle can take a while, can be parallelized
@@ -37,10 +39,6 @@ module ActiveGenie
       K = 32
 
       private
-
-      def save_previous_elo
-        @previous_elo = @players.to_h { |player| [player.id, player.elo] }
-      end
 
       def matches
         @relegation_tier.each_with_object([]) do |attack_player, matches|
@@ -130,7 +128,7 @@ module ActiveGenie
         elo_diffs = players_in_round.map do |player|
           [player.id, player.elo - @previous_elo[player.id]]
         end
-        elo_diffs.sort_by { |_, diff| -diff }.to_h
+        elo_diffs.sort_by { |_, diff| -(diff || 0) }.to_h
       end
 
       def log_observer(log)

@@ -29,7 +29,13 @@ module ActiveGenie
       end
 
       def elo
-        @elo ||= @params[:elo]
+        @elo = if @params[:elo]
+                 @params[:elo]
+               elsif @score
+                 generate_elo_by_score
+               else
+                 BASE_ELO
+               end
       end
 
       def ffa_win_count
@@ -56,7 +62,7 @@ module ActiveGenie
 
       def elo=(value)
         ActiveGenie::Logger.call({ code: :new_elo, player_id: id, elo: value }) if value != @elo
-        @elo = value
+        @elo = value || BASE_ELO
       end
 
       def eliminated=(value)
