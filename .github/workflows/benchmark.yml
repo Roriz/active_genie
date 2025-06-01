@@ -61,6 +61,7 @@ jobs:
 
         all_llm_usage=$(cat logs/active_genie.log | grep "llm_usage" | jq -r '.total_tokens')
         requests=$(echo "$all_llm_usage" | wc -l)
+        total_tokens=0
         for llm_stat in $all_llm_usage; do
           total_tokens=$((total_tokens + llm_stat))
         done
