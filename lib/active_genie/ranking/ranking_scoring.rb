@@ -20,8 +20,7 @@ module ActiveGenie
         ActiveGenie::Logger.with_context(log_context) do
           @reviewers = generate_reviewers
 
-          players_to_score = players_without_score
-          players_to_score.each do |player|
+          players_without_score.each do |player|
             player.score = generate_score(player)
           end
         end
