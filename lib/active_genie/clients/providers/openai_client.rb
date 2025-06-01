@@ -28,10 +28,7 @@ module ActiveGenie
         retry_with_backoff do
           response = request(payload)
 
-          if response.nil? || response.keys.empty?
-            raise InvalidResponseError,
-                  "Invalid response: #{response}"
-          end
+          raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.keys.empty?
 
           ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
 

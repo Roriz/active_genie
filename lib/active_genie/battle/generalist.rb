@@ -64,7 +64,7 @@ module ActiveGenie
 
       def response_formatted(response)
         winner = response['impartial_judge_winner']
-        loser = case response['impartial_judge_winner']
+        loser = case winner
                 when 'player_a' then 'player_b'
                 when 'player_b' then 'player_a'
                 end
