@@ -5,6 +5,6 @@ require 'minitest/autorun'
 require_relative '../../lib/active_genie'
 
 ActiveGenie.configure do |config|
-  config.providers.default = ENV['PROVIDER']
-  config.llm.model = ENV['MODEL']
+  config.providers.default = ENV.fetch('PROVIDER', nil)
+  config.llm.model = ENV.fetch('MODEL', nil)
 end

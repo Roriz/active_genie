@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative './player'
+require_relative 'player'
 
 module ActiveGenie
   module Ranking
@@ -88,7 +88,9 @@ module ActiveGenie
       #   - 14 eligible, tier_size: 4
       #  4 rounds to reach top 10 with 50 players
       def tier_size
-        [[(eligible_size / 3).ceil, 10].max, eligible_size - 10].min
+        size = (eligible_size / 3).ceil
+
+        size.clamp(10, eligible_size - 10)
       end
     end
   end

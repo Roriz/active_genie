@@ -3,7 +3,7 @@
 require 'json'
 require 'net/http'
 
-require_relative './base_client'
+require_relative 'base_client'
 
 module ActiveGenie
   module Clients
@@ -28,10 +28,7 @@ module ActiveGenie
         retry_with_backoff do
           response = request(payload)
 
-          if response.nil? || response.keys.empty?
-            raise InvalidResponseError,
-                  "Invalid response: #{response}"
-          end
+          raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.keys.empty?
 
           ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
 
@@ -85,7 +82,7 @@ module ActiveGenie
 
       def headers
         {
-          'Authorization': "Bearer #{provider_config.api_key}",
+          Authorization: "Bearer #{provider_config.api_key}",
           'Content-Type': 'application/json'
         }.compact
       end

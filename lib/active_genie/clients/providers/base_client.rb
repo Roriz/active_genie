@@ -7,7 +7,7 @@ module ActiveGenie
 
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'User-Agent': "ActiveGenie/#{ActiveGenie::VERSION}"
       }.freeze
 

@@ -19,17 +19,17 @@ module ActiveGenie
                   { price: { type: 'number' } }], expected: {}
         },
         {
-          input: ["Friends: The Complete Series Collection (25th Anniversary/Repackaged/DVD) - \$59.99",
+          input: ['Friends: The Complete Series Collection (25th Anniversary/Repackaged/DVD) - $59.99',
                   { price: { type: 'number' },
                     ship_price: { type: 'number' } }], expected: { price: 59.99 }
         },
         {
-          input: ["The Beatles: Get Back [3 Blu-ray] - Director: Peter Jackson - \$27.99",
+          input: ['The Beatles: Get Back [3 Blu-ray] - Director: Peter Jackson - $27.99',
                   { price: { type: 'number' },
                     ship_price: { type: 'number' } }], expected: { price: 27.99 }
         },
         {
-          input: ["Red Dead Redemption 2 - PlayStation 4 - ESRB Rating: Mature 17+ - \$39.99",
+          input: ['Red Dead Redemption 2 - PlayStation 4 - ESRB Rating: Mature 17+ - $39.99',
                   { price: { type: 'number' },
                     ship_price: { type: 'number' } }], expected: { price: 39.99 }
         }

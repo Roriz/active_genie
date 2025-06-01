@@ -62,8 +62,6 @@ module ActiveGenie
         )
       end
 
-      private
-
       PROMPT = <<~PROMPT
         Identify the top 3 suitable reviewer titles or roles based on the provided text and criteria. Selected reviewers must possess subject matter expertise, offer valuable insights, and ensure diverse yet aligned perspectives on the content.
 
@@ -78,6 +76,8 @@ module ActiveGenie
         - Include reasoning for how each choice supports a thorough and insightful review.
         - Avoid redundant or overly similar titles/roles to maintain diversity.
       PROMPT
+
+      private
 
       def client
         ::ActiveGenie::Clients::UnifiedClient

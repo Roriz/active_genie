@@ -64,6 +64,8 @@ module ActiveGenie
         result
       end
 
+      PROMPT = File.read(File.join(__dir__, 'generalist.md'))
+
       private
 
       def build_function
@@ -112,8 +114,6 @@ module ActiveGenie
                          [result['reviewer1'], result['reviewer2'], result['reviewer3']]
                        end
       end
-
-      PROMPT = File.read(File.join(__dir__, 'generalist.md'))
     end
   end
 end

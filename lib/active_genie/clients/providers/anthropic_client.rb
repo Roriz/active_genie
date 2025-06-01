@@ -3,7 +3,7 @@
 require 'json'
 require 'net/http'
 require 'uri'
-require_relative './base_client'
+require_relative 'base_client'
 
 module ActiveGenie
   module Clients
@@ -35,9 +35,9 @@ module ActiveGenie
         end
       end
 
-      private
-
       ANTHROPIC_ENDPOINT = '/v1/messages'
+
+      private
 
       def split_messages(messages)
         system_message = messages.find { |m| m[:role] == 'system' }&.dig(:content) || ''

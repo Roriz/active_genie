@@ -21,7 +21,9 @@ module ActiveGenie
       end
 
       def provider=(provider)
-        @provider = provider&.to_s&.downcase&.strip&.to_sym
+        return if provider.nil? || provider.empty?
+
+        @provider = provider.to_s.downcase.strip.to_sym
       end
 
       def merge(config_params = {})

@@ -3,7 +3,7 @@
 require 'json'
 require 'net/http'
 require 'uri'
-require_relative './base_client'
+require_relative 'base_client'
 
 module ActiveGenie
   module Clients
@@ -38,6 +38,12 @@ module ActiveGenie
           normalize_response(json_string)
         end
       end
+
+      API_VERSION_PATH = 'v1beta/models'
+      ROLE_TO_GOOGLE_ROLE = {
+        user: 'user',
+        assistant: 'model'
+      }.freeze
 
       private
 
@@ -78,12 +84,6 @@ module ActiveGenie
 
         output.dig('input_schema', 'properties') || output
       end
-
-      API_VERSION_PATH = 'v1beta/models'
-      ROLE_TO_GOOGLE_ROLE = {
-        user: 'user',
-        assistant: 'model'
-      }.freeze
 
       # Converts standard message format to Google's 'contents' format
       # and injects JSON schema instructions.
