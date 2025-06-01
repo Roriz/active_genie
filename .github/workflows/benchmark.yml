@@ -59,7 +59,7 @@ jobs:
           duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+s' | grep -oE '[0-9]+\.[0-9]+')
         fi
 
-        all_llm_usage=$(cat logs/active_genie.log | grep "llm_usage" | jq -r '.total_tokens')
+        all_llm_usage=$(cat log/active_genie.log | grep "llm_usage" | jq -r '.total_tokens')
         requests=$(echo "$all_llm_usage" | wc -l)
         total_tokens=0
         for llm_stat in $all_llm_usage; do
