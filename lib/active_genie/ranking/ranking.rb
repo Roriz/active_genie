@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../concerns/loggable'
+require_relative './concerns/loggable'
 require_relative './players_collection'
 require_relative './free_for_all'
 require_relative './elo_round'
@@ -38,7 +38,8 @@ module ActiveGenie
         new(...).call
       end
 
-      def initialize(_param_players, criteria, reviewers: [], config: {})
+      def initialize(param_players, criteria, reviewers: [], config: {})
+        @param_players = param_players
         @criteria = criteria
         @reviewers = Array(reviewers).compact.uniq
         @config = ActiveGenie.configuration.merge(config)
@@ -48,16 +49,18 @@ module ActiveGenie
       def call
         @players = create_players
 
-        set_initial_player_scores!
-        eliminate_obvious_bad_players!
+        ActiveGenie::Logger.with_context(log_context) do
+          set_initial_player_scores!
+          eliminate_obvious_bad_players!
 
-        while @players.elo_eligible?
-          elo_report = run_elo_round!
-          eliminate_relegation_players!
-          rebalance_players!(elo_report)
+          while @players.elo_eligible?
+            elo_report = run_elo_round!
+            eliminate_relegation_players!
+            rebalance_players!(elo_report)
+          end
+
+          run_free_for_all!
         end
-
-        run_free_for_all!
 
         sorted_players
       end
@@ -67,11 +70,9 @@ module ActiveGenie
       ELIMINATION_VARIATION = 'variation_too_high'
       ELIMINATION_RELEGATION = 'relegation_tier'
 
-      call_with_log_context :log_context
-
       def create_players
-        players = PlayersCollection.new(param_players)
-        players.each { |p| logger({ code: :new_player, player: p.to_h }) }
+        players = PlayersCollection.new(@param_players)
+        players.each { |p| ActiveGenie::Logger.call({ code: :new_player, player: p.to_h }) }
 
         players
       end
@@ -110,7 +111,7 @@ module ActiveGenie
 
       def sorted_players
         players = @players.sorted
-        logger({ code: :ranking_final, players: players.map(&:to_h) })
+        ActiveGenie::Logger.call({ code: :ranking_final, players: players.map(&:to_h) })
 
         players.map(&:to_h)
       end
