@@ -11,5 +11,5 @@ ActiveGenie.configure do |config|
 
   include WebMock::API
 
-  config.log_config.output = ->(log) {}
+  config.log.output = ->(log) {}
 end
