@@ -35,17 +35,16 @@ module ActiveGenie
         end
       end
 
-      def add_observer(observers: [], scope: nil, &block)
+      def add_observer(observers: [], scope: {}, &block)
         @observers ||= []
 
         raise ArgumentError, 'Scope must be a hash' if scope && !scope.is_a?(Hash)
-        raise ArgumentError, 'Observer must be a callable' if block && !block.respond_to?(:call)
 
-        @observers << { observer: block, scope: scope || {} } if block_given?
+        @observers << { observer: block, scope: } if block_given?
         Array(observers).each do |observer|
           next unless observer.respond_to?(:call)
 
-          @observers << { observer:, scope: scope || {} }
+          @observers << { observer:, scope: }
         end
       end
 
