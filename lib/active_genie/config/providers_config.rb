@@ -51,7 +51,7 @@ module ActiveGenie
         end
       end
 
-      def method_missing(method_name, *args, &block)
+      def method_missing(method_name, *args, &)
         @all[method_name] || super
       end
 

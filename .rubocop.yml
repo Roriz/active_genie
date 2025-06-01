@@ -10,6 +10,7 @@
 # See https://docs.rubocop.org/rubocop/configuration
 AllCops:
   TargetRubyVersion: 3.4
+  NewCops: enable
 
 Style/Documentation:
   Enabled: false
@@ -17,6 +18,7 @@ Style/Documentation:
 Metrics/MethodLength:
   CountComments: false
   CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
+  AllowedMethods: ['call']
   Exclude:
     - 'test/**/*'
     - 'benchmark/**/*'

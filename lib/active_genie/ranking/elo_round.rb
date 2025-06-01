@@ -17,7 +17,7 @@ module ActiveGenie
         @config = config
         @tmp_defenders = []
         @total_tokens = 0
-        @previous_elo = players.map { |player| [player.id, player.elo] }.to_h
+        @previous_elo = players.to_h { |player| [player.id, player.elo] }
         @previous_highest_elo = @defender_tier.max_by(&:elo).elo
       end
 
@@ -33,13 +33,13 @@ module ActiveGenie
         build_report
       end
 
-      private
-
       BATTLE_PER_PLAYER = 3
       K = 32
 
+      private
+
       def save_previous_elo
-        @previous_elo = @players.map { |player| [player.id, player.elo] }.to_h
+        @previous_elo = @players.to_h { |player| [player.id, player.elo] }
       end
 
       def matches
@@ -84,7 +84,7 @@ module ActiveGenie
 
       # INFO: Read more about the Elo rating system on https://en.wikipedia.org/wiki/Elo_rating_system
       def calculate_new_elo(player_rating, opponent_rating, score)
-        expected_score = 1.0 / (1.0 + 10.0**((opponent_rating - player_rating) / 400.0))
+        expected_score = 1.0 / (1.0 + (10.0**((opponent_rating - player_rating) / 400.0)))
 
         player_rating + (K * (score - expected_score)).round
       end

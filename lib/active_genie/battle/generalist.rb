@@ -60,6 +60,9 @@ module ActiveGenie
         response_formatted(response)
       end
 
+      PROMPT = File.read(File.join(__dir__, 'generalist.md'))
+      FUNCTION = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
+
       private
 
       def response_formatted(response)
@@ -71,9 +74,6 @@ module ActiveGenie
 
         { 'winner' => winner, 'loser' => loser, 'reasoning' => response['impartial_judge_winner_reasoning'] }
       end
-
-      PROMPT = File.read(File.join(__dir__, 'generalist.md'))
-      FUNCTION = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
     end
   end
 end

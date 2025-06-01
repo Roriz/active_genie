@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative './providers/openai_client'
-require_relative './providers/anthropic_client'
-require_relative './providers/google_client'
-require_relative './providers/deepseek_client'
+require_relative 'providers/openai_client'
+require_relative 'providers/anthropic_client'
+require_relative 'providers/google_client'
+require_relative 'providers/deepseek_client'
 require_relative '../errors/invalid_provider_error'
 
 module ActiveGenie

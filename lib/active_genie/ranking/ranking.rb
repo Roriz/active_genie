@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative './concerns/loggable'
-require_relative './players_collection'
-require_relative './free_for_all'
-require_relative './elo_round'
-require_relative './ranking_scoring'
+require_relative 'concerns/loggable'
+require_relative 'players_collection'
+require_relative 'free_for_all'
+require_relative 'elo_round'
+require_relative 'ranking_scoring'
 
 # This class orchestrates player ranking through multiple evaluation stages
 # using Elo ranking and free-for-all match simulations.
@@ -65,10 +65,10 @@ module ActiveGenie
         sorted_players
       end
 
-      private
-
       ELIMINATION_VARIATION = 'variation_too_high'
       ELIMINATION_RELEGATION = 'relegation_tier'
+
+      private
 
       def create_players
         players = PlayersCollection.new(@param_players)

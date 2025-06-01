@@ -47,17 +47,17 @@ module ActiveGenie
           expected: { winner: 'Lakers', winner_score: 112, loser: 'Warriors', loser_score: 108, mvp: 'LeBron James',
                       mvp_points: 35, mvp_assists: 12 } },
         {
-          input: ["Beautiful 3BR/2BA Single-Family Home in Austin - 2,100 sq ft - \$450,000",
+          input: ['Beautiful 3BR/2BA Single-Family Home in Austin - 2,100 sq ft - $450,000',
                   { property_type: { type: 'string' }, bedrooms: { type: 'integer' }, bathrooms: { type: 'number' },
                     location: { type: 'string' }, area: { type: 'number' }, area_unit: { type: 'string' }, price: { type: 'number' } }], expected: { property_type: 'Single-Family Home', bedrooms: 3, bathrooms: 2, location: 'Austin', area: 2100, area_unit: 'sq ft', price: 450_000 }
         },
         {
-          input: ["Luxury Downtown Loft - 1BD/1.5BA - Rooftop Pool - \$2,500/month - Available Aug 1",
+          input: ['Luxury Downtown Loft - 1BD/1.5BA - Rooftop Pool - $2,500/month - Available Aug 1',
                   { property_type: { type: 'string' }, bedrooms: { type: 'integer' }, bathrooms: { type: 'number' },
                     features: { type: 'array', items: { type: 'string' } }, price: { type: 'number' }, price_period: { type: 'string' }, availability_date: { type: 'string', format: 'date' } }], expected: { property_type: 'Loft', bedrooms: 1, bathrooms: 1.5, features: ['Luxury', 'Downtown', 'Rooftop Pool'], price: 2500, price_period: 'month', availability_date: '2025-08-01' }
         },
         {
-          input: ["Commercial Office Space for Lease - Prime Location - 5,000 sq ft - \$25/sq ft/year",
+          input: ['Commercial Office Space for Lease - Prime Location - 5,000 sq ft - $25/sq ft/year',
                   { property_type: { type: 'string' }, listing_type: { type: 'string' },
                     features: { type: 'array', items: { type: 'string' } }, area: { type: 'number' }, area_unit: { type: 'string' }, price: { type: 'number' }, price_unit: { type: 'string' }, price_period: { type: 'string' } }], expected: { property_type: 'Commercial Office Space', listing_type: 'Lease', features: ['Prime Location'], area: 5000, area_unit: 'sq ft', price: 25, price_unit: 'sq ft', price_period: 'year' }
         }

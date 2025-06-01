@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative './provider_base'
+require_relative 'provider_base'
 
 module ActiveGenie
   module Config
@@ -14,7 +14,7 @@ module ActiveGenie
         # Falls back to the OPENAI_API_KEY environment variable if not set.
         # @return [String, nil] The API key.
         def api_key
-          @api_key || ENV['OPENAI_API_KEY']
+          @api_key || ENV.fetch('OPENAI_API_KEY', nil)
         end
 
         # Retrieves the base API URL for OpenAI API.

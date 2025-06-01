@@ -3,7 +3,7 @@
 require 'json'
 require 'net/http'
 
-require_relative './base_client'
+require_relative 'base_client'
 
 module ActiveGenie
   module Clients
@@ -82,7 +82,7 @@ module ActiveGenie
 
       def headers
         {
-          'Authorization': "Bearer #{provider_config.api_key}",
+          Authorization: "Bearer #{provider_config.api_key}",
           'Content-Type': 'application/json'
         }.compact
       end

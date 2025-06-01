@@ -80,7 +80,7 @@ module ActiveGenie
       end
 
       def ffa_score
-        @ffa_win_count * 3 + @ffa_draw_count
+        (@ffa_win_count * 3) + @ffa_draw_count
       end
 
       def sort_value
@@ -99,7 +99,7 @@ module ActiveGenie
         }
       end
 
-      def method_missing(method_name, *args, &block)
+      def method_missing(method_name, *args, &)
         if method_name == :[] && args.size == 1
           attr_name = args.first.to_sym
 
@@ -116,13 +116,13 @@ module ActiveGenie
         method_name == :[] || super
       end
 
+      BASE_ELO = 1000
+
       private
 
       def generate_elo_by_score
         BASE_ELO + ((@score || 0) - 50)
       end
-
-      BASE_ELO = 1000
     end
   end
 end
