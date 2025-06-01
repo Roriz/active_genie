@@ -41,21 +41,21 @@ module ActiveGenie
         feature_flag = result.find { |r| r[:content].include? 'Feature Flagging & Rollout' }
 
         # clear worst ranks
-        onboarding_guide = result.find { |r| r[:content].include? 'Onboarding Guide' }
-        retrospective_and_postmortem_templates = result.find do |r|
+        onboarding_guide = result.index { |r| r[:content].include? 'Onboarding Guide' }
+        retrospective_and_postmortem_templates = result.index do |r|
           r[:content].include? 'Retrospective & Postmortem Templates'
         end
-        monitoring_and_alerting = result.find { |r| r[:content].include? 'Monitoring & Alerting' }
+        monitoring_and_alerting = result.index { |r| r[:content].include? 'Monitoring & Alerting' }
 
         assert_equal result.size, 15
 
-        assert feature_flag[:rank] <= 3, "Feature Flagging & Rollout should be on top but it was #{feature_flag[:rank]}"
-        assert feature_flag[:rank] > onboarding_guide[:rank],
-               "Onboarding Guide should be greater than #{onboarding_guide[:rank]}"
-        assert retrospective_and_postmortem_templates[:rank] > monitoring_and_alerting[:rank],
-               "Retrospective & Postmortem Templates should be greater than #{monitoring_and_alerting[:rank]}"
-        assert monitoring_and_alerting[:rank] > onboarding_guide[:rank],
-               "Monitoring & Alerting should be greater than #{onboarding_guide[:rank]}"
+        assert feature_flag <= 3, "Feature Flagging & Rollout should be on top but it was #{feature_flag}"
+        assert feature_flag > onboarding_guide,
+               "Onboarding Guide should be greater than #{onboarding_guide}"
+        assert retrospective_and_postmortem_templates > monitoring_and_alerting,
+               "Retrospective & Postmortem Templates should be greater than #{monitoring_and_alerting}"
+        assert monitoring_and_alerting > onboarding_guide,
+               "Monitoring & Alerting should be greater than #{onboarding_guide}"
       end
     end
   end

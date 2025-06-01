@@ -30,9 +30,7 @@ module ActiveGenie
           temperature: @config.llm.temperature || 0
         }
 
-        retry_with_backoff do
-          request(payload).dig('content', 0, 'input')
-        end
+        request(payload).dig('content', 0, 'input')
       end
 
       ANTHROPIC_ENDPOINT = '/v1/messages'

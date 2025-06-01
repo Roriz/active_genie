@@ -52,9 +52,7 @@ module ActiveGenie
       end
 
       def sorted
-        sorted_players = @players.sort_by { |p| -p.sort_value }
-        sorted_players.each_with_index { |p, i| p.rank = i + 1 }
-        sorted_players
+        @players.sort_by { |p| -p.sort_value }
       end
 
       def to_json(*_args)

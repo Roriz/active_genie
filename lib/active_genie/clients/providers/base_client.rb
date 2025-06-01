@@ -81,16 +81,13 @@ module ActiveGenie
 
         response = http_request(request, uri)
 
-        case response
-        when Net::HTTPSuccess
-          parsed_response = parse_response(response)
+        raise ClientError, "Unexpected response: #{response.code} - #{response.body}" unless response.is_a?(Net::HTTPSuccess)
 
-          log_request_details(uri:, request:, response:, start_time:, parsed_response:)
+        parsed_response = parse_response(response)
 
-          parsed_response
-        else
-          raise ClientError, "Unexpected response: #{response.code} - #{response.body}"
-        end
+        log_request_details(uri:, request:, response:, start_time:, parsed_response:)
+
+        parsed_response
       end
 
       # Create and configure an HTTP client
@@ -103,7 +100,10 @@ module ActiveGenie
         http.verify_mode = OpenSSL::SSL::VERIFY_PEER
         http.read_timeout = @config.llm.read_timeout || DEFAULT_TIMEOUT
         http.open_timeout = @config.llm.open_timeout || DEFAULT_OPEN_TIMEOUT
-        http.request(request)
+
+        retry_with_backoff do
+          http.request(request)
+        end
       end
 
       # Apply headers to the request
@@ -170,7 +170,7 @@ module ActiveGenie
 
         begin
           yield
-        rescue Net::HTTPError, ClientError => e
+        rescue Net::OpenTimeout, Net::ReadTimeout, ClientError => e
           raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)

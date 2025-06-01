@@ -29,14 +29,12 @@ module ActiveGenie
         }
         params = { key: provider_config.api_key }
 
-        retry_with_backoff do
-          response = request(payload, params)
+        response = request(payload, params)
 
-          json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
-          return nil if json_string.nil? || json_string.empty?
+        json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
+        return nil if json_string.nil? || json_string.empty?
 
-          normalize_response(json_string)
-        end
+        normalize_response(json_string)
       end
 
       API_VERSION_PATH = 'v1beta/models'

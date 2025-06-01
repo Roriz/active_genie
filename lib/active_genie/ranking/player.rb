@@ -10,8 +10,6 @@ module ActiveGenie
         @params[:content] ||= @params
       end
 
-      attr_accessor :rank
-
       def content
         @content ||= @params[:content]
       end
@@ -99,7 +97,9 @@ module ActiveGenie
 
       def to_h
         {
-          id:, name:, content:, score:, elo:,
+          id:, name:, content:,
+
+          score:, elo:,
           ffa_win_count:, ffa_lose_count:, ffa_draw_count:,
           eliminated:, ffa_score:, sort_value:
         }

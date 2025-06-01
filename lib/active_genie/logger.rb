@@ -21,13 +21,15 @@ module ActiveGenie
       log
     end
 
-    def with_context(context)
+    def with_context(context, observer: nil)
       @context ||= {}
       begin
         @context = @context.merge(context)
+        config.add_observer(observers: [observer])
         yield if block_given?
       ensure
         @context.delete_if { |key, _| context.key?(key) }
+        config.remove_observer([observer])
       end
     end
 

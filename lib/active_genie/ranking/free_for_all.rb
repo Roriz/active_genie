@@ -18,7 +18,7 @@ module ActiveGenie
       end
 
       def call
-        ActiveGenie::Logger.with_context(log_context, observer: method(:log_observer)) do
+        ActiveGenie::Logger.with_context(log_context, observer: ->(log) { log_observer(log) }) do
           matches.each do |player_a, player_b|
             winner, loser = battle(player_a, player_b)
 
