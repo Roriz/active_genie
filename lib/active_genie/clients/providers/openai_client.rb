@@ -25,15 +25,13 @@ module ActiveGenie
           model:
         }
 
-        retry_with_backoff do
-          response = request(payload)
+        response = request(payload)
 
-          raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.keys.empty?
+        raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.keys.empty?
 
-          ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
+        ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
 
-          response
-        end
+        response
       end
 
       private

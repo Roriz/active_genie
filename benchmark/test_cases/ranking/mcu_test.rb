@@ -26,17 +26,14 @@ module ActiveGenie
         CRITERIA
         result = ActiveGenie::Ranking.call(characters, fight_criteria)
 
-        puts result.map { |r|
-          [r.rank, r.content[0..30], r.score, r.elo, r.ffa_win_count, r.ffa_lose_count, r.ffa_draw_count, r.eliminated]
-        }.to_json
-        thanos = result.find { |r| r[:content].include? 'Thanos' }
-        captain_m = result.find { |r| r[:content].include? 'Captain Marvel' }
-        tony_stark = result.find { |r| r[:content].include? 'Tony Stark' }
+        thanos_index = result.index { |r| r[:content].include? 'Thanos' }
+        captain_m_index = result.index { |r| r[:content].include? 'Captain Marvel' }
+        tony_stark_index = result.index { |r| r[:content].include? 'Tony Stark' }
 
         assert_equal result.length, 51
-        assert thanos[:rank] <= 3, "Thanos should be on top but it was #{thanos[:rank]}"
-        assert captain_m[:rank] <= 3, "Captain Marvel should be on top but it was #{captain_m[:rank]}"
-        assert tony_stark[:rank] <= 10, "Tony Stark should be on top but it was #{tony_stark[:rank]}"
+        assert thanos_index <= 3, "Thanos should be on top but it was #{thanos_index}"
+        assert captain_m_index <= 3, "Captain Marvel should be on top but it was #{captain_m_index}"
+        assert tony_stark_index <= 10, "Tony Stark should be on top but it was #{tony_stark_index}"
       end
     end
   end

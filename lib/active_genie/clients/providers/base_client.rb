@@ -79,17 +79,19 @@ module ActiveGenie
       def execute_request(uri, request)
         start_time = Time.now
 
-        response = http_request(request, uri)
+        retry_with_backoff do
+          response = http_request(request, uri)
 
-        case response
-        when Net::HTTPSuccess
-          parsed_response = parse_response(response)
+          case response
+          when Net::HTTPSuccess
+            parsed_response = parse_response(response)
 
-          log_request_details(uri:, request:, response:, start_time:, parsed_response:)
+            log_request_details(uri:, request:, response:, start_time:, parsed_response:)
 
-          parsed_response
-        else
-          raise ClientError, "Unexpected response: #{response.code} - #{response.body}"
+            parsed_response
+          else
+            raise ClientError, "Unexpected response: #{response.code} - #{response.body}"
+          end
         end
       end
 
@@ -170,7 +172,7 @@ module ActiveGenie
 
         begin
           yield
-        rescue Net::HTTPError, ClientError => e
+        rescue Net::OpenTimeout, Net::ReadTimeout, ClientError => e
           raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)

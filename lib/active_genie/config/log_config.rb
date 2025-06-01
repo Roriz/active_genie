@@ -24,12 +24,12 @@ module ActiveGenie
       end
 
       def output_call(log)
-        output.call(log)
+        output&.call(log)
 
         Array(@observers).each do |obs|
           next unless obs[:scope].all? { |key, value| log[key.to_sym] == value }
 
-          obs[:observer].call(log)
+          obs[:observer]&.call(log)
         rescue StandardError => e
           ActiveGenie::Logger.call(code: :observer_error, **obs, error: e.message)
         end
@@ -38,10 +38,13 @@ module ActiveGenie
       def add_observer(observers: [], scope: nil, &block)
         @observers ||= []
 
-        raise ArgumentError, 'Scope must be a hash' unless scope.is_a?(Hash)
+        raise ArgumentError, 'Scope must be a hash' if scope && !scope.is_a?(Hash)
+        raise ArgumentError, 'Observer must be a callable' if block && !block.respond_to?(:call)
 
         @observers << { observer: block, scope: scope || {} } if block_given?
         Array(observers).each do |observer|
+          next unless observer.respond_to?(:call)
+
           @observers << { observer:, scope: scope || {} }
         end
       end
