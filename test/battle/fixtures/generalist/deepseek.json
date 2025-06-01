@@ -1,0 +1,39 @@
+{
+  "id": "e5f3694a-252b-4dfc-bf68-0c760a462d27",
+  "object": "chat.completion",
+  "created": 1747420709,
+  "model": "deepseek-chat",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_0_33bfe016-d1c4-46b3-aa00-f8130f2d2e39",
+            "type": "function",
+            "function": {
+              "name": "data_extractor",
+              "arguments": "{\"price\":0,\"price_explanation\":\"The user did not mention any price or cost related to the book 'Atomic Habits'.\"}"
+            }
+          }
+        ]
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 324,
+    "completion_tokens": 42,
+    "total_tokens": 366,
+    "prompt_tokens_details": {
+      "cached_tokens": 192
+    },
+    "prompt_cache_hit_tokens": 192,
+    "prompt_cache_miss_tokens": 132
+  },
+  "system_fingerprint": "fp_8802369eaa_prod0425fp8"
+}
