@@ -56,7 +56,7 @@ module ActiveGenie
       end
 
       def to_json(*_args)
-        to_h.to_json
+        @players.map(&:to_h).to_json
       end
 
       def method_missing(...)
@@ -84,7 +84,11 @@ module ActiveGenie
       def tier_size
         size = (eligible_size / 3).ceil
 
-        size.clamp(10, eligible_size - 10)
+        if eligible_size < 10
+          (eligible_size / 2).ceil
+        else
+          size.clamp(10, eligible_size - 10)
+        end
       end
     end
   end
