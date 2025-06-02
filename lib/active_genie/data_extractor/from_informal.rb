@@ -37,8 +37,8 @@ module ActiveGenie
       def call
         response = Generalist.call(@text, data_to_extract_with_litote, config: @config)
 
-        if response['message_litote']
-          response = Generalist.call(response['litote_rephrased'], @data_to_extract, config: @config)
+        if response[:message_litote]
+          response = Generalist.call(response[:litote_rephrased], @data_to_extract, config: @config)
         end
 
         response

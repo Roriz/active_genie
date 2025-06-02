@@ -38,7 +38,7 @@ module ActiveGenie
         CRITERIA
         result = ActiveGenie::Ranking.call(docs, pr_description)
 
-        feature_flag = result.find { |r| r[:content].include? 'Feature Flagging & Rollout' }
+        feature_flag = result.index { |r| r[:content].include? 'Feature Flagging & Rollout' }
 
         # clear worst ranks
         onboarding_guide = result.index { |r| r[:content].include? 'Onboarding Guide' }
