@@ -20,10 +20,14 @@ jobs:
         model:
           - provider: openai
             name: gpt-4.1-mini
+          - provider: openai
+            name: gpt-4.1
           - provider: google
             name: gemini-2.5-flash-preview-05-20
           - provider: anthropic
             name: claude-3-5-haiku-20241022
+          - provider: anthropic
+            name: claude-sonnet-4-20250514
           - provider: deepseek
             name: deepseek-chat
         module: [data_extractor, scoring, battle, ranking]
