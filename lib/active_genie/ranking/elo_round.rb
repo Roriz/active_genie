@@ -41,9 +41,16 @@ module ActiveGenie
       private
 
       def matches
+        match_keys = {}
+
         @relegation_tier.each_with_object([]) do |attack_player, matches|
           BATTLE_PER_PLAYER.times do
-            matches << [attack_player, next_defense_player].shuffle
+            defense_player = next_defense_player
+
+            next if match_keys["#{attack_player.id}_#{defense_player.id}"]
+
+            match_keys["#{attack_player.id}_#{defense_player.id}"] = true
+            matches << [attack_player, defense_player]
           end
         end
       end
