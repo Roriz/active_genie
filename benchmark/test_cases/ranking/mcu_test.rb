@@ -17,12 +17,18 @@ module ActiveGenie
           - Determine which character can achieve a consistent victory across the majority of plausible scenarios.
 
           # Steps
-
           1. **Evaluate Abilities**: Analyze the powers, abilities, and any relevant enhancements each character possesses.
           2. **Assess Scenarios**: Consider various hypothetical combat scenarios, including differences in terrain, preparation, and available resources.
           3. **Consistency of Victory**: For each character, evaluate their ability to win across multiple scenarios and identify how often they could consistently triumph over others.
           4. **Conclude**: Identify the character who demonstrates the highest likelihood of consistent victories against others in most scenarios.
 
+          # A Perfectly Balanced Battle Arena
+          Dimensions: 200m x 200m circular arena
+          Ceiling height: 100m dome
+          Flat terrain (no cover)
+
+          # Rules
+          None, the players are free to use any means necessary to win the fight.
         CRITERIA
         result = ActiveGenie::Ranking.call(characters, fight_criteria)
 
