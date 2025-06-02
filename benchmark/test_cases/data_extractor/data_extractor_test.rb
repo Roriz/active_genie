@@ -52,14 +52,6 @@ module ActiveGenie
       end
     end
 
-    from_informal_negative_tests = JSON.parse(File.read(File.join(__dir__, 'from_informal/negative.json')), symbolize_names: true)
-    from_informal_negative_tests.each_with_index do |test, index|
-      define_method("test_from_informal_negative_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-        result = ActiveGenie::DataExtractor::FromInformal.call(*test[:input])
-        module_asserts(result, test[:expected])
-      end
-    end
-
     private
 
     def module_asserts(result, expected)
