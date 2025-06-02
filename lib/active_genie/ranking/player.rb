@@ -27,13 +27,7 @@ module ActiveGenie
       end
 
       def elo
-        @elo = if @params[:elo]
-                 @params[:elo]
-               elsif @score
-                 generate_elo_by_score
-               else
-                 BASE_ELO
-               end
+        @elo = @elo || @params[:elo] || generate_elo_by_score
       end
 
       def ffa_win_count
@@ -84,7 +78,7 @@ module ActiveGenie
       end
 
       def ffa_score
-        (@ffa_win_count * 3) + @ffa_draw_count
+        (ffa_win_count * 3) + ffa_draw_count
       end
 
       def sort_value
@@ -127,7 +121,9 @@ module ActiveGenie
       private
 
       def generate_elo_by_score
-        BASE_ELO + ((@score || 0) - 50)
+        return BASE_ELO if @score.nil?
+
+        BASE_ELO + (@score - 50)
       end
     end
   end
