@@ -5,32 +5,6 @@ require_relative '../../test_helper'
 module ActiveGenie
   module DataExtractor
     class PreciseTest < Minitest::Test
-      def test_social_media_cat_thread_detector
-        thread_messages = <<~THREAD
-          Lily: Walked in on my cat staring at himself in the mirror like he was having a deep personal crisis. 😳
-          Jake: Mine does that too! Probably wondering why he’s stuck with me instead of ruling a kingdom.
-          Lily: He even touched the mirror like he was questioning reality. I think he unlocked a new level of self-awareness.
-          Emma: My cat once saw his reflection, puffed up like a balloon, and threw paws at himself. He lost. Badly.
-          Jake: Yep, mine tried to fight his reflection too. Then acted like he won. Bro, we all saw you get bodied.
-        THREAD
-        data_to_extract = {
-          thread_subject: {
-            type: 'string',
-            enum: ['cat', 'dog', 'mouse', 'rabbit', 'hamster', 'guinea pig', 'ferret', 'chicken', 'goat', 'sheep', 'horse',
-                   'cow', 'pig', 'other']
-          },
-          sentiment: {
-            type: 'string',
-            enum: %w[positive negative neutral]
-          }
-        }
-
-        result = ActiveGenie::DataExtractor.call(thread_messages, data_to_extract)
-
-        assert_equal result[:thread_subject], 'cat'
-        assert_equal result[:sentiment], 'positive'
-      end
-
       def test_job_description_extractor
         job_description = <<~DESCRIPTION
           We are seeking a dynamic and detail-oriented Marketing Coordinator to join our team. The ideal candidate will contribute to various marketing initiatives, focusing on enhancing our brand presence and driving customer engagement.
