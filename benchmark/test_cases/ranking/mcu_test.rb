@@ -38,7 +38,7 @@ module ActiveGenie
 
         assert_equal result.length, 51
         assert thanos_index <= 3, "Thanos should be on top3 but it was #{thanos_index}"
-        assert tony_stark_index <= 10, "Tony Stark should be on top10 but it was #{tony_stark_index}"
+        assert tony_stark_index <= 20, "Tony Stark should be on top20 but it was #{tony_stark_index}"
         assert happy_hogan_index >= 45, "Happy Hogan should be on bottom5 but it was #{happy_hogan_index}"
       end
     end

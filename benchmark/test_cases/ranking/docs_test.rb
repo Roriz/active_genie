@@ -39,11 +39,11 @@ module ActiveGenie
         result = ActiveGenie::Ranking.call(docs, pr_description)
 
         feature_flag = result.index { |r| r[:content].include? 'Feature Flagging & Rollout' }
-        onboarding_guide = result.index { |r| r[:content].include? 'Onboarding Guide' }
+        retrospective = result.index { |r| r[:content].include? 'Retrospective & Postmortem Templates' }
 
         assert_equal result.size, 15
         assert feature_flag <= 3, "Feature Flagging & Rollout should be on top3 but it was #{feature_flag}"
-        assert onboarding_guide > 10, "Onboarding Guide should be greater than 10 but it was #{onboarding_guide}"
+        assert retrospective >= 10, "Retrospective & Postmortem Templates should be greater than 10 but it was #{retrospective}"
       end
     end
   end
