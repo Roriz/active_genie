@@ -19,47 +19,41 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 ## Latest Benchmark Results
 
 | Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |
-|----------------|-----------|---------------------------|-----------|-----|-------------|-----|--------|---------|
-| data_extractor | anthropic | claude-3-5-haiku-20241022 | 23/0 (23) | 100 | 84.806410   | 31  | 29718  | 3.69    |
-| data_extractor | deepseek  | deepseek-chat             | 23/0 (23) | 100 | 229.362400  | 32  | 17618  | 9.97    |
-| data_extractor | google    | gemini-2.0-flash-lite     | 20/3 (23) | 86  | 72.642049   | 26  | 16930  | 3.16    |
-| data_extractor | openai    | gpt-4o-mini               | 23/0 (23) | 100 | 42.168443   | 29  | 13244  | 1.83    |
-| scoring        | anthropic | claude-3-5-haiku-20241022 | 9/4 (13)  | 69  | 100.488182  | 13  | 18492  | 7.73    |
-| scoring        | deepseek  | deepseek-chat             | 9/4 (13)  | 69  | 121.876891  | 13  | 10584  | 9.38    |
-| scoring        | openai    | gpt-4o-mini               | 8/5 (13)  | 61  | 30.899037   | 13  | 9959   | 2.38    |
-| scoring        | google    | gemini-2.0-flash-lite     | 8/5 (13)  | 61  | 63.592440   | 12  | 11009  | 4.89    |
-| battle         | anthropic | claude-3-5-haiku-20241022 | 10/0 (10) | 100 | 378.610437  | 1   | 1272   | 37.86   |
-| battle         | deepseek  | deepseek-chat             | 1/9 (10)  | 10  | 69.189029   | 10  | 3933   | 6.92    |
-| battle         | openai    | gpt-4o-mini               | 9/1 (10)  | 90  | 46.945714   | 10  | 8343   | 4.69    |
-| battle         | google    | gemini-2.0-flash-lite     | 9/1 (10)  | 90  | 80.621382   | 10  | 13674  | 8.06    |
-| ranking        | anthropic | claude-3-5-haiku-20241022 | 2/0 (2)   | 100 | 88.662300   | 2   | 2725   | 44.33   |
-| ranking        | deepseek  | deepseek-chat             | 1/1 (2)   | 50  | 3745.800662 | 243 | 313242 | 1872.90 |
-| ranking        | openai    | gpt-4o-mini               | 0/2 (2)   | 0   | 1858.974373 | 288 | 436665 | 929.49  |
-| ranking        | google    | gemini-2.0-flash-lite     | 2/0 (2)   | 100 | 405.893377  | 80  | 133440 | 202.95  |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| data_extractor | openai | gpt-4.1-mini | 112/8 (120) | 93% | 426 | 166 | 100039 | 3.55 |
+| data_extractor | google | gemini-2.5-flash-preview-05-20 | 112/8 (120) | 93% | 440 | 165 | 213353 | 3.67 |
+| data_extractor | anthropic | claude-3-5-haiku-20241022 | 69/14 (120) | 57% | 392 | 109 | 145058 | 3.26 |
+| data_extractor | deepseek | deepseek-chat | 111/9 (120) | 92% | 1,674 | 162 | 145282 | 13.95 |
+| battle | openai | gpt-4.1-mini | 11/1 (12) | 91% | 75 | 12 | 9672 | 6.23 |
+| battle | google | gemini-2.5-flash-preview-05-20 | 11/1 (12) | 91% | 117 | 12 | 28203 | 9.75 |
+| battle | anthropic | claude-3-5-haiku-20241022 | 11/1 (12) | 91% | 77 | 12 | 16025 | 6.44 |
+| battle | deepseek | deepseek-chat | 11/1 (12) | 91% | 215 | 12 | 11312 | 17.9 |
+| scoring | openai | gpt-4.1-mini | 13/4 (17) | 76% | 84 | 17 | 15279 | 4.95 |
+| scoring | google | gemini-2.5-flash-preview-05-20 | 13/4 (17) | 76% | 198 | 17 | 48656 | 11.62 |
+| scoring | anthropic | claude-3-5-haiku-20241022 | 12/5 (17) | 70% | 154 | 17 | 26878 | 9.08 |
+| scoring | deepseek | deepseek-chat | 14/3 (17) | 82% | 247 | 17 | 16739 | 14.55 |
+| ranking | openai | gpt-4.1-mini | 2/0 (2) | 100% | 2,209 | 259 | 390023 | 1104.32 |
+| ranking | google | gemini-2.5-flash-preview-05-20 | 1/0 (2) | 50% | 2,072 | 119 | 509041 | 1035.97 |
+| ranking | anthropic | claude-3-5-haiku-20241022 | 0/0 (2) | 0% | 7 | 2 | 2826 | 3.66 |
+| ranking | deepseek | deepseek-chat | 2/0 (2) | 100% | 5,892 | 260 | 423544 | 2945.88 |
+
+see logs and more details in: https://github.com/Roriz/active_genie/actions/runs/15414461171
 
 ### Module Performance Breakdown
 
 | ActiveGenie Module | Best Precision | Worst Precision | Recommended Model |
-|--------------------|-------------------|-------------------|-------------------|
-| data_extractor | 100% | 86% | `gpt-4o-mini` |
-| battle | 100% | 10% | `gemini-2.0-flash-lite` |
-| scoring | 69% | 61% | `claude-3-5-haiku-20241022` |
-| ranking | 100% | 0% | `gemini-2.0-flash-lite` |
+| --- | --- | --- | --- |
+| data_extractor | 93% | 57% | `gpt-4.1-mini` |
+| battle | 91% | 91% | `gpt-4.1-mini` |
+| scoring | 82% | 76% | `deepseek-chat` |
+| ranking | 100% | 0% | `gpt-4.1-mini` |
 
 ## Benchmark Methodology
 
-Our benchmarking process evaluates each model and module against a standardized test suite that includes:
+Our benchmarking process evaluates each model and module against a standardized test suite that includes a list of static tests found in [benchmark/test_cases](./test_cases/).
+The list of tests should represent the most variable use cases possible, but the same use case can be repeated multiple times with different inputs to ensure a more accurate representation of the model's performance.
 
-1. **Data Extraction Tests**: Evaluates accuracy in extracting structured data from unstructured text
-2. **Scoring Tests**: Measures consistency and fairness in multi-reviewer evaluations
-3. **Battle Tests**: Tests accuracy in determining winners based on specified criteria
-4. **Ranking Tests**: Evaluates the reliability of multi-stage ranking algorithms
-
-Each test case includes:
-- Input data
-- Expected output
-- Evaluation metrics
-- Edge cases
+We always need more use cases; if you have any, please submit an issue or PR with your test cases. The best use cases will be used to create Case Studies.
 
 ## Running Benchmarks
 
@@ -82,6 +76,9 @@ bundle exec rake active_genie:benchmark[ranking]
 
 - **Overall Precision**: Percentage of test cases where the model produced the expected output
 - **Module Precision**: Performance specific to each ActiveGenie module
+
+The objective is not necessarily to hit 100% precision, but to stay as high as possible. Each module can be harder or easier for the LLM, so each module should define its own target precision to aim for.
+It is highly recommended to have some of the hardest tests possible, to try to find the limit of the module. This limit will help users know if their use cases will fit the module or not.
 
 ## Continuous Benchmarking
 
