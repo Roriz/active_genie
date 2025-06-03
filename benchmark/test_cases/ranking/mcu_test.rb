@@ -33,13 +33,13 @@ module ActiveGenie
         result = ActiveGenie::Ranking.call(characters, fight_criteria)
 
         thanos_index = result.index { |r| r[:content].include? 'Thanos' }
-        captain_m_index = result.index { |r| r[:content].include? 'Captain Marvel' }
         tony_stark_index = result.index { |r| r[:content].include? 'Tony Stark' }
+        happy_hogan_index = result.index { |r| r[:content].include? 'Happy Hogan' }
 
         assert_equal result.length, 51
-        assert thanos_index <= 3, "Thanos should be on top but it was #{thanos_index}"
-        assert captain_m_index <= 3, "Captain Marvel should be on top but it was #{captain_m_index}"
-        assert tony_stark_index <= 10, "Tony Stark should be on top but it was #{tony_stark_index}"
+        assert thanos_index <= 3, "Thanos should be on top3 but it was #{thanos_index}"
+        assert tony_stark_index <= 10, "Tony Stark should be on top10 but it was #{tony_stark_index}"
+        assert happy_hogan_index >= 45, "Happy Hogan should be on bottom5 but it was #{happy_hogan_index}"
       end
     end
   end
