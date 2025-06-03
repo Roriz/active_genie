@@ -18,6 +18,8 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 
 ## Latest Benchmark Results
 
+![latest](./test_cases/assets/latest-benchmark.png)
+
 | Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | data_extractor | openai | gpt-4.1-mini | 112/8 (120) | 93% | 426 | 166 | 100039 | 3.55 |
