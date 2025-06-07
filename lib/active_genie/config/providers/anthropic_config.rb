@@ -48,8 +48,8 @@ module ActiveGenie
         # Retrieves the model name designated for the upper tier (e.g., most capable).
         # Defaults to 'claude-3-opus'.
         # @return [String] The upper tier model name.
-        def upper_tier_model
-          @upper_tier_model || 'claude-3-opus-20240229'
+        def higher_tier_model
+          @higher_tier_model || 'claude-3-opus-20240229'
         end
       end
     end

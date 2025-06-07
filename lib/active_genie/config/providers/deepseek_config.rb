@@ -41,8 +41,8 @@ module ActiveGenie
         # Retrieves the model name designated for the upper tier (e.g., most capable).
         # Defaults to 'deepseek-reasoner'.
         # @return [String] The upper tier model name.
-        def upper_tier_model
-          @upper_tier_model || 'deepseek-reasoner'
+        def higher_tier_model
+          @higher_tier_model || 'deepseek-reasoner'
         end
       end
     end
