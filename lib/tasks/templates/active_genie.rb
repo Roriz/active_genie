@@ -7,7 +7,7 @@ ActiveGenie.configure do |config|
   # config.providers.openai.api_url = 'https://api.openai.com/v1'
   # config.providers.openai.lower_tier_model = 'gpt-4.1-mini'
   # config.providers.openai.middle_tier_model = 'gpt-4.1'
-  # config.providers.openai.upper_tier_model = 'o3-mini'
+  # config.providers.openai.higher_tier_model = 'o3-mini'
   # config.providers.openai.client = ActiveGenie::Providers::Openai::Client.new(config)
 
   # example how add a new provider

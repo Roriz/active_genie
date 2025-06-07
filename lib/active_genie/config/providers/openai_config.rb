@@ -41,8 +41,8 @@ module ActiveGenie
         # Retrieves the model name designated for the upper tier (e.g., most capable).
         # Defaults to 'o1-preview'.
         # @return [String] The upper tier model name.
-        def upper_tier_model
-          @upper_tier_model || 'o3-mini'
+        def higher_tier_model
+          @higher_tier_model || 'o3-mini'
         end
       end
     end

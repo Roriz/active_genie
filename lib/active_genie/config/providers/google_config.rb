@@ -43,8 +43,8 @@ module ActiveGenie
         # Retrieves the model name designated for the upper tier (e.g., most capable).
         # Defaults to 'gemini-2.5-pro-experimental'.
         # @return [String] The upper tier model name.
-        def upper_tier_model
-          @upper_tier_model || 'gemini-2.5-pro-experimental'
+        def higher_tier_model
+          @higher_tier_model || 'gemini-2.5-pro-experimental'
         end
       end
     end

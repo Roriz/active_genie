@@ -7,7 +7,7 @@ module ActiveGenie
         NAME = :unknown
 
         attr_writer :api_key, :organization, :api_url, :client,
-                    :lower_tier_model, :middle_tier_model, :upper_tier_model
+                    :lower_tier_model, :middle_tier_model, :higher_tier_model
 
         # Maps a symbolic tier (:lower_tier, :middle_tier, :upper_tier) to a specific model name.
         # Falls back to the lower_tier_model if the tier is nil or unrecognized.
@@ -17,7 +17,7 @@ module ActiveGenie
           {
             lower_tier: lower_tier_model,
             middle_tier: middle_tier_model,
-            upper_tier: upper_tier_model
+            upper_tier: higher_tier_model
           }[tier&.to_sym] || lower_tier_model
         end
 
@@ -31,7 +31,7 @@ module ActiveGenie
             api_url:,
             lower_tier_model:,
             middle_tier_model:,
-            upper_tier_model:,
+            higher_tier_model:,
             **config
           }
         end
@@ -80,7 +80,7 @@ module ActiveGenie
         # Retrieves the model name designated for the upper tier (e.g., most capable).
         # Defaults to 'o1-preview'.
         # @return [String] The upper tier model name.
-        def upper_tier_model
+        def higher_tier_model
           raise NotImplementedError, 'Subclasses must implement this method'
         end
       end
