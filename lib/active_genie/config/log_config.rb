@@ -4,6 +4,7 @@ module ActiveGenie
   module Config
     class LogConfig
       attr_writer :file_path, :fine_tune_file_path
+      attr_reader :output
 
       def file_path
         @file_path || 'log/active_genie.log'
@@ -13,8 +14,12 @@ module ActiveGenie
         @fine_tune_file_path || 'log/active_genie_fine_tune.log'
       end
 
-      def output
-        @output || ->(log) { $stdout.puts log }
+      def additional_context
+        @additional_context || {}
+      end
+
+      def additional_context=(context)
+        @additional_context = @additional_context.merge(context).compact
       end
 
       def output=(output)
@@ -23,9 +28,7 @@ module ActiveGenie
         @output = output
       end
 
-      def output_call(log)
-        output&.call(log)
-
+      def call_observers(log)
         Array(@observers).each do |obs|
           next unless obs[:scope].all? { |key, value| log[key.to_sym] == value }
 

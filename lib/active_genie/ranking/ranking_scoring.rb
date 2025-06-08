@@ -17,12 +17,10 @@ module ActiveGenie
       end
 
       def call
-        ActiveGenie::Logger.with_context(log_context) do
-          @reviewers = generate_reviewers
+        @reviewers = generate_reviewers
 
-          players_without_score.each do |player|
-            player.score = generate_score(player)
-          end
+        players_without_score.each do |player|
+          player.score = generate_score(player)
         end
       end
 
@@ -37,10 +35,12 @@ module ActiveGenie
           player.content,
           @criteria,
           @reviewers,
-          config: @config
+          config: @config.merge(
+            additional_context: { ranking_scoring_id: }
+          )
         ).values_at('final_score', 'final_reasoning')
 
-        ActiveGenie::Logger.call({ code: :new_score, player_id: player.id, score:, reasoning: })
+        @config.logger.call({ ranking_scoring_id:, code: :new_score, player_id: player.id, score:, reasoning: })
 
         score
       end
@@ -51,23 +51,23 @@ module ActiveGenie
         reviewer1, reviewer2, reviewer3 = ActiveGenie::Scoring::RecommendedReviewers.call(
           [@players.sample.content, @players.sample.content].join("\n\n"),
           @criteria,
-          config: @config
+          config: @config.merge(
+            additional_context: { ranking_scoring_id: }
+          )
         ).values_at('reviewer1', 'reviewer2', 'reviewer3')
 
-        ActiveGenie::Logger.call({ code: :new_reviewers, reviewers: [reviewer1, reviewer2, reviewer3] })
+        @config.logger.call({ ranking_scoring_id:, code: :new_reviewers, reviewers: [reviewer1, reviewer2, reviewer3] })
 
         [reviewer1, reviewer2, reviewer3]
       end
 
-      def log_context
-        { ranking_scoring_id: }
-      end
-
       def ranking_scoring_id
-        player_ids = players_without_score.map(&:id).join(',')
-        ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
+        @ranking_scoring_id ||= begin
+          player_ids = players_without_score.map(&:id).join(',')
+          ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
 
-        "#{Digest::MD5.hexdigest(ranking_unique_key)}-scoring"
+          "#{Digest::MD5.hexdigest(ranking_unique_key)}-scoring"
+        end
       end
     end
   end

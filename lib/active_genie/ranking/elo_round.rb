@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../battle/generalist'
-
 module ActiveGenie
   module Ranking
     class EloRound
@@ -24,12 +22,10 @@ module ActiveGenie
       def call
         @previous_elo = @players.to_h { |player| [player.id, player.elo] }
 
-        ActiveGenie::Logger.with_context(log_context) do
-          matches.each do |player_a, player_b|
-            # TODO: battle can take a while, can be parallelized
-            winner, loser = battle(player_a, player_b)
-            update_players_elo(winner, loser)
-          end
+        matches.each do |player_a, player_b|
+          # TODO: battle can take a while, can be parallelized
+          winner, loser = battle(player_a, player_b)
+          update_players_elo(winner, loser)
         end
 
         build_report
@@ -62,22 +58,22 @@ module ActiveGenie
       end
 
       def battle(player_a, player_b)
-        ActiveGenie::Logger.with_context({ player_a_id: player_a.id, player_b_id: player_b.id }) do
-          result = ActiveGenie::Battle.call(
-            player_a.content,
-            player_b.content,
-            @criteria,
-            config: @config
+        result = ActiveGenie::Battle.call(
+          player_a.content,
+          player_b.content,
+          @criteria,
+          config: @config.merge(
+            additional_context: { elo_round_id:, player_a_id: player_a.id, player_b_id: player_b.id }
           )
+        )
 
-          winner, loser = case result['winner']
-                          when 'player_a' then [player_a, player_b]
-                          when 'player_b' then [player_b, player_a]
-                          when 'draw' then [nil, nil]
-                          end
+        winner, loser = case result['winner']
+                        when 'player_a' then [player_a, player_b]
+                        when 'player_b' then [player_b, player_a]
+                        when 'draw' then [nil, nil]
+                        end
 
-          [winner, loser]
-        end
+        [winner, loser]
       end
 
       def update_players_elo(winner, loser)
@@ -92,10 +88,6 @@ module ActiveGenie
         expected_score = 1.0 / (1.0 + (10.0**((opponent_rating - player_rating) / 400.0)))
 
         player_rating + (K * (score - expected_score)).round
-      end
-
-      def log_context
-        { elo_round_id: }
       end
 
       def elo_round_id
@@ -118,7 +110,7 @@ module ActiveGenie
           players_elo_diff:
         }
 
-        ActiveGenie::Logger.call({ code: :elo_round_report, **report })
+        @config.logger.call({ elo_round_id:, code: :elo_round_report, **report })
 
         report
       end

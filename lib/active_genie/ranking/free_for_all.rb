@@ -18,12 +18,10 @@ module ActiveGenie
       end
 
       def call
-        ActiveGenie::Logger.with_context(log_context, observer: ->(log) { log_observer(log) }) do
-          matches.each do |player_a, player_b|
-            winner, loser = battle(player_a, player_b)
+        matches.each do |player_a, player_b|
+          winner, loser = battle(player_a, player_b)
 
-            update_players_score(winner, loser)
-          end
+          update_players_score(winner, loser)
         end
 
         build_report
@@ -38,26 +36,30 @@ module ActiveGenie
       end
 
       def battle(player_a, player_b)
+        additional_context = { free_for_all_id:, player_a_id: player_a.id, player_b_id: player_b.id }
+
         result = ActiveGenie::Battle.call(
           player_a.content,
           player_b.content,
           @criteria,
-          config: @config
+          config: @config.merge(additional_context:)
         )
 
         winner, loser = case result['winner']
-                        when 'player_a' then [player_a, player_b, result['reasoning']]
-                        when 'player_b' then [player_b, player_a, result['reasoning']]
-                        when 'draw' then [nil, nil, result['reasoning']]
+                        when 'player_a' then [player_a, player_b]
+                        when 'player_b' then [player_b, player_a]
+                        when 'draw' then [nil, nil]
                         end
 
-        ActiveGenie::Logger.call({
-                                   code: :free_for_all_battle,
-                                   player_ids: [player_a.id, player_b.id],
-                                   winner_id: winner&.id,
-                                   loser_id: loser&.id,
-                                   reasoning: result['reasoning']
-                                 })
+        @config.logger.call(
+          {
+            **additional_context,
+            code: :free_for_all_battle,
+            winner_id: winner&.id,
+            loser_id: loser&.id,
+            reasoning: result['reasoning']
+          }
+        )
 
         [winner, loser]
       end
@@ -74,14 +76,12 @@ module ActiveGenie
         end
       end
 
-      def log_context
-        { free_for_all_id: }
-      end
-
       def free_for_all_id
-        eligible_ids = @players.eligible.map(&:id).join(',')
-        ranking_unique_key = [eligible_ids, @criteria, @config.to_json].join('-')
-        Digest::MD5.hexdigest(ranking_unique_key)
+        @free_for_all_id ||= begin
+          eligible_ids = @players.eligible.map(&:id).join(',')
+          ranking_unique_key = [eligible_ids, @criteria, @config.to_json].join('-')
+          Digest::MD5.hexdigest(ranking_unique_key)
+        end
       end
 
       def build_report
@@ -92,7 +92,7 @@ module ActiveGenie
           total_tokens: @total_tokens
         }
 
-        ActiveGenie::Logger.call({ code: :free_for_all_report, **report })
+        @config.logger.call({ free_for_all_id:, code: :free_for_all_report, **report })
 
         report
       end

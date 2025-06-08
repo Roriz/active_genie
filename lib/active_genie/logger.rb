@@ -4,47 +4,45 @@ require 'json'
 require 'fileutils'
 
 module ActiveGenie
-  module Logger
-    module_function
+  class Logger
+    def initialize(config: nil)
+      @config = config || ActiveGenie.configuration.log
+    end
 
     def call(data)
-      log = {
-        **(@context || {}),
-        **(data || {}),
-        timestamp: Time.now,
-        process_id: Process.pid
-      }
+      log = data.merge(@config.additional_context)
+                .merge(
+                  timestamp: Time.now,
+                  process_id: Process.pid
+                )
 
       persist!(log)
-      config.output_call(log)
+      output_call(log)
+      call_observers(log)
 
       log
     end
 
-    def with_context(context, observer: nil)
-      @context ||= {}
-      begin
-        @context = @context.merge(context)
-        config.add_observer(observers: [observer])
-        yield if block_given?
-      ensure
-        @context.delete_if { |key, _| context.key?(key) }
-        config.remove_observer([observer])
+    def call_observers(log)
+      return if @config.observers && @config.observers.empty?
+
+      @config.call_observers(log)
+    end
+
+    def output_call(log)
+      if @config.output
+        @config.output.call(log)
+      else
+        $stdout.puts log
       end
     end
 
-    attr_accessor :context
-
     def persist!(log)
-      file_path = log.key?(:fine_tune) && log[:fine_tune] ? config.fine_tune_file_path : config.file_path
+      file_path = log.key?(:fine_tune) && log[:fine_tune] ? @config.fine_tune_file_path : @config.file_path
       folder_path = File.dirname(file_path)
 
       FileUtils.mkdir_p(folder_path)
       File.write(file_path, "#{JSON.generate(log)}\n", mode: 'a')
-    end
-
-    def config
-      ActiveGenie.configuration.log
     end
   end
 end
