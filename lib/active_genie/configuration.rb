@@ -38,6 +38,10 @@ module ActiveGenie
       @llm ||= Config::LlmConfig.new
     end
 
+    def logger
+      @logger ||= ActiveGenie::Logger.new(log_config: log)
+    end
+
     SUB_CONFIGS = %w[log providers llm ranking scoring data_extractor battle].freeze
 
     def merge(config_params = {})
@@ -54,20 +58,28 @@ module ActiveGenie
 
         new_configuration.send("#{key}=", new_config)
       end
+      @logger = nil
 
       new_configuration
     end
 
+    # Merges a sub config with the config_params.
+    # Examples:
+    #   config.merge({ 'log' => { file_path: 'log/active_genie.log' } })
+    #   config.merge({ log: { file_path: 'log/active_genie.log' } })
+    #   config.merge({ file_path: 'log/active_genie.log' })
+    # these are all the same
+
     def sub_config_merge(config, key, config_params)
-      if config_params.key?(key.to_s)
+      if config_params&.key?(key.to_s)
         config.merge(config_params[key.to_s])
-      elsif config_params.key?(key.to_sym)
+      elsif config_params&.key?(key.to_sym)
         config.merge(config_params[key.to_sym])
       else
-        config.merge(config_params)
+        config.merge(config_params || {})
       end
     end
 
-    attr_writer :log, :providers, :ranking, :scoring, :data_extractor, :battle, :llm
+    attr_writer :log, :providers, :ranking, :scoring, :data_extractor, :battle, :llm, :logger
   end
 end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'concerns/loggable'
 require_relative 'players_collection'
 require_relative 'free_for_all'
 require_relative 'elo_round'
@@ -32,8 +31,6 @@ require_relative 'ranking_scoring'
 module ActiveGenie
   module Ranking
     class Ranking
-      include ActiveGenie::Concerns::Loggable
-
       def self.call(...)
         new(...).call
       end
@@ -48,19 +45,18 @@ module ActiveGenie
 
       def call
         @players = create_players
+        @config.log.additional_context = { ranking_id: }
 
-        ActiveGenie::Logger.with_context(log_context) do
-          set_initial_player_scores!
-          eliminate_obvious_bad_players!
+        set_initial_player_scores!
+        eliminate_obvious_bad_players!
 
-          while @players.elo_eligible?
-            elo_report = run_elo_round!
-            eliminate_relegation_players!
-            rebalance_players!(elo_report)
-          end
-
-          run_free_for_all!
+        while @players.elo_eligible?
+          elo_report = run_elo_round!
+          eliminate_relegation_players!
+          rebalance_players!(elo_report)
         end
+
+        run_free_for_all!
 
         sorted_players
       end
@@ -72,13 +68,18 @@ module ActiveGenie
 
       def create_players
         players = PlayersCollection.new(@param_players)
-        players.each { |p| ActiveGenie::Logger.call({ code: :new_player, player: p.to_h }) }
+        players.each { |p| @config.logger.call({ code: :new_player, player: p.to_h }) }
 
         players
       end
 
       def set_initial_player_scores!
-        RankingScoring.call(@players, @criteria, reviewers: @reviewers, config: @config)
+        RankingScoring.call(
+          @players,
+          @criteria,
+          reviewers: @reviewers,
+          config: @config
+        )
       end
 
       def eliminate_obvious_bad_players!
@@ -88,7 +89,11 @@ module ActiveGenie
       end
 
       def run_elo_round!
-        EloRound.call(@players, @criteria, config: @config)
+        EloRound.call(
+          @players,
+          @criteria,
+          config: @config
+        )
       end
 
       def eliminate_relegation_players!
@@ -106,25 +111,27 @@ module ActiveGenie
       end
 
       def run_free_for_all!
-        FreeForAll.call(@players, @criteria, config: @config)
+        FreeForAll.call(
+          @players,
+          @criteria,
+          config: @config
+        )
       end
 
       def sorted_players
         players = @players.sorted
-        ActiveGenie::Logger.call({ code: :ranking_final, players: players.map(&:to_h) })
+        @config.logger.call({ ranking_id:, code: :ranking_final, players: players.map(&:to_h) })
 
         players.map(&:to_h)
       end
 
-      def log_context
-        { ranking_id: }
-      end
-
       def ranking_id
-        player_ids = @players.map(&:id).join(',')
-        ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
+        @ranking_id ||= begin
+          player_ids = @players.map(&:id).join(',')
+          ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
 
-        Digest::MD5.hexdigest(ranking_unique_key)
+          Digest::MD5.hexdigest(ranking_unique_key)
+        end
       end
     end
   end

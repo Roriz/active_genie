@@ -36,10 +36,10 @@ module ActiveGenie
         tony_stark_index = result.index { |r| r[:content].include? 'Tony Stark' }
         happy_hogan_index = result.index { |r| r[:content].include? 'Happy Hogan' }
 
-        assert_equal result.length, 51
-        assert thanos_index <= 3, "Thanos should be on top3 but it was #{thanos_index}"
-        assert tony_stark_index <= 20, "Tony Stark should be on top20 but it was #{tony_stark_index}"
-        assert happy_hogan_index >= 45, "Happy Hogan should be on bottom5 but it was #{happy_hogan_index}"
+        assert_equal 51, result.length
+        assert_operator thanos_index, :<=, 3, "Thanos should be on top3 but it was #{thanos_index}"
+        assert_operator tony_stark_index, :<=, 20, "Tony Stark should be on top20 but it was #{tony_stark_index}"
+        assert_operator happy_hogan_index, :>=, 45, "Happy Hogan should be on bottom5 but it was #{happy_hogan_index}"
       end
     end
   end

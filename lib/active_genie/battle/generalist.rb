@@ -48,14 +48,14 @@ module ActiveGenie
           config: @config
         )
 
-        ActiveGenie::Logger.call({
-                                   code: :battle,
-                                   player_a: @player_a[0..30],
-                                   player_b: @player_b[0..30],
-                                   criteria: @criteria[0..30],
-                                   winner: response['impartial_judge_winner'],
-                                   reasoning: response['impartial_judge_winner_reasoning']
-                                 })
+        @config.logger.call({
+                              code: :battle,
+                              player_a: @player_a[0..30],
+                              player_b: @player_b[0..30],
+                              criteria: @criteria[0..30],
+                              winner: response['impartial_judge_winner'],
+                              reasoning: response['impartial_judge_winner_reasoning']
+                            })
 
         response_formatted(response)
       end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../battle/generalist'
-
 module ActiveGenie
   module Ranking
     class EloRound
@@ -9,27 +7,26 @@ module ActiveGenie
         new(...).call
       end
 
-      def initialize(players, criteria, config: {})
+      def initialize(players, criteria, config: nil)
         @players = players
         @relegation_tier = players.calc_relegation_tier
         @defender_tier = players.calc_defender_tier
         @criteria = criteria
-        @config = config
+        @config = ActiveGenie.configuration.merge(config)
         @tmp_defenders = []
         @total_tokens = 0
-        @previous_elo = {}
+        @previous_elo = @players.to_h { |player| [player.id, player.elo] }
         @previous_highest_elo = @defender_tier.max_by(&:elo).elo
       end
 
       def call
-        @previous_elo = @players.to_h { |player| [player.id, player.elo] }
+        @config.log.add_observer(observers: ->(log) { log_observer(log) })
+        @config.log.additional_context = { elo_round_id: }
 
-        ActiveGenie::Logger.with_context(log_context) do
-          matches.each do |player_a, player_b|
-            # TODO: battle can take a while, can be parallelized
-            winner, loser = battle(player_a, player_b)
-            update_players_elo(winner, loser)
-          end
+        matches.each do |player_a, player_b|
+          # TODO: battle can take a while, can be parallelized
+          winner, loser = battle(player_a, player_b)
+          update_players_elo(winner, loser)
         end
 
         build_report
@@ -62,22 +59,20 @@ module ActiveGenie
       end
 
       def battle(player_a, player_b)
-        ActiveGenie::Logger.with_context({ player_a_id: player_a.id, player_b_id: player_b.id }) do
-          result = ActiveGenie::Battle.call(
-            player_a.content,
-            player_b.content,
-            @criteria,
-            config: @config
-          )
+        result = ActiveGenie::Battle.call(
+          player_a.content,
+          player_b.content,
+          @criteria,
+          config: @config.merge(additional_context: { player_a_id: player_a.id, player_b_id: player_b.id })
+        )
 
-          winner, loser = case result['winner']
-                          when 'player_a' then [player_a, player_b]
-                          when 'player_b' then [player_b, player_a]
-                          when 'draw' then [nil, nil]
-                          end
+        winner, loser = case result['winner']
+                        when 'player_a' then [player_a, player_b]
+                        when 'player_b' then [player_b, player_a]
+                        when 'draw' then [nil, nil]
+                        end
 
-          [winner, loser]
-        end
+        [winner, loser]
       end
 
       def update_players_elo(winner, loser)
@@ -94,16 +89,14 @@ module ActiveGenie
         player_rating + (K * (score - expected_score)).round
       end
 
-      def log_context
-        { elo_round_id: }
-      end
-
       def elo_round_id
-        relegation_tier_ids = @relegation_tier.map(&:id).join(',')
-        defender_tier_ids = @defender_tier.map(&:id).join(',')
+        @elo_round_id ||= begin
+          relegation_tier_ids = @relegation_tier.map(&:id).join(',')
+          defender_tier_ids = @defender_tier.map(&:id).join(',')
 
-        ranking_unique_key = [relegation_tier_ids, defender_tier_ids, @criteria, @config.to_json].join('-')
-        Digest::MD5.hexdigest(ranking_unique_key)
+          ranking_unique_key = [relegation_tier_ids, defender_tier_ids, @criteria, @config.to_json].join('-')
+          Digest::MD5.hexdigest(ranking_unique_key)
+        end
       end
 
       def build_report
@@ -118,7 +111,7 @@ module ActiveGenie
           players_elo_diff:
         }
 
-        ActiveGenie::Logger.call({ code: :elo_round_report, **report })
+        @config.logger.call({ elo_round_id:, code: :elo_round_report, **report })
 
         report
       end

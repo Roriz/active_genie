@@ -151,7 +151,7 @@ module ActiveGenie
       #
       # @param details [Hash] Request and response details
       def log_request_details(uri:, request:, response:, start_time:, parsed_response:)
-        ActiveGenie::Logger.call(
+        @config.logger.call(
           {
             code: :http_request,
             uri: uri.to_s,
@@ -176,7 +176,7 @@ module ActiveGenie
           sleep_time = retry_delay * (2**retries)
           retries += 1
 
-          ActiveGenie::Logger.call(
+          @config.logger.call(
             code: :retry_attempt,
             attempt: retries,
             max_retries: max_retries,

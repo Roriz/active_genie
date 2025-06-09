@@ -32,7 +32,7 @@ module ActiveGenie
                 "Invalid response: #{response}"
         end
 
-        ActiveGenie::Logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
+        @config.logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
 
         response
       end
@@ -44,7 +44,7 @@ module ActiveGenie
 
         return nil if response.nil?
 
-        ActiveGenie::Logger.call(
+        @config.logger.call(
           {
             code: :llm_usage,
             input_tokens: response.dig('usage', 'prompt_tokens'),

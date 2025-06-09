@@ -61,7 +61,7 @@ module ActiveGenie
         assert result_value, "Missing key: #{key}, result: #{result.to_s[0..100]}"
 
         if value.is_a?(Array)
-          assert result_value.intersection(value).size.positive?, "Expected #{value}, but was #{result_value}"
+          assert_predicate result_value.intersection(value).size, :positive?, "Expected #{value}, but was #{result_value}"
         elsif value.is_a?(String)
           assert result_value.include?(value) || value.include?(result_value), "Expected #{value}, but was #{result_value}"
         else
@@ -69,7 +69,7 @@ module ActiveGenie
         end
       end
 
-      assert_equal result.keys.size, 0, "Expected no keys, but was #{result.keys.size}" if expected.keys.empty?
+      assert_equal 0, result.keys.size, "Expected no keys, but was #{result.keys.size}" if expected.keys.empty?
     end
   end
 end

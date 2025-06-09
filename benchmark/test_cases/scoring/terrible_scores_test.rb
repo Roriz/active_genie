@@ -9,16 +9,14 @@ module ActiveGenie
         result = ActiveGenie::Scoring.call('WARNING!!! URGENT!!! System totally broken!!! Nothing works!!! Fix ASAP!!!',
                                            'Evaluate incident report quality and professionalism', ['system_reliability_engineer'])
 
-        assert_equal result['final_score'] <= 20, true,
-                     "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
 
       def test_evaluate_completeness
         result = ActiveGenie::Scoring.call('Section 3.4: Data must secure. Implement good security. Make system fast.',
                                            'Evaluate completeness and clarity of technical requirements', ['system_architect'])
 
-        assert_equal result['final_score'] <= 20, true,
-                     "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
 
       def test_marketplace_product_quality
@@ -33,8 +31,7 @@ module ActiveGenie
         result = ActiveGenie::Scoring.call(product_description, criteria,
                                            %w[ebay_seller_moderator ebay_product_analyzer])
 
-        assert_equal result['final_score'] <= 20, true,
-                     "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
 
       def test_technical_difficulty_of_jira_task
@@ -52,8 +49,7 @@ module ActiveGenie
 
         result = ActiveGenie::Scoring.call(jira_task, criteria, reviewers)
 
-        assert_equal result['final_score'] <= 20, true,
-                     "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
     end
   end

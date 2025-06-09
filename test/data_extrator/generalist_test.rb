@@ -25,6 +25,7 @@ module ActiveGenie
           assert_includes request_body['messages'], { 'role' => 'user', 'content' => text }
 
           function_properties = request_body.dig('tools', 0, 'function', 'parameters', 'properties')
+
           assert function_properties.key?('schema_key')
           assert_equal 'string', function_properties['schema_key']['type']
           assert function_properties.key?('schema_key_explanation')
@@ -69,12 +70,15 @@ module ActiveGenie
           assert_equal 1, request_body['tools'].length
 
           tool = request_body['tools'].first
+
           assert_equal 'data_extractor', tool['name']
 
           parameters = tool['input_schema']
+
           assert parameters.key?('properties')
 
           properties = parameters['properties']
+
           assert properties.key?('schema_key')
           assert_equal 'string', properties['schema_key']['type']
           assert properties.key?('schema_key_explanation')
@@ -96,6 +100,7 @@ module ActiveGenie
           assert_includes request_body['messages'], { 'role' => 'user', 'content' => text }
 
           function_properties = request_body.dig('tools', 0, 'function', 'parameters', 'properties')
+
           assert function_properties.key?('schema_key')
           assert_equal 'string', function_properties['schema_key']['type']
           assert function_properties.key?('schema_key_explanation')

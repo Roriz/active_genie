@@ -26,7 +26,7 @@ module ActiveGenie
 
           system_message = messages.find { |m| m['role'] == 'system' }
 
-          assert system_message['content'].include? 'Based on two players, player_a and player_b'
+          assert_includes system_message['content'], 'Based on two players, player_a and player_b'
           assert_includes messages, { 'role' => 'user', 'content' => "criteria: #{criteria}" }
           assert_includes messages, { 'role' => 'user', 'content' => "player_a: #{player_a}" }
           assert_includes messages, { 'role' => 'user', 'content' => "player_b: #{player_b}" }

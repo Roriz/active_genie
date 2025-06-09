@@ -47,34 +47,26 @@ module ActiveGenie
       end
 
       def score=(value)
-        ActiveGenie::Logger.call({ code: :new_score, player_id: id, score: value }) if value != @score
         @score = value
         @elo = generate_elo_by_score
       end
 
       def elo=(value)
-        ActiveGenie::Logger.call({ code: :new_elo, player_id: id, elo: value }) if value != @elo
         @elo = value || BASE_ELO
       end
 
-      def eliminated=(value)
-        ActiveGenie::Logger.call({ code: :new_eliminated, player_id: id, eliminated: value }) if value != @eliminated
-        @eliminated = value
-      end
+      attr_writer :eliminated
 
       def draw!
         @ffa_draw_count += 1
-        ActiveGenie::Logger.call({ code: :new_ffa_score, player_id: id, result: 'draw', ffa_score: })
       end
 
       def win!
         @ffa_win_count += 1
-        ActiveGenie::Logger.call({ code: :new_ffa_score, player_id: id, result: 'win', ffa_score: })
       end
 
       def lose!
         @ffa_lose_count += 1
-        ActiveGenie::Logger.call({ code: :new_ffa_score, player_id: id, result: 'lose', ffa_score: })
       end
 
       def ffa_score

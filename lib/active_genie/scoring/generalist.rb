@@ -52,14 +52,14 @@ module ActiveGenie
 
         result['final_score'] = 0 if result['final_score'].nil?
 
-        ActiveGenie::Logger.call({
-                                   code: :scoring,
-                                   text: @text[0..30],
-                                   criteria: @criteria[0..30],
-                                   reviewers: reviewers,
-                                   score: result['final_score'],
-                                   reasoning: result['final_reasoning']
-                                 })
+        @config.logger.call({
+                              code: :scoring,
+                              text: @text[0..30],
+                              criteria: @criteria[0..30],
+                              reviewers: reviewers,
+                              score: result['final_score'],
+                              reasoning: result['final_reasoning']
+                            })
 
         result
       end

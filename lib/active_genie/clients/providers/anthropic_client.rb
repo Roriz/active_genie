@@ -55,7 +55,7 @@ module ActiveGenie
       def request(payload)
         response = post(url, payload, headers:)
 
-        ActiveGenie::Logger.call(
+        @config.logger.call(
           {
             code: :llm_usage,
             input_tokens: response.dig('usage', 'input_tokens'),
@@ -67,7 +67,7 @@ module ActiveGenie
             usage: response['usage']
           }
         )
-        ActiveGenie::Logger.call(
+        @config.logger.call(
           {
             code: :function_calling,
             fine_tune: true,

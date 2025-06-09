@@ -4,6 +4,7 @@ module ActiveGenie
   module Config
     class LogConfig
       attr_writer :file_path, :fine_tune_file_path
+      attr_reader :output, :observers
 
       def file_path
         @file_path || 'log/active_genie.log'
@@ -13,8 +14,12 @@ module ActiveGenie
         @fine_tune_file_path || 'log/active_genie_fine_tune.log'
       end
 
-      def output
-        @output || ->(log) { $stdout.puts log }
+      def additional_context
+        @additional_context || {}
+      end
+
+      def additional_context=(context)
+        @additional_context = additional_context.merge(context).compact
       end
 
       def output=(output)
@@ -23,29 +28,17 @@ module ActiveGenie
         @output = output
       end
 
-      def output_call(log)
-        output&.call(log)
-
-        Array(@observers).each do |obs|
-          next unless obs[:scope].all? { |key, value| log[key.to_sym] == value }
-
-          obs[:observer]&.call(log)
-        rescue StandardError => e
-          ActiveGenie::Logger.call(code: :observer_error, **obs, error: e.message)
-        end
-      end
-
       def add_observer(observers: [], scope: {}, &block)
         @observers ||= []
 
         raise ArgumentError, 'Scope must be a hash' if scope && !scope.is_a?(Hash)
 
-        @observers << { observer: block, scope: } if block_given?
         Array(observers).each do |observer|
           next unless observer.respond_to?(:call)
 
           @observers << { observer:, scope: }
         end
+        @observers << { observer: block, scope: } if block_given?
       end
 
       def remove_observer(observers)
@@ -60,6 +53,10 @@ module ActiveGenie
 
       def merge(config_params = {})
         dup.tap do |config|
+          config_params.compact.each do |key, value|
+            config.send("#{key}=", value) if config.respond_to?("#{key}=")
+          end
+
           config.add_observer(config_params[:observers]) if config_params[:observers]
         end
       end
