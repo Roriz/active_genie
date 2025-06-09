@@ -41,9 +41,9 @@ module ActiveGenie
         feature_flag = result.index { |r| r[:content].include? 'Feature Flagging & Rollout' }
         retrospective = result.index { |r| r[:content].include? 'Retrospective & Postmortem Templates' }
 
-        assert_equal result.size, 15
-        assert feature_flag <= 3, "Feature Flagging & Rollout should be on top3 but it was #{feature_flag}"
-        assert retrospective >= 10, "Retrospective & Postmortem Templates should be greater than 10 but it was #{retrospective}"
+        assert_equal 15, result.size
+        assert_operator feature_flag, :<=, 3, "Feature Flagging & Rollout should be on top3 but it was #{feature_flag}"
+        assert_operator retrospective, :>=, 10, "Retrospective & Postmortem Templates should be greater than 10 but it was #{retrospective}"
       end
     end
   end

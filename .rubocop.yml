@@ -8,6 +8,8 @@
 # where the inspected file is and continue its way up to the root directory.
 #
 # See https://docs.rubocop.org/rubocop/configuration
+plugins: rubocop-minitest
+
 AllCops:
   TargetRubyVersion: 3.4
   NewCops: enable
@@ -36,3 +38,6 @@ Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
     - 'benchmark/**/*'
+
+Minitest/MultipleAssertions:
+  Enabled: false

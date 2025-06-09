@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../battle/generalist'
-
 module ActiveGenie
   module Ranking
     class FreeForAll
@@ -9,15 +7,18 @@ module ActiveGenie
         new(...).call
       end
 
-      def initialize(players, criteria, config: {})
+      def initialize(players, criteria, config: nil)
         @players = players
         @criteria = criteria
-        @config = config
+        @config = config || ActiveGenie.configuration
         @start_time = Time.now
         @total_tokens = 0
       end
 
       def call
+        @config.log.add_observer(observers: ->(log) { log_observer(log) })
+        @config.log.additional_context = { free_for_all_id: }
+
         matches.each do |player_a, player_b|
           winner, loser = battle(player_a, player_b)
 
@@ -36,13 +37,13 @@ module ActiveGenie
       end
 
       def battle(player_a, player_b)
-        additional_context = { free_for_all_id:, player_a_id: player_a.id, player_b_id: player_b.id }
+        log_context = { player_a_id: player_a.id, player_b_id: player_b.id }
 
         result = ActiveGenie::Battle.call(
           player_a.content,
           player_b.content,
           @criteria,
-          config: @config.merge(additional_context:)
+          config: @config.merge(additional_context: log_context)
         )
 
         winner, loser = case result['winner']
@@ -53,7 +54,7 @@ module ActiveGenie
 
         @config.logger.call(
           {
-            **additional_context,
+            **log_context,
             code: :free_for_all_battle,
             winner_id: winner&.id,
             loser_id: loser&.id,
@@ -92,7 +93,7 @@ module ActiveGenie
           total_tokens: @total_tokens
         }
 
-        @config.logger.call({ free_for_all_id:, code: :free_for_all_report, **report })
+        @config.logger.call({ code: :free_for_all_report, **report })
 
         report
       end

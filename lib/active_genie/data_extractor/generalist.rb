@@ -87,7 +87,7 @@ module ActiveGenie
           config: @config
         )
 
-        ActiveGenie::Logger.call(
+        @config.logger.call(
           {
             code: :data_extractor,
             text: @text[0..30],

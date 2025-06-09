@@ -4,7 +4,7 @@ module ActiveGenie
   module Config
     class LogConfig
       attr_writer :file_path, :fine_tune_file_path
-      attr_reader :output
+      attr_reader :output, :observers
 
       def file_path
         @file_path || 'log/active_genie.log'
@@ -28,27 +28,17 @@ module ActiveGenie
         @output = output
       end
 
-      def call_observers(log)
-        Array(@observers).each do |obs|
-          next unless obs[:scope].all? { |key, value| log[key.to_sym] == value }
-
-          obs[:observer]&.call(log)
-        rescue StandardError => e
-          ActiveGenie::Logger.call(code: :observer_error, **obs, error: e.message)
-        end
-      end
-
       def add_observer(observers: [], scope: {}, &block)
         @observers ||= []
 
         raise ArgumentError, 'Scope must be a hash' if scope && !scope.is_a?(Hash)
 
-        @observers << { observer: block, scope: } if block_given?
         Array(observers).each do |observer|
           next unless observer.respond_to?(:call)
 
           @observers << { observer:, scope: }
         end
+        @observers << { observer: block, scope: } if block_given?
       end
 
       def remove_observer(observers)

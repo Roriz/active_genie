@@ -7,12 +7,12 @@ module ActiveGenie
         new(...).call
       end
 
-      def initialize(players, criteria, config: {})
+      def initialize(players, criteria, config: nil)
         @players = players
         @relegation_tier = players.calc_relegation_tier
         @defender_tier = players.calc_defender_tier
         @criteria = criteria
-        @config = config
+        @config = ActiveGenie.configuration.merge(config)
         @tmp_defenders = []
         @total_tokens = 0
         @previous_elo = {}
@@ -20,6 +20,7 @@ module ActiveGenie
       end
 
       def call
+        @config.log.add_observer(observers: ->(log) { log_observer(log) })
         @previous_elo = @players.to_h { |player| [player.id, player.elo] }
 
         matches.each do |player_a, player_b|
@@ -62,9 +63,11 @@ module ActiveGenie
           player_a.content,
           player_b.content,
           @criteria,
-          config: @config.merge(
-            additional_context: { elo_round_id:, player_a_id: player_a.id, player_b_id: player_b.id }
-          )
+          {
+            config: @config.merge(
+              additional_context: { elo_round_id:, player_a_id: player_a.id, player_b_id: player_b.id }
+            )
+          }
         )
 
         winner, loser = case result['winner']
@@ -91,11 +94,13 @@ module ActiveGenie
       end
 
       def elo_round_id
-        relegation_tier_ids = @relegation_tier.map(&:id).join(',')
-        defender_tier_ids = @defender_tier.map(&:id).join(',')
+        @elo_round_id ||= begin
+          relegation_tier_ids = @relegation_tier.map(&:id).join(',')
+          defender_tier_ids = @defender_tier.map(&:id).join(',')
 
-        ranking_unique_key = [relegation_tier_ids, defender_tier_ids, @criteria, @config.to_json].join('-')
-        Digest::MD5.hexdigest(ranking_unique_key)
+          ranking_unique_key = [relegation_tier_ids, defender_tier_ids, @criteria, @config.to_json].join('-')
+          Digest::MD5.hexdigest(ranking_unique_key)
+        end
       end
 
       def build_report

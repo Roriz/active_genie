@@ -34,6 +34,8 @@ module ActiveGenie
         json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
         return nil if json_string.nil? || json_string.empty?
 
+        @config.logger.call({ code: :function_calling, fine_tune: true, payload:, parsed_response: json_string })
+
         normalize_response(json_string)
       end
 
@@ -48,7 +50,7 @@ module ActiveGenie
       def request(payload, params)
         response = post(url, payload, headers: DEFAULT_HEADERS, params:)
 
-        ActiveGenie::Logger.call(
+        @config.logger.call(
           {
             code: :llm_usage,
             input_tokens: response['usageMetadata']['promptTokenCount'] || 0,
@@ -56,15 +58,6 @@ module ActiveGenie
             total_tokens: response['usageMetadata']['totalTokenCount'] || (prompt_tokens + candidates_tokens),
             model:,
             usage: response['usageMetadata'] || {}
-          }
-        )
-
-        ActiveGenie::Logger.call(
-          {
-            code: :function_calling,
-            fine_tune: true,
-            payload:,
-            parsed_response: response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
           }
         )
 
