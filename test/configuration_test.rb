@@ -66,8 +66,8 @@ module ActiveGenie
         config: {
           log: {
             additional_context: { test_custom_attr: 'test' },
-            output: -> (log) do
-              assert_equal log[:test_custom_attr], 'test'
+            output: lambda do |log|
+              assert_equal 'test', log[:test_custom_attr]
             end
           }
         }
