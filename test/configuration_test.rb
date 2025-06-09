@@ -55,5 +55,23 @@ module ActiveGenie
       assert_requested(:post,
                        %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent})
     end
+
+    def test_additional_context
+      text = 'Input Text'
+      schema = { schema_key: { type: 'string' } }
+
+      ActiveGenie::DataExtractor.call(
+        text,
+        schema,
+        config: {
+          log: {
+            additional_context: { test_custom_attr: 'test' },
+            output: -> (log) do
+              assert_equal log[:test_custom_attr], 'test'
+            end
+          }
+        }
+      )
+    end
   end
 end

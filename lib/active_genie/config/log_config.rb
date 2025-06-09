@@ -53,6 +53,10 @@ module ActiveGenie
 
       def merge(config_params = {})
         dup.tap do |config|
+          config_params.compact.each do |key, value|
+            config.send("#{key}=", value) if config.respond_to?("#{key}=")
+          end
+
           config.add_observer(config_params[:observers]) if config_params[:observers]
         end
       end
