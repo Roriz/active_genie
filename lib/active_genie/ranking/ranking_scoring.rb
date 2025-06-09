@@ -34,9 +34,7 @@ module ActiveGenie
           player.content,
           @criteria,
           @reviewers,
-          config: @config.merge(
-            additional_context: { ranking_scoring_id: }
-          )
+          config: @config
         ).values_at('final_score', 'final_reasoning')
 
         @config.logger.call({ code: :new_score, player_id: player.id, score:, reasoning: })

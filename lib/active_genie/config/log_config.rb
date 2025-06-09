@@ -19,7 +19,7 @@ module ActiveGenie
       end
 
       def additional_context=(context)
-        @additional_context = @additional_context.merge(context).compact
+        @additional_context = additional_context.merge(context).compact
       end
 
       def output=(output)

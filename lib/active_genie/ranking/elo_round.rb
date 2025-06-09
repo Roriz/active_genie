@@ -15,13 +15,13 @@ module ActiveGenie
         @config = ActiveGenie.configuration.merge(config)
         @tmp_defenders = []
         @total_tokens = 0
-        @previous_elo = {}
+        @previous_elo = @players.to_h { |player| [player.id, player.elo] }
         @previous_highest_elo = @defender_tier.max_by(&:elo).elo
       end
 
       def call
         @config.log.add_observer(observers: ->(log) { log_observer(log) })
-        @previous_elo = @players.to_h { |player| [player.id, player.elo] }
+        @config.log.additional_context = { elo_round_id: }
 
         matches.each do |player_a, player_b|
           # TODO: battle can take a while, can be parallelized
@@ -63,11 +63,7 @@ module ActiveGenie
           player_a.content,
           player_b.content,
           @criteria,
-          {
-            config: @config.merge(
-              additional_context: { elo_round_id:, player_a_id: player_a.id, player_b_id: player_b.id }
-            )
-          }
+          config: @config.merge(additional_context: { player_a_id: player_a.id, player_b_id: player_b.id })
         )
 
         winner, loser = case result['winner']
