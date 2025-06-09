@@ -32,6 +32,7 @@ The log configuration controls how ActiveGenie handles logging of its operations
 | `file_path` | String | `'log/active_genie.log'` | Path to the main log file where all logs will be written. |
 | `fine_tune_file_path` | String | `'log/active_genie_fine_tune.log'` | Path to the fine-tuning specific log file. |
 | `output` | Proc | `->(log) { $stdout.puts log }` | Custom output handler for logs. Must respond to `call`. |
+| `additional_context` | Hash | `{}` | Additional context to be added to each log entry. |
 
 #### Methods:
 
