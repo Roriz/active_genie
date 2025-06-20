@@ -1,5 +1,5 @@
 # ActiveGenie 🧞‍♂️
-> The Lodash for GenAI: Real Value + Consistent Results + Model-Agnostic
+> The Lodash for GenAI: Real Value + Consistent + Model-Agnostic
 
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
