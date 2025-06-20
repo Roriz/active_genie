@@ -1,11 +1,11 @@
 # ActiveGenie 🧞‍♂️
-> The lodash for GenAI, stop reinventing the wheel
+> The Lodash for GenAI: Future-Proof + Consistent + Model-Agnostic
 
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-ActiveGenie is a Ruby gem that provides valuable solutions powered by Generative AI (GenAI) models. Just like Lodash or ActiveStorage, ActiveGenie brings a set of Modules to reach real value fast and reliably.
-ActiveGenie is backed by a custom benchmarking system that ensures consistent quality and performance across different models and providers in every release.
+ActiveGenie is a Ruby gem that helps developers build reliable, future-proof GenAI features without worrying about changing models, prompts, or providers. Like Lodash for GenAI, it offers simple, reusable modules for tasks like data extraction, scoring, and ranking, so you can focus on your app’s logic, not the shifting AI landscape.
+Behind the scenes, a custom benchmarking system keeps everything consistent across LLM vendors and versions, release after release.
 
 ## Installation
 
