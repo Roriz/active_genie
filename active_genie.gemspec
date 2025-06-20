@@ -4,7 +4,7 @@ Gem::Specification.new do |spec|
   spec.platform      = Gem::Platform::RUBY
   spec.name          = 'active_genie'
   spec.version       = File.read(File.expand_path('VERSION', __dir__)).strip
-  spec.summary       = 'The Lodash for GenAI: Future-Proof + Consistent + Model-Agnostics'
+  spec.summary       = 'The Lodash for GenAI: Real Value + Consistent Results + Model-Agnostic'
   spec.description   = <<~DESC
     ActiveGenie is a Ruby gem that helps developers build reliable, future-proof GenAI features without worrying about changing models, prompts, or providers. Like Lodash for GenAI, it offers simple, reusable modules for tasks like data extraction, scoring, and ranking, so you can focus on your app’s logic, not the shifting AI landscape.
     Behind the scenes, a custom benchmarking system keeps everything consistent across LLM vendors and versions, release after release.
