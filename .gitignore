@@ -3,3 +3,7 @@ tmp
 
 logs/*.log
 log/*.log
+
+node_modules/
+
+cache/
