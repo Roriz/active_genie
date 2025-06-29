@@ -9,7 +9,7 @@
   "keywords": [],
   "license": "apache-2.0",
   "devDependencies": {
-    "vitepress": "^1.6.3",
+    "vitepress": "^2.0.0-alpha.7",
     "vue": "^3.5.17"
   }
 }

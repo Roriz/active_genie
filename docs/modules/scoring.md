@@ -53,18 +53,22 @@ result = ActiveGenie::Scoring.call(text, criteria)
 Main interface for scoring text content.
 
 #### Parameters
-- `text` [String] - The text content to be evaluated
-- `criteria` [String] - The evaluation criteria or rubric to assess against
-- `reviewers` [Array<String>] - Optional list of specific reviewers
-- `config` [Hash] - Additional configuration config
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | String | The text content to analyze |
+| `criteria` | String | The evaluation criteria |
+| `reviewers` | Array of String | Optional list of reviewer roles |
+| `config` | Hash | Additional configuration options |
 
 ### `RecommendedReviewers.call(text, criteria, config: {})`
 Recommends appropriate reviewers based on content and criteria.
 
 #### Parameters
-- `text` [String] - The text content to analyze
-- `criteria` [String] - The evaluation criteria
-- `config` [Hash] - Additional configuration config
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | String | The text content to analyze |
+| `criteria` | String | The evaluation criteria |
+| `config` | Hash | Additional configuration options |
 
 ### Usage Notes
 - Best suited for objective evaluation of text content

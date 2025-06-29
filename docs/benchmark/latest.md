@@ -18,7 +18,7 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 
 ## Latest Benchmark Results
 
-![latest](./test_cases/assets/latest-benchmark.png)
+![latest](/assets/latest-benchmark.png)
 
 | Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -52,7 +52,7 @@ see logs and more details in: https://github.com/Roriz/active_genie/actions/runs
 
 ## Benchmark Methodology
 
-Our benchmarking process evaluates each model and module against a standardized test suite that includes a list of static tests found in [benchmark/test_cases](./test_cases/).
+Our benchmarking process evaluates each model and module against a standardized test suite that includes a list of static tests found in [benchmark/test_cases](https://github.com/Roriz/active_genie/tree/main/benchmark/test_cases).
 The list of tests should represent the most variable use cases possible, but the same use case can be repeated multiple times with different inputs to ensure a more accurate representation of the model's performance.
 
 We always need more use cases; if you have any, please submit an issue or PR with your test cases. The best use cases will be used to create Case Studies.
