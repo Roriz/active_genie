@@ -2,7 +2,7 @@
 ActiveGenie is a developer-first library for GenAI workflows, designed to help you compare, rank, and score LLM outputs with consistency and model-agnostic flexibility. Think of it as the Lodash for GenAI: built for real value, consistent results, and freedom from vendor lock-in. It solves the biggest pain in GenAI today: getting predictable, trustworthy answers across use cases, models, and providers.
 
 > [!TIP]
-> Just want to try it out? Skip to the [Quickstart](/introduction/quick-start).
+> Just want to try it out? Skip to the [Quickstart](/introduction/quickstart).
 
 ## Real Value
 
@@ -52,7 +52,7 @@ A benchmarking system to ensure consistent, high-quality outputs across differen
 
 With every new release of ActiveGenie, we run our benchmarking system to ensure that the modules continue to function as expected. This benchmark includes tons of simulated use cases that can help you discover what fits best for your needs. Ideally, we would test every possible use case, but we haven't reached that goal yet. To increase the number of use cases, we create case studies from issues and messages we receive from users. If you have an interesting use case, please open an issue, and we will add it as soon as possible.
 
-See [more](benchmark/latest) for detailed results, our methodology, and how you can contribute to our test suite.
+See [more](/benchmark/latest) for detailed results, our methodology, and how you can contribute to our test suite.
 
 ## Model-Agnostic
 

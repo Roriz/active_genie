@@ -12,7 +12,7 @@
 
 > **Note:** Each module can append its own set of configuration, see the individual module documentation for details.
 
-Read all [configuration](lib/active_genie/config/README.md) for all available options.
+Read all [configuration](/reference/config) for all available options.
 
 ## How to create a new provider
 

@@ -45,7 +45,7 @@ Features:
 - Informal text analysis (litotes, hedging)
 - Detailed explanations for extracted values
 
-See the [Data Extractor README](lib/active_genie/data_extractor/README.md) for informal text processing, advanced schemas, and detailed interface documentation.
+See the [Data Extractor README](/modules/data_extractor) for informal text processing, advanced schemas, and detailed interface documentation.
 
 ### Scoring
 Text evaluation system that provides detailed scoring and feedback using multiple expert reviewers. Get balanced scoring through AI-powered expert reviewers that automatically adapt to your content.
@@ -76,7 +76,7 @@ Features:
 - Customizable reviewer weights
 - Flexible evaluation criteria
 
-See the [Scoring README](lib/active_genie/scoring/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
+See the [Scoring README](/modules/scoring) for advanced usage, custom reviewers, and detailed interface documentation.
 
 ### Battle
 AI-powered battle evaluation system that determines winners between two players based on specified criteria.
@@ -111,7 +111,7 @@ Features:
 - Customizable reviewer weights
 - Flexible evaluation criteria
 
-See the [Battle README](lib/active_genie/battle/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
+See the [Battle README](/modules/battle) for advanced usage, custom reviewers, and detailed interface documentation.
 
 ### Ranking
 The Ranking module provides competitive ranking through multi-stage evaluation:
@@ -139,7 +139,7 @@ result = ActiveGenie::Ranking.call(
 - **Automatic elimination** of inconsistent performers using statistical analysis
 - **Dynamic ranking adjustments** based on simulated pairwise battles, from bottom to top
 
-See the [Ranking README](lib/active_genie/ranking/README.md) for implementation details, configuration, and advanced ranking strategies.
+See the [Ranking README](/modules/ranking) for implementation details, configuration, and advanced ranking strategies.
 
 ### OCR to markdown (Future)
 ### Text Summarizer (Future)
