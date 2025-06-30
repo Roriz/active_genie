@@ -60,7 +60,7 @@ module ActiveGenie
         response_formatted(response)
       end
 
-      PROMPT = File.read(File.join(__dir__, 'generalist.md'))
+      PROMPT = File.read(File.join(__dir__, 'generalist.prompt.md'))
       FUNCTION = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
 
       private

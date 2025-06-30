@@ -119,7 +119,7 @@ module ActiveGenie
       end
 
       def prompt
-        File.read(File.join(__dir__, 'generalist.md'))
+        File.read(File.join(__dir__, 'generalist.prompt.md'))
       end
     end
   end
