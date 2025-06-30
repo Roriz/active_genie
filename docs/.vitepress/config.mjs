@@ -7,7 +7,7 @@ export default defineConfig({
   description: "The Lodash for GenAI: Real Value + Consistent + Model-Agnostic",
 
   themeConfig: {
-    logo: '/assets/logo.webp',
+    logo: '/logo.webp',
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Docs', link: '/introduction/installation' },
@@ -46,6 +46,7 @@ export default defineConfig({
         text: 'Reference',
         items: [
           { text: 'Configuration', link: '/reference/config' },
+          { text: 'Observability', link: '/reference/observability' },
         ]
       },
     ],
