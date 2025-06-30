@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   lang: 'en-US',
-  title: "ActiveGenie.ai",
+  title: "ActiveGenie",
   description: "The Lodash for GenAI: Real Value + Consistent + Model-Agnostic",
 
   themeConfig: {
@@ -21,8 +21,9 @@ export default defineConfig({
       {
         text: 'Introduction',
         items: [
+          { text: 'What is ActiveGenie?', link: '/introduction/what-is-active-genie' },
           { text: 'Installation', link: '/introduction/installation' },
-          { text: 'Quick Start', link: '/introduction/quick-start' },
+          { text: 'Quickstart', link: '/introduction/quickstart' },
           { text: 'Basic Configuration', link: '/introduction/basic-configuration' },
         ]
       },

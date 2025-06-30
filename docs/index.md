@@ -2,18 +2,19 @@
 layout: home
 
 hero:
-  name: "ActiveGenie.ai"
-  tagline: "The Lodash for GenAI: Real Value + Consistent + Model-Agnostic"
+  name: "ActiveGenie"
+  text: "The Lodash for GenAI"
+  tagline: "Real Value + Consistent + Model-Agnostic"
   image:
     src: /assets/logo.webp
-    alt: ActiveGenie.ai
+    alt: ActiveGenie
   actions:
     - theme: brand
-      text: Quick Start
-      link: /introduction/quick-start
+      text: What is ActiveGenie?
+      link: /introduction/what-is-active-genie
     - theme: alt
-      text: Installation
-      link: /introduction/installation
+      text: Quickstart
+      link: /introduction/quickstart
 
 features:
   - icon: 👨🏻‍💻

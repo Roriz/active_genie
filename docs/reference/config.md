@@ -2,7 +2,7 @@
 
 ActiveGenie provides a flexible configuration system that can be customized to suit your needs. This document details all available configuration options.
 
-## Initial Configuration
+## Basic Configuration
 
 To configure ActiveGenie, use the `ActiveGenie.configure` block in your application's initialization:
 
