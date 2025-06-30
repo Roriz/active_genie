@@ -6,7 +6,7 @@ hero:
   text: "The Lodash for GenAI"
   tagline: "Real Value + Consistent + Model-Agnostic"
   image:
-    src: /assets/logo.webp
+    src: /logo.webp
     alt: ActiveGenie
   actions:
     - theme: brand
