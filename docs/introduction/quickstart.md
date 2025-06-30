@@ -1,5 +1,4 @@
-
-## Quick Start
+# Quick Start
 
 ### Data Extractor
 

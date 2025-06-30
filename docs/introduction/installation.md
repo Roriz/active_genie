@@ -1,5 +1,4 @@
-
-## Installation
+# Installation
 
 1. Add to your Gemfile:
 ```ruby

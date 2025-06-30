@@ -1,5 +1,4 @@
-
-## Basic Configuration
+# Basic Configuration
 
 | Config | Type | Description | Default |
 |--------|------|-------------|---------|

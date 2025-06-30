@@ -18,7 +18,7 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 
 ## Latest Benchmark Results
 
-![latest](/assets/latest-benchmark.png)
+![latest](/assets/latest-benchmark.webp)
 
 | Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

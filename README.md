@@ -4,51 +4,77 @@
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-ActiveGenie is a Ruby gem that helps developers build reliable, future-proof GenAI features without worrying about changing models, prompts, or providers. Like Lodash for GenAI, it offers simple, reusable modules for tasks like data extraction, scoring, and ranking, so you can focus on your app’s logic, not the shifting AI landscape.
+ActiveGenie is a developer-first library for GenAI workflows, designed to help you compare, rank, and score LLM outputs with consistency and model-agnostic flexibility. Think of it as the Lodash for GenAI: built for real value, consistent results, and freedom from vendor lock-in. It solves the biggest pain in GenAI today: getting predictable, trustworthy answers across use cases, models, and providers.
 
 Behind the scenes, a custom benchmarking system keeps everything consistent across LLM vendors and versions, release after release.
 
-## Benchmarking 🧪
+For full documentation, visit [activegenie.ai](https://activegenie.ai).
 
-ActiveGenie includes a comprehensive benchmarking system to ensure consistent, high-quality outputs across different LLM models and providers.
+# Installation
 
+1. Add to your Gemfile:
 ```ruby
-# Run all benchmarks
-bundle exec rake active_genie:benchmark
-
-# Run benchmarks for a specific module
-bundle exec rake active_genie:benchmark[data_extractor]
+gem 'active_genie'
 ```
 
-### Latest Results
+2. Install the gem:
+```shell
+bundle install
+```
 
-| Model | Overall Precision |
-|-------|-------------------|
-| claude-3-5-haiku-20241022 | 92.25% |
-| gemini-2.0-flash-lite | 84.25% |
-| gpt-4o-mini | 62.75% |
-| deepseek-chat | 57.25% |
+3. Generate the configuration:
+```shell
+echo "ActiveGenie.load_tasks" >> Rakefile
+rails g active_genie:install
+```
 
-See the [Benchmark README](benchmark/README.md) for detailed results, methodology, and how to contribute to our test suite.
-
-
-## Observability
-Fundamental to managing any production system, observability is crucial for GenAI features. At a minimum, track these key metrics:
-
-- Usage Rate (e.g., uses_per_minute): Detect anomalies like sudden traffic spikes (potential DDoS) or drops (feature outage or declining usage).
-- Failure/Retry Rate (e.g., retry_count, fail_count): Monitor the frequency of errors. Exceeding a defined threshold should trigger downtime or degradation alerts.
-- Token Consumption (e.g., tokens_used): Track usage to monitor costs. Set alerts if tokens_used * price_per_token exceeds budget thresholds.
-
+4. Configure your credentials in `config/initializers/active_genie.rb`:
 ```ruby
 ActiveGenie.configure do |config|
-  config.log.add_observer(scope: { code: :llm_usage }) do |log|
-    puts "LLM Usage: #{log[:model]} - #{log[:total_tokens]} tokens"
-  end
-  config.log.add_observer(scope: { code: :retry_attempt }) do |log|
-    puts "Retry Attempt: #{log[:attempt]} of #{log[:max_retries]}"
-  end
+  config.providers.openai.api_key = ENV['OPENAI_API_KEY']
 end
 ```
+
+## Quick start example
+
+Extract structured data from text using AI-powered analysis, handling informal language and complex expressions.
+
+```ruby
+text = "Nike Air Max 90 - Size 42 - $199.99"
+schema = {
+  brand: {
+    type: 'string',
+    enum: ["Nike", "Adidas", "Puma"]
+  },
+  price: {
+    type: 'number',
+    minimum: 0
+  },
+  size: {
+    type: 'number',
+    minimum: 35,
+    maximum: 46
+  }
+}
+
+result = ActiveGenie::DataExtractor.call(
+  text,
+  schema,
+  config: { provider: :openai, model: 'gpt-4.1-mini' } # optional
+)
+# => {
+#      brand: "Nike",
+#      brand_explanation: "Brand name found at start of text",
+#      price: 199.99,
+#      price_explanation: "Price found in USD format at end",
+#      size: 42,
+#      size_explanation: "Size explicitly stated in the middle"
+#    }
+```
+
+## Documentation
+
+For full documentation, visit [activegenie.ai](https://activegenie.ai).
 
 ## Contributing
 
