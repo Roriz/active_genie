@@ -2,7 +2,7 @@
 
 ActiveGenie provides a flexible configuration system that can be customized to suit your needs. This document details all available configuration options.
 
-## Initial Configuration
+## Basic Configuration
 
 To configure ActiveGenie, use the `ActiveGenie.configure` block in your application's initialization:
 
@@ -21,11 +21,11 @@ end
 
 ## Configuration Sections
 
-### 1. Log Configuration (`config.log`)
+## Log Configuration (`config.log`)
 
 The log configuration controls how ActiveGenie handles logging of its operations.
 
-#### Available Settings:
+### Available Settings:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
@@ -34,7 +34,7 @@ The log configuration controls how ActiveGenie handles logging of its operations
 | `output` | Proc | `->(log) { $stdout.puts log }` | Custom output handler for logs. Must respond to `call`. |
 | `additional_context` | Hash | `{}` | Additional context to be added to each log entry. |
 
-#### Methods:
+### Methods:
 
 - `add_observer(observers: [], scope: {}, &block)`
   - Adds log observers that will be notified of log events.
@@ -45,7 +45,7 @@ The log configuration controls how ActiveGenie handles logging of its operations
 - `remove_observer(observers)`
   - Removes the specified observers.
 
-#### Example:
+### Example:
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -62,11 +62,11 @@ ActiveGenie.configure do |config|
 end
 ```
 
-### 2. LLM Configuration (`config.llm`)
+## LLM Configuration (`config.llm`)
 
 The LLM configuration is used to define settings for interacting with Large Language Models.
 
-#### Available Settings:
+### Available Settings:
 
 | Setting         | Type                | Default                      | Description                                                                                                |
 |-----------------|---------------------|------------------------------|------------------------------------------------------------------------------------------------------------|
@@ -81,7 +81,7 @@ The LLM configuration is used to define settings for interacting with Large Lang
 | `read_timeout`  | Numeric / nil       | `nil`                        | Timeout (in seconds) for reading data from the LLM API.                                                    |
 | `open_timeout`  | Numeric / nil       | `nil`                        | Timeout (in seconds) for establishing a connection to the LLM API.                                         |
 
-#### Example:
+### Example:
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -95,24 +95,24 @@ ActiveGenie.configure do |config|
 end
 ```
 
-### 4. Providers Configuration (`config.providers`)
+## Providers Configuration (`config.providers`)
 
 The Providers configuration (`config.providers`) manages settings for various Large Language Model (LLM) providers. It allows you to configure multiple providers, set a default, and access individual provider settings. Active Genie automatically loads configurations for supported providers (OpenAI, Anthropic, DeepSeek, Google).
 
-#### Main Provider Settings:
+### Main Provider Settings:
 
 | Setting   | Type                | Default                        | Description                                                                 |
 |-----------|---------------------|--------------------------------|-----------------------------------------------------------------------------|
 | `default` | String / Symbol     | First validly configured provider (often `:openai` if its API key is set) | The name of the default LLM provider to use (e.g., `:openai`, `:anthropic`). You can set this to your preferred provider. |
 
-#### Methods for `config.providers`:
+### Methods for `config.providers`:
 
 -   `add(provider_classes)`
     -   Adds one or more custom provider configuration classes. `provider_classes` can be a single class or an array of classes. (Typically not needed for built-in providers).
 -   `remove(provider_classes)`
     -   Removes one or more provider configurations based on their classes.
 
-#### Example for Main Provider Settings:
+### Example for Main Provider Settings:
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -127,11 +127,11 @@ ActiveGenie.configure do |config|
 end
 ```
 
-#### Individual Provider Configurations:
+### Individual Provider Configurations:
 
 The following subsections detail the configurations for each supported LLM provider. Each provider configuration (e.g., `config.providers.openai`) allows setting an `api_key`, `api_url`, and specific model names for `lower_tier_model`, `middle_tier_model`, and `higher_tier_model`.
 
-##### a. OpenAI (`config.providers.openai`)
+#### OpenAI (`config.providers.openai`)
 
 Internal Name: `:openai`
 
@@ -143,7 +143,7 @@ Internal Name: `:openai`
 | `middle_tier_model` | String | `'gpt-4.1'`                           | Model for middle-tier usage (balanced performance).                         |
 | `higher_tier_model` | String | `'o3-mini'`                           | Model for higher-tier usage (most capable).                                 |
 
-##### b. Anthropic (`config.providers.anthropic`)
+#### Anthropic (`config.providers.anthropic`)
 
 Internal Name: `:anthropic`
 
@@ -156,7 +156,7 @@ Internal Name: `:anthropic`
 | `middle_tier_model` | String | `'claude-3-7-sonnet-20250219'`           | Model for middle-tier usage.                                                |
 | `higher_tier_model` | String | `'claude-3-opus-20240229'`               | Model for higher-tier usage.                                                |
 
-##### c. DeepSeek (`config.providers.deepseek`)
+#### DeepSeek (`config.providers.deepseek`)
 
 Internal Name: `:deepseek`
 
@@ -168,7 +168,7 @@ Internal Name: `:deepseek`
 | `middle_tier_model` | String | `'deepseek-chat'`                     | Model for middle-tier usage.                                                |
 | `higher_tier_model` | String | `'deepseek-reasoner'`                 | Model for higher-tier usage.                                                |
 
-##### d. Google (`config.providers.google`)
+#### Google (`config.providers.google`)
 
 Internal Name: `:google`
 
@@ -180,7 +180,7 @@ Internal Name: `:google`
 | `middle_tier_model` | String | `'gemini-2.0-flash'`                                          | Model for middle-tier usage.                                                |
 | `higher_tier_model` | String | `'gemini-2.5-pro-experimental'`                               | Model for higher-tier usage.                                                |
 
-#### Example for Overriding Individual Provider Settings:
+### Example for Overriding Individual Provider Settings:
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -194,17 +194,17 @@ ActiveGenie.configure do |config|
 end
 ```
 
-### 5. Ranking Configuration (`config.ranking`)
+## Ranking Configuration (`config.ranking`)
 
 The Ranking configuration (`config.ranking`) deals with settings related to how results or items are ranked.
 
-#### Available Settings:
+### Available Settings:
 
 | Setting                     | Type    | Default | Description                                                                                                |
 |-----------------------------|---------|---------|------------------------------------------------------------------------------------------------------------|
 | `score_variation_threshold` | Integer | `30`    | A threshold (percentage) used to determine significant variations in scores when ranking or comparing items. |
 
-#### Example:
+### Example:
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -212,11 +212,11 @@ ActiveGenie.configure do |config|
 end
 ```
 
-### 6. Data Extractor Configuration (`config.data_extractor`)
+## Data Extractor Configuration (`config.data_extractor`)
 
 The Data Extractor configuration (`config.data_extractor`) provides settings for how data is extracted and processed, likely from text or other sources using LLMs.
 
-#### Available Settings:
+### Available Settings:
 
 | Setting            | Type    | Default | Description                                                                                             |
 |--------------------|---------|---------|---------------------------------------------------------------------------------------------------------|
@@ -224,7 +224,7 @@ The Data Extractor configuration (`config.data_extractor`) provides settings for
 | `min_accuracy`     | Integer | `70`    | The minimum accuracy (percentage) required for extracted data to be considered valid or useful.         |
 | `verbose`          | Boolean | `false` | If true, enables more detailed logging or output from the data extraction process.                      |
 
-#### Example:
+### Example:
 
 ```ruby
 ActiveGenie.configure do |config|

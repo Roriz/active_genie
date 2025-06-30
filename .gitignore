@@ -3,3 +3,9 @@ tmp
 
 logs/*.log
 log/*.log
+
+node_modules/
+
+cache/
+
+docs/.vitepress/dist

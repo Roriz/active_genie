@@ -10,14 +10,14 @@ module ActiveGenie
         fixture_path = "test/data_extrator/fixtures/generalist/#{provider_name}.json"
         stub_request(:post, /#{provider.api_url}.*$/).to_return(status: 200, body: File.read(fixture_path))
       end
-    end
 
-    def test_global_provider_configuration
       ActiveGenie.configure do |config|
         config.providers.default = 'openai'
         config.providers.openai.api_key = 'your_api_key'
       end
+    end
 
+    def test_global_provider_configuration
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 
@@ -27,11 +27,6 @@ module ActiveGenie
     end
 
     def test_overwrite_global_provider_configuration
-      ActiveGenie.configure do |config|
-        config.providers.default = 'openai'
-        config.providers.openai.api_key = 'your_api_key'
-      end
-
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 
@@ -42,11 +37,6 @@ module ActiveGenie
     end
 
     def test_overwrite_global_provider_configuration_verbose
-      ActiveGenie.configure do |config|
-        config.providers.default = 'openai'
-        config.providers.openai.api_key = 'your_api_key'
-      end
-
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 

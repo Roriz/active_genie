@@ -1,13 +1,16 @@
 # ActiveGenie 🧞‍♂️
-> The Lodash for GenAI: Future-Proof + Consistent + Model-Agnostic
+> The Lodash for GenAI: Real Value + Consistent + Model-Agnostic
 
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-ActiveGenie is a Ruby gem that helps developers build reliable, future-proof GenAI features without worrying about changing models, prompts, or providers. Like Lodash for GenAI, it offers simple, reusable modules for tasks like data extraction, scoring, and ranking, so you can focus on your app’s logic, not the shifting AI landscape.
+ActiveGenie is a developer-first library for GenAI workflows, designed to help you compare, rank, and score LLM outputs with consistency and model-agnostic flexibility. Think of it as the Lodash for GenAI: built for real value, consistent results, and freedom from vendor lock-in. It solves the biggest pain in GenAI today: getting predictable, trustworthy answers across use cases, models, and providers.
+
 Behind the scenes, a custom benchmarking system keeps everything consistent across LLM vendors and versions, release after release.
 
-## Installation
+For full documentation, visit [activegenie.ai](https://activegenie.ai).
+
+# Installation
 
 1. Add to your Gemfile:
 ```ruby
@@ -32,9 +35,7 @@ ActiveGenie.configure do |config|
 end
 ```
 
-## Quick Start
-
-### Data Extractor
+## Quick start example
 
 Extract structured data from text using AI-powered analysis, handling informal language and complex expressions.
 
@@ -71,197 +72,9 @@ result = ActiveGenie::DataExtractor.call(
 #    }
 ```
 
-*Recommended model*: `gpt-4o-mini`
+## Documentation
 
-Features:
-- Structured data extraction with type validation
-- Schema-based extraction with custom constraints
-- Informal text analysis (litotes, hedging)
-- Detailed explanations for extracted values
-
-See the [Data Extractor README](lib/active_genie/data_extractor/README.md) for informal text processing, advanced schemas, and detailed interface documentation.
-
-### Scoring
-Text evaluation system that provides detailed scoring and feedback using multiple expert reviewers. Get balanced scoring through AI-powered expert reviewers that automatically adapt to your content.
-
-```ruby
-text = "The code implements a binary search algorithm with O(log n) complexity"
-criteria = "Evaluate technical accuracy and clarity"
-
-result = ActiveGenie::Scoring.call(
-  text,
-  criteria,
-  config: { provider: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
-)
-# => {
-#      algorithm_expert_score: 95,
-#      algorithm_expert_reasoning: "Accurately describes binary search and its complexity",
-#      technical_writer_score: 90,
-#      technical_writer_reasoning: "Clear and concise explanation of the algorithm",
-#      final_score: 92.5
-#    }
-```
-
-*Recommended model*: `claude-3-5-haiku-20241022`
-
-Features:
-- Multi-reviewer evaluation with automatic expert selection
-- Detailed feedback with scoring reasoning
-- Customizable reviewer weights
-- Flexible evaluation criteria
-
-See the [Scoring README](lib/active_genie/scoring/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
-
-### Battle
-AI-powered battle evaluation system that determines winners between two players based on specified criteria.
-
-```ruby
-require 'active_genie'
-
-player_a = "Implementation uses dependency injection for better testability"
-player_b = "Code has high test coverage but tightly coupled components"
-criteria = "Evaluate code quality and maintainability"
-
-result = ActiveGenie::Battle.call(
-  player_a,
-  player_b,
-  criteria,
-  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
-)
-# => {
-#      winner_player: "Implementation uses dependency injection for better testability",
-#      reasoning: "Player 1 implementation demonstrates better maintainability through dependency injection,
-#                 which allows for easier testing and component replacement. While Player 2 has good test coverage,
-#                 the tight coupling makes the code harder to maintain and modify.",
-#      what_could_be_changed_to_avoid_draw: "Focus on specific architectural patterns and design principles"
-#    }
-```
-
-*Recommended model*: `claude-3-5-haiku`
-
-Features:
-- Multi-reviewer evaluation with automatic expert selection
-- Detailed feedback with scoring reasoning
-- Customizable reviewer weights
-- Flexible evaluation criteria
-
-See the [Battle README](lib/active_genie/battle/README.md) for advanced usage, custom reviewers, and detailed interface documentation.
-
-### Ranking
-The Ranking module provides competitive ranking through multi-stage evaluation:
-
-```ruby
-require 'active_genie'
-
-players = ['REST API', 'GraphQL API', 'SOAP API', 'gRPC API', 'Websocket API']
-criteria = "Best one to be used into a high changing environment"
-
-result = ActiveGenie::Ranking.call(
-  players,
-  criteria,
-  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
-)
-# => {
-#      winner_player: "gRPC API",
-#      reasoning: "gRPC API is the best one to be used into a high changing environment",
-#    }
-```
-
-*Recommended model*: `gemini-2.0-flash-lite`
-
-- **Multi-phase ranking system** combining expert scoring and ELO algorithms
-- **Automatic elimination** of inconsistent performers using statistical analysis
-- **Dynamic ranking adjustments** based on simulated pairwise battles, from bottom to top
-
-See the [Ranking README](lib/active_genie/ranking/README.md) for implementation details, configuration, and advanced ranking strategies.
-
-### Text Summarizer (Future)
-### Categorizer (Future)
-### Language detector (Future)
-### Translator (Future)
-### Sentiment analyzer (Future)
-
-## Benchmarking 🧪
-
-ActiveGenie includes a comprehensive benchmarking system to ensure consistent, high-quality outputs across different LLM models and providers.
-
-```ruby
-# Run all benchmarks
-bundle exec rake active_genie:benchmark
-
-# Run benchmarks for a specific module
-bundle exec rake active_genie:benchmark[data_extractor]
-```
-
-### Latest Results
-
-| Model | Overall Precision |
-|-------|-------------------|
-| claude-3-5-haiku-20241022 | 92.25% |
-| gemini-2.0-flash-lite | 84.25% |
-| gpt-4o-mini | 62.75% |
-| deepseek-chat | 57.25% |
-
-See the [Benchmark README](benchmark/README.md) for detailed results, methodology, and how to contribute to our test suite.
-
-## Basic Configuration
-
-| Config | Type | Description | Default |
-|--------|------|-------------|---------|
-| `llm.provider` | Symbol | LLM provider (openai, anthropic, etc) | `nil` |
-| `llm.model` | String | Model to use | `nil` |
-| `llm.temperature` | Float | Temperature to use | `0` |
-| `llm.max_tokens` | Integer | Maximum tokens to use | `4096` |
-| `llm.max_retries` | Integer | Maximum retry attempts | `3` |
-| `log.output` | Proc | Log output | `->(log) { $stdout.puts log }` |
-| `ranking.score_variation_threshold` | Integer | Score variation threshold | `30` |
-
-> **Note:** Each module can append its own set of configuration, see the individual module documentation for details.
-
-Read all [configuration](lib/active_genie/config/README.md) for all available options.
-
-## How to create a new provider
-
-ActiveGenie supports adding custom providers to integrate with different LLM services. To create a new provider:
-
-1. Create a configuration class for your provider in `lib/active_genie/configuration/providers/`:
-2. Register your client
-
-```ruby
-class InternalCompanyApi
-  # @param messages [Array<Hash>] A list of messages representing the conversation history.
-  #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
-  # @param function [Hash] A JSON schema definition describing the desired output format.
-  # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-  def function_calling(messages, function)
-    # ...
-  end
-end
-
-ActiveGenie.configure do |config|
-  config.llm.client = InternalCompanyApi
-end
-# or
-ActiveGenie::Battle.call('player_a', 'player_b', 'criteria', { client: InternalCompanyApi })
-```
-
-## Observability
-Fundamental to managing any production system, observability is crucial for GenAI features. At a minimum, track these key metrics:
-
-- Usage Rate (e.g., uses_per_minute): Detect anomalies like sudden traffic spikes (potential DDoS) or drops (feature outage or declining usage).
-- Failure/Retry Rate (e.g., retry_count, fail_count): Monitor the frequency of errors. Exceeding a defined threshold should trigger downtime or degradation alerts.
-- Token Consumption (e.g., tokens_used): Track usage to monitor costs. Set alerts if tokens_used * price_per_token exceeds budget thresholds.
-
-```ruby
-ActiveGenie.configure do |config|
-  config.log.add_observer(scope: { code: :llm_usage }) do |log|
-    puts "LLM Usage: #{log[:model]} - #{log[:total_tokens]} tokens"
-  end
-  config.log.add_observer(scope: { code: :retry_attempt }) do |log|
-    puts "Retry Attempt: #{log[:attempt]} of #{log[:max_retries]}"
-  end
-end
-```
+For full documentation, visit [activegenie.ai](https://activegenie.ai).
 
 ## Contributing
 

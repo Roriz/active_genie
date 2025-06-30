@@ -1,7 +1,7 @@
 # Data Extractor
 Extract structured data from text using AI-powered analysis, handling informal language and complex expressions.
 
-## ✨ Features
+## Features
 - Structured data extraction - Extract typed data from unstructured text using predefined schemas
 - Informal text analysis - Identifies and handles informal language patterns, including litotes
 - Explanation tracking - Provides reasoning for each extracted data point

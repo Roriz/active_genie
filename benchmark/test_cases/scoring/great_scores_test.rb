@@ -39,7 +39,7 @@ module ActiveGenie
 
       def test_marketplace_product_quality
         product_description = <<~PRODUCT_DESCRIPTION
-          Sony WH-1000XM5 Wireless Noise-Canceling Headphones – Black – Excellent Condition
+          Sony WH-1000XM5 Wireless Noise-Canceling Headphones - Black - Excellent Condition
           Experience industry-leading noise cancellation with the Sony WH-1000XM5, designed for crystal-clear audio and immersive sound.
           These headphones feature adaptive noise-canceling technology, 30-hour battery life, and ultra-soft ear cushions
           for all-day comfort. This pair is in excellent condition, with minimal signs of wear and fully functional buttons,
