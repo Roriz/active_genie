@@ -4,7 +4,7 @@
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-ActiveGenie is a developer-first library for GenAI workflows, designed to help you compare, rank, and score LLM outputs with consistency and model-agnostic flexibility. Think of it as the Lodash for GenAI: built for real value, consistent results, and freedom from vendor lock-in. It solves the biggest pain in GenAI today: getting predictable, trustworthy answers across use cases, models, and providers.
+ActiveGenie is a developer-first library for GenAI workflows, designed to help you extract, compare, score, and rank with consistency and model-agnostic. Think of it as the Lodash for GenAI: built for real value, consistent results, and freedom from vendor lock-in. It solves the biggest pain in GenAI today: getting predictable, trustworthy answers across use cases, models, and providers.
 
 Behind the scenes, a custom benchmarking system keeps everything consistent across LLM vendors and versions, release after release.
 
