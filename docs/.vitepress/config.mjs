@@ -13,6 +13,18 @@ export default defineConfig({
       { text: 'Docs', link: '/introduction/installation' },
     ],
 
+    head: [
+      ['script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-R9WFVCSRP9' }],
+      [
+        'script',
+        {},
+        `window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-R9WFVCSRP9');`
+      ]
+    ],
+
     search: {
       provider: 'local'
     },
