@@ -65,6 +65,7 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Roriz/active_genie' },
+      { icon: 'twitter', link: 'https://twitter.com/radamesroriz' },
     ],
 
     footer: {

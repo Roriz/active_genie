@@ -12,9 +12,11 @@ hero:
     - theme: brand
       text: What is ActiveGenie?
       link: /introduction/what-is-active-genie
+
     - theme: alt
-      text: Quickstart
-      link: /introduction/quickstart
+      icon: github
+      text: GitHub
+      link: https://github.com/Roriz/active_genie
 
 features:
   - icon: 👨🏻‍💻
@@ -28,5 +30,5 @@ features:
     details: Evaluate text using multiple expert reviewers
   - icon: 🏆
     title: Ranking
-    details: Competitive ranking through multi-stage evaluation
+    details: ELO ranking using battle results
 ---
