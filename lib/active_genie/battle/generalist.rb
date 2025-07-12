@@ -15,6 +15,8 @@ module ActiveGenie
     #   Generalist.call("Player A content", "Player B content", "Evaluate keyword usage and pattern matching")
     #
     class Generalist
+      BattleResponse = Struct.new(:winner, :loser, :short_reasoning, :long_reasoning, :raw, keyword_init: true)
+
       def self.call(...)
         new(...).call
       end
@@ -23,7 +25,7 @@ module ActiveGenie
       # @param player_b [String] The content or submission from the second player
       # @param criteria [String] The evaluation criteria or rules to assess against
       # @param config [Hash] Additional configuration options that modify the battle evaluation behavior
-      # @return [Hash] The evaluation result containing the winner and reasoning
+      # @return [BattleResponse] The evaluation result containing the winner and reasoning
       #   @return [String] :winner The winner, either player_a or player_b
       #   @return [String] :reasoning Detailed explanation of why the winner was chosen
       #   @return [String] :what_could_be_changed_to_avoid_draw A suggestion on how to avoid a draw
@@ -34,6 +36,7 @@ module ActiveGenie
         @config = ActiveGenie.configuration.merge(config)
       end
 
+      # @return [BattleResponse] The evaluation result containing the winner and reasoning
       def call
         messages = [
           {  role: 'system', content: PROMPT },
@@ -48,15 +51,6 @@ module ActiveGenie
           config: @config
         )
 
-        @config.logger.call({
-                              code: :battle,
-                              player_a: @player_a[0..30],
-                              player_b: @player_b[0..30],
-                              criteria: @criteria[0..30],
-                              winner: response['impartial_judge_winner'],
-                              reasoning: response['impartial_judge_winner_reasoning']
-                            })
-
         response_formatted(response)
       end
 
@@ -68,11 +62,26 @@ module ActiveGenie
       def response_formatted(response)
         winner = response['impartial_judge_winner']
         loser = case winner
-                when 'player_a' then 'player_b'
-                when 'player_b' then 'player_a'
+                when @player_a then @player_b
+                when @player_b then @player_a
                 end
+        short_reasoning = response['impartial_judge_winner_reasoning']
+        long_reasoning = response.values.join("\n")
 
-        { 'winner' => winner, 'loser' => loser, 'reasoning' => response['impartial_judge_winner_reasoning'] }
+        battle_response = BattleResponse.new(winner:, loser:, short_reasoning:, long_reasoning:, raw: response)
+        log_battle(battle_response)
+
+        battle_response
+      end
+
+      def log_battle(battle_response)
+        @config.logger.call(
+          code: :battle,
+          player_a: @player_a[0..30],
+          player_b: @player_b[0..30],
+          criteria: @criteria[0..30],
+          **battle_response.to_h
+        )
       end
     end
   end

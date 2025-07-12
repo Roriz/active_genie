@@ -6,24 +6,23 @@ module ActiveGenie
   module Battle
     class GeneralistTest < Minitest::Test
       TESTS = [
-        { input: ['american food', 'brazilian food', 'less fat is better'], expected: 'player_b' },
-        { input: ['rainning day', 'sunny day', 'go to park with family'], expected: 'player_b' },
-        { input: ['python', 'javascript', 'data science and machine learning tasks'], expected: 'player_a' },
-        { input: ['bicycle', 'car', 'environmentally friendly urban commuting'], expected: 'player_a' },
-        { input: ['reading a book', 'watching tv', 'cognitive development and relaxation'], expected: 'player_a' },
-        { input: ['yoga', 'weightlifting', 'stress relief and flexibility improvement'], expected: 'player_a' },
-        { input: ['online course', 'in-person class', 'flexible schedule and cost effectiveness'],
-          expected: 'player_a' },
-        { input: ['video call', 'text message', 'discussing complex emotional topics'], expected: 'player_a' },
-        { input: ['remote work', 'office work', 'work-life balance and productivity'], expected: 'player_a' },
-        { input: ['Kiki', 'Bouba', 'what sounds is more aggressive?'], expected: 'player_a' }
+        { input: ['american food', 'brazilian food', 'less fat is better'], expected: 1 },
+        { input: ['rainning day', 'sunny day', 'go to park with family'], expected: 0 },
+        { input: ['python', 'javascript', 'data science and machine learning tasks'], expected: 0 },
+        { input: ['bicycle', 'car', 'environmentally friendly urban commuting'], expected: 0 },
+        { input: ['reading a book', 'watching tv', 'cognitive development and relaxation'], expected: 0 },
+        { input: ['yoga', 'weightlifting', 'stress relief and flexibility improvement'], expected: 0 },
+        { input: ['online course', 'in-person class', 'flexible schedule and cost effectiveness'], expected: 0 },
+        { input: ['video call', 'text message', 'discussing complex emotional topics'], expected: 0 },
+        { input: ['remote work', 'office work', 'work-life balance and productivity'], expected: 0 },
+        { input: ['Kiki', 'Bouba', 'what sounds is more aggressive?'], expected: 0 }
       ].freeze
 
       TESTS.each_with_index do |test, index|
         define_method("test_#{test[:input][2].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
           result = ActiveGenie::Battle.call(*test[:input])
 
-          assert_equal test[:expected], result['winner']
+          assert_equal test[:input][test[:expected]], result.winner
         end
       end
 
@@ -39,7 +38,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal 'player_b', result['winner']
+        assert_equal dresses[1], result.winner
       end
 
       def test_stackoverflow_questions
@@ -54,7 +53,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal 'player_a', result['winner']
+        assert_equal stackoverflow_issues[0], result.winner
       end
     end
   end
