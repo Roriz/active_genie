@@ -15,7 +15,7 @@ module ActiveGenie
     #   Generalist.call("Player A content", "Player B content", "Evaluate keyword usage and pattern matching")
     #
     class Generalist
-      BattleResponse = Struct.new(:winner, :loser, :short_reasoning, :long_reasoning, :raw, keyword_init: true)
+      BattleResponse = Struct.new(:winner, :loser, :reasoning, :raw, keyword_init: true)
 
       def self.call(...)
         new(...).call
@@ -64,10 +64,9 @@ module ActiveGenie
                         when 'player_a' then [@player_a, @player_b]
                         when 'player_b' then [@player_b, @player_a]
                         end
-        short_reasoning = response['impartial_judge_winner_reasoning']
-        long_reasoning = response.values.join("\n")
+        reasoning = response['impartial_judge_winner_reasoning']
 
-        battle_response = BattleResponse.new(winner:, loser:, short_reasoning:, long_reasoning:, raw: response)
+        battle_response = BattleResponse.new(winner:, loser:, reasoning:, raw: response)
         log_battle(battle_response)
 
         battle_response

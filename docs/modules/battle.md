@@ -27,10 +27,9 @@ result = ActiveGenie::Battle.call(player_a, player_b, criteria)
 # => BattleResponse(
 #      winner: "Implementation uses dependency injection for better testability",
 #      loser: "Code has high test coverage but tightly coupled components",
-#      short_reasoning: "Player A's implementation demonstrates better maintainability through dependency injection,
+#      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection,
 #                 which allows for easier testing and component replacement. While Player B has good test coverage,
 #                 the tight coupling makes the code harder to maintain and modify.",
-#      long_reasoning: "...",
 #      raw: {...}
 #    )
 ```
@@ -55,8 +54,7 @@ result = ActiveGenie::Battle.call(player_a, player_b, criteria)
 
   - `winner` [String] - The winning player's content (either `player_a` or `player_b`).
   - `loser` [String] - The losing player's content (either `player_a` or `player_b`).
-  - `short_reasoning` [String] - A short explanation of why the winner was chosen.
-  - `long_reasoning` [String] - A detailed explanation of why the winner was chosen.
+  - `reasoning` [String] - A short explanation of why the winner was chosen.
   - `raw` [Hash] - The raw response from the provider. **Warning:** Do not use this directly, as the keys can change without notice. This is for debugging purposes only.
 
 -----
@@ -101,8 +99,7 @@ result = ActiveGenie::Battle.fight(player_a, player_b, criteria)
 # => BattleResponse(
 #      winner: "Master Crane, a graceful fighter...",
 #      loser: "Iron Ox, a powerful brawler...",
-#      short_reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct...",
-#      long_reasoning: "...",
+#      reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct...",
 #      raw: {...}
 #    )
 ```
