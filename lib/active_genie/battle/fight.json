@@ -1,0 +1,61 @@
+{
+  "name": "fight_evaluation",
+  "description": "Evaluate a fight between player_a and player_b using predefined criteria and identify the winner.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "player_a_introduction": {
+        "type": "string",
+        "description": "player_a introduces their name and fighting style. Max of 100 words."
+      },
+      "player_b_introduction": {
+        "type": "string",
+        "description": "player_b introduces their name and fighting style. Max of 100 words."
+      },
+      "player_a_turn_1": {
+        "type": "string",
+        "description": "player_a makes their first turn. Max of 100 words."
+      },
+      "player_b_turn_1": {
+        "type": "string",
+        "description": "player_b makes their first turn. Max of 100 words."
+      },
+      "player_a_turn_2": {
+        "type": "string",
+        "description": "player_a makes their second turn. Max of 100 words."
+      },
+      "player_b_turn_2": {
+        "type": "string",
+        "description": "player_b makes their second turn. Max of 100 words."
+      },
+      "player_a_turn_3": {
+        "type": "string",
+        "description": "player_a makes their third turn. Max of 100 words."
+      },
+      "player_b_turn_3": {
+        "type": "string",
+        "description": "player_b makes their third turn. Max of 100 words."
+      },
+      "player_a_turn_4": {
+        "type": "string",
+        "description": "player_a makes their fourth turn. Max of 100 words."
+      },
+      "player_b_turn_4": {
+        "type": "string",
+        "description": "player_b makes their fourth turn. Max of 100 words."
+      },
+      "impartial_judge_winner_reasoning": {
+        "type": "string",
+        "description": "The detailed reasoning about why the impartial judge chose the winner. Max of 100 words."
+      },
+      "impartial_judge_winner": {
+        "type": "string",
+        "description": "Who is the winner based on the impartial judge reasoning?",
+        "enum": ["player_a", "player_b"]
+      }
+    },
+    "required": ["player_a_introduction", "player_b_introduction", "player_a_turn_1", "player_b_turn_1",
+                 "player_a_turn_2", "player_b_turn_2", "player_a_turn_3", "player_b_turn_3", "player_a_turn_4",
+                 "player_b_turn_4", "impartial_judge_winner_reasoning", "impartial_judge_winner"]
+  }
+}
