@@ -11,8 +11,14 @@ module ActiveGenie
     def generalist(...)
       Generalist.call(...)
     end
-    alias_method :compare, :generalist
-    alias_method :call, :generalist
+
+    def call(...)
+      Generalist.call(...)
+    end
+
+    def compare(...)
+      Generalist.call(...)
+    end
 
     def fight(...)
       Fight.call(...)

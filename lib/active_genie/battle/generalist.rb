@@ -60,11 +60,10 @@ module ActiveGenie
       private
 
       def response_formatted(response)
-        winner = response['impartial_judge_winner']
-        loser = case winner
-                when @player_a then @player_b
-                when @player_b then @player_a
-                end
+        winner, loser = case response['impartial_judge_winner']
+                        when 'player_a' then [@player_a, @player_b]
+                        when 'player_b' then [@player_b, @player_a]
+                        end
         short_reasoning = response['impartial_judge_winner_reasoning']
         long_reasoning = response.values.join("\n")
 
