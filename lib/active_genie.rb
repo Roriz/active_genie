@@ -13,6 +13,7 @@ module ActiveGenie
   autoload :Battle, File.join(__dir__, 'active_genie/battle')
   autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
   autoload :Ranking, File.join(__dir__, 'active_genie/ranking')
+  autoload :Factory, File.join(__dir__, 'active_genie/factory')
 
   VERSION = File.read(File.expand_path('../VERSION', __dir__)).strip
 

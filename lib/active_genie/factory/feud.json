@@ -1,0 +1,21 @@
+{
+  "name": "feud_items_generator",
+  "description": "Generate a list of items for a given theme.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "theme": {
+        "type": "string",
+        "description": "The theme for the feud."
+      },
+      "items": {
+        "type": "array",
+        "description": "The list of items for the feud.",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": ["theme", "items"]
+  }
+}

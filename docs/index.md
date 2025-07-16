@@ -21,14 +21,14 @@ hero:
 features:
   - icon: 👨🏻‍💻
     title: DataExtractor
-    details: Extract structured data from text
+    details: Typed data from unstructured text
   - icon: ⚔️
     title: Battle
-    details: Compare two players based on relative criteria
+    details: Given two players, determine a winner
   - icon: 💯
     title: Scoring
-    details: Evaluate text using multiple expert reviewers
+    details: Given a text, return a score from 0 to 100
   - icon: 🏆
     title: Ranking
-    details: ELO ranking using battle results
+    details: Given a list, return sorted items
 ---
