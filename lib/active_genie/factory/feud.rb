@@ -27,7 +27,7 @@ module ActiveGenie
         messages = [
           {  role: 'system', content: PROMPT },
           {  role: 'system', content: "List #{number_of_items} top items." },
-          {  role: 'user', content: "theme: #{@theme}" },
+          {  role: 'user', content: "theme: #{@theme}" }
         ]
 
         response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
@@ -53,7 +53,7 @@ module ActiveGenie
         @config.logger.call(
           code: :feud,
           theme: @theme[0..30],
-          items: response['items'].map { |item| item[0..30] },
+          items: response['items'].map { |item| item[0..30] }
         )
       end
     end

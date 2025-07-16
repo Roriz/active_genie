@@ -42,7 +42,7 @@ module ActiveGenie
           {  role: 'system', content: PROMPT },
           {  role: 'user', content: "player_a: #{@player_a}" },
           {  role: 'user', content: "player_b: #{@player_b}" },
-          {  role: 'user', content: "criteria: #{@criteria}" },
+          {  role: 'user', content: "criteria: #{@criteria}" }
         ]
 
         response = ::ActiveGenie::Clients::UnifiedClient.function_calling(

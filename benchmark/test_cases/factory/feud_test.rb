@@ -11,9 +11,9 @@ module ActiveGenie
         )
 
         assert_equal 5, result.length
-        assert_equal result.include?('Agriculture'), true, "Agriculture should be in the list, full result: #{result}"
-        assert_equal result.include?('Energy'), true, "Energy should be in the list, full result: #{result}"
-        assert_equal result.include?('Tourism'), true, "Tourism should be in the list, full result: #{result}"
+        assert_includes result, 'Agriculture', "Agriculture should be in the list, full result: #{result}"
+        assert_includes result, 'Energy', "Energy should be in the list, full result: #{result}"
+        assert_includes result, 'Tourism', "Tourism should be in the list, full result: #{result}"
       end
 
       def test_feud_with_more_items

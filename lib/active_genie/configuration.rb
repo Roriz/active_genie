@@ -85,6 +85,6 @@ module ActiveGenie
       end
     end
 
-    attr_writer **SUB_CONFIGS, :logger
+    attr_writer(*SUB_CONFIGS, :logger)
   end
 end
