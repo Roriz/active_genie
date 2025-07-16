@@ -7,6 +7,7 @@ require_relative 'config/scoring_config'
 require_relative 'config/data_extractor_config'
 require_relative 'config/battle_config'
 require_relative 'config/llm_config'
+require_relative 'config/factory_config'
 
 module ActiveGenie
   class Configuration
@@ -34,6 +35,10 @@ module ActiveGenie
       @battle ||= Config::BattleConfig.new
     end
 
+    def factory
+      @factory ||= Config::FactoryConfig.new
+    end
+
     def llm
       @llm ||= Config::LlmConfig.new
     end
@@ -42,7 +47,7 @@ module ActiveGenie
       @logger ||= ActiveGenie::Logger.new(log_config: log)
     end
 
-    SUB_CONFIGS = %w[log providers llm ranking scoring data_extractor battle].freeze
+    SUB_CONFIGS = %w[log providers llm ranking scoring data_extractor battle factory].freeze
 
     def merge(config_params = {})
       return config_params if config_params.is_a?(Configuration)
@@ -80,6 +85,6 @@ module ActiveGenie
       end
     end
 
-    attr_writer :log, :providers, :ranking, :scoring, :data_extractor, :battle, :llm, :logger
+    attr_writer(*SUB_CONFIGS, :logger)
   end
 end

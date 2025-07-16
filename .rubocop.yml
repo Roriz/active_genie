@@ -13,6 +13,9 @@ plugins: rubocop-minitest
 AllCops:
   TargetRubyVersion: 3.4
   NewCops: enable
+  Exclude:
+    - 'docs/**/*'
+    - 'tmp/**/*'
 
 Style/Documentation:
   Enabled: false

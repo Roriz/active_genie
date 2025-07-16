@@ -45,6 +45,7 @@ export default defineConfig({
           { text: 'Data Extractor', link: '/modules/data_extractor' },
           { text: 'Scoring', link: '/modules/scoring' },
           { text: 'Battle', link: '/modules/battle' },
+          { text: 'Factory', link: '/modules/factory' },
           { text: 'Ranking', link: '/modules/ranking' },
         ]
       },

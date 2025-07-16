@@ -106,7 +106,7 @@ module ActiveGenie
       end
 
       def reviewers
-        @reviewers ||= if @param_reviewers.count.positive?
+        @reviewers ||= if @param_reviewers.any?
                          @param_reviewers
                        else
                          result = RecommendedReviewers.call(@text, @criteria, config: @config)

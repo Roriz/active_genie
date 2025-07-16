@@ -16,6 +16,10 @@ module ActiveGenie
       Generalist.call(...)
     end
 
+    def battle(...)
+      Generalist.call(...)
+    end
+
     def compare(...)
       Generalist.call(...)
     end
