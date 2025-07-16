@@ -57,9 +57,6 @@ GEM
       lint_roller (~> 1.1)
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.38.0, < 2.0)
-    rubocop-rspec (3.6.0)
-      lint_roller (~> 1.1)
-      rubocop (~> 1.72, >= 1.72.1)
     ruby-progressbar (1.13.0)
     stringio (3.1.2)
     unicode-display_width (3.1.4)
@@ -80,7 +77,6 @@ DEPENDENCIES
   rake
   rubocop
   rubocop-minitest
-  rubocop-rspec
   webmock
 
 BUNDLED WITH
