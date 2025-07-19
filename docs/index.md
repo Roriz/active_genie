@@ -10,6 +10,10 @@ hero:
     alt: ActiveGenie
   actions:
     - theme: brand
+      text: Try it out
+      link: https://app.activegenie.ai
+
+    - theme: alt
       text: What is ActiveGenie?
       link: /introduction/what-is-active-genie
 

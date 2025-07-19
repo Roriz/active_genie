@@ -1,6 +1,10 @@
 # What is ActiveGenie?
 ActiveGenie is a developer-first library for GenAI workflows, designed to help you compare, rank, and score LLM outputs with consistency and model-agnostic flexibility. Think of it as the Lodash for GenAI: built for real value, consistent results, and freedom from vendor lock-in. It solves the biggest pain in GenAI today: getting predictable, trustworthy answers across use cases, models, and providers.
 
+
+> [!TIP]
+> Do you want to try it out? Skip to the [Demo](https://app.activegenie.ai).
+
 > [!TIP]
 > Just want to try it out? Skip to the [Quickstart](/introduction/quickstart).
 
