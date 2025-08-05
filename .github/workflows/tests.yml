@@ -32,9 +32,7 @@ jobs:
 
     - name: Install Rails
       run: |
-        echo 'gem "rails"' >> Gemfile
-        bundle config set frozen false
-        bundle install
+        gem install rails --no-document 
 
     - name: Run tests
-      run: bundle exec rake test:integration
+      run: rake test:integration
