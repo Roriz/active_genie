@@ -57,6 +57,9 @@ GEM
       lint_roller (~> 1.1)
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.38.0, < 2.0)
+    rubocop-rake (0.7.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.1)
     rubocop-rspec (3.6.0)
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
@@ -80,6 +83,7 @@ DEPENDENCIES
   rake
   rubocop
   rubocop-minitest
+  rubocop-rake
   rubocop-rspec
   webmock
 
