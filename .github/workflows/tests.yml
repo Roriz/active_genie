@@ -31,7 +31,7 @@ jobs:
         bundler-cache: true
 
     - name: Install Rails
-      run: gem install rails@latest --no-document
+      run: gem install rails --no-document
 
     - name: Run tests
       run: bundle exec rake test:integration
