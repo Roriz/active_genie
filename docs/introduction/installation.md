@@ -13,7 +13,7 @@ bundle install
 3. Generate the configuration:
 ```shell
 echo "ActiveGenie.load_tasks" >> Rakefile
-rails g active_genie:install
+rails active_genie:install
 ```
 
 4. Configure your credentials in `config/initializers/active_genie.rb`:
