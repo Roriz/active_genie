@@ -17,7 +17,7 @@ jobs:
         bundler-cache: true
 
     - name: Run tests
-      run: bundle install && rake test:unit
+      run: bundle exec rake test:unit
 
   integration_tests:
     runs-on: ubuntu-latest
@@ -32,8 +32,8 @@ jobs:
 
     - name: Install Rails
       run: |
+        echo 'gem "rails"' >> Gemfile
         bundle install
-        gem install rails --no-document 
 
     - name: Run tests
-      run: rake test:integration
+      run: bundle exec rake test:integration
