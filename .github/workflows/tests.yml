@@ -33,6 +33,7 @@ jobs:
     - name: Install Rails
       run: |
         echo 'gem "rails"' >> Gemfile
+        bundle config set frozen false
         bundle install
 
     - name: Run tests
