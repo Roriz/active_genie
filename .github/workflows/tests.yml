@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  tests:
+  unit_tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -17,4 +17,21 @@ jobs:
         bundler-cache: true
 
     - name: Run tests
-      run: bundle exec rake test
+      run: bundle exec rake test:unit
+
+  integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3'
+        bundler-cache: true
+
+    - name: Install Rails
+      run: gem install rails@latest --no-document
+
+    - name: Run tests
+      run: bundle exec rake test:integration
