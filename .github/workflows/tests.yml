@@ -17,7 +17,7 @@ jobs:
         bundler-cache: true
 
     - name: Run tests
-      run: rake test:unit
+      run: bundle install && rake test:unit
 
   integration_tests:
     runs-on: ubuntu-latest
