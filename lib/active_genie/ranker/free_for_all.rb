@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  module Ranking
+  module Ranker
     class FreeForAll
       def self.call(...)
         new(...).call
       end
 
       def initialize(players, criteria, config: nil)
-        @players = players
+        @players = PlayersCollection.new(players)
         @criteria = criteria
         @config = config || ActiveGenie.configuration
         @start_time = Time.now

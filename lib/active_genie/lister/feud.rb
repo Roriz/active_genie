@@ -37,7 +37,7 @@ module ActiveGenie
         )
 
         log_feud(response)
-        response['items']
+        response['items'] || []
       end
 
       PROMPT = File.read(File.join(__dir__, 'feud.prompt.md'))

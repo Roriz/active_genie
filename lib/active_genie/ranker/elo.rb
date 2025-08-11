@@ -1,27 +1,27 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  module Ranking
-    class EloRound
+  module Ranker
+    class Elo
       def self.call(...)
         new(...).call
       end
 
       def initialize(players, criteria, config: nil)
         @players = players
-        @relegation_tier = players.calc_relegation_tier
-        @defender_tier = players.calc_defender_tier
+        @higher_tier = players.calc_higher_tier
+        @lower_tier = players.calc_lower_tier
         @criteria = criteria
         @config = ActiveGenie.configuration.merge(config)
-        @tmp_defenders = []
+        @tmp_highers = []
         @total_tokens = 0
         @previous_elo = @players.to_h { |player| [player.id, player.elo] }
-        @previous_highest_elo = @defender_tier.max_by(&:elo).elo
+        @previous_highest_elo = @higher_tier.max_by(&:elo).elo
       end
 
       def call
         @config.log.add_observer(observers: ->(log) { log_observer(log) })
-        @config.log.additional_context = { elo_round_id: }
+        @config.log.additional_context = { elo_id: }
 
         matches.each do |player_a, player_b|
           # TODO: battle can take a while, can be parallelized
@@ -40,22 +40,22 @@ module ActiveGenie
       def matches
         match_keys = {}
 
-        @relegation_tier.each_with_object([]) do |attack_player, matches|
+        @higher_tier.each_with_object([]) do |attack_player, matches|
           BATTLE_PER_PLAYER.times do
-            defense_player = next_defense_player
+            higher_player = next_higher_player
 
-            next if match_keys["#{attack_player.id}_#{defense_player.id}"]
+            next if match_keys["#{attack_player.id}_#{higher_player.id}"]
 
-            match_keys["#{attack_player.id}_#{defense_player.id}"] = true
-            matches << [attack_player, defense_player]
+            match_keys["#{attack_player.id}_#{higher_player.id}"] = true
+            matches << [attack_player, higher_player]
           end
         end
       end
 
-      def next_defense_player
-        @tmp_defenders = @defender_tier.shuffle if @tmp_defenders.empty?
+      def next_higher_player
+        @tmp_highers = @higher_tier.shuffle if @tmp_highers.empty?
 
-        @tmp_defenders.pop
+        @tmp_highers.pop
       end
 
       def battle(player_a, player_b)
@@ -89,20 +89,20 @@ module ActiveGenie
         player_rating + (K * (score - expected_score)).round
       end
 
-      def elo_round_id
-        @elo_round_id ||= begin
-          relegation_tier_ids = @relegation_tier.map(&:id).join(',')
-          defender_tier_ids = @defender_tier.map(&:id).join(',')
+      def elo_id
+        @elo_id ||= begin
+          higher_tier_ids = @higher_tier.map(&:id).join(',')
+          lower_tier_ids = @lower_tier.map(&:id).join(',')
 
-          ranking_unique_key = [relegation_tier_ids, defender_tier_ids, @criteria, @config.to_json].join('-')
+          ranking_unique_key = [higher_tier_ids, lower_tier_ids, @criteria, @config.to_json].join('-')
           Digest::MD5.hexdigest(ranking_unique_key)
         end
       end
 
       def build_report
         report = {
-          elo_round_id:,
-          players_in_round: players_in_round.map(&:id),
+          elo_id:,
+          players_in: players_in.map(&:id),
           battles_count: matches.size,
           total_tokens: @total_tokens,
           previous_highest_elo: @previous_highest_elo,
@@ -111,21 +111,21 @@ module ActiveGenie
           players_elo_diff:
         }
 
-        @config.logger.call({ elo_round_id:, code: :elo_round_report, **report })
+        @config.logger.call({ elo_id:, code: :elo_report, **report })
 
         report
       end
 
-      def players_in_round
-        @defender_tier + @relegation_tier
+      def players_in
+        @lower_tier + @higher_tier
       end
 
       def highest_elo
-        players_in_round.max_by(&:elo).elo
+        players_in.max_by(&:elo).elo
       end
 
       def players_elo_diff
-        elo_diffs = players_in_round.map do |player|
+        elo_diffs = players_in.map do |player|
           [player.id, player.elo - @previous_elo[player.id]]
         end
         elo_diffs.sort_by { |_, diff| -(diff || 0) }.to_h

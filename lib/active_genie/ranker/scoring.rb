@@ -1,22 +1,21 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  module Ranking
-    class RankingScoring
+  module Ranker
+    class Scoring
       def self.call(...)
         new(...).call
       end
 
-      def initialize(players, criteria, reviewers: [], config: nil)
-        @players = players
+      def initialize(players, criteria, juries: [], config: nil)
+        @players = PlayersCollection.new(players)
         @criteria = criteria
         @config = ActiveGenie.configuration.merge(config)
-        @reviewers = Array(reviewers).compact.uniq
+        @juries = Array(juries).compact.uniq
       end
 
       def call
         @config.log.additional_context = { ranking_scoring_id: }
-        @reviewers = generate_reviewers
 
         players_without_score.each do |player|
           player.score = generate_score(player)
@@ -33,7 +32,7 @@ module ActiveGenie
         score, reasoning = ActiveGenie::Scoring.call(
           player.content,
           @criteria,
-          @reviewers,
+          @juries,
           config: @config
         ).values_at('final_score', 'final_reasoning')
 
@@ -42,18 +41,16 @@ module ActiveGenie
         score
       end
 
-      def generate_reviewers
-        return @reviewers if @reviewers.size.positive?
-
-        reviewer1, reviewer2, reviewer3 = ActiveGenie::Scoring::RecommendedReviewers.call(
-          [@players.sample.content, @players.sample.content].join("\n\n"),
-          @criteria,
-          config: @config
-        ).values_at('reviewer1', 'reviewer2', 'reviewer3')
-
-        @config.logger.call({ code: :new_reviewers, reviewers: [reviewer1, reviewer2, reviewer3] })
-
-        [reviewer1, reviewer2, reviewer3]
+      def juries
+        @juries ||= begin
+          response = ActiveGenie::Scoring::RecommendedReviewers.call(
+            [@players.sample.content, @players.sample.content].join("\n\n"),
+            @criteria,
+            config: @config
+          )
+          @config.logger.call({ code: :new_juries, juries: response })
+          response
+        end
       end
 
       def ranking_scoring_id
