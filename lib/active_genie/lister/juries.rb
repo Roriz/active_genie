@@ -35,7 +35,7 @@ module ActiveGenie
 
       def call
         messages = [
-          {  role: 'system', content: PROMPT },
+          {  role: 'system', content: prompt },
           {  role: 'user', content: "Scoring criteria: #{@criteria}" },
           {  role: 'user', content: "Text to score: #{@text}" }
         ]
@@ -68,25 +68,14 @@ module ActiveGenie
         result['juries'] || []
       end
 
-      PROMPT = <<~PROMPT
-        Identify the top 3 suitable jury titles or roles based on the provided text and criteria. Selected jury must possess subject matter expertise, offer valuable insights, and ensure diverse yet aligned perspectives on the content.
-
-        # Instructions
-        1. **Analyze the Text and Criteria**: Examine the content and criteria to identify relevant jury titles or roles.
-        2. **Determine Subject Matter Expertise**: Select jury with substantial knowledge or experience in the subject area.
-        3. **Evaluate Insight Contribution**: Prioritize titles or roles capable of providing meaningful and actionable feedback on the content.
-        4. **Incorporate Perspective Diversity**: Ensure the selection includes jury with varied but complementary viewpoints while maintaining alignment with the criteria.
-
-        # Constraints
-        - Selected jury must align with the content’s subject matter and criteria.
-        - Include reasoning for how each choice supports a thorough and insightful review.
-        - Avoid redundant or overly similar titles/roles to maintain diversity.
-      PROMPT
-
       private
 
       def client
         ::ActiveGenie::Clients::UnifiedClient
+      end
+
+      def prompt
+        @prompt ||= File.read(File.join(__dir__, 'juries.prompt.md'))
       end
     end
   end

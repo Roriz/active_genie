@@ -1,21 +1,14 @@
 # frozen_string_literal: true
 
-require_relative 'factory/feud'
+require_relative 'lister/feud'
+require_relative 'lister/juries'
 
 module ActiveGenie
-  module Factory
+  module Lister
     module_function
 
-    def feud(...)
-      Feud.call(...)
-    end
-
-    def list(...)
-      Feud.call(...)
-    end
-
-    def call(...)
-      Feud.call(...)
-    end
+    def_delegator :Feud, :call
+    def_delegator :Feud, :call, :with_feud
+    def_delegator :Juries, :call, :with_juries
   end
 end

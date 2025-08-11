@@ -1,23 +1,14 @@
 # frozen_string_literal: true
 
-require_relative 'data_extractor/generalist'
-require_relative 'data_extractor/from_informal'
+require_relative 'extractor/explanation'
+require_relative 'extractor/litote'
 
 module ActiveGenie
-  # See the [DataExtractor README](lib/active_genie/data_extractor/README.md) for more information.
-  module DataExtractor
+  module Extractor
     module_function
 
-    def call(...)
-      Generalist.call(...)
-    end
-
-    def generalist(...)
-      Generalist.call(...)
-    end
-
-    def from_informal(...)
-      FromInformal.call(...)
-    end
+    def_delegator :Explanation, :call
+    def_delegator :Explanation, :call, :with_explanation
+    def_delegator :Litote, :call, :with_litote
   end
 end

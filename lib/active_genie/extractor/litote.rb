@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative 'generalist'
+require_relative 'explanation'
 
 module ActiveGenie
-  module DataExtractor
-    class FromInformal
+  module Extractor
+    class Litote
       def self.call(...)
         new(...).call
       end
@@ -24,7 +24,7 @@ module ActiveGenie
       # @example Analyze text with litote
       #   text = "The weather isn't bad today"
       #   schema = { mood: { type: 'string', description: 'The mood of the message' } }
-      #   DataExtractor.from_informal(text, schema)
+      #   DataExtractor.with_litote(text, schema)
       #   # => { mood: "positive", mood_explanation: "Speaker views weather favorably",
       #   #      message_litote: true,
       #   #      litote_rephrased: "The weather is good today" }
@@ -35,7 +35,7 @@ module ActiveGenie
       end
 
       def call
-        response = Generalist.call(@text, data_to_extract_with_litote, config: @config)
+        response = Generalist.call(@text, extract_with_litote, config: @config)
 
         if response[:message_litote]
           response = Generalist.call(response[:litote_rephrased], @data_to_extract, config: @config)
@@ -46,8 +46,8 @@ module ActiveGenie
 
       private
 
-      def data_to_extract_with_litote
-        parameters = JSON.parse(File.read(File.join(__dir__, 'from_informal.json')), symbolize_names: true)
+      def extract_with_litote
+        parameters = JSON.parse(File.read(File.join(__dir__, 'with_litote.json')), symbolize_names: true)
 
         @data_to_extract.merge(parameters)
       end

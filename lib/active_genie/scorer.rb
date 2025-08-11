@@ -7,6 +7,6 @@ module ActiveGenie
     module_function
     
     def_delegator :JuryBench, :call
-    def_delegator :JuryBench, :call, :jury_bench
+    def_delegator :JuryBench, :call, :by_jury_bench
   end
 end

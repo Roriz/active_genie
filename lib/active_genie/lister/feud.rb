@@ -3,8 +3,8 @@
 require_relative '../clients/unified_client'
 
 module ActiveGenie
-  module Factory
-    # The Factory::Feud class provides a foundation for generating a list of items for a given theme
+  module Lister
+    # The Lister::Feud class provides a foundation for generating a list of items for a given theme
     #
     # @example Feud usage with two players and criteria
     #   Feud.call("Industries that are most likely to be affected by climate change")
@@ -22,7 +22,7 @@ module ActiveGenie
         @config = ActiveGenie.configuration.merge(config)
       end
 
-      # @return [Array] The list of items
+      # @return [Array of strings] The list of items
       def call
         messages = [
           {  role: 'system', content: PROMPT },
