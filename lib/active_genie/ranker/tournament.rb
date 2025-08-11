@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative 'players_collection'
+require_relative 'entities/players_collection'
 require_relative 'free_for_all'
-require_relative 'elo_round'
-require_relative 'ranking_scoring'
+require_relative 'elo'
+require_relative 'scoring'
 
 # This class orchestrates player ranking through multiple evaluation stages
 # using Elo ranking and free-for-all match simulations.
@@ -29,14 +29,14 @@ require_relative 'ranking_scoring'
 #   Example: { model: "gpt-4o", api_key: ENV['OPENAI_API_KEY'] }
 # @return [Hash] Final ranked player results
 module ActiveGenie
-  module Ranking
-    class Ranking
+  module Ranker
+    class Tournament
       def self.call(...)
         new(...).call
       end
 
-      def initialize(param_players, criteria, reviewers: [], config: {})
-        @param_players = param_players
+      def initialize(players, criteria, reviewers: [], config: {})
+        @players = PlayersCollection.new(players)
         @criteria = criteria
         @reviewers = Array(reviewers).compact.uniq
         @config = ActiveGenie.configuration.merge(config)
@@ -44,7 +44,6 @@ module ActiveGenie
       end
 
       def call
-        @players = create_players
         @config.log.additional_context = { ranking_id: }
 
         set_initial_player_scores!
@@ -66,15 +65,8 @@ module ActiveGenie
 
       private
 
-      def create_players
-        players = PlayersCollection.new(@param_players)
-        players.each { |p| @config.logger.call({ code: :new_player, player: p.to_h }) }
-
-        players
-      end
-
       def set_initial_player_scores!
-        RankingScoring.call(
+        Scoring.call(
           @players,
           @criteria,
           reviewers: @reviewers,
@@ -89,7 +81,7 @@ module ActiveGenie
       end
 
       def run_elo_round!
-        EloRound.call(
+        Elo.call(
           @players,
           @criteria,
           config: @config
