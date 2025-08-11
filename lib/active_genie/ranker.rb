@@ -10,9 +10,9 @@ module ActiveGenie
     module_function
 
     def_delegator :Tournament, :call
-    def_delegator :Tournament, :call, :tournament
-    def_delegator :FreeForAll, :call, :free_for_all
-    def_delegator :Elo, :call, :elo
-    def_delegator :Scoring, :call, :scoring
+    def_delegator :Tournament, :call, :by_tournament
+    def_delegator :FreeForAll, :call, :by_free_for_all
+    def_delegator :Elo, :call, :by_elo
+    def_delegator :Scoring, :call, :by_scoring
   end
 end
