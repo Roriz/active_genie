@@ -12,9 +12,11 @@ module ActiveGenie
     def call(...)
       Debate.call(...)
     end
+
     def by_debate(...)
       Debate.call(...)
     end
+
     def by_fight(...)
       Fight.call(...)
     end

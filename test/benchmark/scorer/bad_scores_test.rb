@@ -7,7 +7,7 @@ module ActiveGenie
     class BadScoresTest < Minitest::Test
       def test_evaluate_bug_report
         result = ActiveGenie::Scorer.jury_bench('idk the app keeps crashing sometimes when i try to do stuff. maybe fix it?',
-                                           'Evaluate bug report quality and actionability', ['qa_engineer'])
+                                                'Evaluate bug report quality and actionability', ['qa_engineer'])
 
         assert_operator result['final_score'], :>=, 10, "Expected to be at greater than 10, but was #{result['final_score']}, because: #{result['final_reasoning']}"
         assert_operator result['final_score'], :<=, 50, "Expected to be at less than 50, but was #{result['final_score']}, because: #{result['final_reasoning']}"

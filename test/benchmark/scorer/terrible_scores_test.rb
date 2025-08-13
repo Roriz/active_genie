@@ -6,15 +6,21 @@ module ActiveGenie
   module Scorer
     class TerribleTest < Minitest::Test
       def test_evaluate_incident_report
-        result = ActiveGenie::Scorer.jury_bench('WARNING!!! URGENT!!! System totally broken!!! Nothing works!!! Fix ASAP!!!',
-                                           'Evaluate incident report quality and professionalism', ['system_reliability_engineer'])
+        result = ActiveGenie::Scorer.jury_bench(
+          'WARNING!!! URGENT!!! System totally broken!!! Nothing works!!! Fix ASAP!!!',
+          'Evaluate incident report quality and professionalism',
+          ['system_reliability_engineer']
+        )
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
 
       def test_evaluate_completeness
-        result = ActiveGenie::Scorer.jury_bench('Section 3.4: Data must secure. Implement good security. Make system fast.',
-                                           'Evaluate completeness and clarity of technical requirements', ['system_architect'])
+        result = ActiveGenie::Scorer.jury_bench(
+          'Section 3.4: Data must secure. Implement good security. Make system fast.',
+          'Evaluate completeness and clarity of technical requirements',
+          ['system_architect']
+        )
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
@@ -26,10 +32,15 @@ module ActiveGenie
           Buy now or send me an offer. Don't ask too many questions, I don’t know much about it!
         PRODUCT_DESCRIPTION
         criteria = <<~CRITERIA
-          item description should provide clear details about what is being sold, including the brand, model, size, color, and key features so buyers know exactly what they’re getting. It should honestly state the condition, mentioning if it’s new, like new, or used, and highlight any defects or wear to build trust. The description should confirm the functionality, whether it works perfectly or has minor issues. If any accessories, manuals, or packaging are included, that should be mentioned. Shipping details should specify the method, cost, and estimated delivery time, and the return policy should be clear. The language should be concise, professional, and engaging, making it easy for buyers to read and understand.
+          item description should provide clear details about what is being sold, including the brand, model, size, color,
+          and key features so buyers know exactly what they’re getting. It should honestly state the condition, mentioning
+          if it’s new, like new, or used, and highlight any defects or wear to build trust. The description should confirm
+            the functionality, whether it works perfectly or has minor issues. If any accessories, manuals, or packaging are included,
+            that should be mentioned. Shipping details should specify the method, cost, and estimated delivery time,
+            and the return policy should be clear. The language should be concise, professional, and engaging, making it easy for buyers to read and understand.
         CRITERIA
         result = ActiveGenie::Scorer.jury_bench(product_description, criteria,
-                                           %w[ebay_seller_moderator ebay_product_analyzer])
+                                                %w[ebay_seller_moderator ebay_product_analyzer])
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end

@@ -52,7 +52,7 @@ module ActiveGenie
           item description should provide clear details about what is being sold, including the brand, model, size, color, and key features so buyers know exactly what they’re getting. It should honestly state the condition, mentioning if it’s new, like new, or used, and highlight any defects or wear to build trust. The description should confirm the functionality, whether it works perfectly or has minor issues. If any accessories, manuals, or packaging are included, that should be mentioned. Shipping details should specify the method, cost, and estimated delivery time, and the return policy should be clear. The language should be concise, professional, and engaging, making it easy for buyers to read and understand.
         CRITERIA
         result = ActiveGenie::Scorer.jury_bench(product_description, criteria,
-                                           %w[ebay_seller_moderator ebay_product_analyzer])
+                                                %w[ebay_seller_moderator ebay_product_analyzer])
 
         assert_operator result['final_score'], :>=, 80, "Expected to be at greater than 80, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end

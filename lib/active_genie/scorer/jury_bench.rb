@@ -70,10 +70,10 @@ module ActiveGenie
 
       def build_function
         {
-          name: "scorer",
-          description: "Score the text based on the given criteria.",
+          name: 'scorer',
+          description: 'Score the text based on the given criteria.',
           parameters: {
-            type: "object",
+            type: 'object',
             properties: properties,
             required: properties.keys
           }
@@ -111,10 +111,10 @@ module ActiveGenie
 
       def juries
         @juries ||= if @param_juries.any?
-                         @param_juries
-                       else
-                         ::ActiveGenie::Lister::Juries.call(@text, @criteria, config: @config)
-                       end
+                      @param_juries
+                    else
+                      ::ActiveGenie::Lister::Juries.call(@text, @criteria, config: @config)
+                    end
       end
     end
   end

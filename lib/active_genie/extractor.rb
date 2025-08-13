@@ -14,7 +14,7 @@ module ActiveGenie
     def with_explanation(...)
       Explanation.call(...)
     end
-    
+
     def with_litote(...)
       Litote.call(...)
     end

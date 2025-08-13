@@ -64,7 +64,8 @@ module ActiveGenie
                         end
         reasoning = response['impartial_judge_winner_reasoning']
 
-        comparator_response = ActiveGenie::Comparator::ComparatorResponse.new(winner:, loser:, reasoning:, raw: response)
+        comparator_response = ActiveGenie::Comparator::ComparatorResponse.new(winner:, loser:, reasoning:,
+                                                                              raw: response)
         log_comparator(comparator_response)
 
         comparator_response

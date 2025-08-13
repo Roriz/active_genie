@@ -28,7 +28,8 @@ module ActiveGenie
       end
     end
 
-    social_media_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/social_media.json')), symbolize_names: true)
+    social_media_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/social_media.json')),
+                                    symbolize_names: true)
     social_media_tests.each_with_index do |test, index|
       define_method("test_social_media_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
@@ -36,7 +37,8 @@ module ActiveGenie
       end
     end
 
-    litote_affirmative_tests = JSON.parse(File.read(File.join(__dir__, 'litote/affirmative.json')), symbolize_names: true)
+    litote_affirmative_tests = JSON.parse(File.read(File.join(__dir__, 'litote/affirmative.json')),
+                                          symbolize_names: true)
     litote_affirmative_tests.each_with_index do |test, index|
       define_method("test_litote_affirmative_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_litote(*test[:input])

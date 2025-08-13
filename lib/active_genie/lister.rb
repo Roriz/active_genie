@@ -10,12 +10,13 @@ module ActiveGenie
     def call(...)
       Feud.call(...)
     end
+
     def with_feud(...)
       Feud.call(...)
     end
+
     def with_juries(...)
       Juries.call(...)
     end
-
   end
 end

@@ -7,11 +7,11 @@ module ActiveGenie
     module Entities
       class Players
         def initialize(players)
-          if players.is_a?(Players)
-            @players = players.players
-          else
-            @players = build(players)
-          end
+          @players = if players.is_a?(Players)
+                       players.players
+                     else
+                       build(players)
+                     end
         end
 
         attr_reader :players

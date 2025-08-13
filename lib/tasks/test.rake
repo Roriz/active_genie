@@ -11,5 +11,5 @@ namespace :test do
     t.pattern = 'test/integration/**/*_test.rb' # Or use _spec.rb for RSpec
   end
 
-  task default: [:unit, :integration]
+  task default: %i[unit integration]
 end
