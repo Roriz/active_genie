@@ -30,7 +30,7 @@ module ActiveGenie
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 
-      ActiveGenie::Extractor.with_explanation(text, schema, config: { provider: 'google' })
+      ActiveGenie::Extractor.with_explanation(text, schema, config: { provider_name: 'google' })
 
       assert_requested(:post,
                        %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent})

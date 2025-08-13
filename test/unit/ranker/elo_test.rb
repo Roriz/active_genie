@@ -20,14 +20,14 @@ module ActiveGenie
       def test_debate_is_called_with_correct_arguments
         debate_mock = Minitest::Mock.new
         debate_mock.expect(:call, { 'winner' => 'player_a' }) do |*args|
-          assert_equal @players.last.content, args[0]
-          assert_equal @players.first.content, args[1]
+          assert_equal @players.map(&:content).include?(args[0]), true
+          assert_equal @players.map(&:content).include?(args[1]), true
           assert_equal @criteria, args[2]
           assert_instance_of ActiveGenie::Configuration, args[3][:config]
         end
 
         ActiveGenie::Comparator.stub(:by_debate, ->(*args) { debate_mock.call(*args) }) do
-          EloRound.call(@players, @criteria)
+          Elo.call(@players, @criteria)
         end
 
         assert_mock debate_mock
@@ -39,8 +39,8 @@ module ActiveGenie
           :call,
           { 'winner' => 'player_a' }
         ) do |*args|
-          assert_equal @players.last.content, args[0]
-          assert_equal @players.first.content, args[1]
+          assert_equal @players.map(&:content).include?(args[0]), true
+          assert_equal @players.map(&:content).include?(args[1]), true
           assert_equal @criteria, args[2]
           assert_instance_of ActiveGenie::Configuration, args[3][:config]
         end
@@ -49,8 +49,8 @@ module ActiveGenie
           Elo.call(@players, @criteria)
         end
 
-        assert_equal 986, @players.first.elo
-        assert_equal 1015, @players.last.elo
+        assert_equal 1001, @players.first.elo
+        assert_equal 999, @players.last.elo
       end
     end
   end

@@ -25,7 +25,7 @@ schema = {
 result = ActiveGenie::DataExtractor.call(
   text,
   schema,
-  config: { provider: :openai, model: 'gpt-4.1-mini' } # optional
+  config: { provider_name: :openai, model: 'gpt-4.1-mini' } # optional
 )
 # => {
 #      brand: "Nike",
@@ -57,7 +57,7 @@ criteria = "Evaluate technical accuracy and clarity"
 result = ActiveGenie::Scoring.call(
   text,
   criteria,
-  config: { provider: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
+  config: { provider_name: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
 )
 # => {
 #      algorithm_expert_score: 95,
@@ -92,7 +92,7 @@ result = ActiveGenie::Battle.call(
   player_a,
   player_b,
   criteria,
-  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
+  config: { provider_name: :google, model: 'gemini-2.0-flash-lite' } # optional
 )
 # => {
 #      winner_player: "Implementation uses dependency injection for better testability",
@@ -125,7 +125,7 @@ criteria = "Best one to be used into a high changing environment"
 result = ActiveGenie::Ranking.call(
   players,
   criteria,
-  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
+  config: { provider_name: :google, model: 'gemini-2.0-flash-lite' } # optional
 )
 # => {
 #      winner_player: "gRPC API",

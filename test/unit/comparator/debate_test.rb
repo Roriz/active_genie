@@ -18,7 +18,7 @@ module ActiveGenie
         player_b = 'Player B content'
         criteria = 'Evaluate based on creativity and clarity'
 
-        ActiveGenie::Comparator.by_debate(player_a, player_b, criteria, config: { provider: 'openai' })
+        ActiveGenie::Comparator.by_debate(player_a, player_b, criteria, config: { provider_name: 'openai' })
 
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
           request_body = JSON.parse(req.body)
