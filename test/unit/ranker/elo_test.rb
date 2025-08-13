@@ -6,7 +6,7 @@ require 'minitest/mock'
 
 module ActiveGenie
   module Ranker
-    class EloRoundTest < Minitest::Test
+    class EloTest < Minitest::Test
       def setup
         @players = ActiveGenie::Ranker::Entities::Players.new(
           [
@@ -26,7 +26,7 @@ module ActiveGenie
           assert_instance_of ActiveGenie::Configuration, args[3][:config]
         end
 
-        ActiveGenie::Comparator.stub(:debate, ->(*args) { debate_mock.call(*args) }) do
+        ActiveGenie::Comparator.stub(:by_debate, ->(*args) { debate_mock.call(*args) }) do
           EloRound.call(@players, @criteria)
         end
 
@@ -45,8 +45,8 @@ module ActiveGenie
           assert_instance_of ActiveGenie::Configuration, args[3][:config]
         end
 
-        ActiveGenie::Comparator.stub(:debate, ->(*args) { debate_mock.call(*args) }) do
-          EloRound.call(@players, @criteria)
+        ActiveGenie::Comparator.stub(:by_debate, ->(*args) { debate_mock.call(*args) }) do
+          Elo.call(@players, @criteria)
         end
 
         assert_equal 986, @players.first.elo

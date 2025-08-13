@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'entities/players_collection'
+require_relative 'entities/players'
 require_relative 'free_for_all'
 require_relative 'elo'
 require_relative 'scoring'

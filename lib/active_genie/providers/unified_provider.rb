@@ -18,12 +18,8 @@ module ActiveGenie
         }.freeze
 
         def function_calling(messages, function, config: {})
-          provider = config.llm.provider
-
-          unless provider
-            provider_name = config.llm.provider || config.providers.default
-            provider = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
-          end
+          provider_name = config.llm.provider_name || config.providers.default
+          provider = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
 
           raise ActiveGenie::InvalidProviderError, provider_name if provider.nil?
 

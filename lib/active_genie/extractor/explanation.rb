@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../clients/unified_client'
+require_relative '../providers/unified_provider'
 
 module ActiveGenie
   module Extractor
@@ -42,7 +42,7 @@ module ActiveGenie
 
         properties = data_to_extract_with_explanation
 
-        function = JSON.parse(File.read(File.join(__dir__, 'with_explanation.json')), symbolize_names: true)
+        function = JSON.parse(File.read(File.join(__dir__, 'explanation.json')), symbolize_names: true)
         function[:parameters][:properties] = properties
         function[:parameters][:required] = properties.keys
 
@@ -81,7 +81,7 @@ module ActiveGenie
       end
 
       def function_calling(messages, function)
-        response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           function,
           config: @config
@@ -119,7 +119,7 @@ module ActiveGenie
       end
 
       def prompt
-        File.read(File.join(__dir__, 'with_explanation.prompt.md'))
+        File.read(File.join(__dir__, 'explanation.prompt.md'))
       end
     end
   end

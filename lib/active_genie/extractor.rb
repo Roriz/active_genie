@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
-require 'forwardable'
 require_relative 'extractor/explanation'
 require_relative 'extractor/litote'
 
 module ActiveGenie
   module Extractor
-    extend Forwardable
-
     module_function
 
-    def_delegator :Explanation, :call
-    def_delegator :Explanation, :call, :with_explanation
-    def_delegator :Litote, :call, :with_litote
+    def call(...)
+      Explanation.call(...)
+    end
+
+    def with_explanation(...)
+      Explanation.call(...)
+    end
+    
+    def with_litote(...)
+      Litote.call(...)
+    end
   end
 end

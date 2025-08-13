@@ -7,7 +7,7 @@ module ActiveGenie
   class ConfigurationTest < Minitest::Test
     def setup
       ActiveGenie.configuration.providers.all.each do |provider_name, provider|
-        fixture_path = "#{__dir__}/data_extractor/fixtures/generalist/#{provider_name}.json"
+        fixture_path = "#{__dir__}/extractor/fixtures/with_explanation/#{provider_name}.json"
         stub_request(:post, /#{provider.api_url}.*$/).to_return(status: 200, body: File.read(fixture_path))
       end
 

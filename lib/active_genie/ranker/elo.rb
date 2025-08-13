@@ -59,7 +59,7 @@ module ActiveGenie
       end
 
       def debate(player_a, player_b)
-        result = ActiveGenie::Comparator.debate(
+        result = ActiveGenie::Comparator.by_debate(
           player_a.content,
           player_b.content,
           @criteria,
