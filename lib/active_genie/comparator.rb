@@ -1,31 +1,16 @@
 # frozen_string_literal: true
 
-require_relative 'battle/generalist'
-require_relative 'battle/fight'
+require_relative 'comparator/debate'
+require_relative 'comparator/fight'
 
 module ActiveGenie
-  # See the [Battle README](lib/active_genie/battle/README.md) for more information.
-  module Battle
+  module Comparator
     module_function
 
-    def generalist(...)
-      Generalist.call(...)
-    end
+    ComparatorResponse = Struct.new(:winner, :loser, :reasoning, :raw, keyword_init: true)
 
-    def call(...)
-      Generalist.call(...)
-    end
-
-    def battle(...)
-      Generalist.call(...)
-    end
-
-    def compare(...)
-      Generalist.call(...)
-    end
-
-    def fight(...)
-      Fight.call(...)
-    end
+    def_delegator :Debate, :call
+    def_delegator :Debate, :call, :by_debate
+    def_delegator :Fight, :call, :by_fight
   end
 end

@@ -3,20 +3,18 @@
 require_relative '../clients/unified_client'
 
 module ActiveGenie
-  module Battle
-    # The Generalist class provides a foundation for evaluating battles between two players
+  module Comparator
+    # The Debate class provides a foundation for evaluating comparators between two players
     # using AI-powered evaluation. It determines a winner based on specified criteria,
     # analyzing how well each player meets the requirements.
     #
-    # The battle evaluation process compares two players' content against given criteria
+    # The comparator evaluation process compares two players' content against given criteria
     # and returns detailed feedback including the winner and reasoning for the decision.
     #
-    # @example Generalist usage with two players and criteria
-    #   Generalist.call("Player A content", "Player B content", "Evaluate keyword usage and pattern matching")
+    # @example Debate usage with two players and criteria
+    #   Debate.call("Player A content", "Player B content", "Evaluate keyword usage and pattern matching")
     #
-    class Generalist
-      BattleResponse = Struct.new(:winner, :loser, :reasoning, :raw, keyword_init: true)
-
+    class Debate
       def self.call(...)
         new(...).call
       end
@@ -24,8 +22,8 @@ module ActiveGenie
       # @param player_a [String] The content or submission from the first player
       # @param player_b [String] The content or submission from the second player
       # @param criteria [String] The evaluation criteria or rules to assess against
-      # @param config [Hash] Additional configuration options that modify the battle evaluation behavior
-      # @return [BattleResponse] The evaluation result containing the winner and reasoning
+      # @param config [Hash] Additional configuration options that modify the comparator evaluation behavior
+      # @return [ComparatorResponse] The evaluation result containing the winner and reasoning
       #   @return [String] :winner The winner, either player_a or player_b
       #   @return [String] :reasoning Detailed explanation of why the winner was chosen
       #   @return [String] :what_could_be_changed_to_avoid_draw A suggestion on how to avoid a draw
@@ -36,7 +34,7 @@ module ActiveGenie
         @config = ActiveGenie.configuration.merge(config)
       end
 
-      # @return [BattleResponse] The evaluation result containing the winner and reasoning
+      # @return [ComparatorResponse] The evaluation result containing the winner and reasoning
       def call
         messages = [
           {  role: 'system', content: PROMPT },
@@ -54,8 +52,8 @@ module ActiveGenie
         response_formatted(response)
       end
 
-      PROMPT = File.read(File.join(__dir__, 'generalist.prompt.md'))
-      FUNCTION = JSON.parse(File.read(File.join(__dir__, 'generalist.json')), symbolize_names: true)
+      PROMPT = File.read(File.join(__dir__, 'debate.prompt.md'))
+      FUNCTION = JSON.parse(File.read(File.join(__dir__, 'debate.json')), symbolize_names: true)
 
       private
 
@@ -66,19 +64,19 @@ module ActiveGenie
                         end
         reasoning = response['impartial_judge_winner_reasoning']
 
-        battle_response = BattleResponse.new(winner:, loser:, reasoning:, raw: response)
-        log_battle(battle_response)
+        comparator_response = ActiveGenie::Comparator::ComparatorResponse.new(winner:, loser:, reasoning:, raw: response)
+        log_comparator(comparator_response)
 
-        battle_response
+        comparator_response
       end
 
-      def log_battle(battle_response)
+      def log_comparator(comparator_response)
         @config.logger.call(
-          code: :battle,
+          code: :comparator,
           player_a: @player_a[0..30],
           player_b: @player_b[0..30],
           criteria: @criteria[0..30],
-          **battle_response.to_h
+          **comparator_response.to_h
         )
       end
     end

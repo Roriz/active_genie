@@ -1,6 +1,6 @@
 {
-  "name": "battle_evaluation",
-  "description": "Evaluate a battle between player_a and player_b using predefined criteria and identify the winner.",
+  "name": "comparation_through_debate",
+  "description": "Evaluate a debate between player_a and player_b using predefined criteria and identify the winner.",
   "parameters": {
     "type": "object",
     "properties": {

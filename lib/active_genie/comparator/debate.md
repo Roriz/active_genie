@@ -1,4 +1,4 @@
-Based on two players, player_a and player_b, they will battle against each other based on criteria. Criteria are vital as they provide a clear metric to compare the players. Follow these criteria strictly.
+Based on two players, player_a and player_b, they will debate against each other based on criteria. Criteria are vital as they provide a clear metric to compare the players. Follow these criteria strictly.
 
 # Steps
 1. player_a presents their strengths and how they meet the criteria. Max of 100 words.

@@ -3,12 +3,12 @@
 require 'json'
 require 'net/http'
 require 'uri'
-require_relative 'base_client'
+require_relative 'base_provider'
 
 module ActiveGenie
-  module Clients
-    # Client for interacting with the Google Generative Language API.
-    class GoogleClient < BaseClient
+  module Providers
+    # Provider for interacting with the Google Generative Language API.
+    class GoogleProvider < BaseProvider
       # Requests structured JSON output from the Google Generative Language model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.

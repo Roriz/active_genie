@@ -3,11 +3,11 @@
 require 'json'
 require 'net/http'
 
-require_relative 'base_client'
+require_relative 'base_provider'
 
 module ActiveGenie
-  module Clients
-    class DeepseekClient < BaseClient
+  module Providers
+    class DeepseekProvider < BaseProvider
       class InvalidResponseError < StandardError; end
 
       # Requests structured JSON output from the Deepseek model based on a schema.

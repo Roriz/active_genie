@@ -2,7 +2,7 @@
 
 module ActiveGenie
   module Config
-    class DataExtractorConfig
+    class ExtractorConfig
       attr_accessor :with_explanation, :min_accuracy, :verbose
 
       def initialize

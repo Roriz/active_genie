@@ -1,35 +1,33 @@
 # frozen_string_literal: true
 
-require_relative 'openai_client'
-require_relative 'anthropic_client'
-require_relative 'google_client'
-require_relative 'deepseek_client'
+require_relative 'openai_provider'
+require_relative 'anthropic_provider'
+require_relative 'google_provider'
+require_relative 'deepseek_provider'
 require_relative '../errors/invalid_provider_error'
 
 module ActiveGenie
-  module Clients
-    class UnifiedClient
-      class InvalidProviderError < StandardError; end
-
+  module Providers
+    class UnifiedProvider
       class << self
         PROVIDER_NAME_TO_CLIENT = {
-          openai: OpenaiClient,
-          anthropic: AnthropicClient,
-          google: GoogleClient,
-          deepseek: DeepseekClient
+          openai: OpenaiProvider,
+          anthropic: AnthropicProvider,
+          google: GoogleProvider,
+          deepseek: DeepseekProvider
         }.freeze
 
         def function_calling(messages, function, config: {})
-          client = config.llm.client
+          provider = config.llm.provider
 
-          unless client
+          unless provider
             provider_name = config.llm.provider || config.providers.default
-            client = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
+            provider = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
           end
 
-          raise ActiveGenie::InvalidProviderError, provider_name if client.nil?
+          raise ActiveGenie::InvalidProviderError, provider_name if provider.nil?
 
-          response = client.new(config).function_calling(messages, function)
+          response = provider.new(config).function_calling(messages, function)
 
           normalize_response(response)
         end

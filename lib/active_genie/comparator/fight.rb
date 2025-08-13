@@ -4,15 +4,15 @@ require_relative '../clients/unified_client'
 require_relative 'generalist'
 
 module ActiveGenie
-  module Battle
-    # The Fight class are battle specialized in a fight between two fighters, like martial arts, heroes, characters.
+  module Comparator
+    # The Fight class are comparation specialized in a fight between two fighters, like martial arts, heroes, characters.
     # The fight evaluation process simulate a fight using words, techniques, strategies, and reasoning.
     #
     # @example Fight usage with two fighters and criteria
     #   Fight.call("Naruto", "Sasuke", "How can win without using jutsu?")
     #
     class Fight < Generalist
-      # @return [BattleResponse] The evaluation result containing the winner and reasoning
+      # @return [ComparatorResponse] The evaluation result containing the winner and reasoning
       def call
         messages = [
           {  role: 'system', content: PROMPT },

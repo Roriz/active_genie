@@ -3,12 +3,12 @@
 require 'json'
 require 'net/http'
 require 'uri'
-require_relative 'base_client'
+require_relative 'base_provider'
 
 module ActiveGenie
-  module Clients
-    # Client for interacting with the Anthropic (Claude) API with json response
-    class AnthropicClient < BaseClient
+  module Providers
+    # Provider for interacting with the Anthropic (Claude) API with json response
+    class AnthropicProvider < BaseProvider
       # Requests structured JSON output from the Anthropic Claude model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.

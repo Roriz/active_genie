@@ -3,7 +3,7 @@
 module ActiveGenie
   module Config
     # rubocop:disable Lint/EmptyClass
-    class BattleConfig
+    class ComparatorConfig
     end
     # rubocop:enable Lint/EmptyClass
   end
