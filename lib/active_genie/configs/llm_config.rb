@@ -4,13 +4,13 @@ module ActiveGenie
   module Config
     class LlmConfig
       attr_accessor :model, :temperature, :max_tokens, :max_retries, :retry_delay,
-                    :model_tier, :read_timeout, :open_timeout, :client
-      attr_reader :provider
+                    :model_tier, :read_timeout, :open_timeout, :provider
+      attr_reader :provider_name
 
       def initialize
         @model = nil
+        @provider_name = nil
         @provider = nil
-        @client = nil
         @temperature = 0
         @max_tokens = 4096
         @max_retries = nil
@@ -20,10 +20,10 @@ module ActiveGenie
         @open_timeout = nil
       end
 
-      def provider=(provider)
-        return if provider.nil? || provider.empty?
+      def provider_name=(provider_name)
+        return if provider_name.nil? || provider_name.empty?
 
-        @provider = provider.to_s.downcase.strip.to_sym
+        @provider_name = provider_name.to_s.downcase.strip.to_sym
       end
 
       def merge(config_params = {})

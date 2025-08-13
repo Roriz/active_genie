@@ -79,7 +79,7 @@ module ActiveGenie
           param_players.map { |p| Player.new(p) }
         end
 
-        # Returns the number of players to battle in each round
+        # Returns the number of players to debate in each round
         # based on the eligible size, start fast and go slow until top 10
         # Example:
         #   - 50 eligible, tier_size: 15

@@ -36,8 +36,8 @@ module ActiveGenie
       def call
         messages = [
           {  role: 'system', content: prompt },
-          {  role: 'user', content: "Scoring criteria: #{@criteria}" },
-          {  role: 'user', content: "Text to score: #{@text}" }
+          {  role: 'user', content: "<criteria> #{@criteria}</criteria>" },
+          {  role: 'user', content: "<text-to-score>#{@text}</text-to-score>" }
         ]
 
         function = {

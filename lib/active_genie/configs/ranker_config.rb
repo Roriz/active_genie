@@ -2,7 +2,7 @@
 
 module ActiveGenie
   module Config
-    class RankingConfig
+    class RankerConfig
       attr_accessor :score_variation_threshold
 
       def initialize

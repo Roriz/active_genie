@@ -24,15 +24,15 @@ module ActiveGenie
         @config.log.additional_context = { elo_id: }
 
         matches.each do |player_a, player_b|
-          # TODO: battle can take a while, can be parallelized
-          winner, loser = battle(player_a, player_b)
+          # TODO: debate can take a while, can be parallelized
+          winner, loser = debate(player_a, player_b)
           update_players_elo(winner, loser)
         end
 
         build_report
       end
 
-      BATTLE_PER_PLAYER = 3
+      DEBATE_PER_PLAYER = 3
       K = 32
 
       private
@@ -41,7 +41,7 @@ module ActiveGenie
         match_keys = {}
 
         @higher_tier.each_with_object([]) do |attack_player, matches|
-          BATTLE_PER_PLAYER.times do
+          DEBATE_PER_PLAYER.times do
             higher_player = next_higher_player
 
             next if match_keys["#{attack_player.id}_#{higher_player.id}"]
@@ -58,8 +58,8 @@ module ActiveGenie
         @tmp_highers.pop
       end
 
-      def battle(player_a, player_b)
-        result = ActiveGenie::Battle.call(
+      def debate(player_a, player_b)
+        result = ActiveGenie::Comparator.debate(
           player_a.content,
           player_b.content,
           @criteria,
@@ -94,8 +94,8 @@ module ActiveGenie
           higher_tier_ids = @higher_tier.map(&:id).join(',')
           lower_tier_ids = @lower_tier.map(&:id).join(',')
 
-          ranking_unique_key = [higher_tier_ids, lower_tier_ids, @criteria, @config.to_json].join('-')
-          Digest::MD5.hexdigest(ranking_unique_key)
+          ranker_unique_key = [higher_tier_ids, lower_tier_ids, @criteria, @config.to_json].join('-')
+          Digest::MD5.hexdigest(ranker_unique_key)
         end
       end
 
@@ -103,7 +103,7 @@ module ActiveGenie
         report = {
           elo_id:,
           players_in: players_in.map(&:id),
-          battles_count: matches.size,
+          debates_count: matches.size,
           total_tokens: @total_tokens,
           previous_highest_elo: @previous_highest_elo,
           highest_elo:,

@@ -2,7 +2,7 @@
 
 module ActiveGenie
   module Config
-    class FactoryConfig
+    class ListerConfig
       attr_accessor :number_of_items
 
       def initialize

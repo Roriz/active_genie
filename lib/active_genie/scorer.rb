@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'scoring/jury_bench'
+require_relative 'scorer/jury_bench'
 
 module ActiveGenie
   module Scorer

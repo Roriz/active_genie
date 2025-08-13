@@ -70,7 +70,7 @@ module ActiveGenie
 
       def build_function
         {
-          name: "scoring",
+          name: "scorer",
           description: "Score the text based on the given criteria.",
           parameters: {
             type: "object",

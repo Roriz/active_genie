@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require_relative 'config/providers_config'
-require_relative 'config/log_config'
-require_relative 'config/ranking_config'
-require_relative 'config/scoring_config'
-require_relative 'config/data_extractor_config'
-require_relative 'config/battle_config'
+require_relative 'config/comparator_config'
+require_relative 'config/extractor_config'
+require_relative 'config/lister_config'
 require_relative 'config/llm_config'
-require_relative 'config/factory_config'
+require_relative 'config/log_config'
+require_relative 'config/providers_config'
+require_relative 'config/ranker_config'
+require_relative 'config/scorer_config'
 
 module ActiveGenie
   class Configuration
@@ -19,24 +19,24 @@ module ActiveGenie
       @providers ||= Config::ProvidersConfig.new
     end
 
-    def ranking
-      @ranking ||= Config::RankingConfig.new
+    def ranker
+      @ranker ||= Config::RankerConfig.new
     end
 
-    def scoring
-      @scoring ||= Config::ScoringConfig.new
+    def scorer
+      @scorer ||= Config::ScorerConfig.new
     end
 
-    def data_extractor
-      @data_extractor ||= Config::DataExtractorConfig.new
+    def extractor
+      @extractor ||= Config::ExtractorConfig.new
     end
 
-    def battle
-      @battle ||= Config::BattleConfig.new
+    def comparator
+      @comparator ||= Config::ComparatorConfig.new
     end
 
-    def factory
-      @factory ||= Config::FactoryConfig.new
+    def lister
+      @lister ||= Config::ListerConfig.new
     end
 
     def llm
@@ -47,7 +47,7 @@ module ActiveGenie
       @logger ||= ActiveGenie::Logger.new(log_config: log)
     end
 
-    SUB_CONFIGS = %w[log providers llm ranking scoring data_extractor battle factory].freeze
+    SUB_CONFIGS = %w[log providers llm ranker scorer extractor comparator lister].freeze
 
     def merge(config_params = {})
       return config_params if config_params.is_a?(Configuration)

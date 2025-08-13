@@ -24,7 +24,7 @@ module ActiveGenie
       # @example Analyze text with litote
       #   text = "The weather isn't bad today"
       #   schema = { mood: { type: 'string', description: 'The mood of the message' } }
-      #   DataExtractor.with_litote(text, schema)
+      #   Extractor.with_litote(text, schema)
       #   # => { mood: "positive", mood_explanation: "Speaker views weather favorably",
       #   #      message_litote: true,
       #   #      litote_rephrased: "The weather is good today" }

@@ -25,7 +25,7 @@ module ActiveGenie
       #     age: { type: 'integer', description: 'Age in years' }
       #   }
       #   text = "John Doe is 25 years old"
-      #   DataExtractor.call(text, schema)
+      #   Extractor.with_explanation(text, schema)
       #   # => { name: "John Doe", name_explanation: "Found directly in text",
       #   #      age: 25, age_explanation: "Explicitly stated as 25 years old" }
       def initialize(text, data_to_extract, config: {})
@@ -54,7 +54,7 @@ module ActiveGenie
       private
 
       def data_to_extract_with_explanation
-        return @data_to_extract unless @config.data_extractor.with_explanation
+        return @data_to_extract unless @config.extractor.with_explanation
 
         with_explanation = {}
 
@@ -89,7 +89,7 @@ module ActiveGenie
 
         @config.logger.call(
           {
-            code: :data_extractor,
+            code: :extractor,
             text: @text[0..30],
             data_to_extract: function[:parameters][:properties],
             extracted_data: response
@@ -100,7 +100,7 @@ module ActiveGenie
       end
 
       def simplify_response(response)
-        return response if @config.data_extractor.verbose
+        return response if @config.extractor.verbose
 
         simplified_response = {}
 
@@ -115,7 +115,7 @@ module ActiveGenie
       end
 
       def min_accuracy
-        @config.data_extractor.min_accuracy # default 70
+        @config.extractor.min_accuracy # default 70
       end
 
       def prompt

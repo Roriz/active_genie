@@ -15,7 +15,7 @@ module ActiveGenie
       end
 
       def call
-        @config.log.additional_context = { ranking_scoring_id: }
+        @config.log.additional_context = { ranker_scoring_id: }
 
         players_without_score.each do |player|
           player.score = generate_score(player)
@@ -29,7 +29,7 @@ module ActiveGenie
       end
 
       def generate_score(player)
-        score, reasoning = ActiveGenie::Scoring.call(
+        score, reasoning = ActiveGenie::Scorer.jury_bench(
           player.content,
           @criteria,
           @juries,
@@ -43,7 +43,7 @@ module ActiveGenie
 
       def juries
         @juries ||= begin
-          response = ActiveGenie::Scoring::RecommendedReviewers.call(
+          response = ActiveGenie::Lister.juries(
             [@players.sample.content, @players.sample.content].join("\n\n"),
             @criteria,
             config: @config
@@ -53,12 +53,12 @@ module ActiveGenie
         end
       end
 
-      def ranking_scoring_id
-        @ranking_scoring_id ||= begin
+      def ranker_scoring_id
+        @ranker_scoring_id ||= begin
           player_ids = players_without_score.map(&:id).join(',')
-          ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
+          ranker_unique_key = [player_ids, @criteria, @config.to_json].join('-')
 
-          "#{Digest::MD5.hexdigest(ranking_unique_key)}-scoring"
+          "#{Digest::MD5.hexdigest(ranker_unique_key)}-scoring"
         end
       end
     end

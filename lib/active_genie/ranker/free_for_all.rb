@@ -20,7 +20,7 @@ module ActiveGenie
         @config.log.additional_context = { free_for_all_id: }
 
         matches.each do |player_a, player_b|
-          winner, loser = battle(player_a, player_b)
+          winner, loser = debate(player_a, player_b)
 
           update_players_score(winner, loser)
         end
@@ -31,15 +31,15 @@ module ActiveGenie
       private
 
       # TODO: reduce the number of matches based on transitivity.
-      #       For example, if A is better than B, and B is better than C, then battle between A and C should be auto win A
+      #       For example, if A is better than B, and B is better than C, then debate between A and C should be auto win A
       def matches
         @players.eligible.combination(2).to_a
       end
 
-      def battle(player_a, player_b)
+      def debate(player_a, player_b)
         log_context = { player_a_id: player_a.id, player_b_id: player_b.id }
 
-        result = ActiveGenie::Battle.call(
+        result = ActiveGenie::Comparator.debate(
           player_a.content,
           player_b.content,
           @criteria,
@@ -55,7 +55,7 @@ module ActiveGenie
         @config.logger.call(
           {
             **log_context,
-            code: :free_for_all_battle,
+            code: :free_for_all,
             winner_id: winner&.id,
             loser_id: loser&.id,
             reasoning: result['reasoning']
@@ -88,7 +88,7 @@ module ActiveGenie
       def build_report
         report = {
           free_for_all_id:,
-          battles_count: matches.size,
+          debates_count: matches.size,
           duration_seconds: Time.now - @start_time,
           total_tokens: @total_tokens
         }

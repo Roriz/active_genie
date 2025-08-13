@@ -13,7 +13,7 @@ require_relative 'scoring'
 # 4. Conducts free-for-all matches
 #
 # @example Basic usage
-#   Ranking.call(players, criteria)
+#   Ranker.tournament(players, criteria)
 #
 # @param param_players [Array<Hash|String>] Collection of player objects to evaluate
 #   Example: ["Circle", "Triangle", "Square"]
@@ -44,7 +44,7 @@ module ActiveGenie
       end
 
       def call
-        @config.log.additional_context = { ranking_id: }
+        @config.log.additional_context = { ranker_id: }
 
         set_initial_player_scores!
         eliminate_obvious_bad_players!
@@ -75,7 +75,7 @@ module ActiveGenie
       end
 
       def eliminate_obvious_bad_players!
-        while @players.coefficient_of_variation >= @config.ranking.score_variation_threshold
+        while @players.coefficient_of_variation >= @config.ranker.score_variation_threshold
           @players.eligible.last.eliminated = ELIMINATION_VARIATION
         end
       end
@@ -112,17 +112,17 @@ module ActiveGenie
 
       def sorted_players
         players = @players.sorted
-        @config.logger.call({ ranking_id:, code: :ranking_final, players: players.map(&:to_h) })
+        @config.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) })
 
         players.map(&:to_h)
       end
 
-      def ranking_id
-        @ranking_id ||= begin
+      def ranker_id
+        @ranker_id ||= begin
           player_ids = @players.map(&:id).join(',')
-          ranking_unique_key = [player_ids, @criteria, @config.to_json].join('-')
+          ranker_unique_key = [player_ids, @criteria, @config.to_json].join('-')
 
-          Digest::MD5.hexdigest(ranking_unique_key)
+          Digest::MD5.hexdigest(ranker_unique_key)
         end
       end
     end

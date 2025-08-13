@@ -15,7 +15,7 @@ module ActiveGenie
       end
 
       # @param theme [String] The theme for the feud
-      # @param config [Hash] Additional configuration options that modify the battle evaluation behavior
+      # @param config [Hash] Additional configuration options
       # @return [Array of strings] List of items
       def initialize(theme, config: {})
         @theme = theme
@@ -46,7 +46,7 @@ module ActiveGenie
       private
 
       def number_of_items
-        @config.factory.number_of_items
+        @config.lister.number_of_items
       end
 
       def log_feud(response)
