@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../clients/unified_client'
-require_relative 'generalist'
+require_relative '../providers/unified_provider'
+require_relative 'debate'
 
 module ActiveGenie
   module Comparator
@@ -11,7 +11,7 @@ module ActiveGenie
     # @example Fight usage with two fighters and criteria
     #   Fight.call("Naruto", "Sasuke", "How can win without using jutsu?")
     #
-    class Fight < Generalist
+    class Fight < Debate
       # @return [ComparatorResponse] The evaluation result containing the winner and reasoning
       def call
         messages = [
@@ -21,7 +21,7 @@ module ActiveGenie
           {  role: 'user', content: "criteria: #{@criteria}" }
         ]
 
-        response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           FUNCTION,
           config: @config

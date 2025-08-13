@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 
 module ActiveGenie
-  module Ranking
+  module Ranker
     class DocsTest < Minitest::Test
       def test_what_doc_needs_update
         docs = JSON.parse(File.read('benchmark/test_cases/assets/docs.json'))
@@ -36,7 +36,7 @@ module ActiveGenie
           - Monitoring and analytics to track feature flag impact on user engagement
           """
         CRITERIA
-        result = ActiveGenie::Ranking.call(docs, pr_description)
+        result = ActiveGenie::Ranker.by_tournament(docs, pr_description)
 
         feature_flag = result.index { |r| r[:content].include? 'Feature Flagging & Rollout' }
         retrospective = result.index { |r| r[:content].include? 'Retrospective & Postmortem Templates' }

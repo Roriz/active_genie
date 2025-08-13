@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require_relative 'config/comparator_config'
-require_relative 'config/extractor_config'
-require_relative 'config/lister_config'
-require_relative 'config/llm_config'
-require_relative 'config/log_config'
-require_relative 'config/providers_config'
-require_relative 'config/ranker_config'
-require_relative 'config/scorer_config'
+require_relative 'configs/comparator_config'
+require_relative 'configs/extractor_config'
+require_relative 'configs/lister_config'
+require_relative 'configs/llm_config'
+require_relative 'configs/log_config'
+require_relative 'configs/providers_config'
+require_relative 'configs/ranker_config'
+require_relative 'configs/scorer_config'
 
 module ActiveGenie
   class Configuration

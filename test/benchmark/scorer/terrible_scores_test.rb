@@ -3,17 +3,17 @@
 require_relative '../test_helper'
 
 module ActiveGenie
-  module Scoring
+  module Scorer
     class TerribleTest < Minitest::Test
       def test_evaluate_incident_report
-        result = ActiveGenie::Scoring.call('WARNING!!! URGENT!!! System totally broken!!! Nothing works!!! Fix ASAP!!!',
+        result = ActiveGenie::Scorer.jury_bench('WARNING!!! URGENT!!! System totally broken!!! Nothing works!!! Fix ASAP!!!',
                                            'Evaluate incident report quality and professionalism', ['system_reliability_engineer'])
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
 
       def test_evaluate_completeness
-        result = ActiveGenie::Scoring.call('Section 3.4: Data must secure. Implement good security. Make system fast.',
+        result = ActiveGenie::Scorer.jury_bench('Section 3.4: Data must secure. Implement good security. Make system fast.',
                                            'Evaluate completeness and clarity of technical requirements', ['system_architect'])
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
@@ -28,7 +28,7 @@ module ActiveGenie
         criteria = <<~CRITERIA
           item description should provide clear details about what is being sold, including the brand, model, size, color, and key features so buyers know exactly what they’re getting. It should honestly state the condition, mentioning if it’s new, like new, or used, and highlight any defects or wear to build trust. The description should confirm the functionality, whether it works perfectly or has minor issues. If any accessories, manuals, or packaging are included, that should be mentioned. Shipping details should specify the method, cost, and estimated delivery time, and the return policy should be clear. The language should be concise, professional, and engaging, making it easy for buyers to read and understand.
         CRITERIA
-        result = ActiveGenie::Scoring.call(product_description, criteria,
+        result = ActiveGenie::Scorer.jury_bench(product_description, criteria,
                                            %w[ebay_seller_moderator ebay_product_analyzer])
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
@@ -47,7 +47,7 @@ module ActiveGenie
           devops_engineer software_engineer
         ]
 
-        result = ActiveGenie::Scoring.call(jira_task, criteria, reviewers)
+        result = ActiveGenie::Scorer.jury_bench(jira_task, criteria, reviewers)
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end

@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 
 module ActiveGenie
-  module Ranking
+  module Ranker
     class McuTest < Minitest::Test
       def test_rank_strongest_character_from_mcu
         characters = JSON.parse(File.read('benchmark/test_cases/assets/marvel_characters.json'), symbolize_names: true)
@@ -30,7 +30,7 @@ module ActiveGenie
           # Rules
           None, the players are free to use any means necessary to win the fight.
         CRITERIA
-        result = ActiveGenie::Ranking.call(characters, fight_criteria)
+        result = ActiveGenie::Ranker.by_tournament(characters, fight_criteria)
 
         thanos_index = result.index { |r| r[:content].include? 'Thanos' }
         tony_stark_index = result.index { |r| r[:content].include? 'Tony Stark' }

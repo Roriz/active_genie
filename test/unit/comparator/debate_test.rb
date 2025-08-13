@@ -4,11 +4,11 @@ require_relative '../test_helper'
 require 'webmock/minitest'
 
 module ActiveGenie
-  module Battle
-    class GeneralistTest < Minitest::Test
+  module Comparator
+    class DebateTest < Minitest::Test
       def setup
         ActiveGenie.configuration.providers.all.each do |provider_name, provider|
-          fixture_path = "#{__dir__}/fixtures/generalist/#{provider_name}.json"
+          fixture_path = "#{__dir__}/fixtures/debate/#{provider_name}.json"
           stub_request(:post, /#{provider.api_url}.*$/).to_return(status: 200, body: File.read(fixture_path))
         end
       end
@@ -18,7 +18,7 @@ module ActiveGenie
         player_b = 'Player B content'
         criteria = 'Evaluate based on creativity and clarity'
 
-        ActiveGenie::Battle::Generalist.call(player_a, player_b, criteria, config: { provider: 'openai' })
+        ActiveGenie::Comparator.debate(player_a, player_b, criteria, config: { provider: 'openai' })
 
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
           request_body = JSON.parse(req.body)

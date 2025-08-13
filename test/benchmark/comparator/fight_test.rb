@@ -3,10 +3,10 @@
 require_relative '../test_helper'
 
 module ActiveGenie
-  module Battle
+  module Comparator
     class FightTest < Minitest::Test
       def test_goku_vs_vegeta
-        result = ActiveGenie::Battle.fight(
+        result = ActiveGenie::Comparator.fight(
           'Goku',
           'Vegeta',
           'who is stronger? Without any restrictions'

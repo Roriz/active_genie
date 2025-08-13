@@ -3,51 +3,51 @@
 require_relative '../test_helper'
 
 module ActiveGenie
-  class DataExtractorTest < Minitest::Test
-    empty_tests = JSON.parse(File.read(File.join(__dir__, 'generalist/empty.json')), symbolize_names: true)
+  class ExtractorTest < Minitest::Test
+    empty_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/empty.json')), symbolize_names: true)
     empty_tests.each_with_index do |test, index|
       define_method("test_empty_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-        result = ActiveGenie::DataExtractor::Generalist.call(*test[:input])
+        result = ActiveGenie::Extractor.with_explanation(*test[:input])
         module_asserts(result, test[:expected])
       end
     end
 
-    marketplace_tests = JSON.parse(File.read(File.join(__dir__, 'generalist/marketplace.json')), symbolize_names: true)
+    marketplace_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/marketplace.json')), symbolize_names: true)
     marketplace_tests.each_with_index do |test, index|
       define_method("test_marketplace_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-        result = ActiveGenie::DataExtractor::Generalist.call(*test[:input])
+        result = ActiveGenie::Extractor.with_explanation(*test[:input])
         module_asserts(result, test[:expected])
       end
     end
 
-    others_tests = JSON.parse(File.read(File.join(__dir__, 'generalist/others.json')), symbolize_names: true)
+    others_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/others.json')), symbolize_names: true)
     others_tests.each_with_index do |test, index|
       define_method("test_others_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-        result = ActiveGenie::DataExtractor::Generalist.call(*test[:input])
+        result = ActiveGenie::Extractor.with_explanation(*test[:input])
         module_asserts(result, test[:expected])
       end
     end
 
-    social_media_tests = JSON.parse(File.read(File.join(__dir__, 'generalist/social_media.json')), symbolize_names: true)
+    social_media_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/social_media.json')), symbolize_names: true)
     social_media_tests.each_with_index do |test, index|
       define_method("test_social_media_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-        result = ActiveGenie::DataExtractor::Generalist.call(*test[:input])
+        result = ActiveGenie::Extractor.with_explanation(*test[:input])
         module_asserts(result, test[:expected])
       end
     end
 
-    from_informal_affirmative_tests = JSON.parse(File.read(File.join(__dir__, 'from_informal/affirmative.json')), symbolize_names: true)
-    from_informal_affirmative_tests.each_with_index do |test, index|
-      define_method("test_from_informal_affirmative_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-        result = ActiveGenie::DataExtractor::FromInformal.call(*test[:input])
+    litote_affirmative_tests = JSON.parse(File.read(File.join(__dir__, 'litote/affirmative.json')), symbolize_names: true)
+    litote_affirmative_tests.each_with_index do |test, index|
+      define_method("test_litote_affirmative_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
+        result = ActiveGenie::Extractor.with_litote(*test[:input])
         module_asserts(result, test[:expected])
       end
     end
 
-    from_informal_litotes_tests = JSON.parse(File.read(File.join(__dir__, 'from_informal/litotes.json')), symbolize_names: true)
-    from_informal_litotes_tests.each_with_index do |test, index|
-      define_method("test_from_informal_litotes_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-        result = ActiveGenie::DataExtractor::FromInformal.call(*test[:input])
+    litote_litotes_tests = JSON.parse(File.read(File.join(__dir__, 'litote/litotes.json')), symbolize_names: true)
+    litote_litotes_tests.each_with_index do |test, index|
+      define_method("test_litote_litotes_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
+        result = ActiveGenie::Extractor.with_litote(*test[:input])
         module_asserts(result, test[:expected])
       end
     end

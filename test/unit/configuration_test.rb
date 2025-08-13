@@ -21,7 +21,7 @@ module ActiveGenie
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 
-      ActiveGenie::DataExtractor.call(text, schema)
+      ActiveGenie::Extractor.with_explanation(text, schema)
 
       assert_requested(:post, 'https://api.openai.com/v1/chat/completions')
     end
@@ -30,7 +30,7 @@ module ActiveGenie
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 
-      ActiveGenie::DataExtractor.call(text, schema, config: { provider: 'google' })
+      ActiveGenie::Extractor.with_explanation(text, schema, config: { provider: 'google' })
 
       assert_requested(:post,
                        %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent})
@@ -40,7 +40,7 @@ module ActiveGenie
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 
-      ActiveGenie::DataExtractor.call(text, schema, config: { providers: { default: 'google' } })
+      ActiveGenie::Extractor.with_explanation(text, schema, config: { providers: { default: 'google' } })
 
       assert_requested(:post,
                        %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent})
@@ -50,7 +50,7 @@ module ActiveGenie
       text = 'Input Text'
       schema = { schema_key: { type: 'string' } }
 
-      ActiveGenie::DataExtractor.call(
+      ActiveGenie::Extractor.with_explanation(
         text,
         schema,
         config: {

@@ -3,10 +3,10 @@
 require_relative '../test_helper'
 
 module ActiveGenie
-  module Factory
+  module Lister
     class FeudTest < Minitest::Test
       def test_feud_most_likely_to_be_affected_by_climate_change
-        result = ActiveGenie::Factory.feud(
+        result = ActiveGenie::Lister.feud(
           'Industries that are most likely to be affected by climate change'
         )
 
@@ -17,9 +17,9 @@ module ActiveGenie
       end
 
       def test_feud_with_more_items
-        result = ActiveGenie::Factory.feud(
+        result = ActiveGenie::Lister.feud(
           'Industries that are most likely to be affected by climate change',
-          config: { factory: { number_of_items: 10 } }
+          config: { lister: { number_of_items: 10 } }
         )
 
         assert_equal 10, result.length

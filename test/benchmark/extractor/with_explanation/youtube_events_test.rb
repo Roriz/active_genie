@@ -3,7 +3,7 @@
 require_relative '../../test_helper'
 
 module ActiveGenie
-  module DataExtractor
+  module Extractor
     class YoutubeEventsTest < Minitest::Test
       def test_youtube_extract
         text = <<~STRING
@@ -53,7 +53,7 @@ module ActiveGenie
           }
         }
 
-        result = ActiveGenie::DataExtractor.call(
+        result = ActiveGenie::Extractor.with_explanation(
           text,
           schema,
           config: {

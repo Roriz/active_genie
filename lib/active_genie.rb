@@ -3,10 +3,10 @@
 require_relative 'active_genie/logger'
 require_relative 'active_genie/configuration'
 
-require_relative 'active_genie/config/providers/openai_config'
-require_relative 'active_genie/config/providers/google_config'
-require_relative 'active_genie/config/providers/anthropic_config'
-require_relative 'active_genie/config/providers/deepseek_config'
+require_relative 'active_genie/configs/providers/openai_config'
+require_relative 'active_genie/configs/providers/google_config'
+require_relative 'active_genie/configs/providers/anthropic_config'
+require_relative 'active_genie/configs/providers/deepseek_config'
 
 module ActiveGenie
   autoload :Extractor, File.join(__dir__, 'active_genie/extractor')

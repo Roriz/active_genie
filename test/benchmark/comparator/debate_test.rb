@@ -3,8 +3,8 @@
 require_relative '../test_helper'
 
 module ActiveGenie
-  module Battle
-    class GeneralistTest < Minitest::Test
+  module Comparator
+    class DebateTest < Minitest::Test
       TESTS = [
         { input: ['american food', 'brazilian food', 'less fat is better'], expected: 1 },
         { input: ['rainning day', 'sunny day', 'go to park with family'], expected: 0 },
@@ -20,7 +20,7 @@ module ActiveGenie
 
       TESTS.each_with_index do |test, index|
         define_method("test_#{test[:input][2].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-          result = ActiveGenie::Battle.call(*test[:input])
+          result = ActiveGenie::Comparator.debate(*test[:input])
 
           assert_equal test[:input][test[:expected]], result.winner
         end
@@ -32,7 +32,7 @@ module ActiveGenie
           'Turn heads with our Glamour Noir Dress. Crafted from a luxurious, shimmering fabric, this dress features a sleek, form-fitting silhouette and an elegant V-neckline. The midi length and sophisticated design promise a stunning look, while the subtle side slit adds a touch of allure. Available in timeless black, the Glamour Noir Dress is perfect for dinners or nights out. Effortlessly chic and machine washable, it\'s the go-to choice for your next night on the town.'
         ]
         criteria = 'Dress for Friday night'
-        result = ActiveGenie::Battle.call(
+        result = ActiveGenie::Comparator.debate(
           dresses[0],
           dresses[1],
           criteria
@@ -47,7 +47,7 @@ module ActiveGenie
           'How do I print "Hello, World!" in Python?'
         ]
         criteria = 'What is the most hardest question'
-        result = ActiveGenie::Battle.call(
+        result = ActiveGenie::Comparator.debate(
           stackoverflow_issues[0],
           stackoverflow_issues[1],
           criteria

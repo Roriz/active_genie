@@ -3,7 +3,7 @@
 require_relative '../../test_helper'
 
 module ActiveGenie
-  module DataExtractor
+  module Extractor
     class PreciseTest < Minitest::Test
       def test_job_description_extractor
         job_description = <<~DESCRIPTION
@@ -27,7 +27,7 @@ module ActiveGenie
           discipline: { type: 'string', enum: %w[Marketing Engineering Education] }
         }
 
-        result = ActiveGenie::DataExtractor.call(job_description, data_to_extract)
+        result = ActiveGenie::Extractor.with_explanation(job_description, data_to_extract)
 
         assert result[:need_graduation]
         assert_equal 1, result[:required_minimal_years_of_experience]
