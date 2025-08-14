@@ -22,7 +22,7 @@ schema = {
   }
 }
 
-result = ActiveGenie::DataExtractor.call(
+result = ActiveGenie::Extractor.call(
   text,
   schema,
   config: { provider_name: :openai, model: 'gpt-4.1-mini' } # optional
@@ -54,7 +54,7 @@ Text evaluation system that provides detailed scoring and feedback using multipl
 text = "The code implements a binary search algorithm with O(log n) complexity"
 criteria = "Evaluate technical accuracy and clarity"
 
-result = ActiveGenie::Scoring.call(
+result = ActiveGenie::Scorer.call(
   text,
   criteria,
   config: { provider_name: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
@@ -122,7 +122,7 @@ require 'active_genie'
 players = ['REST API', 'GraphQL API', 'SOAP API', 'gRPC API', 'Websocket API']
 criteria = "Best one to be used into a high changing environment"
 
-result = ActiveGenie::Ranking.call(
+result = ActiveGenie::Ranker.call(
   players,
   criteria,
   config: { provider_name: :google, model: 'gemini-2.0-flash-lite' } # optional

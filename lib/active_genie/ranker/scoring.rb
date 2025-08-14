@@ -8,7 +8,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, juries: [], config: nil)
-        @players = PlayersCollection.new(players)
+        @players = Players.new(players)
         @criteria = criteria
         @config = ActiveGenie.configuration.merge(config)
         @juries = Array(juries).compact.uniq

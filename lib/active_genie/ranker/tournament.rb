@@ -36,7 +36,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, reviewers: [], config: {})
-        @players = PlayersCollection.new(players)
+        @players = Players.new(players)
         @criteria = criteria
         @reviewers = Array(reviewers).compact.uniq
         @config = ActiveGenie.configuration.merge(config)

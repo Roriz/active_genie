@@ -8,7 +8,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, config: nil)
-        @players = PlayersCollection.new(players)
+        @players = Players.new(players)
         @criteria = criteria
         @config = config || ActiveGenie.configuration
         @start_time = Time.now

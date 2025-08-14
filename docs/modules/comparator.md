@@ -1,6 +1,6 @@
-# Battle
+# Comparator
 
-The **Battle** module conducts a verbal debate between two players, where each presents their strengths and how they meet the given criteria. The goal of a battle is to determine a winner.
+The **Comparator** module conducts a verbal debate between two players, where each presents their strengths and how they meet the given criteria. The goal of a comparator is to determine a winner.
 
 The debate has a structure similar to a political debate:
 
@@ -16,15 +16,15 @@ The debate has a structure similar to a political debate:
 
 ## Basic Usage
 
-Evaluate a battle between two players with simple text content:
+Evaluate a comparator between two players with simple text content:
 
 ```ruby
 player_a = "Implementation uses dependency injection for better testability"
 player_b = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
-result = ActiveGenie::Battle.call(player_a, player_b, criteria)
-# => BattleResponse(
+result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
+# => ComparatorResponse(
 #      winner: "Implementation uses dependency injection for better testability",
 #      loser: "Code has high test coverage but tightly coupled components",
 #      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection,
@@ -39,7 +39,7 @@ result = ActiveGenie::Battle.call(player_a, player_b, criteria)
   - **The more descriptive you are about each player, the better.** However, avoid mentioning too many other characters, as this can confuse the LLM.
   - **Describe characteristics that directly influence the criteria.** For example, if you're comparing two cellphones based on style, be descriptive about their design, colors, and materials.
   - **Avoid depending on the raw output**, as it can change drastically without notice. However, feel free to use it for debugging. For example, try changing the criteria to see how the output is affected.
-  - **Be descriptive with the criteria.** What are the most important characteristics? Will the battle take place in a specific location? Are there any restrictions, such as needing a cellphone that fits in one hand or can be used in the rain?
+  - **Be descriptive with the criteria.** What are the most important characteristics? Will the comparator take place in a specific location? Are there any restrictions, such as needing a cellphone that fits in one hand or can be used in the rain?
 
 ## Interface
 
@@ -48,9 +48,9 @@ result = ActiveGenie::Battle.call(player_a, player_b, criteria)
   - `player_a` [String, Hash] - The content or submission from the first player.
   - `player_b` [String, Hash] - The content or submission from the second player.
   - `criteria` [String] - The evaluation criteria or rules to assess against.
-  - `config` [Hash] - Additional configuration that modifies the battle evaluation behavior.
+  - `config` [Hash] - Additional configuration that modifies the comparator evaluation behavior.
 
-**Returns a `BattleResponse` containing:**
+**Returns a `ComparatorResponse` containing:**
 
   - `winner` [String] - The winning player's content (either `player_a` or `player_b`).
   - `loser` [String] - The losing player's content (either `player_a` or `player_b`).
@@ -63,7 +63,7 @@ result = ActiveGenie::Battle.call(player_a, player_b, criteria)
 
 The **Fight** module is a specialized version of `Battle` designed for combat scenarios between two fighters, such as martial artists, heroes, or other characters. The evaluation process simulates a fight using words, techniques, strategies, and reasoning.
 
-As a submodule of `Battle`, the goal of a fight is to determine the winner, there is no draw. The input and output are the same as `Battle`, but the evaluation process is different.
+As a submodule of `Comparator`, the goal of a fight is to determine the winner, there is no draw. The input and output are the same as `Comparator`, but the evaluation process is different.
 
 The basic structure of a fight is:
 
@@ -95,8 +95,8 @@ player_a = "Master Crane, a graceful fighter whose Crane Kung Fu relies on light
 player_b = "Iron Ox, a powerful brawler whose Ox Bull Charge style uses immense strength and mass to overwhelm opponents."
 criteria = "Determine the winner of the fight based on skill, strategy, and adaptability in a one-on-one duel."
 
-result = ActiveGenie::Battle.fight(player_a, player_b, criteria)
-# => BattleResponse(
+result = ActiveGenie::Comparator.fight(player_a, player_b, criteria)
+# => ComparatorResponse(
 #      winner: "Master Crane, a graceful fighter...",
 #      loser: "Iron Ox, a powerful brawler...",
 #      reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct...",

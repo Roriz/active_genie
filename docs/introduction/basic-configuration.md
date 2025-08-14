@@ -36,5 +36,5 @@ ActiveGenie.configure do |config|
   config.llm.client = InternalCompanyApi
 end
 # or
-ActiveGenie::Battle.call('player_a', 'player_b', 'criteria', { client: InternalCompanyApi })
+ActiveGenie::Comparator.call('player_a', 'player_b', 'criteria', { client: InternalCompanyApi })
 ```
