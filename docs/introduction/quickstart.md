@@ -22,10 +22,10 @@ schema = {
   }
 }
 
-result = ActiveGenie::DataExtractor.call(
+result = ActiveGenie::Extractor.call(
   text,
   schema,
-  config: { provider: :openai, model: 'gpt-4.1-mini' } # optional
+  config: { provider_name: :openai, model: 'gpt-4.1-mini' } # optional
 )
 # => {
 #      brand: "Nike",
@@ -54,10 +54,10 @@ Text evaluation system that provides detailed scoring and feedback using multipl
 text = "The code implements a binary search algorithm with O(log n) complexity"
 criteria = "Evaluate technical accuracy and clarity"
 
-result = ActiveGenie::Scoring.call(
+result = ActiveGenie::Scorer.call(
   text,
   criteria,
-  config: { provider: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
+  config: { provider_name: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
 )
 # => {
 #      algorithm_expert_score: 95,
@@ -92,7 +92,7 @@ result = ActiveGenie::Battle.call(
   player_a,
   player_b,
   criteria,
-  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
+  config: { provider_name: :google, model: 'gemini-2.0-flash-lite' } # optional
 )
 # => {
 #      winner_player: "Implementation uses dependency injection for better testability",
@@ -122,10 +122,10 @@ require 'active_genie'
 players = ['REST API', 'GraphQL API', 'SOAP API', 'gRPC API', 'Websocket API']
 criteria = "Best one to be used into a high changing environment"
 
-result = ActiveGenie::Ranking.call(
+result = ActiveGenie::Ranker.call(
   players,
   criteria,
-  config: { provider: :google, model: 'gemini-2.0-flash-lite' } # optional
+  config: { provider_name: :google, model: 'gemini-2.0-flash-lite' } # optional
 )
 # => {
 #      winner_player: "gRPC API",

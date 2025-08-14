@@ -17,7 +17,7 @@ module ActiveGenie
 
       2. Or pass configuration directly to the method call:
          ```ruby
-         ActiveGenie::DataExtraction.call(
+         ActiveGenie::Extraction.call(
            arg1,
            arg2,
            config: {

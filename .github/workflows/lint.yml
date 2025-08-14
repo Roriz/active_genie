@@ -7,14 +7,25 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3'
+        ruby-version: '3.2'
         bundler-cache: true
 
+    - name: Install dependencies
+      run: bundle install
+
+    - name: Debug RuboCop config
+      run: |
+        echo "RuboCop version:"
+        bundle exec rubocop --version
+        echo "RuboCop config:"
+        bundle exec rubocop --show-config-files || true
+
     - name: Run RuboCop
-      run: bundle exec rubocop .
+      run: bundle exec rubocop --parallel --format progress

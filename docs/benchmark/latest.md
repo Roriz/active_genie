@@ -22,22 +22,22 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 
 | Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| data_extractor | openai | gpt-4.1-mini | 112/8 (120) | 93% | 426 | 166 | 100039 | 3.55 |
-| data_extractor | google | gemini-2.5-flash-preview-05-20 | 112/8 (120) | 93% | 440 | 165 | 213353 | 3.67 |
-| data_extractor | anthropic | claude-3-5-haiku-20241022 | 69/14 (120) | 57% | 392 | 109 | 145058 | 3.26 |
-| data_extractor | deepseek | deepseek-chat | 111/9 (120) | 92% | 1,674 | 162 | 145282 | 13.95 |
+| extractor | openai | gpt-4.1-mini | 112/8 (120) | 93% | 426 | 166 | 100039 | 3.55 |
+| extractor | google | gemini-2.5-flash-preview-05-20 | 112/8 (120) | 93% | 440 | 165 | 213353 | 3.67 |
+| extractor | anthropic | claude-3-5-haiku-20241022 | 69/14 (120) | 57% | 392 | 109 | 145058 | 3.26 |
+| extractor | deepseek | deepseek-chat | 111/9 (120) | 92% | 1,674 | 162 | 145282 | 13.95 |
 | battle | openai | gpt-4.1-mini | 11/1 (12) | 91% | 75 | 12 | 9672 | 6.23 |
 | battle | google | gemini-2.5-flash-preview-05-20 | 11/1 (12) | 91% | 117 | 12 | 28203 | 9.75 |
 | battle | anthropic | claude-3-5-haiku-20241022 | 11/1 (12) | 91% | 77 | 12 | 16025 | 6.44 |
 | battle | deepseek | deepseek-chat | 11/1 (12) | 91% | 215 | 12 | 11312 | 17.9 |
-| scoring | openai | gpt-4.1-mini | 13/4 (17) | 76% | 84 | 17 | 15279 | 4.95 |
-| scoring | google | gemini-2.5-flash-preview-05-20 | 13/4 (17) | 76% | 198 | 17 | 48656 | 11.62 |
-| scoring | anthropic | claude-3-5-haiku-20241022 | 12/5 (17) | 70% | 154 | 17 | 26878 | 9.08 |
-| scoring | deepseek | deepseek-chat | 14/3 (17) | 82% | 247 | 17 | 16739 | 14.55 |
-| ranking | openai | gpt-4.1-mini | 2/0 (2) | 100% | 2,209 | 259 | 390023 | 1104.32 |
-| ranking | google | gemini-2.5-flash-preview-05-20 | 1/0 (2) | 50% | 2,072 | 119 | 509041 | 1035.97 |
-| ranking | anthropic | claude-3-5-haiku-20241022 | 0/0 (2) | 0% | 7 | 2 | 2826 | 3.66 |
-| ranking | deepseek | deepseek-chat | 2/0 (2) | 100% | 5,892 | 260 | 423544 | 2945.88 |
+| scorer | openai | gpt-4.1-mini | 13/4 (17) | 76% | 84 | 17 | 15279 | 4.95 |
+| scorer | google | gemini-2.5-flash-preview-05-20 | 13/4 (17) | 76% | 198 | 17 | 48656 | 11.62 |
+| scorer | anthropic | claude-3-5-haiku-20241022 | 12/5 (17) | 70% | 154 | 17 | 26878 | 9.08 |
+| scorer | deepseek | deepseek-chat | 14/3 (17) | 82% | 247 | 17 | 16739 | 14.55 |
+| ranker | openai | gpt-4.1-mini | 2/0 (2) | 100% | 2,209 | 259 | 390023 | 1104.32 |
+| ranker | google | gemini-2.5-flash-preview-05-20 | 1/0 (2) | 50% | 2,072 | 119 | 509041 | 1035.97 |
+| ranker | anthropic | claude-3-5-haiku-20241022 | 0/0 (2) | 0% | 7 | 2 | 2826 | 3.66 |
+| ranker | deepseek | deepseek-chat | 2/0 (2) | 100% | 5,892 | 260 | 423544 | 2945.88 |
 
 see logs and more details in: https://github.com/Roriz/active_genie/actions/runs/15414461171
 
@@ -45,10 +45,10 @@ see logs and more details in: https://github.com/Roriz/active_genie/actions/runs
 
 | ActiveGenie Module | Best Precision | Worst Precision | Recommended Model |
 | --- | --- | --- | --- |
-| data_extractor | 93% | 57% | `gpt-4.1-mini` |
+| extractor | 93% | 57% | `gpt-4.1-mini` |
 | battle | 91% | 91% | `gpt-4.1-mini` |
-| scoring | 82% | 76% | `deepseek-chat` |
-| ranking | 100% | 0% | `gpt-4.1-mini` |
+| scorer | 82% | 76% | `deepseek-chat` |
+| ranker | 100% | 0% | `gpt-4.1-mini` |
 
 ## Benchmark Methodology
 
@@ -68,10 +68,10 @@ bundle exec rake active_genie:benchmark
 To benchmark a specific module:
 
 ```shell
-bundle exec rake active_genie:benchmark[data_extractor]
-bundle exec rake active_genie:benchmark[scoring]
+bundle exec rake active_genie:benchmark[extractor]
+bundle exec rake active_genie:benchmark[scorer]
 bundle exec rake active_genie:benchmark[battle]
-bundle exec rake active_genie:benchmark[ranking]
+bundle exec rake active_genie:benchmark[ranker]
 ```
 
 ## Interpreting Results

@@ -3,17 +3,17 @@
 require_relative 'active_genie/logger'
 require_relative 'active_genie/configuration'
 
-require_relative 'active_genie/config/providers/openai_config'
-require_relative 'active_genie/config/providers/google_config'
-require_relative 'active_genie/config/providers/anthropic_config'
-require_relative 'active_genie/config/providers/deepseek_config'
+require_relative 'active_genie/configs/providers/openai_config'
+require_relative 'active_genie/configs/providers/google_config'
+require_relative 'active_genie/configs/providers/anthropic_config'
+require_relative 'active_genie/configs/providers/deepseek_config'
 
 module ActiveGenie
-  autoload :DataExtractor, File.join(__dir__, 'active_genie/data_extractor')
-  autoload :Battle, File.join(__dir__, 'active_genie/battle')
-  autoload :Scoring, File.join(__dir__, 'active_genie/scoring')
-  autoload :Ranking, File.join(__dir__, 'active_genie/ranking')
-  autoload :Factory, File.join(__dir__, 'active_genie/factory')
+  autoload :Extractor, File.join(__dir__, 'active_genie/extractor')
+  autoload :Comparator, File.join(__dir__, 'active_genie/comparator')
+  autoload :Scorer, File.join(__dir__, 'active_genie/scorer')
+  autoload :Ranker, File.join(__dir__, 'active_genie/ranker')
+  autoload :Lister, File.join(__dir__, 'active_genie/lister')
 
   VERSION = File.read(File.expand_path('../VERSION', __dir__)).strip
 
