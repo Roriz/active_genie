@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../clients/unified_client'
+require_relative '../providers/unified_provider'
 
 module ActiveGenie
   module Lister
@@ -71,7 +71,7 @@ module ActiveGenie
       private
 
       def client
-        ::ActiveGenie::Clients::UnifiedClient
+        ::ActiveGenie::Providers::UnifiedProvider
       end
 
       def prompt

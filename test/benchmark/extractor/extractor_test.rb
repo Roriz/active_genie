@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 module ActiveGenie
   class ExtractorTest < Minitest::Test
-    empty_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/empty.json')), symbolize_names: true)
+    empty_tests = JSON.parse(File.read(File.join(__dir__, 'with_explanation/empty.json')), symbolize_names: true)
     empty_tests.each_with_index do |test, index|
       define_method("test_empty_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
@@ -12,7 +12,8 @@ module ActiveGenie
       end
     end
 
-    marketplace_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/marketplace.json')), symbolize_names: true)
+    marketplace_tests = JSON.parse(File.read(File.join(__dir__, 'with_explanation/marketplace.json')),
+                                   symbolize_names: true)
     marketplace_tests.each_with_index do |test, index|
       define_method("test_marketplace_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
@@ -20,7 +21,7 @@ module ActiveGenie
       end
     end
 
-    others_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/others.json')), symbolize_names: true)
+    others_tests = JSON.parse(File.read(File.join(__dir__, 'with_explanation/others.json')), symbolize_names: true)
     others_tests.each_with_index do |test, index|
       define_method("test_others_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
@@ -28,7 +29,7 @@ module ActiveGenie
       end
     end
 
-    social_media_tests = JSON.parse(File.read(File.join(__dir__, 'explanation/social_media.json')),
+    social_media_tests = JSON.parse(File.read(File.join(__dir__, 'with_explanation/social_media.json')),
                                     symbolize_names: true)
     social_media_tests.each_with_index do |test, index|
       define_method("test_social_media_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
@@ -37,7 +38,7 @@ module ActiveGenie
       end
     end
 
-    litote_affirmative_tests = JSON.parse(File.read(File.join(__dir__, 'litote/affirmative.json')),
+    litote_affirmative_tests = JSON.parse(File.read(File.join(__dir__, 'with_litote/affirmative.json')),
                                           symbolize_names: true)
     litote_affirmative_tests.each_with_index do |test, index|
       define_method("test_litote_affirmative_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
@@ -46,7 +47,7 @@ module ActiveGenie
       end
     end
 
-    litote_litotes_tests = JSON.parse(File.read(File.join(__dir__, 'litote/litotes.json')), symbolize_names: true)
+    litote_litotes_tests = JSON.parse(File.read(File.join(__dir__, 'with_litote/litotes.json')), symbolize_names: true)
     litote_litotes_tests.each_with_index do |test, index|
       define_method("test_litote_litotes_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_litote(*test[:input])

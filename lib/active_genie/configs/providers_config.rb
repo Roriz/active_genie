@@ -11,7 +11,7 @@ module ActiveGenie
       attr_reader :all
 
       def default
-        @default || valid.keys.first
+        @default || ENV.fetch('PROVIDER_NAME', nil) || valid.keys.first
       end
 
       def default=(provider)

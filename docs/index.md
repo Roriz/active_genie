@@ -24,15 +24,15 @@ hero:
 
 features:
   - icon: 👨🏻‍💻
-    title: DataExtractor
+    title: Extractor
     details: Typed data from unstructured text
   - icon: ⚔️
-    title: Battle
-    details: Given two players, determine a winner
+    title: Comparator
+    details: Compare two items and choose the best
   - icon: 💯
-    title: Scoring
+    title: Scorer
     details: Given a text, return a score from 0 to 100
   - icon: 🏆
-    title: Ranking
-    details: Given a list, return sorted items
+    title: Ranker
+    details: Given a list, return ranked items
 ---

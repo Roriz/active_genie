@@ -42,11 +42,11 @@ export default defineConfig({
       {
         text: 'Modules',
         items: [
-          { text: 'Data Extractor', link: '/modules/data_extractor' },
-          { text: 'Scoring', link: '/modules/scoring' },
-          { text: 'Battle', link: '/modules/battle' },
-          { text: 'Factory', link: '/modules/factory' },
-          { text: 'Ranking', link: '/modules/ranking' },
+          { text: 'Extractor', link: '/modules/extractor' },
+          { text: 'Scorer', link: '/modules/scorer' },
+          { text: 'Comparator', link: '/modules/comparator' },
+          { text: 'Lister', link: '/modules/lister' },
+          { text: 'Ranker', link: '/modules/ranker' },
         ]
       },
       {

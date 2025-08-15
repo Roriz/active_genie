@@ -6,7 +6,7 @@ module ActiveGenie
   module Ranker
     class DocsTest < Minitest::Test
       def test_what_doc_needs_update
-        docs = JSON.parse(File.read('benchmark/test_cases/assets/docs.json'))
+        docs = JSON.parse(File.read(File.join(__dir__, '../assets/docs.json')), symbolize_names: true)
         pr_description = <<~CRITERIA
           Identify which of two provided documentation titles and summaries is more likely to need updating based on a given Pull Request (PR) description. Only respond with the title of the document that directly requires updates once the PR is merged.
 

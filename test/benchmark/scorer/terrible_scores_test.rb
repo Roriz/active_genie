@@ -6,7 +6,7 @@ module ActiveGenie
   module Scorer
     class TerribleTest < Minitest::Test
       def test_evaluate_incident_report
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           'WARNING!!! URGENT!!! System totally broken!!! Nothing works!!! Fix ASAP!!!',
           'Evaluate incident report quality and professionalism',
           ['system_reliability_engineer']
@@ -16,7 +16,7 @@ module ActiveGenie
       end
 
       def test_evaluate_completeness
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           'Section 3.4: Data must secure. Implement good security. Make system fast.',
           'Evaluate completeness and clarity of technical requirements',
           ['system_architect']
@@ -39,8 +39,8 @@ module ActiveGenie
             that should be mentioned. Shipping details should specify the method, cost, and estimated delivery time,
             and the return policy should be clear. The language should be concise, professional, and engaging, making it easy for buyers to read and understand.
         CRITERIA
-        result = ActiveGenie::Scorer.jury_bench(product_description, criteria,
-                                                %w[ebay_seller_moderator ebay_product_analyzer])
+        result = ActiveGenie::Scorer.by_jury_bench(product_description, criteria,
+                                                   %w[ebay_seller_moderator ebay_product_analyzer])
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end
@@ -58,7 +58,7 @@ module ActiveGenie
           devops_engineer software_engineer
         ]
 
-        result = ActiveGenie::Scorer.jury_bench(jira_task, criteria, reviewers)
+        result = ActiveGenie::Scorer.by_jury_bench(jira_task, criteria, reviewers)
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end

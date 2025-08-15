@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../utils/fiber_by_batch'
+
 module ActiveGenie
   module Ranker
     class Scoring
@@ -8,7 +10,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, juries: [], config: nil)
-        @players = Players.new(players)
+        @players = Entities::Players.new(players)
         @criteria = criteria
         @config = ActiveGenie.configuration.merge(config)
         @juries = Array(juries).compact.uniq
@@ -17,7 +19,7 @@ module ActiveGenie
       def call
         @config.log.additional_context = { ranker_scoring_id: }
 
-        players_without_score.each do |player|
+        ActiveGenie::FiberByBatch.call(players_without_score, config: @config) do |player|
           player.score = generate_score(player)
         end
       end
@@ -29,7 +31,7 @@ module ActiveGenie
       end
 
       def generate_score(player)
-        score, reasoning = ActiveGenie::Scorer.jury_bench(
+        score, reasoning = ActiveGenie::Scorer.by_jury_bench(
           player.content,
           @criteria,
           @juries,

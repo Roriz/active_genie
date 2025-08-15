@@ -8,7 +8,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, config: nil)
-        @players = Players.new(players)
+        @players = Entities::Players.new(players)
         @criteria = criteria
         @config = config || ActiveGenie.configuration
         @start_time = Time.now
@@ -19,7 +19,7 @@ module ActiveGenie
         @config.log.add_observer(observers: ->(log) { log_observer(log) })
         @config.log.additional_context = { free_for_all_id: }
 
-        matches.each do |player_a, player_b|
+        ActiveGenie::FiberByBatch.call(matches, config: @config) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
 
           update_players_score(winner, loser)
@@ -39,7 +39,7 @@ module ActiveGenie
       def debate(player_a, player_b)
         log_context = { player_a_id: player_a.id, player_b_id: player_b.id }
 
-        result = ActiveGenie::Comparator.debate(
+        result = ActiveGenie::Comparator.by_debate(
           player_a.content,
           player_b.content,
           @criteria,

@@ -6,13 +6,13 @@ module ActiveGenie
   module Comparator
     class FightTest < Minitest::Test
       def test_goku_vs_vegeta
-        result = ActiveGenie::Comparator.fight(
+        result = ActiveGenie::Comparator.by_fight(
           'Goku',
           'Vegeta',
           'who is stronger? Without any restrictions'
         )
 
-        assert_equal 'player_a', result.winner
+        assert_equal 'Goku', result.winner
       end
     end
   end

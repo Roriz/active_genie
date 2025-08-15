@@ -26,10 +26,10 @@ Without rigorous benchmarking, LLM-based features can suffer from:
 | extractor | google | gemini-2.5-flash-preview-05-20 | 112/8 (120) | 93% | 440 | 165 | 213353 | 3.67 |
 | extractor | anthropic | claude-3-5-haiku-20241022 | 69/14 (120) | 57% | 392 | 109 | 145058 | 3.26 |
 | extractor | deepseek | deepseek-chat | 111/9 (120) | 92% | 1,674 | 162 | 145282 | 13.95 |
-| battle | openai | gpt-4.1-mini | 11/1 (12) | 91% | 75 | 12 | 9672 | 6.23 |
-| battle | google | gemini-2.5-flash-preview-05-20 | 11/1 (12) | 91% | 117 | 12 | 28203 | 9.75 |
-| battle | anthropic | claude-3-5-haiku-20241022 | 11/1 (12) | 91% | 77 | 12 | 16025 | 6.44 |
-| battle | deepseek | deepseek-chat | 11/1 (12) | 91% | 215 | 12 | 11312 | 17.9 |
+| comparator | openai | gpt-4.1-mini | 11/1 (12) | 91% | 75 | 12 | 9672 | 6.23 |
+| comparator | google | gemini-2.5-flash-preview-05-20 | 11/1 (12) | 91% | 117 | 12 | 28203 | 9.75 |
+| comparator | anthropic | claude-3-5-haiku-20241022 | 11/1 (12) | 91% | 77 | 12 | 16025 | 6.44 |
+| comparator | deepseek | deepseek-chat | 11/1 (12) | 91% | 215 | 12 | 11312 | 17.9 |
 | scorer | openai | gpt-4.1-mini | 13/4 (17) | 76% | 84 | 17 | 15279 | 4.95 |
 | scorer | google | gemini-2.5-flash-preview-05-20 | 13/4 (17) | 76% | 198 | 17 | 48656 | 11.62 |
 | scorer | anthropic | claude-3-5-haiku-20241022 | 12/5 (17) | 70% | 154 | 17 | 26878 | 9.08 |
@@ -46,7 +46,7 @@ see logs and more details in: https://github.com/Roriz/active_genie/actions/runs
 | ActiveGenie Module | Best Precision | Worst Precision | Recommended Model |
 | --- | --- | --- | --- |
 | extractor | 93% | 57% | `gpt-4.1-mini` |
-| battle | 91% | 91% | `gpt-4.1-mini` |
+| comparator | 91% | 91% | `gpt-4.1-mini` |
 | scorer | 82% | 76% | `deepseek-chat` |
 | ranker | 100% | 0% | `gpt-4.1-mini` |
 
@@ -70,7 +70,7 @@ To benchmark a specific module:
 ```shell
 bundle exec rake active_genie:benchmark[extractor]
 bundle exec rake active_genie:benchmark[scorer]
-bundle exec rake active_genie:benchmark[battle]
+bundle exec rake active_genie:benchmark[comparator]
 bundle exec rake active_genie:benchmark[ranker]
 ```
 

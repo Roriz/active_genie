@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../clients/unified_client'
+require_relative '../providers/unified_provider'
 
 module ActiveGenie
   module Scorer
@@ -44,7 +44,7 @@ module ActiveGenie
           {  role: 'user', content: "Text to score: #{@text}" }
         ]
 
-        result = ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        result = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           build_function,
           config: @config

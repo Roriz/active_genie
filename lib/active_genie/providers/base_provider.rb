@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
+require 'net/http'
+
 module ActiveGenie
   module Providers
     class BaseProvider
-      class ProviderError < StandardError; end
+      class ProviderUnknownError < StandardError; end
+      class ProviderServerError < StandardError; end
 
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
@@ -81,7 +84,7 @@ module ActiveGenie
 
         response = http_request(request, uri)
 
-        raise ProviderError, "Unexpected response: #{response.code} - #{response.body}" unless response.is_a?(Net::HTTPSuccess)
+        raise ProviderUnknownError, "Unexpected response: #{response.code} - #{response.body}" unless response.is_a?(Net::HTTPSuccess)
 
         parsed_response = parse_response(response)
 
@@ -143,7 +146,7 @@ module ActiveGenie
         begin
           JSON.parse(response.body)
         rescue JSON::ParserError => e
-          raise ProviderError, "Failed to parse JSON response: #{e.message}"
+          raise ProviderUnknownError, "Failed to parse JSON response: #{e.message}"
         end
       end
 
@@ -169,8 +172,12 @@ module ActiveGenie
         retries = 0
 
         begin
-          yield
-        rescue Net::OpenTimeout, Net::ReadTimeout, ProviderError => e
+          response = yield
+
+          raise ProviderServerError, "Provider server error: #{response.code} - #{response.body}" if !response.is_a?(Net::HTTPSuccess) && response.code.to_i >= 500
+
+          response
+        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderServerError => e
           raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)

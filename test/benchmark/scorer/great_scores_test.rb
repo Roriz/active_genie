@@ -12,7 +12,7 @@ module ActiveGenie
           enjoy personalized comfort with minimal effort.
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           content,
           'Evaluate marketing effectiveness and accuracy of technical claims',
           ['marketing_specialist']
@@ -29,7 +29,7 @@ module ActiveGenie
           inbox for reset link 4. Click the link 5. Enter new password 6. Confirm new password
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           content, 'Evaluate clarity and completeness of instructions', ['ux_writer']
         )
 
@@ -45,7 +45,7 @@ module ActiveGenie
           99th percentile latency under 50ms.
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           content, 'Evaluate code review quality and completeness', ['senior_software_engineer']
         )
 
@@ -64,7 +64,7 @@ module ActiveGenie
           features. This enables proactive maintenance, reducing downtime and costs.
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           content, 'Evaluate educational value and technical accuracy', ['ml_expert']
         )
 
@@ -98,8 +98,8 @@ module ActiveGenie
           clear. The language should be concise, professional, and engaging, making it easy for#{' '}
           buyers to read and understand.
         CRITERIA
-        result = ActiveGenie::Scorer.jury_bench(product_description, criteria,
-                                                %w[ebay_seller_moderator ebay_product_analyzer])
+        result = ActiveGenie::Scorer.by_jury_bench(product_description, criteria,
+                                                   %w[ebay_seller_moderator ebay_product_analyzer])
 
         assert_operator result['final_score'], :>=, 80,
                         "Expected to be at greater than 80, but was #{result['final_score']}, " \
@@ -122,7 +122,7 @@ module ActiveGenie
           devops_engineer software_engineer
         ]
 
-        result = ActiveGenie::Scorer.jury_bench(jira_task, criteria, reviewers)
+        result = ActiveGenie::Scorer.by_jury_bench(jira_task, criteria, reviewers)
 
         assert_operator result['final_score'], :>=, 80,
                         "Expected to be at greater than 80, but was #{result['final_score']}, " \

@@ -4,7 +4,7 @@ module ActiveGenie
   module Config
     class LlmConfig
       attr_accessor :model, :temperature, :max_tokens, :max_retries, :retry_delay,
-                    :model_tier, :read_timeout, :open_timeout, :provider
+                    :model_tier, :read_timeout, :open_timeout, :provider, :max_fibers
       attr_reader :provider_name
 
       def initialize
@@ -18,6 +18,7 @@ module ActiveGenie
         @model_tier = 'lower_tier'
         @read_timeout = nil
         @open_timeout = nil
+        @max_fibers = 10
       end
 
       def provider_name=(provider_name)

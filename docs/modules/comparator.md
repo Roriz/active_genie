@@ -61,7 +61,7 @@ result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
 
 ### Fight
 
-The **Fight** module is a specialized version of `Battle` designed for combat scenarios between two fighters, such as martial artists, heroes, or other characters. The evaluation process simulates a fight using words, techniques, strategies, and reasoning.
+The **Fight** module is a specialized version of `debate` designed for combat scenarios between two fighters, such as martial artists, heroes, or other characters. The evaluation process simulates a fight using words, techniques, strategies, and reasoning.
 
 As a submodule of `Comparator`, the goal of a fight is to determine the winner, there is no draw. The input and output are the same as `Comparator`, but the evaluation process is different.
 
@@ -95,7 +95,7 @@ player_a = "Master Crane, a graceful fighter whose Crane Kung Fu relies on light
 player_b = "Iron Ox, a powerful brawler whose Ox Bull Charge style uses immense strength and mass to overwhelm opponents."
 criteria = "Determine the winner of the fight based on skill, strategy, and adaptability in a one-on-one duel."
 
-result = ActiveGenie::Comparator.fight(player_a, player_b, criteria)
+result = ActiveGenie::Comparator.by_fight(player_a, player_b, criteria)
 # => ComparatorResponse(
 #      winner: "Master Crane, a graceful fighter...",
 #      loser: "Iron Ox, a powerful brawler...",

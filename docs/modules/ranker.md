@@ -206,8 +206,6 @@ The statistics object provides:
 
 - **Monitor coefficient of variation.** High variation (>30) indicates inconsistent quality among players and may trigger more aggressive elimination rounds.
 
-- **Leverage callbacks for monitoring.** Use the watch callbacks to observe the ranking process in real-time and debug unexpected results.
-
 - **Experiment with different ranking methods.** Try `by_elo` for competitive scenarios, `by_scoring` for quality-focused rankings, or `by_free_for_all` for comprehensive head-to-head analysis.
 
 The method processes the players through scoring, elimination, and ranking phases, then returns a hash containing the player statistics and rankings.
@@ -250,10 +248,7 @@ candidates = [
 
 criteria = "Best fit for senior frontend developer role requiring React expertise and team leadership"
 
-result = ActiveGenie::Ranker.by_tournament(candidates, criteria, config: {
-  watch_players: ->(player) { puts "Player #{player.name}: Score #{player.score}" },
-  watch_battles: ->(battle) { puts "Battle: #{battle[:winner]} vs #{battle[:loser]}" }
-})
+result = ActiveGenie::Ranker.by_tournament(candidates, criteria)
 ```
 
 ### Example 3: Marketing Campaign Variations

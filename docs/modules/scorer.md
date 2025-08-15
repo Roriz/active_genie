@@ -134,7 +134,7 @@ Hash containing detailed scoring results:
 
 -----
 
-### `.jury_bench(text, criteria, reviewers = [], config: {})`
+### `.by_jury_bench(text, criteria, reviewers = [], config: {})`
 Alternative interface name for scoring text content with jury-style evaluation. Functionally identical to `.call()`.
 
 ### Usage Notes
