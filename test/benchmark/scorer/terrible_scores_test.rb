@@ -40,7 +40,7 @@ module ActiveGenie
             and the return policy should be clear. The language should be concise, professional, and engaging, making it easy for buyers to read and understand.
         CRITERIA
         result = ActiveGenie::Scorer.by_jury_bench(product_description, criteria,
-                                                %w[ebay_seller_moderator ebay_product_analyzer])
+                                                   %w[ebay_seller_moderator ebay_product_analyzer])
 
         assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
       end

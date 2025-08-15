@@ -11,8 +11,8 @@ module ActiveGenie
         CONTENT
 
         result = ActiveGenie::Scorer.by_jury_bench(content,
-                                                'Evaluate bug report quality and actionability',
-                                                ['qa_engineer'])
+                                                   'Evaluate bug report quality and actionability',
+                                                   ['qa_engineer'])
 
         assert_operator result['final_score'], :>=, 50,
                         "Expected to be at greater than 50, but was #{result['final_score']}, " \

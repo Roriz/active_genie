@@ -12,7 +12,8 @@ module ActiveGenie
       end
     end
 
-    marketplace_tests = JSON.parse(File.read(File.join(__dir__, 'with_explanation/marketplace.json')), symbolize_names: true)
+    marketplace_tests = JSON.parse(File.read(File.join(__dir__, 'with_explanation/marketplace.json')),
+                                   symbolize_names: true)
     marketplace_tests.each_with_index do |test, index|
       define_method("test_marketplace_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])

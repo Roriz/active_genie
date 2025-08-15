@@ -99,7 +99,7 @@ module ActiveGenie
           buyers to read and understand.
         CRITERIA
         result = ActiveGenie::Scorer.by_jury_bench(product_description, criteria,
-                                                %w[ebay_seller_moderator ebay_product_analyzer])
+                                                   %w[ebay_seller_moderator ebay_product_analyzer])
 
         assert_operator result['final_score'], :>=, 80,
                         "Expected to be at greater than 80, but was #{result['final_score']}, " \
