@@ -18,10 +18,10 @@ module ActiveGenie
       def call
         @config.log.add_observer(observers: ->(log) { log_observer(log) })
         @config.log.additional_context = { free_for_all_id: }
-
-        matches.each do |player_a, player_b|
+        
+        ActiveGenie::FiberByBatch.call(matches, config: @config) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
-
+  
           update_players_score(winner, loser)
         end
 

@@ -2,6 +2,7 @@
 
 source 'https://rubygems.org'
 
+gem 'async', '>= 2.27.3'
 gem 'debug', '>= 1.10.0'
 gem 'minitest'
 gem 'rake'

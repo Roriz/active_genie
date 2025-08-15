@@ -23,9 +23,9 @@ module ActiveGenie
         @config.log.add_observer(observers: ->(log) { log_observer(log) })
         @config.log.additional_context = { elo_id: }
 
-        matches.each do |player_a, player_b|
-          # TODO: debate can take a while, can be parallelized
+        ActiveGenie::FiberByBatch.call(matches, config: @config) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
+
           update_players_elo(winner, loser)
         end
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../utils/fiber_by_batch'
+
 module ActiveGenie
   module Ranker
     class Scoring
@@ -17,7 +19,7 @@ module ActiveGenie
       def call
         @config.log.additional_context = { ranker_scoring_id: }
 
-        players_without_score.each do |player|
+        ActiveGenie::FiberByBatch.call(players_without_score, config: @config) do |player|
           player.score = generate_score(player)
         end
       end
