@@ -6,7 +6,7 @@ module ActiveGenie
   module Lister
     class FeudTest < Minitest::Test
       def test_feud_most_likely_to_be_affected_by_climate_change
-        result = ActiveGenie::Lister.feud(
+        result = ActiveGenie::Lister.with_feud(
           'Industries that are most likely to be affected by climate change'
         )
 
@@ -17,7 +17,7 @@ module ActiveGenie
       end
 
       def test_feud_with_more_items
-        result = ActiveGenie::Lister.feud(
+        result = ActiveGenie::Lister.with_feud(
           'Industries that are most likely to be affected by climate change',
           config: { lister: { number_of_items: 10 } }
         )

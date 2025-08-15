@@ -1,149 +1,228 @@
 # Quick Start
 
-### Data Extractor
+**ActiveGenie** delivers on three core promises: **Real Value** through intelligent AI analysis, **Consistent** results across providers and models, and **Model-Agnostic** flexibility to use any AI service.
 
-Extract structured data from text using AI-powered analysis, handling informal language and complex expressions.
+## Extractor
+Transform unstructured text into reliable structured data using AI-powered analysis. Extract typed data from messy real-world content while handling informal language, rhetorical devices, and conversational patterns.
 
 ```ruby
-text = "Nike Air Max 90 - Size 42 - $199.99"
+# Extract from product listing with inconsistent formatting
+product_text = "Sony 65\" BRAVIA XR - $1999.99 (Save $500!) Amazing 4K HDR quality"
+
 schema = {
-  brand: {
-    type: 'string',
-    enum: ["Nike", "Adidas", "Puma"]
-  },
-  price: {
-    type: 'number',
-    minimum: 0
-  },
-  size: {
-    type: 'number',
-    minimum: 35,
-    maximum: 46
-  }
+  brand: { type: 'string', description: 'Product brand' },
+  display_size: { type: 'string', description: 'Screen size with units' },
+  price: { type: 'number', minimum: 0, description: 'Current price' },
+  discount: { type: 'number', minimum: 0, description: 'Discount amount' },
+  features: { type: 'array', items: { type: 'string' }, description: 'Key features' }
 }
 
-result = ActiveGenie::Extractor.call(
-  text,
-  schema,
-  config: { provider_name: :openai, model: 'gpt-4.1-mini' } # optional
-)
+# Works consistently across any AI provider
+result = ActiveGenie::Extractor.call(product_text, schema, 
+  config: { provider_name: :openai, model: 'gpt-4o-mini' })
 # => {
-#      brand: "Nike",
-#      brand_explanation: "Brand name found at start of text",
-#      price: 199.99,
-#      price_explanation: "Price found in USD format at end",
-#      size: 42,
-#      size_explanation: "Size explicitly stated in the middle"
+#      brand: "Sony",
+#      display_size: "65\"",
+#      price: 1999.99,
+#      discount: 500.0,
+#      features: ["BRAVIA XR", "4K HDR quality"]
+#    }
+
+# Handle informal language and rhetorical devices
+review = "The new update isn't terrible, but it's not exactly amazing either"
+sentiment_schema = {
+  sentiment: { type: 'string', enum: ['positive', 'negative', 'neutral', 'mixed'] },
+  satisfaction_level: { type: 'integer', minimum: 1, maximum: 5 }
+}
+
+result = ActiveGenie::Extractor.with_litote(review, sentiment_schema)
+# => {
+#      sentiment: "mixed",
+#      satisfaction_level: 3,
+#      message_litote: true,
+#      litote_rephrased: "The new update is okay, but it could be better"
 #    }
 ```
 
-*Recommended model*: `gpt-4o-mini`
-
-Features:
-- Structured data extraction with type validation
-- Schema-based extraction with custom constraints
-- Informal text analysis (litotes, hedging)
-- Detailed explanations for extracted values
-
-See the [Data Extractor README](/modules/data_extractor) for informal text processing, advanced schemas, and detailed interface documentation.
-
-### Scoring
-Text evaluation system that provides detailed scoring and feedback using multiple expert reviewers. Get balanced scoring through AI-powered expert reviewers that automatically adapt to your content.
+## Scorer
+Objective evaluation system using AI-powered expert reviewers. Get detailed scoring with transparent reasoning from multiple domain experts that automatically adapt to your content.
 
 ```ruby
-text = "The code implements a binary search algorithm with O(log n) complexity"
-criteria = "Evaluate technical accuracy and clarity"
+# Automatic expert selection based on content
+code_review = "Added rate limiting with sliding window algorithm, includes comprehensive unit tests and performance benchmarks"
+criteria = "Evaluate technical quality, completeness, and engineering best practices"
 
-result = ActiveGenie::Scorer.call(
-  text,
-  criteria,
-  config: { provider_name: :anthropic, model: 'claude-3-5-haiku-20241022' } # optional
-)
+# Same interface works with any AI provider
+result = ActiveGenie::Scorer.call(code_review, criteria,
+  config: { provider_name: :anthropic, model: 'claude-3-5-haiku' })
 # => {
-#      algorithm_expert_score: 95,
-#      algorithm_expert_reasoning: "Accurately describes binary search and its complexity",
-#      technical_writer_score: 90,
-#      technical_writer_reasoning: "Clear and concise explanation of the algorithm",
-#      final_score: 92.5
+#      senior_software_engineer_score: 94,
+#      senior_software_engineer_reasoning: "Excellent implementation with proper algorithm choice, comprehensive testing, and performance considerations",
+#      technical_architect_score: 89,
+#      technical_architect_reasoning: "Strong technical approach, could benefit from documentation of rate limiting strategy",
+#      devops_engineer_score: 91,
+#      devops_engineer_reasoning: "Good performance benchmarking approach, suggests monitoring and observability awareness",
+#      final_score: 91.3
 #    }
+
+# Custom expert reviewers for specialized evaluation
+medical_text = "Patient shows 17% improvement in cardiac ejection fraction following 6-week therapy protocol"
+reviewers = ["Cardiologist", "Clinical Researcher", "Medical Writer"]
+
+result = ActiveGenie::Scorer.call(medical_text, "Evaluate clinical accuracy and reporting quality", reviewers)
 ```
 
-*Recommended model*: `claude-3-5-haiku-20241022`
-
-Features:
-- Multi-reviewer evaluation with automatic expert selection
-- Detailed feedback with scoring reasoning
-- Customizable reviewer weights
-- Flexible evaluation criteria
-
-See the [Scoring README](/modules/scoring) for advanced usage, custom reviewers, and detailed interface documentation.
-
-### Battle
-AI-powered battle evaluation system that determines winners between two players based on specified criteria.
+## Comparator
+Structured debate system that determines winners through AI-powered analysis. Conducts verbal debates where players present arguments, counter-arguments, and final statements before an impartial judge decides.
 
 ```ruby
-require 'active_genie'
+# Code quality comparison with detailed reasoning
+player_a = "Implementation uses dependency injection with comprehensive interfaces, enabling easy testing and component replacement"
+player_b = "Code achieves 95% test coverage using traditional patterns with proven stability and team familiarity"
+criteria = "Evaluate long-term maintainability, testability, and team productivity"
 
-player_a = "Implementation uses dependency injection for better testability"
-player_b = "Code has high test coverage but tightly coupled components"
-criteria = "Evaluate code quality and maintainability"
-
-result = ActiveGenie::Battle.call(
-  player_a,
-  player_b,
-  criteria,
-  config: { provider_name: :google, model: 'gemini-2.0-flash-lite' } # optional
-)
+# Consistent debate structure across all AI providers
+result = ActiveGenie::Comparator.call(player_a, player_b, criteria,
+  config: { provider_name: :google, model: 'gemini-2.0-flash' })
 # => {
-#      winner_player: "Implementation uses dependency injection for better testability",
-#      reasoning: "Player 1 implementation demonstrates better maintainability through dependency injection,
-#                 which allows for easier testing and component replacement. While Player 2 has good test coverage,
-#                 the tight coupling makes the code harder to maintain and modify.",
-#      what_could_be_changed_to_avoid_draw: "Focus on specific architectural patterns and design principles"
+#      winner: "Implementation uses dependency injection...",
+#      loser: "Code achieves 95% test coverage...",
+#      reasoning: "Player A's dependency injection approach provides superior long-term maintainability through loose coupling, while Player B's high coverage is valuable but doesn't address the structural concerns for future development"
 #    }
+
+# Specialized fight mode for character battles
+fighter_a = "Master Crane: graceful fighter using Crane Kung Fu with lightness, precision, and momentum redirection"
+fighter_b = "Iron Ox: powerful brawler using Ox Bull Charge style with immense strength and overwhelming mass"
+fight_criteria = "Determine winner in one-on-one duel based on skill, strategy, and adaptability"
+
+result = ActiveGenie::Comparator.by_fight(fighter_a, fighter_b, fight_criteria)
 ```
 
-*Recommended model*: `claude-3-5-haiku`
+**Real Value**: Structured debate format provides comprehensive analysis of complex comparisons  
+**Consistent**: Same debate process and winner determination logic across all AI providers  
+**Model-Agnostic**: Debate structure adapts to different AI reasoning capabilities seamlessly  
 
-Features:
-- Multi-reviewer evaluation with automatic expert selection
-- Detailed feedback with scoring reasoning
-- Customizable reviewer weights
-- Flexible evaluation criteria
+*Recommended models*: `claude-3-5-sonnet`, `gpt-4`, `gemini-2.0-flash`
 
-See the [Battle README](/modules/battle) for advanced usage, custom reviewers, and detailed interface documentation.
-
-### Ranking
-The Ranking module provides competitive ranking through multi-stage evaluation:
+## Ranker
+Sophisticated multi-stage ranking system combining ActiveGenie::Scorer + ActiveGenie::Comparator, statistical elimination, ELO algorithms, and head-to-head battles to produce fair and accurate rankings for any number of players.
 
 ```ruby
-require 'active_genie'
+# Rank API approaches for a specific use case
+api_options = [
+  "REST API with comprehensive OpenAPI documentation and versioning strategy",
+  "GraphQL API with efficient query resolution and real-time subscriptions", 
+  "gRPC API with Protocol Buffers and bi-directional streaming capabilities",
+  "WebSocket API with custom protocol and connection state management"
+]
 
-players = ['REST API', 'GraphQL API', 'SOAP API', 'gRPC API', 'Websocket API']
-criteria = "Best one to be used into a high changing environment"
+criteria = "Best choice for real-time collaborative application with complex data relationships"
 
-result = ActiveGenie::Ranker.call(
-  players,
-  criteria,
-  config: { provider_name: :google, model: 'gemini-2.0-flash-lite' } # optional
-)
+# Automatic methodology selection based on player count
+result = ActiveGenie::Ranker.call(api_options, criteria,
+  config: { provider_name: :openai, model: 'gpt-4o' })
 # => {
-#      winner_player: "gRPC API",
-#      reasoning: "gRPC API is the best one to be used into a high changing environment",
+#      players: [
+#        { content: "GraphQL API with efficient query...", score: 89, elo: 1245, rank: 1 },
+#        { content: "WebSocket API with custom protocol...", score: 85, elo: 1198, rank: 2 },
+#        { content: "gRPC API with Protocol Buffers...", score: 78, elo: 1156, rank: 3 },
+#        { content: "REST API with comprehensive...", score: 72, elo: 1089, rank: 4 }
+#      ],
+#      statistics: { total_players: 4, elo_rounds: 2, ffa_matches: 6 }
 #    }
+
+# Tournament mode for comprehensive ranking
+result = ActiveGenie::Ranker.by_tournament(api_options, criteria)
+
+# ELO-only ranking for competitive scenarios  
+result = ActiveGenie::Ranker.by_elo(api_options, criteria)
+
+# Simple scoring without battles
+result = ActiveGenie::Ranker.by_scoring(api_options, criteria)
 ```
 
-*Recommended model*: `gemini-2.0-flash-lite`
+**Real Value**: Multi-stage process eliminates inconsistent performers and produces statistically sound rankings  
+**Consistent**: Same ranking methodology and fairness algorithms across all AI providers  
+**Model-Agnostic**: Ranking logic works with any AI model's scoring and comparison capabilities  
 
-- **Multi-phase ranking system** combining expert scoring and ELO algorithms
-- **Automatic elimination** of inconsistent performers using statistical analysis
-- **Dynamic ranking adjustments** based on simulated pairwise battles, from bottom to top
+*Recommended models*: `gpt-4`, `claude-3-5-sonnet`, `gemini-2.0-flash`
 
-See the [Ranking README](/modules/ranking) for implementation details, configuration, and advanced ranking strategies.
+## Lister  
+*Real Value + Consistent + Model-Agnostic*
 
-### OCR to markdown (Future)
-### Text Summarizer (Future)
-### Categorizer (Future)
-### Language detector (Future)
-### Translator (Future)
-### Sentiment analyzer (Future)
+Generate ordered lists based on themes using "Family Feud" style survey simulation. Produces lists that reflect general public opinion and cultural consensus, perfect for market research and content planning.
+
+```ruby
+# Market research for product development
+theme = "Features smartphone users care about most when choosing a new device"
+
+# Works identically across all AI providers
+result = ActiveGenie::Lister.call(theme,
+  config: { provider_name: :anthropic, model: 'claude-3-5-haiku' })
+# => [
+#      "Battery life",
+#      "Camera quality", 
+#      "Price",
+#      "Storage capacity",
+#      "Brand reputation",
+#      "Screen size",
+#      "Processing speed"
+#    ]
+
+# Generate expert jury recommendations
+content = "Technical proposal for implementing microservices architecture with event-driven communication"
+evaluation_criteria = "Assess technical feasibility, business impact, and implementation complexity"
+
+experts = ActiveGenie::Lister.with_juries(content, evaluation_criteria)
+# => [
+#      "Software Architect",
+#      "DevOps Engineer", 
+#      "Business Analyst",
+#      "Technical Product Manager"
+#    ]
+
+# Custom list size
+result = ActiveGenie::Lister.call("Most popular breakfast foods worldwide", 
+  config: { number_of_items: 10 })
+```
+
+**Real Value**: Survey-style methodology produces culturally accurate and representative results  
+**Consistent**: Same ordering logic and popularity assessment across all AI providers  
+**Model-Agnostic**: List generation adapts to different AI models' cultural knowledge and reasoning  
+
+*Recommended models*: `gpt-4o-mini`, `claude-3-5-haiku`, `gemini-2.0-flash`
+
+---
+
+## Model-Agnostic Configuration
+
+Switch between any AI provider without changing your application logic:
+
+```ruby
+# OpenAI
+config = { provider_name: :openai, model: 'gpt-4o-mini' }
+
+# Anthropic  
+config = { provider_name: :anthropic, model: 'claude-3-5-haiku' }
+
+# Google
+config = { provider_name: :google, model: 'gemini-2.0-flash' }
+
+# DeepSeek
+config = { provider_name: :deepseek, model: 'deepseek-chat' }
+
+# Use the same interface for any module
+ActiveGenie::Extractor.call(text, schema, config: config)
+ActiveGenie::Scorer.call(text, criteria, config: config)  
+ActiveGenie::Comparator.call(player_a, player_b, criteria, config: config)
+ActiveGenie::Ranker.call(players, criteria, config: config)
+ActiveGenie::Lister.call(theme, config: config)
+```
+
+## Learn More
+
+- [**Extractor Module**](/modules/extractor) - Advanced schemas, informal text processing, and detailed extraction patterns
+- [**Scorer Module**](/modules/scorer) - Custom reviewers, scoring methodologies, and evaluation best practices  
+- [**Comparator Module**](/modules/comparator) - Debate structures, fight mode, and comparison strategies
+- [**Ranker Module**](/modules/ranker) - Tournament systems, ELO algorithms, and ranking configurations
+- [**Lister Module**](/modules/lister) - Survey methodologies, expert juries, and list generation techniques

@@ -10,7 +10,7 @@ module ActiveGenie
   module Providers
     class UnifiedProvider
       class << self
-        PROVIDER_NAME_TO_CLIENT = {
+        PROVIDER_NAME_TO_PROVIDER = {
           openai: OpenaiProvider,
           anthropic: AnthropicProvider,
           google: GoogleProvider,
@@ -19,7 +19,7 @@ module ActiveGenie
 
         def function_calling(messages, function, config: {})
           provider_name = config.llm.provider_name || config.providers.default
-          provider = PROVIDER_NAME_TO_CLIENT[provider_name.to_sym]
+          provider = PROVIDER_NAME_TO_PROVIDER[provider_name.to_sym]
 
           raise ActiveGenie::InvalidProviderError, provider_name if provider.nil?
 

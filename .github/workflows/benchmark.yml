@@ -26,10 +26,10 @@ jobs:
             name: claude-3-5-haiku-20241022
           - provider: deepseek
             name: deepseek-chat
-        module: [data_extractor, scoring, battle, ranking]
+        module: [extractor, scorer, comparator, ranker, lister]
     env:
       MODEL: ${{ matrix.model.name }}
-      PROVIDER: ${{ matrix.model.provider }}
+      PROVIDER_NAME: ${{ matrix.model.provider }}
       MODULE: ${{ matrix.module }}
 
     steps:

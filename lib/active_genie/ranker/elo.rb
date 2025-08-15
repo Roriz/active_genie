@@ -105,6 +105,7 @@ module ActiveGenie
           players_in: players_in.map(&:id),
           debates_count: matches.size,
           total_tokens: @total_tokens,
+          players_in_round: players_in.map(&:id),
           previous_highest_elo: @previous_highest_elo,
           highest_elo:,
           highest_elo_diff: highest_elo - @previous_highest_elo,

@@ -35,10 +35,10 @@ module ActiveGenie
       end
 
       def call
-        response = Generalist.call(@text, extract_with_litote, config: @config)
+        response = Explanation.call(@text, extract_with_litote, config: @config)
 
         if response[:message_litote]
-          response = Generalist.call(response[:litote_rephrased], @data_to_extract, config: @config)
+          response = Explanation.call(response[:litote_rephrased], @data_to_extract, config: @config)
         end
 
         response
@@ -47,7 +47,7 @@ module ActiveGenie
       private
 
       def extract_with_litote
-        parameters = JSON.parse(File.read(File.join(__dir__, 'with_litote.json')), symbolize_names: true)
+        parameters = JSON.parse(File.read(File.join(__dir__, 'litote.json')), symbolize_names: true)
 
         @data_to_extract.merge(parameters)
       end

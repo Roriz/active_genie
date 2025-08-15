@@ -35,12 +35,11 @@ module ActiveGenie
         new(...).call
       end
 
-      def initialize(players, criteria, reviewers: [], config: {})
-        @players = Players.new(players)
+      def initialize(players, criteria, juries: [], config: {})
+        @players = Entities::Players.new(players)
         @criteria = criteria
-        @reviewers = Array(reviewers).compact.uniq
+        @juries = Array(juries).compact.uniq
         @config = ActiveGenie.configuration.merge(config)
-        @players = nil
       end
 
       def call
@@ -51,7 +50,7 @@ module ActiveGenie
 
         while @players.elo_eligible?
           elo_report = run_elo_round!
-          eliminate_relegation_players!
+          eliminate_lower_tier_players!
           rebalance_players!(elo_report)
         end
 
@@ -69,7 +68,7 @@ module ActiveGenie
         Scoring.call(
           @players,
           @criteria,
-          reviewers: @reviewers,
+          juries: @juries,
           config: @config
         )
       end
@@ -88,8 +87,8 @@ module ActiveGenie
         )
       end
 
-      def eliminate_relegation_players!
-        @players.calc_relegation_tier.each { |player| player.eliminated = ELIMINATION_RELEGATION }
+      def eliminate_lower_tier_players!
+        @players.calc_lower_tier.each { |player| player.eliminated = ELIMINATION_RELEGATION }
       end
 
       def rebalance_players!(elo_report)

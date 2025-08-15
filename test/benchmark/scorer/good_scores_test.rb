@@ -10,7 +10,7 @@ module ActiveGenie
           idk the app keeps crashing sometimes when i try to do stuff. maybe fix it?
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(content,
+        result = ActiveGenie::Scorer.by_jury_bench(content,
                                                 'Evaluate bug report quality and actionability',
                                                 ['qa_engineer'])
 
@@ -29,7 +29,7 @@ module ActiveGenie
           paradigms.
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           content, 'Evaluate legal accuracy and technical precision', ['legal_expert']
         )
 
@@ -47,7 +47,7 @@ module ActiveGenie
           is also not good, we should optimize it.
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           content, 'Evaluate code review feedback quality', ['senior_software_engineer']
         )
 
@@ -66,7 +66,7 @@ module ActiveGenie
           cross-validation, regularization, and increasing training data diversity.
         CONTENT
 
-        result = ActiveGenie::Scorer.jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           content,
           'Evaluate technical accuracy and depth of explanation',
           ['machine_learning_engineer']

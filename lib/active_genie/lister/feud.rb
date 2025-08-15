@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../clients/unified_client'
+require_relative '../providers/unified_provider'
 
 module ActiveGenie
   module Lister
@@ -30,7 +30,7 @@ module ActiveGenie
           {  role: 'user', content: "theme: #{@theme}" }
         ]
 
-        response = ::ActiveGenie::Clients::UnifiedClient.function_calling(
+        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           FUNCTION,
           config: @config

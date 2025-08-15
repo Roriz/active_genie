@@ -8,7 +8,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, juries: [], config: nil)
-        @players = Players.new(players)
+        @players = Entities::Players.new(players)
         @criteria = criteria
         @config = ActiveGenie.configuration.merge(config)
         @juries = Array(juries).compact.uniq
@@ -29,7 +29,7 @@ module ActiveGenie
       end
 
       def generate_score(player)
-        score, reasoning = ActiveGenie::Scorer.jury_bench(
+        score, reasoning = ActiveGenie::Scorer.by_jury_bench(
           player.content,
           @criteria,
           @juries,

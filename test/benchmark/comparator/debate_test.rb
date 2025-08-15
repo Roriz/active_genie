@@ -20,7 +20,7 @@ module ActiveGenie
 
       TESTS.each_with_index do |test, index|
         define_method("test_#{test[:input][2].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
-          result = ActiveGenie::Comparator.debate(*test[:input])
+          result = ActiveGenie::Comparator.by_debate(*test[:input])
 
           assert_equal test[:input][test[:expected]], result.winner
         end
@@ -41,7 +41,7 @@ module ActiveGenie
           'go-to choice for your next night on the town.'
         ]
         criteria = 'Dress for Friday night'
-        result = ActiveGenie::Comparator.debate(
+        result = ActiveGenie::Comparator.by_debate(
           dresses[0],
           dresses[1],
           criteria
@@ -59,7 +59,7 @@ module ActiveGenie
           'How do I print "Hello, World!" in Python?'
         ]
         criteria = 'What is the most hardest question'
-        result = ActiveGenie::Comparator.debate(
+        result = ActiveGenie::Comparator.by_debate(
           stackoverflow_issues[0],
           stackoverflow_issues[1],
           criteria

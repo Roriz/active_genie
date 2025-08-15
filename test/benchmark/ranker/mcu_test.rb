@@ -6,7 +6,7 @@ module ActiveGenie
   module Ranker
     class McuTest < Minitest::Test
       def test_rank_strongest_character_from_mcu
-        characters = JSON.parse(File.read('benchmark/test_cases/assets/marvel_characters.json'), symbolize_names: true)
+        characters = JSON.parse(File.read(File.join(__dir__, '../assets/marvel_characters.json')), symbolize_names: true)
 
         fight_criteria = <<~CRITERIA
           Determine the strongest character in the Marvel Cinematic Universe (MCU) based on their ability to consistently win in a fight against an opponent, considering all possible variables such as weapons, strategies, and scenarios.

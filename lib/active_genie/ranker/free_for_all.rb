@@ -8,7 +8,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, config: nil)
-        @players = Players.new(players)
+        @players = Entities::Players.new(players)
         @criteria = criteria
         @config = config || ActiveGenie.configuration
         @start_time = Time.now
@@ -39,7 +39,7 @@ module ActiveGenie
       def debate(player_a, player_b)
         log_context = { player_a_id: player_a.id, player_b_id: player_b.id }
 
-        result = ActiveGenie::Comparator.debate(
+        result = ActiveGenie::Comparator.by_debate(
           player_a.content,
           player_b.content,
           @criteria,
