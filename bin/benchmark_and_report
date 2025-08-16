@@ -1,9 +1,54 @@
 #!/usr/bin/bash
 
-VERSION=$(cat VERSION)
+rm -f test_output.tmp
+rm -f log/active_genie.log
+rm -f benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
+rm -f benchmark/latest.md
+touch test_output.tmp
+touch log/active_genie.log
+touch benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
+touch benchmark/latest.md
 
-bundle exec gem build active_genie.gemspec
-bundle exec gem uninstall active_genie
-bundle exec gem install -f ./active_genie-${VERSION}.gem
 
-# gem push active_genie-${VERSION}.gem
+bundle exec rake active_genie:benchmark[$MODULE] | tee >(cat) > test_output.tmp
+output=$(cat test_output.tmp)
+rm test_output.tmp
+echo ""
+result_line=$(echo "$output" | grep -E '[0-9]+ runs, [0-9]+ assertions, [0-9]+ failures, [0-9]+ errors, [0-9]+ skips' | tail -1)
+if [ -n "$result_line" ]; then
+  runs=$(echo $result_line | grep -oE '[0-9]+ runs' | grep -oE '[0-9]+')
+  failures=$(echo $result_line | grep -oE '[0-9]+ failures' | grep -oE '[0-9]+')
+  errors=$(echo $result_line | grep -oE '[0-9]+ errors' | grep -oE '[0-9]+')
+  skips=$(echo $result_line | grep -oE '[0-9]+ skips' | grep -oE '[0-9]+')
+  successes=$((runs - failures - errors - skips))
+  precision=$(($successes*100/$runs))
+  duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+s' | grep -oE '[0-9]+\.[0-9]+')
+fi
+
+all_llm_usage=$(cat log/active_genie.log | grep "llm_usage" | jq -r '.total_tokens')
+requests=$(echo "$all_llm_usage" | wc -l)
+total_tokens=0
+for llm_stat in $all_llm_usage; do
+  total_tokens=$((total_tokens + llm_stat))
+done
+
+if [ $runs -eq 0 ]; then
+  avg_duration=0
+else
+  avg_duration=$(awk "BEGIN {printf \"%.2f\", $duration/$runs}")
+fi
+
+touch benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
+echo "$MODULE,$PROVIDER_NAME,$MODEL,$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration" >> benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
+
+touch benchmark/latest.md
+echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
+echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
+echo "| $MODULE | $PROVIDER_NAME | $MODEL | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration |" >> benchmark/latest.md
+
+cat benchmark/latest.md
+
+# TODO: improve failure detection
+if [ $total_tokens -eq 0 ]; then
+  exit 1
+fi

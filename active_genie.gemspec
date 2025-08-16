@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   spec.files         = Dir['{lib,ext}/**/*', 'VERSION', 'README.md', 'LICENSE', 'CHANGELOG.md']
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'async', '>= 2.0'
+  spec.add_dependency 'async', '~> 2.0'
 
   spec.homepage      = 'https://github.com/Roriz/active_genie'
   spec.license       = 'Apache-2.0'
