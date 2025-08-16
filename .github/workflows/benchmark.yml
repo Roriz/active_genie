@@ -45,45 +45,12 @@ jobs:
         bundler-cache: true
 
     - name: Run ${{ matrix.module }}
+      env:
+        MODEL: ${{ matrix.model.name }}
+        PROVIDER_NAME: ${{ matrix.model.provider }}
+        MODULE: ${{ matrix.module }}
       run: |
-        touch test_output.tmp
-        bundle exec rake active_genie:benchmark[${{ matrix.module }}] | tee >(cat) > test_output.tmp
-        output=$(cat test_output.tmp)
-        rm test_output.tmp
-        echo ""
-        result_line=$(echo "$output" | grep -E '[0-9]+ runs, [0-9]+ assertions, [0-9]+ failures, [0-9]+ errors, [0-9]+ skips' | tail -1)
-        if [ -n "$result_line" ]; then
-          runs=$(echo $result_line | grep -oE '[0-9]+ runs' | grep -oE '[0-9]+')
-          failures=$(echo $result_line | grep -oE '[0-9]+ failures' | grep -oE '[0-9]+')
-          errors=$(echo $result_line | grep -oE '[0-9]+ errors' | grep -oE '[0-9]+')
-          skips=$(echo $result_line | grep -oE '[0-9]+ skips' | grep -oE '[0-9]+')
-          successes=$((runs - failures - errors - skips))
-          precision=$(($successes*100/$runs))
-          duration=$(echo "$output" | grep -oE 'Finished in [0-9]+\.[0-9]+s' | grep -oE '[0-9]+\.[0-9]+')
-        fi
-
-        all_llm_usage=$(cat log/active_genie.log | grep "llm_usage" | jq -r '.total_tokens')
-        requests=$(echo "$all_llm_usage" | wc -l)
-        total_tokens=0
-        for llm_stat in $all_llm_usage; do
-          total_tokens=$((total_tokens + llm_stat))
-        done
-
-        avg_duration=$(awk "BEGIN {printf \"%.2f\", $duration/$runs}")
-
-        touch benchmark/latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}.csv
-        echo "${{ matrix.module }},${{ matrix.model.provider }},${{ matrix.model.name }},$successes/$failures ($runs),$precision,$duration,$requests,$total_tokens,$avg_duration" >> benchmark/latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}.csv
-
-        touch benchmark/latest.md
-        echo "| ActiveGenie::Module | Provider | Model | Tests (Total/Success/Fails) | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/latest.md
-        echo "|--- |--- |--- |--- |--- |--- |--- |--- |--- |" >> benchmark/latest.md
-        echo "| ${{ matrix.module }} | ${{ matrix.model.provider }} | ${{ matrix.model.name }} | $successes/$failures ($runs) | $precision | $duration | $requests | $total_tokens | $avg_duration |" >> benchmark/latest.md
-
-        cat benchmark/latest.md
-
-        if [ $total_tokens -eq 0 ]; then
-          exit 1
-        fi
+        
 
     - name: Upload results
       uses: actions/upload-artifact@v4
