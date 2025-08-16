@@ -4,8 +4,6 @@ namespace :active_genie do
   desc 'Run benchmarks, optionally for a specific module (e.g., rake active_genie:benchmark[data_extractor])'
   task :benchmark, [:module_name] do |_, args|
     Rake::TestTask.new(:run_benchmarks) do |t|
-      t.libs << 'benchmark'
-
       if args[:module_name]
         module_name = args[:module_name]
         module_path = "test/benchmark/#{module_name}/"

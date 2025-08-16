@@ -5,15 +5,25 @@
 MODULE=${MODULE:-"comparator"}
 PROVIDER_NAME=${PROVIDER_NAME:-"openai"}
 MODEL=${MODEL:-"gpt-5-nano"}
+runs=${runs:-0}
+failures=${failures:-0}
+errors=${errors:-0}
+skips=${skips:-0}
+successes=${successes:-0}
+precision=${precision:-0}
+duration=${duration:-0}
+avg_duration=${avg_duration:-0}
+requests=${requests:-0}
+total_tokens=${total_tokens:-0}
 
 rm -f test_output.tmp
 rm -f log/active_genie.log
 rm -f benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
 rm -f benchmark/latest.md
-touch test_output.tmp
-touch log/active_genie.log
-touch benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
-touch benchmark/latest.md
+touch -f test_output.tmp
+touch -f log/active_genie.log
+touch -f benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
+touch -f benchmark/latest.md
 
 
 bundle exec rake active_genie:benchmark[$MODULE] | tee >(cat) > test_output.tmp
