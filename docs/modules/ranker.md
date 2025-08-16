@@ -137,19 +137,20 @@ result = ActiveGenie::Ranker.by_scoring(players, criteria, config: {})
 - `players`: A collection of player instances (strings, hashes, or objects), each containing textual content to be evaluated.
 - `criteria`: A string defining the evaluation criteria used by the scoring and comparison systems.
 - `config`: A hash of additional parameters for customization (e.g., model, api_key, thresholds).
+
 ## Interface
 
 ### .call(players, criteria, config: {})
 
 The primary entry point that automatically selects the best ranking methodology based on the number of players and their characteristics.
 
-- `players` [Array<String, Hash, Object>] - Collection of player content to rank. Can be simple strings or complex objects with metadata.
+- `players` [Array of String or Hash ] - Collection of player content to rank. Can be simple strings or complex objects with metadata.
 - `criteria` [String] - The evaluation criteria that defines what makes one player better than another.
 - `config` [Hash] - Additional configuration for customizing the ranking behavior.
 
 **Returns a Hash containing:**
 
-- `players` [Array<Hash>] - Ranked list of players with their scores, ELO ratings, and statistics.
+- `players` [Array of Hash] - Ranked list of players with their scores, ELO ratings, and statistics.
 - `statistics` [Hash] - Summary information about the ranking process (total players, eliminations, rounds, etc.).
 
 ### .by_tournament(players, criteria, config: {})
