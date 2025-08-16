@@ -277,7 +277,7 @@ Ready to add reliable GenAI capabilities to your application?
 1. **[Installation](/introduction/installation)** - Get ActiveGenie set up in minutes
 2. **[Basic Configuration](/introduction/basic-configuration)** - Configure your preferred providers
 3. **[Quickstart Guide](/introduction/quickstart)** - Try all five modules with examples
-4. **[Module Documentation](/modules/)** - Deep dive into each module's capabilities
+4. **[Module Documentation](/modules/comparator)** - Deep dive into each module's capabilities
 
 Or explore specific modules based on your needs:
 - **[Comparator](/modules/comparator)** - For choosing between alternatives
