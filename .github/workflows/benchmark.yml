@@ -18,14 +18,18 @@ jobs:
       matrix:
         model:
           - provider: openai
-            name: gpt-5
+            name: gpt-5-mini
+          - provider: openai
+            name: gpt-5-nano
           - provider: google
-            name: gemini-2.5-pro
+            name: gemini-2.5-flash
+          - provider: google
+            name: gemini-2.5-flash-lite
           - provider: anthropic
-            name: claude-sonnet-4-20250514
+            name: claude-3-5-haiku-20241022
           - provider: deepseek
-            name: deepseek-reasoner
-        module: [extractor, scorer, comparator, lister]
+            name: deepseek-chat
+        module: [extractor, scorer, comparator, ranker, lister]
     env:
       MODEL: ${{ matrix.model.name }}
       PROVIDER_NAME: ${{ matrix.model.provider }}
