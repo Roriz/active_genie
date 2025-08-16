@@ -1,5 +1,11 @@
 #!/usr/bin/bash
 
+# default for envs
+
+MODULE=${MODULE:-"comparator"}
+PROVIDER_NAME=${PROVIDER_NAME:-"openai"}
+MODEL=${MODEL:-"gpt-5-nano"}
+
 rm -f test_output.tmp
 rm -f log/active_genie.log
 rm -f benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
