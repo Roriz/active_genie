@@ -30,21 +30,21 @@ module ActiveGenie
         # Defaults to 'gemini-2.0-flash-lite'.
         # @return [String] The lower tier model name.
         def lower_tier_model
-          @lower_tier_model || 'gemini-2.0-flash-lite'
+          @lower_tier_model || 'gemini-2.5-flash-lite'
         end
 
         # Retrieves the model name designated for the middle tier (e.g., balanced performance).
         # Defaults to 'gemini-2.0-flash'.
         # @return [String] The middle tier model name.
         def middle_tier_model
-          @middle_tier_model || 'gemini-2.0-flash'
+          @middle_tier_model || 'gemini-2.5-flash'
         end
 
         # Retrieves the model name designated for the upper tier (e.g., most capable).
         # Defaults to 'gemini-2.5-pro-experimental'.
         # @return [String] The upper tier model name.
         def higher_tier_model
-          @higher_tier_model || 'gemini-2.5-pro-experimental'
+          @higher_tier_model || 'gemini-2.5-pro'
         end
       end
     end

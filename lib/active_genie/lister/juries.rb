@@ -14,8 +14,7 @@ module ActiveGenie
     # @example Getting jury for technical content
     #   Juries.call("Technical documentation about API design",
     #                           "Evaluate technical accuracy and clarity")
-    #   # => { jury1: "API Architect", jury2: "Technical Writer",
-    #   #      jury3: "Developer Advocate", reasoning: "..." }
+    #   # => [ "API Architect", "Technical Writer", "Developer Advocate" ]
     #
     class Juries
       def self.call(...)
