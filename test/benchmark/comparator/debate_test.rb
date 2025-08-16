@@ -7,7 +7,7 @@ module ActiveGenie
     class DebateTest < Minitest::Test
       TESTS = [
         { input: ['american food', 'brazilian food', 'less fat is better'], expected: 1 },
-        { input: ['rainning day', 'sunny day', 'go to park with family'], expected: 0 },
+        { input: ['rainning day', 'sunny day', 'go to park with family'], expected: 1 },
         { input: ['python', 'javascript', 'data science and machine learning tasks'], expected: 0 },
         { input: ['bicycle', 'car', 'environmentally friendly urban commuting'], expected: 0 },
         { input: ['reading a book', 'watching tv', 'cognitive development and relaxation'], expected: 0 },
