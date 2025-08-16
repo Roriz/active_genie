@@ -49,8 +49,7 @@ jobs:
         MODEL: ${{ matrix.model.name }}
         PROVIDER_NAME: ${{ matrix.model.provider }}
         MODULE: ${{ matrix.module }}
-      run: |
-        
+      run: bin/benchmark_and_report
 
     - name: Upload results
       uses: actions/upload-artifact@v4
