@@ -8,8 +8,6 @@ namespace :active_genie do
         module_name = args[:module_name]
         module_path = "test/benchmark/#{module_name}/"
         t.test_files = FileList["#{module_path}**/*_test.rb"]
-        puts "Files path: #{module_path}"
-        puts "Files to be tested: #{t.test_files}"
         puts "Running benchmarks for module: #{module_name}"
       else
         t.test_files = FileList['benchmark/test_cases/**/*_test.rb']
