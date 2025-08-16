@@ -8,7 +8,7 @@ namespace :active_genie do
 
       if args[:module_name]
         module_name = args[:module_name]
-        module_path = "benchmark/test_cases/#{module_name}/"
+        module_path = "test/benchmark/#{module_name}/"
         t.test_files = FileList["#{module_path}**/*_test.rb"]
         puts "Running benchmarks for module: #{module_name}"
       else

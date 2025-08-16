@@ -49,6 +49,7 @@ jobs:
         MODEL: ${{ matrix.model.name }}
         PROVIDER_NAME: ${{ matrix.model.provider }}
         MODULE: ${{ matrix.module }}
+        TESTOPTS: "-j 10"
       run: bin/benchmark_and_report
 
     - name: Upload results
