@@ -20,6 +20,8 @@ rm -f test_output.tmp
 rm -f log/active_genie.log
 rm -f benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
 rm -f benchmark/latest.md
+mkdir -p log
+mkdir -p benchmark
 touch -f test_output.tmp
 touch -f log/active_genie.log
 touch -f benchmark/latest-$MODULE-$PROVIDER_NAME-$MODEL.csv
