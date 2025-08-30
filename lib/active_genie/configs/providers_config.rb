@@ -24,20 +24,20 @@ module ActiveGenie
         @all.slice(*valid_provider_keys)
       end
 
-      def add(provider_classes)
+      def add(provider_configs)
         @all ||= {}
-        Array(provider_classes).each do |provider|
-          name = provider::NAME
+        Array(provider_configs).each do |provider_config|
+          name = provider_config::NAME
           remove([name]) if @all.key?(name)
 
-          @all[name] = provider.new
+          @all[name] = provider_config.new
         end
 
         self
       end
 
-      def remove(provider_classes)
-        Array(provider_classes).each do |provider|
+      def remove(provider_configs)
+        Array(provider_configs).each do |provider|
           @all.delete(provider::NAME)
         end
 

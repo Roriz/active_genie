@@ -23,27 +23,6 @@ module ActiveGenie
         def api_url
           @api_url || 'https://api.deepseek.com/v1'
         end
-
-        # Retrieves the model name designated for the lower tier (e.g., cost-effective, faster).
-        # Defaults to 'deepseek-chat'.
-        # @return [String] The lower tier model name.
-        def lower_tier_model
-          @lower_tier_model || 'deepseek-chat'
-        end
-
-        # Retrieves the model name designated for the middle tier (e.g., balanced performance).
-        # Defaults to 'deepseek-chat'.
-        # @return [String] The middle tier model name.
-        def middle_tier_model
-          @middle_tier_model || 'deepseek-chat'
-        end
-
-        # Retrieves the model name designated for the upper tier (e.g., most capable).
-        # Defaults to 'deepseek-reasoner'.
-        # @return [String] The upper tier model name.
-        def higher_tier_model
-          @higher_tier_model || 'deepseek-reasoner'
-        end
       end
     end
   end

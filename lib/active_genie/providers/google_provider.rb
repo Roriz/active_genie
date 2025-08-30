@@ -108,7 +108,7 @@ module ActiveGenie
       end
 
       def model
-        @config.llm.model || provider_config.tier_to_model(@config.llm.model_tier)
+        @config.llm.model
       end
 
       def url

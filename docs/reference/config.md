@@ -129,7 +129,7 @@ end
 
 ### Individual Provider Configurations:
 
-The following subsections detail the configurations for each supported LLM provider. Each provider configuration (e.g., `config.providers.openai`) allows setting an `api_key`, `api_url`, and specific model names for `lower_tier_model`, `middle_tier_model`, and `higher_tier_model`.
+The following subsections detail the configurations for each supported LLM provider. Each provider configuration (e.g., `config.providers.openai`) allows setting an `api_key`, `api_url`.
 
 #### OpenAI (`config.providers.openai`)
 
@@ -139,9 +139,6 @@ Internal Name: `:openai`
 |---------------------|--------|---------------------------------------|-----------------------------------------------------------------------------|
 | `api_key`           | String | `ENV['OPENAI_API_KEY']`               | Your OpenAI API key.                                                        |
 | `api_url`           | String | `'https://api.openai.com/v1'`         | Base URL for the OpenAI API.                                                |
-| `lower_tier_model`  | String | `'gpt-4.1-mini'`                      | Model for lower-tier usage (cost-effective, faster).                        |
-| `middle_tier_model` | String | `'gpt-4.1'`                           | Model for middle-tier usage (balanced performance).                         |
-| `higher_tier_model` | String | `'o3-mini'`                           | Model for higher-tier usage (most capable).                                 |
 
 #### Anthropic (`config.providers.anthropic`)
 
@@ -152,9 +149,6 @@ Internal Name: `:anthropic`
 | `api_key`           | String | `ENV['ANTHROPIC_API_KEY']`               | Your Anthropic API key.                                                     |
 | `api_url`           | String | `'https://api.anthropic.com'`            | Base URL for the Anthropic API.                                             |
 | `anthropic_version` | String | `'2023-06-01'`                           | The API version for Anthropic.                                              |
-| `lower_tier_model`  | String | `'claude-3-5-haiku-20241022'`            | Model for lower-tier usage.                                                 |
-| `middle_tier_model` | String | `'claude-3-7-sonnet-20250219'`           | Model for middle-tier usage.                                                |
-| `higher_tier_model` | String | `'claude-3-opus-20240229'`               | Model for higher-tier usage.                                                |
 
 #### DeepSeek (`config.providers.deepseek`)
 
@@ -164,9 +158,6 @@ Internal Name: `:deepseek`
 |---------------------|--------|---------------------------------------|-----------------------------------------------------------------------------|
 | `api_key`           | String | `ENV['DEEPSEEK_API_KEY']`             | Your DeepSeek API key.                                                      |
 | `api_url`           | String | `'https://api.deepseek.com/v1'`       | Base URL for the DeepSeek API.                                              |
-| `lower_tier_model`  | String | `'deepseek-chat'`                     | Model for lower-tier usage.                                                 |
-| `middle_tier_model` | String | `'deepseek-chat'`                     | Model for middle-tier usage.                                                |
-| `higher_tier_model` | String | `'deepseek-reasoner'`                 | Model for higher-tier usage.                                                |
 
 #### Google (`config.providers.google`)
 
@@ -176,21 +167,16 @@ Internal Name: `:google`
 |---------------------|--------|---------------------------------------------------------------|-----------------------------------------------------------------------------|
 | `api_key`           | String | `ENV['GENERATIVE_LANGUAGE_GOOGLE_API_KEY']` or `ENV['GEMINI_API_KEY']` | Your Google API key for Gemini.                                           |
 | `api_url`           | String | `'https://generativelanguage.googleapis.com'`                 | Base URL for the Google Generative Language API.                            |
-| `lower_tier_model`  | String | `'gemini-2.0-flash-lite'`                                     | Model for lower-tier usage.                                                 |
-| `middle_tier_model` | String | `'gemini-2.0-flash'`                                          | Model for middle-tier usage.                                                |
-| `higher_tier_model` | String | `'gemini-2.5-pro-experimental'`                               | Model for higher-tier usage.                                                |
 
 ### Example for Overriding Individual Provider Settings:
 
 ```ruby
 ActiveGenie.configure do |config|
   config.providers.openai.api_key = 'sk-yourOpenAiKey...'
-  config.providers.openai.middle_tier_model = 'gpt-4o' # Override default middle tier for OpenAI
 
   config.providers.anthropic.api_key = 'sk-ant-yourAnthropicKey...'
   config.providers.anthropic.anthropic_version = '2024-02-15' # Override Anthropic API version
 
-  config.providers.google.higher_tier_model = 'gemini-1.5-pro-latest' # Use a specific Google model
 end
 ```
 

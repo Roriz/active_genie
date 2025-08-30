@@ -5,6 +5,7 @@ require_relative 'anthropic_provider'
 require_relative 'google_provider'
 require_relative 'deepseek_provider'
 require_relative '../errors/invalid_provider_error'
+require_relative '../errors/invalid_model_error'
 
 module ActiveGenie
   module Providers
@@ -19,9 +20,16 @@ module ActiveGenie
 
         def function_calling(messages, function, config: {})
           provider_name = config.llm.provider_name || config.providers.default
+
+          raise ActiveGenie::InvalidProviderError, provider_name  unless config.providers.valid.keys.include?(provider_name.to_sym)
+
           provider = PROVIDER_NAME_TO_PROVIDER[provider_name.to_sym]
 
           raise ActiveGenie::InvalidProviderError, provider_name if provider.nil?
+
+          config.llm.model = config.llm.recommended_model if config.llm.model.nil? && config.llm.recommended_model
+
+          raise ActiveGenie::InvalidModelError, config.llm.model if config.llm.model.nil?
 
           response = provider.new(config).function_calling(messages, function)
 

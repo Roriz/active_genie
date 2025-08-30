@@ -34,7 +34,7 @@ module ActiveGenie
         @text = text
         @criteria = criteria
         @param_juries = Array(juries).compact.uniq
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
       end
 
       def call
@@ -47,12 +47,12 @@ module ActiveGenie
         result = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           build_function,
-          config: @config
+          config:
         )
 
         result['final_score'] = 0 if result['final_score'].nil?
 
-        @config.logger.call({
+        config.logger.call({
                               code: :Scorer,
                               text: @text[0..30],
                               criteria: @criteria[0..30],
@@ -113,8 +113,17 @@ module ActiveGenie
         @juries ||= if @param_juries.any?
                       @param_juries
                     else
-                      ::ActiveGenie::Lister::Juries.call(@text, @criteria, config: @config)
+                      ::ActiveGenie::Lister::Juries.call(@text, @criteria, config:)
                     end
+      end
+
+      def config
+        @config ||= begin 
+          c = ActiveGenie.configuration.merge(@initial_config)
+          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
+
+          c
+        end
       end
     end
   end

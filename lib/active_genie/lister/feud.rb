@@ -19,7 +19,7 @@ module ActiveGenie
       # @return [Array of strings] List of items
       def initialize(theme, config: {})
         @theme = theme
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
       end
 
       # @return [Array of strings] The list of items
@@ -33,7 +33,7 @@ module ActiveGenie
         response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           FUNCTION,
-          config: @config
+          config:
         )
 
         log_feud(response)
@@ -46,15 +46,24 @@ module ActiveGenie
       private
 
       def number_of_items
-        @config.lister.number_of_items
+        config.lister.number_of_items
       end
 
       def log_feud(response)
-        @config.logger.call(
+        config.logger.call(
           code: :feud,
           theme: @theme[0..30],
           items: response['items'].map { |item| item[0..30] }
         )
+      end
+
+      def config
+        @config ||= begin 
+          c = ActiveGenie.configuration.merge(@initial_config)
+          # c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
+
+          c
+        end
       end
     end
   end

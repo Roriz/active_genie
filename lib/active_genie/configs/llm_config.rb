@@ -3,12 +3,13 @@
 module ActiveGenie
   module Config
     class LlmConfig
-      attr_accessor :model, :temperature, :max_tokens, :max_retries, :retry_delay,
+      attr_accessor :model, :recommended_model, :temperature, :max_tokens, :max_retries, :retry_delay,
                     :model_tier, :read_timeout, :open_timeout, :provider, :max_fibers
       attr_reader :provider_name
 
       def initialize
         @model = nil
+        @recommended_model = nil
         @provider_name = nil
         @provider = nil
         @temperature = 0

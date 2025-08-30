@@ -23,27 +23,6 @@ module ActiveGenie
         def api_url
           @api_url || 'https://api.openai.com/v1'
         end
-
-        # Retrieves the model name designated for the lower tier (e.g., cost-effective, faster).
-        # Defaults to 'gpt-4o-mini'.
-        # @return [String] The lower tier model name.
-        def lower_tier_model
-          @lower_tier_model || 'gpt-5-nano'
-        end
-
-        # Retrieves the model name designated for the middle tier (e.g., balanced performance).
-        # Defaults to 'gpt-4o'.
-        # @return [String] The middle tier model name.
-        def middle_tier_model
-          @middle_tier_model || 'gpt-5-mini'
-        end
-
-        # Retrieves the model name designated for the upper tier (e.g., most capable).
-        # Defaults to 'o1-preview'.
-        # @return [String] The upper tier model name.
-        def higher_tier_model
-          @higher_tier_model || 'gpt-5'
-        end
       end
     end
   end

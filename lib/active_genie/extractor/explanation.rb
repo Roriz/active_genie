@@ -31,7 +31,7 @@ module ActiveGenie
       def initialize(text, data_to_extract, config: {})
         @text = text
         @data_to_extract = data_to_extract
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
       end
 
       def call
@@ -54,7 +54,7 @@ module ActiveGenie
       private
 
       def data_to_extract_with_explanation
-        return @data_to_extract unless @config.extractor.with_explanation
+        return @data_to_extract unless config.extractor.with_explanation
 
         with_explanation = {}
 
@@ -84,10 +84,10 @@ module ActiveGenie
         response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           function,
-          config: @config
+          config: config
         )
 
-        @config.logger.call(
+        config.logger.call(
           {
             code: :extractor,
             text: @text[0..30],
@@ -100,7 +100,7 @@ module ActiveGenie
       end
 
       def simplify_response(response)
-        return response if @config.extractor.verbose
+        return response if config.extractor.verbose
 
         simplified_response = {}
 
@@ -115,11 +115,20 @@ module ActiveGenie
       end
 
       def min_accuracy
-        @config.extractor.min_accuracy # default 70
+        config.extractor.min_accuracy # default 70
       end
 
       def prompt
         File.read(File.join(__dir__, 'explanation.prompt.md'))
+      end
+
+      def config
+        @config ||= begin 
+          c = ActiveGenie.configuration.merge(@initial_config)
+          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
+
+          c
+        end
       end
     end
   end
