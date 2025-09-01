@@ -78,7 +78,7 @@ This section focuses on the stable modules and providers:
 | v0.29.1 | 64 ~ 64 (64) | - | 82 ~ 82 (82) | 58 ~ 58 (58) | - | - | 58 ~ 58 (58) | - | - | - |
 | v0.30.3 | 74 ~ 74 (74) | 41 ~ 41 (41) | 83 ~ 83 (83) | 61 ~ 64 (63) | 70 ~ 77 (73,7) | 54 ~ 54 (54) | - | 58 ~ 58 (58) | 51 ~ 61 (55,3) | 41 ~ 48 (43,3) |
 
-### Lister (unsatable)
+### Lister (unstable)
 
 ![Lister history](/assets/benchmark/history-lister.optimized.webp)
 
@@ -86,7 +86,7 @@ This section focuses on the stable modules and providers:
 |---------|---------------------------|--------------------------|---------------|------------------|------------------------|-----------------|-------|------------|------------|
 | v0.30.3 | 73.0 ~ 75.0 (74.3) | 70.0 ~ 70.0 (70.0) | 14.0 ~ 79.0 (56.0) | 61.0 ~ 63.0 (61.7) | 51.0 ~ 55.0 (52.7) | 52.0 ~ 52.0 (52.0) | 42.0 ~ 42.0 (42.0) | 45.0 ~ 51.0 (48.7) | 22.0 ~ 36.0 (29.0) |
 
-### Ranker (unsatable)
+### Ranker (unstable)
 
 ![Ranker history](/assets/benchmark/history-ranker.optimized.webp)
 
