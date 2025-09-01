@@ -80,7 +80,7 @@ module ActiveGenie
       def config
         @config ||= begin
           c = ActiveGenie.configuration.merge(@initial_config)
-          # c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
+          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
 
           c
         end
