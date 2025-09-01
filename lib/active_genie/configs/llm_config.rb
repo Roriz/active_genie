@@ -8,18 +8,7 @@ module ActiveGenie
       attr_reader :provider_name
 
       def initialize
-        @model = nil
-        @recommended_model = nil
-        @provider_name = nil
-        @provider = nil
-        @temperature = 0
-        @max_tokens = 4096
-        @max_retries = nil
-        @retry_delay = nil
-        @model_tier = 'lower_tier'
-        @read_timeout = nil
-        @open_timeout = nil
-        @max_fibers = 10
+        set_defaults
       end
 
       def provider_name=(provider_name)
@@ -34,6 +23,17 @@ module ActiveGenie
             config.send("#{key}=", value) if config.respond_to?("#{key}=")
           end
         end
+      end
+
+      private
+
+      def set_defaults
+        @model = @recommended_model = @provider_name = @provider = nil
+        @max_retries = @retry_delay = @read_timeout = @open_timeout = nil
+        @temperature = 0
+        @max_tokens = 4096
+        @model_tier = 'lower_tier'
+        @max_fibers = 10
       end
     end
   end

@@ -37,9 +37,7 @@ module ActiveGenie
       def call
         response = Explanation.call(@text, extract_with_litote, config:)
 
-        if response[:message_litote]
-          response = Explanation.call(response[:litote_rephrased], @data_to_extract, config:)
-        end
+        response = Explanation.call(response[:litote_rephrased], @data_to_extract, config:) if response[:message_litote]
 
         response
       end
@@ -53,7 +51,7 @@ module ActiveGenie
       end
 
       def config
-        @config ||= begin 
+        @config ||= begin
           c = ActiveGenie.configuration.merge(@initial_config)
           c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
 

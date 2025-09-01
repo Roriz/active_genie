@@ -33,8 +33,9 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        breakfast_items = ['Eggs', 'Toast', 'Cereal', 'Pancakes', 'Bacon', 'Coffee']
-        assert breakfast_items.any? { |item| result.include?(item.downcase) }, 
+        breakfast_items = %w[Eggs Toast Cereal Pancakes Bacon Coffee]
+
+        assert breakfast_items.any? { |item| result.include?(item.downcase) },
                "Should include at least one common breakfast item, full result: #{result}"
       end
 
@@ -45,7 +46,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         comfort_foods = ['Soup', 'Hot chocolate', 'Stew', 'Chili', 'Mac and cheese']
-        assert comfort_foods.any? { |item| result.include?(item.downcase) }, 
+
+        assert comfort_foods.any? { |item| result.include?(item.downcase) },
                "Should include at least one winter comfort food, full result: #{result}"
       end
 
@@ -58,7 +60,8 @@ module ActiveGenie
 
         assert_includes result, 'Price', "Price should be in the list, full result: #{result}"
         buying_factors = ['Battery life', 'Camera quality', 'Storage', 'Brand']
-        assert buying_factors.any? { |factor| result.include?(factor.downcase) }, 
+
+        assert buying_factors.any? { |factor| result.include?(factor.downcase) },
                "Should include common buying factors, full result: #{result}"
       end
 
@@ -69,7 +72,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         shopping_reasons = ['Convenience', 'Better prices', 'No crowds', 'Save time', 'More selection']
-        assert shopping_reasons.any? { |reason| result.include?(reason.downcase) }, 
+
+        assert shopping_reasons.any? { |reason| result.include?(reason.downcase) },
                "Should include common online shopping reasons, full result: #{result}"
       end
 
@@ -81,7 +85,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         streaming_services = ['Netflix', 'YouTube', 'Disney+', 'Amazon Prime', 'Hulu']
-        assert streaming_services.any? { |service| result.include?(service.downcase) }, 
+
+        assert streaming_services.any? { |service| result.include?(service.downcase) },
                "Should include popular streaming services, full result: #{result}"
       end
 
@@ -91,8 +96,9 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        movie_genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance']
-        assert movie_genres.any? { |genre| result.include?(genre.downcase) }, 
+        movie_genres = %w[Action Comedy Drama Horror Romance]
+
+        assert movie_genres.any? { |genre| result.include?(genre.downcase) },
                "Should include popular movie genres, full result: #{result}"
       end
 
@@ -103,8 +109,14 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        interview_questions = ['Tell me about yourself', 'Why do you want this job', 'What are your strengths', 'What are your weaknesses', 'Where do you see yourself']
-        assert interview_questions.any? { |question| result.any? { |r| r.downcase.include?(question.downcase.split(' ').first) } }, 
+        interview_questions = ['Tell me about yourself', 'Why do you want this job', 'What are your strengths',
+                               'What are your weaknesses', 'Where do you see yourself']
+
+        assert interview_questions.any? { |question|
+          result.any? do |r|
+            r.downcase.include?(question.downcase.split.first)
+          end
+        },
                "Should include common interview question patterns, full result: #{result}"
       end
 
@@ -115,7 +127,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         benefits = ['Health insurance', 'Vacation time', 'Retirement plan', 'Flexible schedule', 'Remote work']
-        assert benefits.any? { |benefit| result.include?(benefit.downcase) }, 
+
+        assert benefits.any? { |benefit| result.include?(benefit.downcase) },
                "Should include valued employee benefits, full result: #{result}"
       end
 
@@ -127,7 +140,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         resolutions = ['Lose weight', 'Exercise more', 'Eat healthier', 'Save money', 'Quit smoking']
-        assert resolutions.any? { |resolution| result.include?(resolution.downcase) }, 
+
+        assert resolutions.any? { |resolution| result.include?(resolution.downcase) },
                "Should include common New Year resolutions, full result: #{result}"
       end
 
@@ -138,7 +152,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         weekend_activities = ['Sleep in', 'Spend time with family', 'Watch movies', 'Go out to eat', 'Exercise']
-        assert weekend_activities.any? { |activity| result.include?(activity.downcase) }, 
+
+        assert weekend_activities.any? { |activity| result.include?(activity.downcase) },
                "Should include popular weekend activities, full result: #{result}"
       end
 
@@ -149,7 +164,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         stress_relief = ['Exercise', 'Listen to music', 'Sleep', 'Talk to friends', 'Watch TV']
-        assert stress_relief.any? { |method| result.include?(method.downcase) }, 
+
+        assert stress_relief.any? { |method| result.include?(method.downcase) },
                "Should include common stress relief methods, full result: #{result}"
       end
 
@@ -160,8 +176,9 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        social_platforms = ['Facebook', 'Instagram', 'Twitter', 'TikTok', 'YouTube']
-        assert social_platforms.any? { |platform| result.include?(platform.downcase) }, 
+        social_platforms = %w[Facebook Instagram Twitter TikTok YouTube]
+
+        assert social_platforms.any? { |platform| result.include?(platform.downcase) },
                "Should include popular social media platforms, full result: #{result}"
       end
 
@@ -173,7 +190,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         forgotten_items = ['Phone charger', 'Toothbrush', 'Underwear', 'Medications', 'Sunglasses']
-        assert forgotten_items.any? { |item| result.include?(item.downcase) }, 
+
+        assert forgotten_items.any? { |item| result.include?(item.downcase) },
                "Should include commonly forgotten travel items, full result: #{result}"
       end
 
@@ -185,7 +203,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         exercise_types = ['Walking', 'Running', 'Swimming', 'Cycling', 'Weight lifting']
-        assert exercise_types.any? { |exercise| result.include?(exercise.downcase) }, 
+
+        assert exercise_types.any? { |exercise| result.include?(exercise.downcase) },
                "Should include popular exercise types, full result: #{result}"
       end
 
@@ -196,7 +215,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         diet_reasons = ['Lose weight', 'Get healthy', 'Look better', 'Feel better', 'Doctor advice']
-        assert diet_reasons.any? { |reason| result.include?(reason.downcase) }, 
+
+        assert diet_reasons.any? { |reason| result.include?(reason.downcase) },
                "Should include common diet motivations, full result: #{result}"
       end
 
@@ -208,7 +228,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         study_problems = ['Procrastination', 'Distractions', 'Time management', 'Understanding material', 'Motivation']
-        assert study_problems.any? { |problem| result.include?(problem.downcase) }, 
+
+        assert study_problems.any? { |problem| result.include?(problem.downcase) },
                "Should include common study problems, full result: #{result}"
       end
 
@@ -219,7 +240,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         parenting_challenges = ['Lack of sleep', 'Time management', 'Discipline', 'Money', 'Patience']
-        assert parenting_challenges.any? { |challenge| result.include?(challenge.downcase) }, 
+
+        assert parenting_challenges.any? { |challenge| result.include?(challenge.downcase) },
                "Should include common parenting challenges, full result: #{result}"
       end
 
@@ -231,7 +253,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         chores = ['Dishes', 'Cleaning bathrooms', 'Laundry', 'Vacuuming', 'Taking out trash']
-        assert chores.any? { |chore| result.include?(chore.downcase) }, 
+
+        assert chores.any? { |chore| result.include?(chore.downcase) },
                "Should include commonly disliked chores, full result: #{result}"
       end
 
@@ -242,11 +265,11 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         projects = ['Painting', 'Kitchen remodel', 'Bathroom remodel', 'Landscaping', 'Flooring']
-        assert projects.any? { |project| result.include?(project.downcase) }, 
+
+        assert projects.any? { |project| result.include?(project.downcase) },
                "Should include popular home improvement projects, full result: #{result}"
       end
 
-      # Seasonal and Holiday Tests
       def test_feud_christmas_gifts
         result = ActiveGenie::Lister.with_feud(
           'Most popular Christmas gifts'
@@ -254,19 +277,20 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         christmas_gifts = ['Clothes', 'Electronics', 'Toys', 'Gift cards', 'Books']
-        assert christmas_gifts.any? { |gift| result.include?(gift.downcase) }, 
+
+        assert christmas_gifts.any? { |gift| result.include?(gift.downcase) },
                "Should include popular Christmas gifts, full result: #{result}"
       end
 
-      # Configuration and Edge Cases Tests
-      def test_feud_with_custom_item_count_3
+      def test_feud_most_popular_pets
         result = ActiveGenie::Lister.with_feud(
-          'Most popular pets',
+          'Most popular pets'
         )
         result = result.map(&:downcase)
 
-        pets = ['Dogs', 'Cats', 'Fish', 'Birds']
-        assert pets.any? { |pet| result.include?(pet.downcase) }, 
+        pets = %w[Dogs Cats Fish Birds]
+
+        assert pets.any? { |pet| result.include?(pet.downcase) },
                "Should include popular pets, full result: #{result}"
       end
 
@@ -277,7 +301,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         old_things = ['VHS tapes', 'Dial-up internet', 'Pay phones', 'CD players', 'Blockbuster']
-        assert old_things.any? { |thing| result.include?(thing.downcase) }, 
+
+        assert old_things.any? { |thing| result.include?(thing.downcase) },
                "Should include things that make people feel old, full result: #{result}"
       end
 
@@ -288,18 +313,18 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         assert_instance_of Array, result
-        assert result.all? { |item| item.is_a?(String) }, "All items should be strings"
-        assert result.all? { |item| !item.empty? }, "No items should be empty strings"
+        assert result.all? { |item| item.is_a?(String) }, 'All items should be strings'
+        assert result.all? { |item| !item.empty? }, 'No items should be empty strings'
       end
 
       def test_feud_consistent_results_length
         theme = 'Reasons people are late to work'
-        
+
         result1 = ActiveGenie::Lister.with_feud(theme)
         result2 = ActiveGenie::Lister.with_feud(theme)
-        
-        assert_equal result1.length, result2.length, "Results should have consistent length"
-        assert_equal 5, result1.length, "Should return default 5 items"
+
+        assert_equal result1.length, result2.length, 'Results should have consistent length'
+        assert_equal 5, result1.length, 'Should return default 5 items'
       end
 
       # Business and Professional Tests
@@ -310,7 +335,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         failure_reasons = ['No market need', 'Ran out of cash', 'Not the right team', 'Competition', 'Poor marketing']
-        assert failure_reasons.any? { |reason| result.include?(reason.downcase) }, 
+
+        assert failure_reasons.any? { |reason| result.include?(reason.downcase) },
                "Should include common startup failure reasons, full result: #{result}"
       end
 
@@ -321,7 +347,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         pet_peeves = ['Loud talking', 'Micromanagement', 'Poor communication', 'Meeting overload', 'Messy common areas']
-        assert pet_peeves.any? { |peeve| result.include?(peeve.downcase) }, 
+
+        assert pet_peeves.any? { |peeve| result.include?(peeve.downcase) },
                "Should include common office annoyances, full result: #{result}"
       end
 
@@ -331,8 +358,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        networking_tips = ['Attend industry events', 'Use LinkedIn', 'Ask for referrals', 'Join professional groups', 'Follow up']
-        assert networking_tips.any? { |tip| result.include?(tip.downcase) }, 
+        networking_tips = ['Attend industry events', 'Use LinkedIn', 'Ask for referrals', 'Join professional groups',
+                           'Follow up']
+
+        assert networking_tips.any? { |tip| result.include?(tip.downcase) },
                "Should include effective networking strategies, full result: #{result}"
       end
 
@@ -343,7 +372,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         meeting_issues = ['No clear agenda', 'Too many people', 'Off-topic discussions', 'Too long', 'No follow-up']
-        assert meeting_issues.any? { |issue| result.include?(issue.downcase) }, 
+
+        assert meeting_issues.any? { |issue| result.include?(issue.downcase) },
                "Should include common meeting problems, full result: #{result}"
       end
 
@@ -354,8 +384,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        video_problems = ['Bad internet connection', 'Audio issues', 'Camera not working', 'Background noise', 'Frozen screen']
-        assert video_problems.any? { |problem| result.include?(problem.downcase) }, 
+        video_problems = ['Bad internet connection', 'Audio issues', 'Camera not working', 'Background noise',
+                          'Frozen screen']
+
+        assert video_problems.any? { |problem| result.include?(problem.downcase) },
                "Should include common video call issues, full result: #{result}"
       end
 
@@ -366,8 +398,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        budget_challenges = ['Unexpected expenses', 'Low income', 'Lack of discipline', 'Too complicated', 'Emergency fund']
-        assert budget_challenges.any? { |challenge| result.include?(challenge.downcase) }, 
+        budget_challenges = ['Unexpected expenses', 'Low income', 'Lack of discipline', 'Too complicated',
+                             'Emergency fund']
+
+        assert budget_challenges.any? { |challenge| result.include?(challenge.downcase) },
                "Should include common budgeting challenges, full result: #{result}"
       end
 
@@ -377,8 +411,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        investment_fears = ['Fear of losing money', 'Too complicated', 'Not enough money', 'Don\'t know where to start', 'Market volatility']
-        assert investment_fears.any? { |fear| result.include?(fear.downcase) }, 
+        investment_fears = ['Fear of losing money', 'Too complicated', 'Not enough money',
+                            'Don\'t know where to start', 'Market volatility']
+
+        assert investment_fears.any? { |fear| result.include?(fear.downcase) },
                "Should include common investment fears, full result: #{result}"
       end
 
@@ -389,7 +425,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         debt_sources = ['Student loans', 'Credit cards', 'Car loans', 'Medical bills', 'Housing costs']
-        assert debt_sources.any? { |source| result.include?(source.downcase) }, 
+
+        assert debt_sources.any? { |source| result.include?(source.downcase) },
                "Should include common debt sources, full result: #{result}"
       end
 
@@ -400,7 +437,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         financial_goals = ['Emergency fund', 'Buy a house', 'Retire comfortably', 'Pay off debt', 'Start investing']
-        assert financial_goals.any? { |goal| result.include?(goal.downcase) }, 
+
+        assert financial_goals.any? { |goal| result.include?(goal.downcase) },
                "Should include common financial goals, full result: #{result}"
       end
 
@@ -411,8 +449,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        mental_health_activities = ['Exercise', 'Meditation', 'Talking to friends', 'Getting enough sleep', 'Spending time outdoors']
-        assert mental_health_activities.any? { |activity| result.include?(activity.downcase) }, 
+        mental_health_activities = ['Exercise', 'Meditation', 'Talking to friends', 'Getting enough sleep',
+                                    'Spending time outdoors']
+
+        assert mental_health_activities.any? { |activity| result.include?(activity.downcase) },
                "Should include mental health activities, full result: #{result}"
       end
 
@@ -424,7 +464,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         social_problems = ['Cyberbullying', 'Misinformation', 'Addiction', 'Privacy concerns', 'Comparison culture']
-        assert social_problems.any? { |problem| result.include?(problem.downcase) }, 
+
+        assert social_problems.any? { |problem| result.include?(problem.downcase) },
                "Should include social media problems, full result: #{result}"
       end
 
@@ -435,7 +476,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         community_problems = ['Crime', 'Traffic', 'Lack of affordable housing', 'Poor schools', 'Economic inequality']
-        assert community_problems.any? { |problem| result.include?(problem.downcase) }, 
+
+        assert community_problems.any? { |problem| result.include?(problem.downcase) },
                "Should include common community problems, full result: #{result}"
       end
 
@@ -446,8 +488,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        climate_actions = ['Reduce energy use', 'Use public transportation', 'Recycle', 'Eat less meat', 'Buy sustainable products']
-        assert climate_actions.any? { |action| result.include?(action.downcase) }, 
+        climate_actions = ['Reduce energy use', 'Use public transportation', 'Recycle', 'Eat less meat',
+                           'Buy sustainable products']
+
+        assert climate_actions.any? { |action| result.include?(action.downcase) },
                "Should include climate change actions, full result: #{result}"
       end
 
@@ -458,7 +502,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         pollution_sources = ['Single-use bags', 'Water bottles', 'Food packaging', 'Straws', 'Microplastics']
-        assert pollution_sources.any? { |source| result.include?(source.downcase) }, 
+
+        assert pollution_sources.any? { |source| result.include?(source.downcase) },
                "Should include plastic pollution sources, full result: #{result}"
       end
 
@@ -469,7 +514,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         sustainability_barriers = ['Cost', 'Convenience', 'Lack of options', 'Time constraints', 'Lack of knowledge']
-        assert sustainability_barriers.any? { |barrier| result.include?(barrier.downcase) }, 
+
+        assert sustainability_barriers.any? { |barrier| result.include?(barrier.downcase) },
                "Should include sustainability barriers, full result: #{result}"
       end
 
@@ -480,8 +526,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        stress_sources = ['Financial pressure', 'Academic workload', 'Career uncertainty', 'Social pressure', 'Time management']
-        assert stress_sources.any? { |source| result.include?(source.downcase) }, 
+        stress_sources = ['Financial pressure', 'Academic workload', 'Career uncertainty', 'Social pressure',
+                          'Time management']
+
+        assert stress_sources.any? { |source| result.include?(source.downcase) },
                "Should include student stress sources, full result: #{result}"
       end
 
@@ -491,8 +539,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        online_challenges = ['Lack of interaction', 'Technical issues', 'Distractions at home', 'Self-motivation', 'Time zone differences']
-        assert online_challenges.any? { |challenge| result.include?(challenge.downcase) }, 
+        online_challenges = ['Lack of interaction', 'Technical issues', 'Distractions at home', 'Self-motivation',
+                             'Time zone differences']
+
+        assert online_challenges.any? { |challenge| result.include?(challenge.downcase) },
                "Should include online learning challenges, full result: #{result}"
       end
 
@@ -502,8 +552,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        study_habits = ['Regular schedule', 'Take breaks', 'Active note-taking', 'Practice tests', 'Eliminate distractions']
-        assert study_habits.any? { |habit| result.include?(habit.downcase) }, 
+        study_habits = ['Regular schedule', 'Take breaks', 'Active note-taking', 'Practice tests',
+                        'Eliminate distractions']
+
+        assert study_habits.any? { |habit| result.include?(habit.downcase) },
                "Should include effective study habits, full result: #{result}"
       end
 
@@ -514,8 +566,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        commute_frustrations = ['Traffic jams', 'Public transport delays', 'High costs', 'Crowded trains', 'Parking problems']
-        assert commute_frustrations.any? { |frustration| result.include?(frustration.downcase) }, 
+        commute_frustrations = ['Traffic jams', 'Public transport delays', 'High costs', 'Crowded trains',
+                                'Parking problems']
+
+        assert commute_frustrations.any? { |frustration| result.include?(frustration.downcase) },
                "Should include commuting frustrations, full result: #{result}"
       end
 
@@ -526,7 +580,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         car_factors = ['Price', 'Fuel efficiency', 'Reliability', 'Safety ratings', 'Resale value']
-        assert car_factors.any? { |factor| result.include?(factor.downcase) }, 
+
+        assert car_factors.any? { |factor| result.include?(factor.downcase) },
                "Should include car buying factors, full result: #{result}"
       end
 
@@ -536,8 +591,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        transport_improvements = ['More frequent service', 'Better cleanliness', 'Lower costs', 'Real-time updates', 'More routes']
-        assert transport_improvements.any? { |improvement| result.include?(improvement.downcase) }, 
+        transport_improvements = ['More frequent service', 'Better cleanliness', 'Lower costs', 'Real-time updates',
+                                  'More routes']
+
+        assert transport_improvements.any? { |improvement| result.include?(improvement.downcase) },
                "Should include public transport improvements, full result: #{result}"
       end
 
@@ -548,7 +605,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         city_downsides = ['High cost of living', 'Traffic', 'Noise', 'Crowding', 'Pollution']
-        assert city_downsides.any? { |downside| result.include?(downside.downcase) }, 
+
+        assert city_downsides.any? { |downside| result.include?(downside.downcase) },
                "Should include city living downsides, full result: #{result}"
       end
 
@@ -560,7 +618,8 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         deal_breakers = ['Poor customer service', 'High prices', 'Long wait times', 'Messy store', 'Limited selection']
-        assert deal_breakers.any? { |breaker| result.include?(breaker.downcase) }, 
+
+        assert deal_breakers.any? { |breaker| result.include?(breaker.downcase) },
                "Should include shopping deal breakers, full result: #{result}"
       end
 
@@ -570,8 +629,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        buying_triggers = ['Sales and discounts', 'Emotional state', 'Limited time offers', 'Product placement', 'Social influence']
-        assert buying_triggers.any? { |trigger| result.include?(trigger.downcase) }, 
+        buying_triggers = ['Sales and discounts', 'Emotional state', 'Limited time offers', 'Product placement',
+                           'Social influence']
+
+        assert buying_triggers.any? { |trigger| result.include?(trigger.downcase) },
                "Should include impulse buying triggers, full result: #{result}"
       end
 
@@ -582,19 +643,21 @@ module ActiveGenie
         result = result.map(&:downcase)
 
         service_expectations = ['Quick response', 'Friendly staff', 'Problem resolution', 'Knowledge', 'Follow-up']
-        assert service_expectations.any? { |expectation| result.include?(expectation.downcase) }, 
+
+        assert service_expectations.any? { |expectation| result.include?(expectation.downcase) },
                "Should include customer service expectations, full result: #{result}"
       end
 
       # Custom Configuration Tests with Different Juries
       def test_feud_with_small_list_politics
         result = ActiveGenie::Lister.with_feud(
-          'Most controversial political topics',
+          'Most controversial political topics'
         )
         result = result.map(&:downcase)
 
         political_topics = ['Healthcare', 'Immigration', 'Gun control', 'Taxes', 'Education']
-        assert political_topics.any? { |topic| result.include?(topic.downcase) }, 
+
+        assert political_topics.any? { |topic| result.include?(topic.downcase) },
                "Should include controversial political topics, full result: #{result}"
       end
 
@@ -604,8 +667,10 @@ module ActiveGenie
         )
         result = result.map(&:downcase)
 
-        productivity_killers = ['Constant notifications', 'Unnecessary meetings', 'Email overload', 'Open office distractions', 'Multitasking']
-        assert productivity_killers.any? { |killer| result.include?(killer.downcase) }, 
+        productivity_killers = ['Constant notifications', 'Unnecessary meetings', 'Email overload',
+                                'Open office distractions', 'Multitasking']
+
+        assert productivity_killers.any? { |killer| result.include?(killer.downcase) },
                "Should include productivity killers, full result: #{result}"
       end
     end

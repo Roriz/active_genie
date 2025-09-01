@@ -53,13 +53,13 @@ module ActiveGenie
         result['final_score'] = 0 if result['final_score'].nil?
 
         config.logger.call({
-                              code: :Scorer,
-                              text: @text[0..30],
-                              criteria: @criteria[0..30],
-                              juries: juries,
-                              score: result['final_score'],
-                              reasoning: result['final_reasoning']
-                            })
+                             code: :Scorer,
+                             text: @text[0..30],
+                             criteria: @criteria[0..30],
+                             juries: juries,
+                             score: result['final_score'],
+                             reasoning: result['final_reasoning']
+                           })
 
         result
       end
@@ -118,7 +118,7 @@ module ActiveGenie
       end
 
       def config
-        @config ||= begin 
+        @config ||= begin
           c = ActiveGenie.configuration.merge(@initial_config)
           c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
 
