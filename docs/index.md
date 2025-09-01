@@ -32,6 +32,9 @@ features:
   - icon: 💯
     title: Scorer
     details: Given a text, return a score from 0 to 100
+  - icon: 📝
+    title: Lister
+    details: Given a theme, return the items
   - icon: 🏆
     title: Ranker
     details: Given a list, return ranked items
