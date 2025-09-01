@@ -39,7 +39,7 @@ module ActiveGenie
     end
 
     def available_providers
-      ActiveGenie.configuration.providers.all.keys.join(', ')
+      ActiveGenie.configuration.providers.valid.keys.join(', ')
     end
   end
 end
