@@ -25,7 +25,8 @@ module ActiveGenie
             providers: {
               openai: { api_key: 'your_api_key' }
             }
-          })
+          }
+        )
 
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
           request_body = JSON.parse(req.body)
@@ -55,7 +56,8 @@ module ActiveGenie
             providers: {
               google: { api_key: 'your_api_key' }
             }
-          })
+          }
+        )
 
         assert_requested(:post,
                          %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent}) do |req|
@@ -82,7 +84,8 @@ module ActiveGenie
             providers: {
               anthropic: { api_key: 'your_api_key' }
             }
-          })
+          }
+        )
 
         assert_requested(:post, 'https://api.anthropic.com/v1/messages') do |req|
           request_body = JSON.parse(req.body)
@@ -124,7 +127,8 @@ module ActiveGenie
             providers: {
               deepseek: { api_key: 'your_api_key' }
             }
-          })
+          }
+        )
 
         assert_requested(:post, 'https://api.deepseek.com/v1/chat/completions') do |req|
           request_body = JSON.parse(req.body)
