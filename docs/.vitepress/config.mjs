@@ -53,6 +53,7 @@ export default defineConfig({
         text: 'Benchmark',
         items: [
           { text: 'Latest', link: '/benchmark/latest' },
+          { text: 'History', link: '/benchmark/history' },
         ]
       },
       {
