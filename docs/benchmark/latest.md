@@ -58,7 +58,7 @@ The model with the highest recommendation score is chosen for each module. The t
 3. gpt-5-mini
 
 | # | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) | cost |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [17003761591](https://github.com/Roriz/active_genie/actions/runs/17003761591) | anthropic | claude-3-5-haiku-20241022 | 101/18 (120) | 84 | 518.6 | 155 | 203751 | 4.30 | 0.8 |
 | [17008403285](https://github.com/Roriz/active_genie/actions/runs/17008403285) | anthropic | claude-3-5-haiku-20241022 | 103/16 (120) | 85 | 520.4 | 156 | 204635 | 4.34 | 0.81854 |
 | [17008682819](https://github.com/Roriz/active_genie/actions/runs/17008682819) | anthropic | claude-3-5-haiku-20241022 | 102/17 (120) | 85 | 515.8 | 155 | 203790 | 4.32 | 0.81516 |
@@ -166,7 +166,7 @@ The model with the highest recommendation score is chosen for each module. The t
 
 
 | # | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) | cost |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [17003761591](https://github.com/Roriz/active_genie/actions/runs/17003761591) | anthropic | claude-3-5-haiku-20241022 | 51/17 (68) | 75 | 181.0 | 69 | 54801 | 2.70 | 0.219204 |
 | [17008403285](https://github.com/Roriz/active_genie/actions/runs/17008403285) | anthropic | claude-3-5-haiku-20241022 | 50/18 (68) | 73 | 184.3 | 69 | 54920 | 2.71 | 0.21968 |
 | [17008682819](https://github.com/Roriz/active_genie/actions/runs/17008682819) | anthropic | claude-3-5-haiku-20241022 | 51/17 (68) | 75 | 183.5 | 69 | 54800 | 2.66 | 0.2192 |
@@ -199,7 +199,7 @@ The model with the highest recommendation score is chosen for each module. The t
 2. gemini-2.5-flash-lite
 
 | # | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) | cost |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [17003761591](https://github.com/Roriz/active_genie/actions/runs/17003761591) | anthropic | claude-3-5-haiku-20241022 | 0/0 (2) | 0 | 30.3 | 24 | 34329 | 15.34 | 0.137316 |
 | [17008403285](https://github.com/Roriz/active_genie/actions/runs/17008403285) | anthropic | claude-3-5-haiku-20241022 | 0/0 (2) | 0 | 29.9 | 24 | 34438 | 14.94 | 0.137752 |
 | [17008682819](https://github.com/Roriz/active_genie/actions/runs/17008682819) | anthropic | claude-3-5-haiku-20241022 | 0/0 (2) | 0 | 30.7 | 23 | 32887 | 15.17 | 0.1 |
