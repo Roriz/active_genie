@@ -6,7 +6,6 @@ module ActiveGenie
   module Providers
     class BaseProvider
       class ProviderUnknownError < StandardError; end
-      class ProviderServerError < StandardError; end
 
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
@@ -174,7 +173,7 @@ module ActiveGenie
         begin
           response = yield
 
-          raise ProviderServerError, "Provider server error: #{response.code} - #{response.body}" if !response.is_a?(Net::HTTPSuccess) && response.code.to_i >= 500
+          raise ActiveGenie::ProviderServerError, response if response&.code.to_i >= 500
 
           response
         rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderServerError => e
@@ -186,8 +185,8 @@ module ActiveGenie
           @config.logger.call(
             code: :retry_attempt,
             attempt: retries,
-            max_retries: max_retries,
-            delay: sleep_time,
+            max_retries:,
+            next_retry_in_seconds: sleep_time,
             error: e.message
           )
 

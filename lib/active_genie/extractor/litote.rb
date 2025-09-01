@@ -31,15 +31,13 @@ module ActiveGenie
       def initialize(text, data_to_extract, config: {})
         @text = text
         @data_to_extract = data_to_extract
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
       end
 
       def call
-        response = Explanation.call(@text, extract_with_litote, config: @config)
+        response = Explanation.call(@text, extract_with_litote, config:)
 
-        if response[:message_litote]
-          response = Explanation.call(response[:litote_rephrased], @data_to_extract, config: @config)
-        end
+        response = Explanation.call(response[:litote_rephrased], @data_to_extract, config:) if response[:message_litote]
 
         response
       end
@@ -50,6 +48,15 @@ module ActiveGenie
         parameters = JSON.parse(File.read(File.join(__dir__, 'litote.json')), symbolize_names: true)
 
         @data_to_extract.merge(parameters)
+      end
+
+      def config
+        @config ||= begin
+          c = ActiveGenie.configuration.merge(@initial_config)
+          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
+
+          c
+        end
       end
     end
   end

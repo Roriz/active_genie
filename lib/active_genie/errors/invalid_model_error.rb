@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  class InvalidProviderError < StandardError
+  class InvalidModelError < StandardError
     TEXT = <<~TEXT
-      Invalid provider: %<provider>s
+      Invalid model: %<model>s
 
       To configure ActiveGenie, you can either:
       1. Set up global configuration:
          ```ruby
          ActiveGenie.configure do |config|
-           config.providers.default = 'openai'
-           config.providers.openai.api_key = 'your_api_key'
+          config.providers.openai.api_key = 'your_api_key'
+           config.llm.model = 'gpt-5'
            # ... other configuration options
          end
          ```
@@ -22,24 +22,21 @@ module ActiveGenie
            arg2,
            config: {
              providers: {
-               default: 'openai',
                openai: {
                  api_key: 'your_api_key'
                }
+             },
+             llm: {
+               model: 'gpt-5'
              }
            }
          )
          ```
 
-      Available providers: %<available_providers>s
     TEXT
 
-    def initialize(provider)
-      super(format(TEXT, provider:, available_providers:))
-    end
-
-    def available_providers
-      ActiveGenie.configuration.providers.valid.keys.join(', ')
+    def initialize(model)
+      super(format(TEXT, model:))
     end
   end
 end

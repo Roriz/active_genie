@@ -84,7 +84,7 @@ module ActiveGenie
       end
 
       def model
-        @config.llm.model || @config.providers.anthropic.tier_to_model(@config.llm.model_tier)
+        @config.llm.model
       end
 
       def headers

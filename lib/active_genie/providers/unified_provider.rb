@@ -5,6 +5,7 @@ require_relative 'anthropic_provider'
 require_relative 'google_provider'
 require_relative 'deepseek_provider'
 require_relative '../errors/invalid_provider_error'
+require_relative '../errors/invalid_model_error'
 
 module ActiveGenie
   module Providers
@@ -18,10 +19,8 @@ module ActiveGenie
         }.freeze
 
         def function_calling(messages, function, config: {})
-          provider_name = config.llm.provider_name || config.providers.default
-          provider = PROVIDER_NAME_TO_PROVIDER[provider_name.to_sym]
-
-          raise ActiveGenie::InvalidProviderError, provider_name if provider.nil?
+          provider = provider(config)
+          define_llm_model(config)
 
           response = provider.new(config).function_calling(messages, function)
 
@@ -29,6 +28,32 @@ module ActiveGenie
         end
 
         private
+
+        def provider(config)
+          provider_name = config.llm.provider_name || config.providers.default
+
+          unless config.providers.valid.keys.include?(provider_name.to_sym)
+            raise ActiveGenie::InvalidProviderError,
+                  provider_name
+          end
+
+          provider = PROVIDER_NAME_TO_PROVIDER[provider_name.to_sym]
+
+          raise ActiveGenie::InvalidProviderError, provider_name if provider.nil?
+
+          provider
+        end
+
+        def define_llm_model(config)
+          if config.llm.model.nil?
+            raise ActiveGenie::InvalidModelError, 'nil' unless config.llm.recommended_model
+
+            config.llm.model = config.llm.recommended_model
+
+          end
+
+          config.llm.model
+        end
 
         def normalize_response(response)
           response.each do |key, value|

@@ -29,7 +29,7 @@ module ActiveGenie
       def initialize(text, criteria, config: {})
         @text = text
         @criteria = criteria
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
       end
 
       def call
@@ -61,7 +61,7 @@ module ActiveGenie
         result = client.function_calling(
           messages,
           function,
-          config: @config
+          config:
         )
 
         result['juries'] || []
@@ -75,6 +75,15 @@ module ActiveGenie
 
       def prompt
         @prompt ||= File.read(File.join(__dir__, 'juries.prompt.md'))
+      end
+
+      def config
+        @config ||= begin
+          c = ActiveGenie.configuration.merge(@initial_config)
+          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
+
+          c
+        end
       end
     end
   end

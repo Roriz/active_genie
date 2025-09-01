@@ -37,7 +37,7 @@ module ActiveGenie
       private
 
       def request(payload)
-        response = post(url, payload, headers: headers)
+        response = post(url, payload, headers:)
 
         return nil if response.nil?
 
@@ -71,7 +71,7 @@ module ActiveGenie
       end
 
       def model
-        @config.llm.model || provider_config.tier_to_model(@config.llm.model_tier)
+        @config.llm.model
       end
 
       def url

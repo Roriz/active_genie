@@ -8,7 +8,8 @@ module ActiveGenie
     class WithExplanationTest < Minitest::Test
       def setup
         ActiveGenie.configuration.providers.all.each do |provider_name, provider|
-          fixture_path = "#{__dir__}/fixtures/with_explanation/#{provider_name}.json"
+          provider.api_key = "#{provider_name}_secret"
+          fixture_path = "#{__dir__}/../fixtures/function_call_#{provider_name}.json"
           stub_request(:post, /#{provider.api_url}.*$/).to_return(status: 200, body: File.read(fixture_path))
         end
       end
@@ -17,7 +18,16 @@ module ActiveGenie
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
-        ActiveGenie::Extractor.with_explanation(text, schema, config: { provider_name: 'openai' })
+        ActiveGenie::Extractor.with_explanation(
+          text,
+          schema,
+          config: {
+            provider_name: 'openai',
+            providers: {
+              openai: { api_key: 'your_api_key' }
+            }
+          }
+        )
 
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
           request_body = JSON.parse(req.body)
@@ -39,7 +49,16 @@ module ActiveGenie
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
-        ActiveGenie::Extractor.with_explanation(text, schema, config: { provider_name: 'google' })
+        ActiveGenie::Extractor.with_explanation(
+          text,
+          schema,
+          config: {
+            provider_name: 'google',
+            providers: {
+              google: { api_key: 'your_api_key' }
+            }
+          }
+        )
 
         assert_requested(:post,
                          %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent}) do |req|
@@ -58,7 +77,16 @@ module ActiveGenie
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
-        ActiveGenie::Extractor.with_explanation(text, schema, config: { provider_name: 'anthropic' })
+        ActiveGenie::Extractor.with_explanation(
+          text,
+          schema,
+          config: {
+            provider_name: 'anthropic',
+            providers: {
+              anthropic: { api_key: 'your_api_key' }
+            }
+          }
+        )
 
         assert_requested(:post, 'https://api.anthropic.com/v1/messages') do |req|
           request_body = JSON.parse(req.body)
@@ -92,7 +120,16 @@ module ActiveGenie
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
-        ActiveGenie::Extractor.with_explanation(text, schema, config: { provider_name: 'deepseek' })
+        ActiveGenie::Extractor.with_explanation(
+          text,
+          schema,
+          config: {
+            provider_name: 'deepseek',
+            providers: {
+              deepseek: { api_key: 'your_api_key' }
+            }
+          }
+        )
 
         assert_requested(:post, 'https://api.deepseek.com/v1/chat/completions') do |req|
           request_body = JSON.parse(req.body)

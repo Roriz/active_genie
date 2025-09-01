@@ -31,7 +31,7 @@ module ActiveGenie
         @player_a = player_a
         @player_b = player_b
         @criteria = criteria
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
       end
 
       # @return [ComparatorResponse] The evaluation result containing the winner and reasoning
@@ -43,11 +43,7 @@ module ActiveGenie
           {  role: 'user', content: "criteria: #{@criteria}" }
         ]
 
-        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
-          messages,
-          FUNCTION,
-          config: @config
-        )
+        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(messages, FUNCTION, config:)
 
         response_formatted(response)
       end
@@ -72,13 +68,22 @@ module ActiveGenie
       end
 
       def log_comparator(comparator_response)
-        @config.logger.call(
+        config.logger.call(
           code: :comparator,
           player_a: @player_a[0..30],
           player_b: @player_b[0..30],
           criteria: @criteria[0..30],
           **comparator_response.to_h
         )
+      end
+
+      def config
+        @config ||= begin
+          c = ActiveGenie.configuration.merge(@initial_config)
+          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
+
+          c
+        end
       end
     end
   end
