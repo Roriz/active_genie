@@ -16,7 +16,7 @@ This section focuses on the stable modules and providers:
 - **Modules**: DataExtractor, Comparator, and Scorer.
 - **Providers**: OpenAI, Anthropic, Google, and Deepseek.
 
-![overall history](/assets/benchmark/history-stable.optimized.webp.png)
+![overall history](/assets/benchmark/history-stable-modules.optimized.webp)
 
 | Version | claude-3-5-haiku-20241022 | claude-sonnet-4-20250514 | deepseek-chat | gemini-2.5-flash | gemini-2.5-pro | gpt-4.1-mini | gpt-5 | gpt-5-mini |
 |---------|---------------------------|--------------------------|---------------|------------------|-----------------|---------------|-------|------------|
