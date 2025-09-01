@@ -46,7 +46,7 @@ module ActiveGenie
 
         def define_llm_model(config)
           if config.llm.model.nil?
-            raise ActiveGenie::InvalidModelError unless config.llm.recommended_model
+            raise ActiveGenie::InvalidModelError, 'nil' unless config.llm.recommended_model
 
             config.llm.model = config.llm.recommended_model
 
