@@ -13,3 +13,6 @@ namespace :test do
 
   task default: %i[unit integration]
 end
+
+desc 'Run all tests (unit and integration)'
+task test: ['test:unit', 'test:integration']
