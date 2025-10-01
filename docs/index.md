@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "ActiveGenie"
   text: "The Lodash for GenAI"
-  tagline: "Real Value + Consistent + Model-Agnostic"
+  tagline: "Consistent + Model-Agnostic"
   image:
     src: /logo.webp
     alt: ActiveGenie

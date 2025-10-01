@@ -4,10 +4,13 @@ Gem::Specification.new do |spec|
   spec.platform      = Gem::Platform::RUBY
   spec.name          = 'active_genie'
   spec.version       = File.read(File.expand_path('VERSION', __dir__)).strip
-  spec.summary       = 'The Lodash for GenAI: Real Value + Consistent + Model-Agnostic'
+  spec.summary       = 'The Lodash for GenAI: Consistent + Model-Agnostic'
   spec.description   = <<~DESC
-    ActiveGenie is a Ruby gem that helps developers build reliable, future-proof GenAI features without worrying about changing models, prompts, or providers. Like Lodash for GenAI, it offers simple, reusable modules for tasks like extractor, comparator, scorer, and ranker, so you can focus on your app’s logic, not the shifting AI landscape.
-    Behind the scenes, a custom benchmarking system keeps everything consistent across LLM vendors and versions, release after release.
+  ActiveGenie is an enabler for creating reliable GenAI features, offering powerful, model-agnostic tools across any provider. It allows you to settle subjective comparisons with a `ActibeGenie::Comparator` module that stages a political debate, get accurate scores from an AI jury using `ActiveGenie::Scorer`, and rank large datasets using `ActiveGenie::Ranker`'s tournament-style system.
+  This reliability is built on three core pillars:
+  - Custom Benchmarking: Testing for consistency with every new version and model update.
+  - Reasoning Prompting: Utilizing human reasoning techniques (like debate and jury review) to control a model's reasoning.
+  - Overfitting Prompts: Highly specialized, and potentially model-specific, prompt for each module's purpose.
   DESC
   spec.authors       = ['Radamés Roriz']
   spec.email         = ['radames@roriz.dev']
@@ -22,7 +25,7 @@ Gem::Specification.new do |spec|
     'rubygems_mfa_required' => 'true'
   }
 
-  spec.files         = Dir['{lib,ext}/**/*', 'VERSION', 'README.md', 'LICENSE', 'CHANGELOG.md']
+  spec.files         = Dir['{lib,ext}//*', 'VERSION', 'README.md', 'LICENSE', 'CHANGELOG.md']
   spec.require_paths = ['lib']
 
   spec.add_dependency 'async', '~> 2.0'

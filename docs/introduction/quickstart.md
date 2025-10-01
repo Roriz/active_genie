@@ -1,6 +1,6 @@
 # Quick Start
 
-**ActiveGenie** delivers on three core promises: **Real Value** through intelligent AI analysis, **Consistent** results across providers and models, and **Model-Agnostic** flexibility to use any AI service.
+**ActiveGenie** delivers on two core promises: **Consistent** results across providers and models, and **Model-Agnostic** flexibility to use any AI service.
 
 ## Extractor
 Transform unstructured text into reliable structured data using AI-powered analysis. Extract typed data from messy real-world content while handling informal language, rhetorical devices, and conversational patterns.
@@ -98,7 +98,6 @@ fight_criteria = "Determine winner in one-on-one duel based on skill, strategy, 
 result = ActiveGenie::Comparator.by_fight(fighter_a, fighter_b, fight_criteria)
 ```
 
-**Real Value**: Structured debate format provides comprehensive analysis of complex comparisons  
 **Consistent**: Same debate process and winner determination logic across all AI providers  
 **Model-Agnostic**: Debate structure adapts to different AI reasoning capabilities seamlessly  
 
@@ -141,14 +140,13 @@ result = ActiveGenie::Ranker.by_elo(api_options, criteria)
 result = ActiveGenie::Ranker.by_scoring(api_options, criteria)
 ```
 
-**Real Value**: Multi-stage process eliminates inconsistent performers and produces statistically sound rankings  
 **Consistent**: Same ranking methodology and fairness algorithms across all AI providers  
 **Model-Agnostic**: Ranking logic works with any AI model's scoring and comparison capabilities  
 
 *Recommended models*: `gpt-4`, `claude-3-5-sonnet`, `gemini-2.0-flash`
 
 ## Lister  
-*Real Value + Consistent + Model-Agnostic*
+*Consistent + Model-Agnostic*
 
 Generate ordered lists based on themes using "Family Feud" style survey simulation. Produces lists that reflect general public opinion and cultural consensus, perfect for market research and content planning.
 
@@ -186,7 +184,6 @@ result = ActiveGenie::Lister.call("Most popular breakfast foods worldwide",
   config: { number_of_items: 10 })
 ```
 
-**Real Value**: Survey-style methodology produces culturally accurate and representative results  
 **Consistent**: Same ordering logic and popularity assessment across all AI providers  
 **Model-Agnostic**: List generation adapts to different AI models' cultural knowledge and reasoning  
 
