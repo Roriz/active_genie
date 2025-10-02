@@ -77,7 +77,6 @@ The LLM configuration is used to define settings for interacting with Large Lang
 | `max_tokens`    | Integer             | `4096`                       | Maximum number of tokens to generate in the LLM response.                                                  |
 | `max_retries`   | Integer / nil       | `nil`                        | Maximum number of times to retry a failed API call to the LLM.                                             |
 | `retry_delay`   | Numeric / nil       | `nil`                        | Delay (in seconds) between retries for failed API calls.                                                   |
-| `model_tier`    | Enum [lower_tier, middle_tier, higher_tier]              | `'lower_tier'`               | Specifies the model tier, potentially affecting cost/performance. Will be used if `model` is not set.       |
 | `read_timeout`  | Numeric / nil       | `nil`                        | Timeout (in seconds) for reading data from the LLM API.                                                    |
 | `open_timeout`  | Numeric / nil       | `nil`                        | Timeout (in seconds) for establishing a connection to the LLM API.                                         |
 
@@ -91,7 +90,6 @@ ActiveGenie.configure do |config|
   config.llm.max_tokens = 8000
   config.llm.max_retries = 1
   config.llm.retry_delay = 5 # seconds
-  config.llm.model_tier = 'higher_tier' # If model is not set, will use the model tier to select a model
 end
 ```
 

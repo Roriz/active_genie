@@ -195,8 +195,8 @@ The model with the highest recommendation score is chosen for each module. The t
 ![Ranker](/assets/ranker.optimized.webp)
 
 **Smart recommendation**:
-1. deepseek-chat
-2. gemini-2.5-flash-lite
+1. gemini-2.5-flash
+2. gpt-5-mini
 
 | # | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) | cost |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
