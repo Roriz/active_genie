@@ -1,12 +1,14 @@
 # ActiveGenie 🧞‍♂️
-> The Lodash for GenAI: Real Value + Consistent + Model-Agnostic
+> The Lodash for GenAI: Consistent + Model-Agnostic
 
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-ActiveGenie is a developer-first library for GenAI workflows, designed to help you extract, compare, score, and rank with consistency and model-agnostic. Think of it as the Lodash for GenAI: built for real value, consistent results, and freedom from vendor lock-in. It solves the biggest pain in GenAI today: getting predictable, trustworthy answers across use cases, models, and providers.
-
-Behind the scenes, a custom benchmarking system keeps everything consistent across LLM vendors and versions, release after release.
+**ActiveGenie** is an **enabler for creating reliable GenAI features**, offering powerful, **model-agnostic tools** across any provider. It allows you to settle subjective comparisons with a `ActibeGenie::Comparator` module that stages a political debate, get accurate scores from an **AI jury** using `ActiveGenie::Scorer`, and **rank large datasets** using `ActiveGenie::Ranker`'s tournament-style system.
+This reliability is built on three core pillars:
+* **Custom Benchmarking:** Testing for consistency with every new version and model update.
+* **Reasoning Prompting:** Utilizing human reasoning techniques (like debate and jury review) to control a model's reasoning.
+* **Overfitting Prompts:** Highly specialized, and potentially model-specific, prompt for each module's purpose.
 
 For full documentation, visit [activegenie.ai](https://activegenie.ai).
 
@@ -57,7 +59,7 @@ schema = {
   }
 }
 
-result = ActiveGenie::DataExtractor.call(
+result = ActiveGenie::Extractor.call(
   text,
   schema,
   config: { provider_name: :openai, model: 'gpt-4.1-mini' } # optional

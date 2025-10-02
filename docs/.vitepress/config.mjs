@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   lang: 'en-US',
   title: "ActiveGenie",
-  description: "The Lodash for GenAI: Real Value + Consistent + Model-Agnostic",
+  description: "The Lodash for GenAI: Consistent + Model-Agnostic",
 
   head: [
     ['script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-R9WFVCSRP9' }],

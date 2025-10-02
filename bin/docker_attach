@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+docker build -t active_genie_dev -f .devcontainer/Dockerfile .
+docker run -it --rm \
+    -v $(pwd):/workspace \
+    -w /workspace \
+    -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+    -e GEMINI_API_KEY="$GEMINI_API_KEY" \
+    -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
+    -e DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY" \
+    active_genie_dev \
+    /bin/bash

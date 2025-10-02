@@ -1,8 +1,7 @@
 FROM ruby:latest
 
 # Install common development tools
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install git build-essential libssl-dev \
+RUN apt-get update && apt-get -y install git build-essential libssl-dev \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Install bundler
