@@ -30,11 +30,7 @@ require_relative 'scoring'
 # @return [Hash] Final ranked player results
 module ActiveGenie
   module Ranker
-    class Tournament
-      def self.call(...)
-        new(...).call
-      end
-
+    class Tournament < ActiveGenie::BaseModule
       def initialize(players, criteria, juries: [], config: {})
         @players = Entities::Players.new(players)
         @criteria = criteria
@@ -56,7 +52,10 @@ module ActiveGenie
 
         run_free_for_all!
 
-        sorted_players
+        ActiveGenie::Response.new(
+          data: sorted_players,
+          raw: @players.map(&:to_h)
+        )
       end
 
       ELIMINATION_VARIATION = 'variation_too_high'

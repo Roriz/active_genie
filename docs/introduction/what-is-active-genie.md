@@ -142,7 +142,7 @@ For consistency we use a multi-layered approach to force LLMs to produce predict
 With every release, we run a suite of **400+ test cases** across multiple providers to validate performance. This prevents regressions, ensures quality, and helps you choose the most cost-effective model for your needs.
 
 | Module | Best Precision | Recommended Model |
-|---|---|---|---|
+|---|---|---|
 | **Extractor** | 94% | `deepseek-chat` |
 | **Comparator** | 96% | `claude-sonnet-4-20250514` |
 | **Scorer** | 83% | `deepseek-chat` |

@@ -8,6 +8,10 @@
         "type": "string",
         "description": "The theme for the feud."
       },
+      "why_these_items": {
+        "type": "string",
+        "description": "Explanation of why these items were chosen."
+      },
       "items": {
         "type": "array",
         "description": "The list of items for the feud.",

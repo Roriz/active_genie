@@ -16,11 +16,7 @@ module ActiveGenie
     #                           "Evaluate technical accuracy and clarity")
     #   # => [ "API Architect", "Technical Writer", "Developer Advocate" ]
     #
-    class Juries
-      def self.call(...)
-        new(...).call
-      end
-
+    class Juries < ActiveGenie::BaseModule
       # Initializes a new jury recommendation instance
       #
       # @param text [String] The text content to analyze for jury recommendations
@@ -45,7 +41,10 @@ module ActiveGenie
           parameters: {
             type: 'object',
             properties: {
-              reasoning: { type: 'string' },
+              why_these_juries: {
+                type: 'string',
+                description: 'A brief explanation of why these juries were chosen.'
+              },
               juries: {
                 type: 'array',
                 description: 'The list of best juries',
@@ -58,20 +57,20 @@ module ActiveGenie
           }
         }
 
-        result = client.function_calling(
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           function,
           config:
         )
 
-        result['juries'] || []
+        ActiveGenie::Response.new(
+          data: provider_response['juries'] || [],
+          reasoning: provider_response['why_these_juries'],
+          raw: provider_response
+        )
       end
 
       private
-
-      def client
-        ::ActiveGenie::Providers::UnifiedProvider
-      end
 
       def prompt
         @prompt ||= File.read(File.join(__dir__, 'juries.prompt.md'))

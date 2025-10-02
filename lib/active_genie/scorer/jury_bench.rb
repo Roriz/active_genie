@@ -17,7 +17,7 @@ module ActiveGenie
     # @example Usage with automatic jury recommendation
     #   JuryBench.call("Sample text", "Evaluate technical accuracy")
     #
-    class JuryBench
+    class JuryBench < ActiveGenie::BaseModule
       # @param text [String] The text content to be evaluated
       # @param criteria [String] The evaluation criteria or rubric to assess against
       # @param juries [Array<String>] Optional list of specific juries. If empty,
@@ -26,10 +26,6 @@ module ActiveGenie
       # @return [Hash] The evaluation result containing the scores and reasoning
       #   @return [Number] :final_score The final score of the text based on the criteria and juries
       #   @return [String] :final_reasoning Detailed explanation of why the final score was reached
-      def self.call(...)
-        new(...).call
-      end
-
       def initialize(text, criteria, juries = [], config: {})
         @text = text
         @criteria = criteria
@@ -44,24 +40,17 @@ module ActiveGenie
           {  role: 'user', content: "Text to score: #{@text}" }
         ]
 
-        result = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           build_function,
           config:
         )
 
-        result['final_score'] = 0 if result['final_score'].nil?
-
-        config.logger.call({
-                             code: :Scorer,
-                             text: @text[0..30],
-                             criteria: @criteria[0..30],
-                             juries: juries,
-                             score: result['final_score'],
-                             reasoning: result['final_reasoning']
-                           })
-
-        result
+        ActiveGenie::Response.new(
+          data: provider_response['final_score'] || 0,
+          reasoning: provider_response['final_reasoning'],
+          raw: provider_response
+        )
       end
 
       PROMPT = File.read(File.join(__dir__, 'jury_bench.prompt.md'))

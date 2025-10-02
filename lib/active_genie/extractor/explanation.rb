@@ -4,11 +4,7 @@ require_relative '../providers/unified_provider'
 
 module ActiveGenie
   module Extractor
-    class Explanation
-      def self.call(...)
-        new(...).call
-      end
-
+    class Explanation < ActiveGenie::BaseModule
       # Extracts structured data from text based on a predefined schema.
       #
       # @param text [String] The input text to analyze and extract data from
@@ -46,9 +42,13 @@ module ActiveGenie
         function[:parameters][:properties] = properties
         function[:parameters][:required] = properties.keys
 
-        response = function_calling(messages, function)
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
+          messages,
+          function,
+          config: config
+        )
 
-        simplify_response(response)
+        response_formatted(provider_response)
       end
 
       private
@@ -80,38 +80,18 @@ module ActiveGenie
         with_explanation
       end
 
-      def function_calling(messages, function)
-        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
-          messages,
-          function,
-          config: config
-        )
-
-        config.logger.call(
-          {
-            code: :extractor,
-            text: @text[0..30],
-            data_to_extract: function[:parameters][:properties],
-            extracted_data: response
-          }
-        )
-
-        response
-      end
-
-      def simplify_response(response)
-        return response if config.extractor.verbose
-
-        simplified_response = {}
-
-        @data_to_extract.each_key do |key|
-          next unless response.key?(key.to_s)
-          next if response.key?("#{key}_accuracy") && response["#{key}_accuracy"] < min_accuracy
-
-          simplified_response[key] = response[key.to_s]
+      def response_formatted(provider_response)
+        data = provider_response.reject do |key, value|
+          value.nil? || (provider_response.key?("#{key}_accuracy") && provider_response["#{key}_accuracy"] < min_accuracy)
         end
 
-        simplified_response
+        first_reasoning_key = data.find { |key, _value| key.to_s.end_with?('_explanation') }
+
+        ActiveGenie::Response.new(
+          data:,
+          reasoning: first_reasoning_key,
+          raw: provider_response
+        )
       end
 
       def min_accuracy

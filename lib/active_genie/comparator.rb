@@ -7,8 +7,6 @@ module ActiveGenie
   module Comparator
     module_function
 
-    ComparatorResponse = Struct.new(:winner, :loser, :reasoning, :raw, keyword_init: true)
-
     def call(...)
       Debate.call(...)
     end

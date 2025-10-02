@@ -8,6 +8,8 @@ require_relative 'active_genie/configs/providers/google_config'
 require_relative 'active_genie/configs/providers/anthropic_config'
 require_relative 'active_genie/configs/providers/deepseek_config'
 
+require_relative 'active_genie/entities/response'
+
 module ActiveGenie
   autoload :Extractor, File.join(__dir__, 'active_genie/extractor')
   autoload :Comparator, File.join(__dir__, 'active_genie/comparator')
