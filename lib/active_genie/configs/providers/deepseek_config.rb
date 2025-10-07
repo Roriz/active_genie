@@ -23,6 +23,14 @@ module ActiveGenie
         def api_url
           @api_url || 'https://api.deepseek.com/v1'
         end
+
+        def valid_model?(model)
+          model.include?('deepseek')
+        end
+
+        def default_model
+          'deepseek-chat'
+        end
       end
     end
   end

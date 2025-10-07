@@ -6,6 +6,7 @@ require_relative 'google_provider'
 require_relative 'deepseek_provider'
 require_relative '../errors/invalid_provider_error'
 require_relative '../errors/invalid_model_error'
+require_relative '../errors/without_available_provider_error'
 
 module ActiveGenie
   module Providers
@@ -19,8 +20,13 @@ module ActiveGenie
         }.freeze
 
         def function_calling(messages, function, config: {})
-          provider = provider(config)
-          define_llm_model(config)
+          model, provider_name = model_and_provider_by(config)
+
+          provider = PROVIDER_NAME_TO_PROVIDER[provider_name.to_sym]
+
+          raise ActiveGenie::WithoutAvailableProviderError if provider.nil?
+
+          config.llm.model = model
 
           response = provider.new(config).function_calling(messages, function)
 
@@ -29,30 +35,49 @@ module ActiveGenie
 
         private
 
-        def provider(config)
-          provider_name = config.llm.provider_name || config.providers.default
+        def model_and_provider_by(config)
+          model, provider_name = explicit_choice(config)
+          model, provider_name = global_default(config) if model.nil? && provider_name.nil?
+          model, provider_name = module_recommendation(config) if model.nil? && provider_name.nil?
 
-          unless config.providers.valid.keys.include?(provider_name.to_sym)
-            raise ActiveGenie::InvalidProviderError,
-                  provider_name
-          end
+          model, provider_name = infer_from_partial(config, model, provider_name) if model.nil? || provider_name.nil?
+          model, provider_name = any_available(config) if model.nil? || provider_name.nil?
 
-          provider = PROVIDER_NAME_TO_PROVIDER[provider_name.to_sym]
-
-          raise ActiveGenie::InvalidProviderError, provider_name if provider.nil?
-
-          provider
+          [model, provider_name]
         end
 
-        def define_llm_model(config)
-          if config.llm.model.nil?
-            raise ActiveGenie::InvalidModelError, 'nil' unless config.llm.recommended_model
+        def explicit_choice(config)
+          model = config.llm.model
+          provider_name = config.llm.provider || config.llm.provider_name
 
-            config.llm.model = config.llm.recommended_model
+          [model, provider_name]
+        end
 
-          end
+        def global_default(config)
+          provider_name = config.providers.default
 
-          config.llm.model
+          [nil, provider_name]
+        end
+
+        def module_recommendation(config)
+          model = config.llm.recommended_model
+
+          [model, nil]
+        end
+
+        def infer_from_partial(config, model, provider_name)
+          provider_name ||= config.providers.provider_name_by_model(model) if model
+          model ||= config.providers.valid[provider_name]&.default_model if provider_name
+
+          [model, provider_name]
+        end
+
+        def any_available(config)
+          provider = config.providers.valid.first
+          provider_name = provider[0]
+          model = provider[1]&.default_model
+
+          [model, provider_name]
         end
 
         def normalize_response(response)

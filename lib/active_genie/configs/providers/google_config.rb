@@ -25,6 +25,14 @@ module ActiveGenie
           # The base URL here should be just the domain part.
           @api_url || 'https://generativelanguage.googleapis.com'
         end
+
+        def valid_model?(model)
+          model.include?('gemini')
+        end
+
+        def default_model
+          'gemini-2.5-flash'
+        end
       end
     end
   end

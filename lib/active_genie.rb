@@ -9,6 +9,7 @@ require_relative 'active_genie/configs/providers/anthropic_config'
 require_relative 'active_genie/configs/providers/deepseek_config'
 
 require_relative 'active_genie/entities/response'
+require_relative 'active_genie/utils/base_module'
 
 module ActiveGenie
   autoload :Extractor, File.join(__dir__, 'active_genie/extractor')

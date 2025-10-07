@@ -51,6 +51,7 @@ module ActiveGenie
             usage: response['usage']
           }
         )
+        debugger
 
         parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
         parsed_response['message'] || parsed_response

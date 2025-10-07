@@ -44,6 +44,12 @@ module ActiveGenie
         self
       end
 
+      def provider_name_by_model(model)
+        return nil if model.nil?
+
+        valid.find { |_, config| config.valid_model?(model) }[0]
+      end
+
       def merge(config_params = {})
         dup.tap do |config|
           config.add(config_params[:providers]) if config_params[:providers]

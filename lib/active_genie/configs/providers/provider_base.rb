@@ -46,6 +46,10 @@ module ActiveGenie
         def client
           raise NotImplementedError, 'Subclasses must implement this method'
         end
+
+        def valid_model?(model)
+          raise NotImplementedError, 'Subclasses must implement this method'
+        end
       end
     end
   end

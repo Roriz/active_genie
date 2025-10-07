@@ -30,6 +30,14 @@ module ActiveGenie
         def anthropic_version
           @anthropic_version || '2023-06-01'
         end
+
+        def valid_model?(model)
+          model.include?('claude')
+        end
+
+        def default_model
+          'claude-3-5-haiku-20241022'
+        end
       end
     end
   end

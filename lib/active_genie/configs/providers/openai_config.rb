@@ -23,6 +23,14 @@ module ActiveGenie
         def api_url
           @api_url || 'https://api.openai.com/v1'
         end
+
+        def valid_model?(model)
+          model.include?('gpt')
+        end
+
+        def default_model
+          'gpt-5-mini'
+        end
       end
     end
   end
