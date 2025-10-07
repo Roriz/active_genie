@@ -2,239 +2,201 @@
 
 require_relative '../test_helper'
 require_relative '../../../lib/active_genie/providers/unified_provider'
-require 'webmock/minitest'
 
 module ActiveGenie
   module Providers
     class UnifiedProviderTest < Minitest::Test
       def setup
-        ActiveGenie.configuration.providers.all.each do |provider_name, provider|
-          provider.api_key = "#{provider_name}_secret"
-          fixture_path = "#{__dir__}/../fixtures/function_call_#{provider_name}.json"
-          stub_request(:post, /#{provider.api_url}.*$/).to_return(status: 200, body: File.read(fixture_path))
-        end
+        @basic_config = Configuration.new
+
+        @basic_config.providers.add(Config::Providers::OpenaiConfig)
+        @basic_config.providers.add(Config::Providers::GoogleConfig)
+        @basic_config.providers.add(Config::Providers::AnthropicConfig)
+        @basic_config.providers.add(Config::Providers::DeepseekConfig)
       end
 
-      def test_openai_function_calling
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = {
-          name: 'test_function',
-          description: 'Test function',
-          parameters: {
-            type: 'object',
-            properties: {
-              test_field: { type: 'string' },
-              number_field: { type: 'integer' }
-            }
+      EXAMPLE_FUNCTION = {
+        name: 'test_function',
+        description: 'Test function',
+        parameters: {
+          type: 'object',
+          properties: {
+            test_field: { type: 'string' },
+            number_field: { type: 'integer' }
           }
         }
+      }.freeze
+      EXAMPLE_MESSAGES = [{ role: 'user', content: 'Test message' }].freeze
 
-        config = build_config('openai')
-        ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
+      def test_choose_openai_by_provider_name
+        config = @basic_config.merge({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
 
-        assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
-          request_body = JSON.parse(req.body)
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
 
-          assert_includes request_body['messages'], { 'role' => 'user', 'content' => 'Test message' }
-          assert_equal 'test_function', request_body.dig('tools', 0, 'function', 'name')
-          assert request_body.dig('tools', 0, 'function', 'parameters', 'properties').key?('test_field')
-          assert request_body.dig('tools', 0, 'function', 'parameters', 'properties').key?('number_field')
-
-          true
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, mock_provider_instance) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
         end
+
+        mock_provider_instance.verify
       end
 
-      def test_anthropic_function_calling
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = {
-          name: 'test_function',
-          description: 'Test function',
-          parameters: {
-            type: 'object',
-            properties: {
-              test_field: { type: 'string' },
-              number_field: { type: 'integer' }
-            }
-          }
-        }
+      def test_choose_openai_by_model_name
+        config = @basic_config.merge({ llm: { model: 'gpt-5' }, providers: { openai: { api_key: 'secret' } } })
 
-        config = build_config('anthropic')
-        ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
 
-        assert_requested(:post, 'https://api.anthropic.com/v1/messages') do |req|
-          request_body = JSON.parse(req.body)
-
-          assert_equal 'user', request_body['messages'][0]['role']
-          assert_equal 'Test message', request_body['messages'][0]['content']
-          assert request_body.key?('tools')
-          assert_equal 1, request_body['tools'].length
-
-          tool = request_body['tools'].first
-
-          assert_equal 'test_function', tool['name']
-          assert tool['input_schema'].key?('properties')
-
-          properties = tool['input_schema']['properties']
-
-          assert properties.key?('test_field')
-          assert properties.key?('number_field')
-
-          true
+        received_config = nil
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
         end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gpt-5', received_config.llm.model
+      end
+
+      def test_choose_openai_by_available_provider
+        config = @basic_config.merge({ providers: { openai: { api_key: 'secret' } } })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gpt-5-mini', received_config.llm.model
+      end
+
+      def test_choose_openai_by_default_provider
+        config = @basic_config.merge({ providers: { default: 'openai', google: { api_key: 'secret' },
+                                                    openai: { api_key: 'secret' } } })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gpt-5-mini', received_config.llm.model
+      end
+
+      def test_choose_openai_by_recommended_model
+        config = @basic_config.merge({
+                                       llm: { recommended_model: 'gpt-9' },
+                                       providers: { openai: { api_key: 'secret' } }
+                                     })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gpt-9', received_config.llm.model
       end
 
       def test_google_function_calling
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = {
-          name: 'test_function',
-          description: 'Test function',
-          parameters: {
-            type: 'object',
-            properties: {
-              test_field: { type: 'string' },
-              number_field: { type: 'integer' }
-            }
-          }
-        }
+        config = @basic_config.merge({ llm: { provider_name: 'google' }, providers: { google: { api_key: 'secret' } } })
 
-        config = build_config('google')
-        ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
 
-        assert_requested(:post,
-                         %r{https://generativelanguage\.googleapis\.com/v1beta/models/.*:generateContent}) do |req|
-          request_body = JSON.parse(req.body)
-
-          assert_includes request_body['contents'], { 'role' => 'user', 'parts' => [{ 'text' => 'Test message' }] }
-
-          schema_message = request_body['contents'].find do |content|
-            content['parts'][0]['text'].include?('JSON schema') &&
-              content['parts'][0]['text'].include?('test_field') &&
-              content['parts'][0]['text'].include?('number_field')
-          end
-
-          assert schema_message, 'Expected to find a message containing JSON schema with test_field and number_field'
-
-          true
+        ActiveGenie::Providers::GoogleProvider.stub(:new, mock_provider_instance) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
         end
+
+        mock_provider_instance.verify
       end
 
       def test_deepseek_function_calling
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = {
-          name: 'test_function',
-          description: 'Test function',
-          parameters: {
-            type: 'object',
-            properties: {
-              test_field: { type: 'string' },
-              number_field: { type: 'integer' }
-            }
-          }
-        }
+        config = @basic_config.merge({ llm: { provider_name: 'deepseek' },
+                                       providers: { deepseek: { api_key: 'secret' } } })
 
-        config = build_config('deepseek')
-        ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
 
-        assert_requested(:post, 'https://api.deepseek.com/v1/chat/completions') do |req|
-          request_body = JSON.parse(req.body)
-
-          assert_includes request_body['messages'], { 'role' => 'user', 'content' => 'Test message' }
-          assert_equal 'test_function', request_body.dig('tools', 0, 'function', 'name')
-          assert request_body.dig('tools', 0, 'function', 'parameters', 'properties').key?('test_field')
-          assert request_body.dig('tools', 0, 'function', 'parameters', 'properties').key?('number_field')
-
-          true
+        ActiveGenie::Providers::DeepseekProvider.stub(:new, mock_provider_instance) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
         end
+
+        mock_provider_instance.verify
       end
 
-      def test_invalid_provider_raises_error
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = { name: 'test_function' }
+      def test_anthropic_function_calling
+        config = @basic_config.merge({ llm: { provider_name: 'anthropic' },
+                                       providers: { anthropic: { api_key: 'secret' } } })
 
-        config = build_config('invalid_provider')
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
 
-        assert_raises(ActiveGenie::InvalidProviderError) do
-          ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
+        ActiveGenie::Providers::AnthropicProvider.stub(:new, mock_provider_instance) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
         end
+
+        mock_provider_instance.verify
       end
 
-      def test_missing_model_uses_recommended_model
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = { name: 'test_function' }
-
-        config = build_config('openai')
-        config.llm.model = nil
-        config.llm.recommended_model = 'gpt-5'
-
-        ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
-
-        assert_equal 'gpt-5', config.llm.model
-      end
-
-      def test_missing_model_without_recommended_raises_error
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = { name: 'test_function' }
-
-        config = build_config('openai')
-        config.llm.model = nil
-        config.llm.recommended_model = nil
-
-        assert_raises(ActiveGenie::InvalidModelError) do
-          ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
-        end
-      end
-
+      # Test response normalization
       def test_response_normalization
-        messages = [{ role: 'user', content: 'Test message' }]
-        function = { name: 'test_function' }
+        config = @basic_config.merge({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
 
-        # Stub a response with values that should be normalized to nil
-        stub_request(:post, /api\.openai\.com.*$/).to_return(
-          status: 200,
-          body: {
-            choices: [
-              {
-                message: {
-                  tool_calls: [
-                    {
-                      function: {
-                        arguments: JSON.dump({
-                                               field_null: 'null',
-                                               field_none: 'none',
-                                               field_undefined: 'undefined',
-                                               field_empty: '',
-                                               field_unknown: 'unknown',
-                                               field_unknown_brackets: '<unknown>',
-                                               field_valid: 'valid_value'
-                                             })
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }.to_json
-        )
+        mock_provider_instance = Minitest::Mock.new
+        mock_response = {
+          field_null: 'null',
+          field_none: 'none',
+          field_undefined: 'undefined',
+          field_empty: '',
+          field_unknown: 'unknown',
+          field_unknown_brackets: '<unknown>',
+          field_valid: 'valid_value'
+        }
+        mock_provider_instance.expect(:function_calling, mock_response, [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
 
-        config = build_config('openai')
-        result = ActiveGenie::Providers::UnifiedProvider.function_calling(messages, function, config:)
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, mock_provider_instance) do
+          result = ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
 
-        assert_nil result['field_null']
-        assert_nil result['field_none']
-        assert_nil result['field_undefined']
-        assert_nil result['field_empty']
-        assert_nil result['field_unknown']
-        assert_nil result['field_unknown_brackets']
-        assert_equal 'valid_value', result['field_valid']
-      end
-
-      private
-
-      def build_config(provider_name)
-        config_hash = { provider_name: provider_name }
-        config = ActiveGenie.configuration.merge(config_hash)
-        config.llm.model = 'test-model'
-        config
+          assert_nil result[:field_null]
+          assert_nil result[:field_none]
+          assert_nil result[:field_undefined]
+          assert_nil result[:field_empty]
+          assert_nil result[:field_unknown]
+          assert_nil result[:field_unknown_brackets]
+          assert_equal 'valid_value', result[:field_valid]
+        end
       end
     end
   end

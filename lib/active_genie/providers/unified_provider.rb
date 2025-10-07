@@ -22,7 +22,7 @@ module ActiveGenie
         def function_calling(messages, function, config: {})
           model, provider_name = model_and_provider_by(config)
 
-          provider = PROVIDER_NAME_TO_PROVIDER[provider_name.to_sym]
+          provider = PROVIDER_NAME_TO_PROVIDER[provider_name&.to_sym]
 
           raise ActiveGenie::WithoutAvailableProviderError if provider.nil?
 
@@ -74,8 +74,8 @@ module ActiveGenie
 
         def any_available(config)
           provider = config.providers.valid.first
-          provider_name = provider[0]
-          model = provider[1]&.default_model
+          provider_name = provider&.first
+          model = provider&.last&.default_model
 
           [model, provider_name]
         end

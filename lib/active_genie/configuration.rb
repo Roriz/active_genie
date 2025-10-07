@@ -80,8 +80,6 @@ module ActiveGenie
         config.merge(config_params[key.to_s])
       elsif config_params&.key?(key.to_sym)
         config.merge(config_params[key.to_sym])
-      else
-        config.merge(config_params || {})
       end
     end
 

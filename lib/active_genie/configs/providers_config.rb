@@ -11,12 +11,12 @@ module ActiveGenie
       attr_reader :all
 
       def default
-        @default || ENV.fetch('PROVIDER_NAME', nil) || valid.keys.first
+        @default || ENV.fetch('PROVIDER_NAME', nil)
       end
 
       def default=(provider)
         normalized_provider = provider.to_s.downcase.strip
-        @default = normalized_provider.size.positive? ? normalized_provider : valid.keys.first
+        @default = normalized_provider.size.positive? ? normalized_provider : nil
       end
 
       def valid
@@ -47,13 +47,20 @@ module ActiveGenie
       def provider_name_by_model(model)
         return nil if model.nil?
 
-        valid.find { |_, config| config.valid_model?(model) }[0]
+        valid.find { |_, config| config.valid_model?(model) }&.first
       end
 
       def merge(config_params = {})
         dup.tap do |config|
-          config.add(config_params[:providers]) if config_params[:providers]
           config.default = config_params[:default] if config_params[:default]
+
+          config_params.each do |key, provider_configs|
+            next unless provider_configs.instance_of?(Hash)
+
+            provider_configs.each do |provider_key, provider_value|
+              config.all[key].send("#{provider_key}=", provider_value)
+            end
+          end
         end
       end
 

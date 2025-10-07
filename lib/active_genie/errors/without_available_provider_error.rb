@@ -32,8 +32,8 @@ module ActiveGenie
          ```
     TEXT
 
-    def initialize(output)
-      super(format(TEXT, output:))
+    def initialize
+      super(TEXT)
     end
   end
 end
