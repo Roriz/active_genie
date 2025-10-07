@@ -33,7 +33,10 @@ module ActiveGenie
       def call
         response = Explanation.call(@text, extract_with_litote, config:)
 
-        response = Explanation.call(response.data[:litote_rephrased], @data_to_extract, config:) if response.data[:message_litote]
+        if response.data[:message_litote]
+          response = Explanation.call(response.data[:litote_rephrased], @data_to_extract,
+                                      config:)
+        end
 
         response
       end

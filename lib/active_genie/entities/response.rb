@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveGenie
   class Response
     attr_reader :data, :reasoning, :raw
@@ -16,8 +18,8 @@ module ActiveGenie
       { data: @data, reasoning: @reasoning, raw: @raw }
     end
 
-    def to_json(*args)
-      to_h.to_json(*args)
+    def to_json(*)
+      to_h.to_json(*)
     end
   end
 end

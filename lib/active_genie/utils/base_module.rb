@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative './call_wrapper'
+require_relative 'call_wrapper'
 
 module ActiveGenie
   class BaseModule

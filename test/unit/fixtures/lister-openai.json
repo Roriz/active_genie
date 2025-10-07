@@ -1,0 +1,45 @@
+{
+  "id": "chatcmpl-CNuBePrczmXhmcpziZJU8FRYbDDbv",
+  "object": "chat.completion",
+  "created": 1759813562,
+  "model": "gpt-5-mini-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_EE8tDEl1RDNZhx4eExz2RCS0",
+            "type": "function",
+            "function": {
+              "name": "feud_items_generator",
+              "arguments": "{\"theme\":\"Industries that are most likely to be affected by climate change\",\"why_these_items\":\"Based on what average people would notice or worry about: impacts on food supply and crops are widely cited; insurance is a common everyday concern because of storm losses and rising premiums; coastal real estate and construction are visible from sea-level rise and storm damage; fishing and aquaculture are affected by ocean warming and acidification; and tourism/hospitality (beach resorts, ski areas) are often mentioned when discussing climate impacts on livelihoods and local economies.\",\"items\":[\"Agriculture / Farming\",\"Insurance\",\"Coastal Real Estate / Construction\",\"Fishing / Aquaculture\",\"Tourism / Hospitality\"]}"
+            }
+          }
+        ],
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 340,
+    "completion_tokens": 605,
+    "total_tokens": 945,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 448,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

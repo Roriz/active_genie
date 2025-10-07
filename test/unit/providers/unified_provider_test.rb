@@ -70,10 +70,12 @@ module ActiveGenie
           assert_equal 1, request_body['tools'].length
 
           tool = request_body['tools'].first
+
           assert_equal 'test_function', tool['name']
           assert tool['input_schema'].key?('properties')
 
           properties = tool['input_schema']['properties']
+
           assert properties.key?('test_field')
           assert properties.key?('number_field')
 
@@ -103,12 +105,13 @@ module ActiveGenie
           request_body = JSON.parse(req.body)
 
           assert_includes request_body['contents'], { 'role' => 'user', 'parts' => [{ 'text' => 'Test message' }] }
-          
+
           schema_message = request_body['contents'].find do |content|
             content['parts'][0]['text'].include?('JSON schema') &&
               content['parts'][0]['text'].include?('test_field') &&
               content['parts'][0]['text'].include?('number_field')
           end
+
           assert schema_message, 'Expected to find a message containing JSON schema with test_field and number_field'
 
           true
@@ -196,14 +199,14 @@ module ActiveGenie
                     {
                       function: {
                         arguments: JSON.dump({
-                          field_null: 'null',
-                          field_none: 'none',
-                          field_undefined: 'undefined',
-                          field_empty: '',
-                          field_unknown: 'unknown',
-                          field_unknown_brackets: '<unknown>',
-                          field_valid: 'valid_value'
-                        })
+                                               field_null: 'null',
+                                               field_none: 'none',
+                                               field_undefined: 'undefined',
+                                               field_empty: '',
+                                               field_unknown: 'unknown',
+                                               field_unknown_brackets: '<unknown>',
+                                               field_valid: 'valid_value'
+                                             })
                       }
                     }
                   ]

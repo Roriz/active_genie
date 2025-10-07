@@ -50,10 +50,10 @@ module ActiveGenie
       private
 
       def response_formatted(provider_response)
-        winner, loser = case provider_response['impartial_judge_winner']
-                        when 'player_a' then [@player_a, @player_b]
-                        when 'player_b' then [@player_b, @player_a]
-                        end
+        winner, = case provider_response['impartial_judge_winner']
+                  when 'player_a' then [@player_a, @player_b]
+                  when 'player_b' then [@player_b, @player_a]
+                  end
         reasoning = provider_response['impartial_judge_winner_reasoning']
 
         ActiveGenie::Response.new(data: winner, reasoning:, raw: provider_response)

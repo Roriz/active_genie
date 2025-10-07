@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\n  \"name\": \"John Doe\",\n  \"name_explanation\": \"The name 'John Doe' is explicitly mentioned at the beginning of the sentence.\",\n  \"name_accuracy\": 100,\n  \"age\": 25,\n  \"age_explanation\": \"The age '25 years old' is explicitly stated in the sentence.\",\n  \"age_accuracy\": 100,\n  \"profession\": \"software engineer\",\n  \"profession_explanation\": \"The profession 'software engineer' is explicitly stated after 'works as a'.\",\n  \"profession_accuracy\": 100\n}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 812,
+    "candidatesTokenCount": 136,
+    "totalTokenCount": 1109,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 812
+      }
+    ],
+    "thoughtsTokenCount": 161
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "nJrkaJO8CYaVmtkPtaDg6AU"
+}

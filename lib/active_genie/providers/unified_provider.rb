@@ -67,7 +67,7 @@ module ActiveGenie
 
         def infer_from_partial(config, model, provider_name)
           provider_name ||= config.providers.provider_name_by_model(model) if model
-          model ||= config.providers.valid[provider_name]&.default_model if provider_name
+          model ||= config.providers.valid[provider_name.to_sym]&.default_model if provider_name
 
           [model, provider_name]
         end

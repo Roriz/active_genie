@@ -20,6 +20,6 @@
         }
       }
     },
-    "required": ["theme", "items"]
+    "required": ["theme", "why_these_items", "items"]
   }
 }

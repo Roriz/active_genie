@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../providers/unified_provider'
+require_relative '../utils/text_case'
 
 module ActiveGenie
   module Scorer
@@ -73,11 +74,12 @@ module ActiveGenie
         @properties ||= begin
           tmp = {}
           juries.each do |jury|
-            tmp["#{jury}_reasoning"] = {
+            jury_key = ActiveGenie::TextCase.underscore(jury)
+            tmp["#{jury_key}_reasoning"] = {
               type: 'string',
               description: "The reasoning of the Scorer process by #{jury}."
             }
-            tmp["#{jury}_score"] = {
+            tmp["#{jury_key}_score"] = {
               type: 'number',
               description: "The score given by #{jury}.",
               min: 0,
