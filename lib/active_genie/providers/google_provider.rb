@@ -61,7 +61,8 @@ module ActiveGenie
             total_tokens: response['usageMetadata']['totalTokenCount'] || (prompt_tokens + candidates_tokens),
             model:,
             usage: response['usageMetadata'] || {}
-          }
+          },
+          config: @config
         )
 
         response

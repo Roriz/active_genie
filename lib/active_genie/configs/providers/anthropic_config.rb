@@ -8,8 +8,8 @@ module ActiveGenie
       # Configuration class for the Anthropic API client.
       # Manages API keys, URLs, model selections, and client instantiation.
       class AnthropicConfig < ProviderBase
-        def initialize(**args)
-          @anthropic_version = args[:anthropic_version]
+        def initialize(anthropic_version: nil, **args)
+          @anthropic_version = anthropic_version
           super(**args)
         end
 

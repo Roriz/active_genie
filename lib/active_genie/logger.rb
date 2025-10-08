@@ -6,7 +6,7 @@ require 'fileutils'
 module ActiveGenie
   class Logger
     def call(data, config: nil)
-      log = data.merge(config&.additional_context || {})
+      log = data.merge(config&.log&.additional_context || {})
                 .merge(
                   timestamp: Time.now,
                   process_id: Process.pid
@@ -22,7 +22,7 @@ module ActiveGenie
     private
 
     def call_observers(log, config: nil)
-      Array(config&.observers).each do |observer|
+      Array(config&.log&.observers).each do |observer|
         next unless observer[:scope].all? { |key, value| log[key.to_sym] == value }
 
         observer[:observer]&.call(log)
@@ -32,8 +32,8 @@ module ActiveGenie
     end
 
     def output_call(log, config: nil)
-      if config&.output
-        config&.output&.call(log)
+      if config&.log&.output
+        config&.log&.output&.call(log)
       else
         $stdout.puts log
       end
@@ -43,9 +43,9 @@ module ActiveGenie
 
     def persist!(log, config: nil)
       file_path = if log.key?(:fine_tune) && log[:fine_tune]
-        config&.fine_tune_file_path
+        config&.log&.fine_tune_file_path
       else
-        config&.file_path
+        config&.log&.file_path
       end
       folder_path = File.dirname(file_path)
 

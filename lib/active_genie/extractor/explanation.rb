@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../providers/unified_provider'
+require_relative '../utils/deep_merge'
 
 module ActiveGenie
   module Extractor
@@ -54,8 +55,6 @@ module ActiveGenie
       private
 
       def data_to_extract_with_explanation
-        return @data_to_extract unless config.extractor.with_explanation
-
         with_explanation = {}
 
         @data_to_extract.each do |key, value|
@@ -104,10 +103,15 @@ module ActiveGenie
 
       def config
         @config ||= begin
-          c = ActiveGenie.configuration.merge(@initial_config)
-          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
-
-          c
+          ActiveGenie::Configuration.new(
+            ActiveGenie::DeepMerge.call(
+              ActiveGenie::DeepMerge.call(
+                ActiveGenie.configuration.to_h,
+                @initial_config
+              ),
+              { llm: { recommended_model: 'deepseek-chat' } }
+            )
+          )
         end
       end
     end
