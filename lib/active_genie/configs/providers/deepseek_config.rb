@@ -8,8 +8,6 @@ module ActiveGenie
       # Configuration class for the DeepSeek API client.
       # Manages API keys, organization IDs, URLs, model selections, and client instantiation.
       class DeepseekConfig < ProviderBase
-        NAME = :deepseek
-
         # Retrieves the API key.
         # Falls back to the DEEPSEEK_API_KEY environment variable if not set.
         # @return [String, nil] The API key.
@@ -24,12 +22,12 @@ module ActiveGenie
           @api_url || 'https://api.deepseek.com/v1'
         end
 
-        def valid_model?(model)
-          model.include?('deepseek')
+        def default_model
+          @default_model || 'deepseek-chat'
         end
 
-        def default_model
-          'deepseek-chat'
+        def valid_model?(model)
+          model.include?('deepseek')
         end
       end
     end

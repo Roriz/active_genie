@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'net/http'
+require_relative '../errors/provider_server_error'
 
 module ActiveGenie
   module Providers
@@ -153,7 +154,7 @@ module ActiveGenie
       #
       # @param details [Hash] Request and response details
       def log_request_details(uri:, request:, response:, start_time:, parsed_response:)
-        @config.logger.call(
+        ActiveGenie.logger.call(
           {
             code: :http_request,
             uri: uri.to_s,
@@ -161,7 +162,7 @@ module ActiveGenie
             status: response.code,
             duration: Time.now - start_time,
             response_size: parsed_response.to_s.bytesize
-          }
+          }, config: @config
         )
       end
 
@@ -182,12 +183,14 @@ module ActiveGenie
           sleep_time = retry_delay * (2**retries)
           retries += 1
 
-          @config.logger.call(
-            code: :retry_attempt,
-            attempt: retries,
-            max_retries:,
-            next_retry_in_seconds: sleep_time,
-            error: e.message
+          ActiveGenie.logger.call(
+            {
+              code: :retry_attempt,
+              attempt: retries,
+              max_retries:,
+              next_retry_in_seconds: sleep_time,
+              error: e.message
+            }, config: @config
           )
 
           sleep(sleep_time)

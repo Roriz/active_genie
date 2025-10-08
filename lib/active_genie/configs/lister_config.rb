@@ -1,18 +1,14 @@
 # frozen_string_literal: true
 
+require_relative 'base_config'
+
 module ActiveGenie
   module Config
-    class ListerConfig
+    class ListerConfig < BaseConfig
       attr_accessor :number_of_items
 
-      def initialize
-        @number_of_items = 5
-      end
-
-      def merge(config_params = {})
-        dup.tap do |config|
-          config.number_of_items = config_params[:number_of_items] if config_params.key?(:number_of_items)
-        end
+      def number_of_items
+        @number_of_items ||= 5
       end
     end
   end

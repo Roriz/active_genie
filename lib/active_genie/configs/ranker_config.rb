@@ -1,20 +1,14 @@
 # frozen_string_literal: true
 
+require_relative 'base_config'
+
 module ActiveGenie
   module Config
-    class RankerConfig
+    class RankerConfig < BaseConfig
       attr_accessor :score_variation_threshold
 
-      def initialize
-        @score_variation_threshold = 30
-      end
-
-      def merge(config_params = {})
-        dup.tap do |config|
-          if config_params[:score_variation_threshold]
-            config.score_variation_threshold = config_params[:score_variation_threshold]
-          end
-        end
+      def score_variation_threshold
+        @score_variation_threshold ||= 30
       end
     end
   end

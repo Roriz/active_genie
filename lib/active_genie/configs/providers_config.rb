@@ -1,17 +1,28 @@
 # frozen_string_literal: true
 
+require_relative 'base_config'
+require_relative './providers/openai_config'
+require_relative './providers/google_config'
+require_relative './providers/anthropic_config'
+require_relative './providers/deepseek_config'
+
 module ActiveGenie
   module Config
-    class ProvidersConfig
-      def initialize
-        @all = {}
-        @default = nil
+    class ProvidersConfig < BaseConfig
+      def initialize(**args)
+        @all = {
+          openai: Providers::OpenaiConfig.new(**args.fetch(:openai, {})),
+          google: Providers::GoogleConfig.new(**args.fetch(:google, {})),
+          anthropic: Providers::AnthropicConfig.new(**args.fetch(:anthropic, {})),
+          deepseek: Providers::DeepseekConfig.new(**args.fetch(:deepseek, {})),
+        }
+        super(**args)
       end
 
-      attr_reader :all
+      attr_accessor :default
 
       def default
-        @default || ENV.fetch('PROVIDER_NAME', nil)
+        @default ||= ENV.fetch('PROVIDER_NAME', nil)
       end
 
       def default=(provider)
@@ -19,15 +30,18 @@ module ActiveGenie
         @default = normalized_provider.size.positive? ? normalized_provider : nil
       end
 
+      def all
+        @all ||= {}
+      end
+
       def valid
         valid_provider_keys = @all.keys.select { |k| @all[k].valid? }
         @all.slice(*valid_provider_keys)
       end
 
-      def add(provider_configs)
+      def add(name, provider_configs)
         @all ||= {}
         Array(provider_configs).each do |provider_config|
-          name = provider_config::NAME
           remove([name]) if @all.key?(name)
 
           @all[name] = provider_config.new
@@ -50,26 +64,21 @@ module ActiveGenie
         valid.find { |_, config| config.valid_model?(model) }&.first
       end
 
-      def merge(config_params = {})
-        dup.tap do |config|
-          config.default = config_params[:default] if config_params[:default]
-
-          config_params.each do |key, provider_configs|
-            next unless provider_configs.instance_of?(Hash)
-
-            provider_configs.each do |provider_key, provider_value|
-              config.all[key].send("#{provider_key}=", provider_value)
-            end
-          end
-        end
-      end
-
       def method_missing(method_name, *args, &)
         @all[method_name] || super
       end
 
       def respond_to_missing?(method_name, include_private = false)
         @all.key?(method_name) || super
+      end
+
+      def to_h
+        h = {}
+        @all.each do |key, config|
+          h[key] = config.to_h
+        end
+
+        super.merge(h)
       end
     end
   end

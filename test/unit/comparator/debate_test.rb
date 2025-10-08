@@ -6,20 +6,17 @@ require 'webmock/minitest'
 module ActiveGenie
   module Comparator
     class DebateTest < Minitest::Test
-      def setup
-        ActiveGenie.configuration.providers.all.each do |provider_name, provider|
-          provider.api_key = "#{provider_name}_secret"
-          fixture_path = "#{__dir__}/../fixtures/comparator-#{provider_name}.json"
-          stub_request(:post, /#{provider.api_url}.*$/).to_return(status: 200, body: File.read(fixture_path))
-        end
-      end
-
       def test_openai_request
+        stub_request(:post, /#{ActiveGenie.configuration.providers.openai.api_url}.*$/).to_return(
+          status: 200,
+          body: File.read("#{__dir__}/../fixtures/comparator-openai.json")
+        )
+
         player_a = 'Player A content'
         player_b = 'Player B content'
         criteria = 'Evaluate based on creativity and clarity'
 
-        ActiveGenie::Comparator.by_debate(player_a, player_b, criteria, config: { provider_name: 'openai' })
+        ActiveGenie::Comparator.by_debate(player_a, player_b, criteria)
 
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
           request_body = JSON.parse(req.body)

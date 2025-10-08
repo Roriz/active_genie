@@ -38,7 +38,7 @@ module ActiveGenie
           config: @config
         ).values_at('final_score', 'final_reasoning')
 
-        @config.logger.call({ code: :new_score, player_id: player.id, score:, reasoning: })
+        ActiveGenie.logger.call({ code: :new_score, player_id: player.id, score:, reasoning: }, config: @config)
 
         score
       end
@@ -50,7 +50,7 @@ module ActiveGenie
             @criteria,
             config: @config
           )
-          @config.logger.call({ code: :new_juries, juries: response })
+          ActiveGenie.logger.call({ code: :new_juries, juries: response }, config: @config)
           response
         end
       end

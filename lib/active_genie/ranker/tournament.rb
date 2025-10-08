@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'entities/players'
+require_relative '../entities/players'
 require_relative 'free_for_all'
 require_relative 'elo'
 require_relative 'scoring'
@@ -110,7 +110,7 @@ module ActiveGenie
 
       def sorted_players
         players = @players.sorted
-        @config.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) })
+        ActiveGenie.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) }, config: @config)
 
         players.map(&:to_h)
       end

@@ -140,6 +140,47 @@ module ActiveGenie
         mock_provider_instance.verify
       end
 
+      def test_choose_google_by_default_provider
+        config = @basic_config.merge({ providers: { default: 'google', google: { api_key: 'secret' },
+                                                    openai: { api_key: 'secret' } } })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::GoogleProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gemini-2.5-flash', received_config.llm.model
+      end
+
+      def test_choose_google_by_available_provider
+        config = @basic_config.merge({ providers: { google: { api_key: 'secret' } } })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::GoogleProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gemini-2.5-flash', received_config.llm.model
+      end
+
       def test_deepseek_function_calling
         config = @basic_config.merge({ llm: { provider_name: 'deepseek' },
                                        providers: { deepseek: { api_key: 'secret' } } })

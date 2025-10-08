@@ -3,8 +3,8 @@
 module ActiveGenie
   class ProviderServerError < StandardError
     TEXT = <<~TEXT.freeze
-      Provider server error: #{code}
-      #{body}
+      Provider server error: %<code>s
+      %<body>s
 
       Providers errors are common and can occur for various reasons, such as:
       - Invalid API key
@@ -16,8 +16,11 @@ module ActiveGenie
     TEXT
 
     def initialize(response)
-      @response = response
-      super(format(TEXT, **response))
+      super(format(
+        TEXT,
+        code: @code,
+        body: response&.body.to_s.strip.empty? ? '(no body)' : response&.body.to_s
+      ))
     end
   end
 end

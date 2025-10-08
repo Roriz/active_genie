@@ -112,7 +112,7 @@ module ActiveGenie
           players_elo_diff:
         }
 
-        @config.logger.call({ elo_id:, code: :elo_report, **report })
+        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **report }, config: @config)
 
         report
       end

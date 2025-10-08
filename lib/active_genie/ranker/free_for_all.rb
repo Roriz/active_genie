@@ -52,14 +52,14 @@ module ActiveGenie
                         when 'draw' then [nil, nil]
                         end
 
-        @config.logger.call(
+        ActiveGenie.logger.call(
           {
             **log_context,
             code: :free_for_all,
             winner_id: winner&.id,
             loser_id: loser&.id,
             reasoning: result['reasoning']
-          }
+          }, config: @config
         )
 
         [winner, loser]
@@ -93,7 +93,7 @@ module ActiveGenie
           total_tokens: @total_tokens
         }
 
-        @config.logger.call({ code: :free_for_all_report, **report })
+        ActiveGenie.logger.call({ code: :free_for_all_report, **report }, config: @config)
 
         report
       end

@@ -6,9 +6,11 @@ module ActiveGenie
       response = super # Call the original method
 
       if defined?(config)
-        config.logger.call(
-          code: self.class.name,
-          response: response.to_h
+        ActiveGenie.logger.call(
+          {
+            code: self.class.name,
+            response: response.to_h
+          }, config:
         )
       end
 

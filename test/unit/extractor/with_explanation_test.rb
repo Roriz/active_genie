@@ -6,15 +6,12 @@ require 'webmock/minitest'
 module ActiveGenie
   module Extractor
     class WithExplanationTest < Minitest::Test
-      def setup
-        ActiveGenie.configuration.providers.all.each do |provider_name, provider|
-          provider.api_key = "#{provider_name}_secret"
-          fixture_path = "#{__dir__}/../fixtures/extractor-#{provider_name}.json"
-          stub_request(:post, /#{provider.api_url}.*$/).to_return(status: 200, body: File.read(fixture_path))
-        end
-      end
-
       def test_openai_request
+        stub_request(:post, /#{ActiveGenie.configuration.providers.openai.api_url}.*$/).to_return(
+          status: 200,
+          body: File.read("#{__dir__}/../fixtures/extractor-openai.json")
+        )
+
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
@@ -22,7 +19,7 @@ module ActiveGenie
           text,
           schema,
           config: {
-            provider_name: 'openai',
+            llm: { provider: 'openai' },
             providers: {
               openai: { api_key: 'your_api_key' }
             }
@@ -46,6 +43,11 @@ module ActiveGenie
       end
 
       def test_google_request
+        stub_request(:post, /#{ActiveGenie.configuration.providers.google.api_url}.*$/).to_return(
+          status: 200,
+          body: File.read("#{__dir__}/../fixtures/extractor-google.json")
+        )
+
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
@@ -53,7 +55,7 @@ module ActiveGenie
           text,
           schema,
           config: {
-            provider_name: 'google',
+            llm: { provider: 'google' },
             providers: {
               google: { api_key: 'your_api_key' }
             }
@@ -74,6 +76,11 @@ module ActiveGenie
       end
 
       def test_anthropic_request
+        stub_request(:post, /#{ActiveGenie.configuration.providers.anthropic.api_url}.*$/).to_return(
+          status: 200,
+          body: File.read("#{__dir__}/../fixtures/extractor-anthropic.json")
+        )
+
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
@@ -81,7 +88,7 @@ module ActiveGenie
           text,
           schema,
           config: {
-            provider_name: 'anthropic',
+            llm: { provider: 'anthropic' },
             providers: {
               anthropic: { api_key: 'your_api_key' }
             }
@@ -117,6 +124,11 @@ module ActiveGenie
       end
 
       def test_deepseek_request
+        stub_request(:post, /#{ActiveGenie.configuration.providers.deepseek.api_url}.*$/).to_return(
+          status: 200,
+          body: File.read("#{__dir__}/../fixtures/extractor-deepseek.json")
+        )
+
         text = 'Input Text'
         schema = { schema_key: { type: 'string' } }
 
@@ -124,7 +136,7 @@ module ActiveGenie
           text,
           schema,
           config: {
-            provider_name: 'deepseek',
+            llm: { provider: 'deepseek' },
             providers: {
               deepseek: { api_key: 'your_api_key' }
             }

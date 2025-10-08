@@ -3,11 +3,6 @@
 require_relative 'active_genie/logger'
 require_relative 'active_genie/configuration'
 
-require_relative 'active_genie/configs/providers/openai_config'
-require_relative 'active_genie/configs/providers/google_config'
-require_relative 'active_genie/configs/providers/anthropic_config'
-require_relative 'active_genie/configs/providers/deepseek_config'
-
 require_relative 'active_genie/entities/response'
 require_relative 'active_genie/utils/base_module'
 
@@ -26,7 +21,11 @@ module ActiveGenie
     end
 
     def configuration
-      @configuration ||= initialize_configuration
+      @configuration ||= Configuration.new
+    end
+
+    def logger
+      @logger ||= ActiveGenie::Logger.new()
     end
 
     def load_tasks
@@ -34,19 +33,6 @@ module ActiveGenie
 
       Rake::Task.define_task(:environment)
       Dir.glob(File.join(__dir__, 'tasks', '*.rake')).each { |r| load r }
-    end
-
-    private
-
-    def initialize_configuration
-      config = Configuration.new
-
-      config.providers.add(Config::Providers::OpenaiConfig)
-      config.providers.add(Config::Providers::GoogleConfig)
-      config.providers.add(Config::Providers::AnthropicConfig)
-      config.providers.add(Config::Providers::DeepseekConfig)
-
-      config
     end
   end
 end

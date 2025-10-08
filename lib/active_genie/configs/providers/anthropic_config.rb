@@ -8,7 +8,10 @@ module ActiveGenie
       # Configuration class for the Anthropic API client.
       # Manages API keys, URLs, model selections, and client instantiation.
       class AnthropicConfig < ProviderBase
-        NAME = :anthropic
+        def initialize(**args)
+          @anthropic_version = args[:anthropic_version]
+          super(**args)
+        end
 
         # Retrieves the API key.
         # Falls back to the ANTHROPIC_API_KEY environment variable if not set.
@@ -31,12 +34,16 @@ module ActiveGenie
           @anthropic_version || '2023-06-01'
         end
 
+        def default_model
+          @default_model || 'claude-3-5-haiku-20241022'
+        end
+
         def valid_model?(model)
           model.include?('claude')
         end
 
-        def default_model
-          'claude-3-5-haiku-20241022'
+        def to_h
+          super.merge({ anthropic_version: })
         end
       end
     end
