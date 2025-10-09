@@ -2,7 +2,7 @@
 
 module ActiveGenie
   class ProviderServerError < StandardError
-    TEXT = <<~TEXT.freeze
+    TEXT = <<~TEXT
       Provider server error: %<code>s
       %<body>s
 

@@ -5,8 +5,8 @@ module ActiveGenie
     module_function
 
     def call(first_hash, second_hash)
-      merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
-      first_hash.merge(second_hash, &merger)
+      merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
+      (first_hash || {}).merge(second_hash || {}, &merger)
     end
   end
 end

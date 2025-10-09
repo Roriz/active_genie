@@ -5,6 +5,7 @@ require_relative 'active_genie/configuration'
 
 require_relative 'active_genie/entities/response'
 require_relative 'active_genie/utils/base_module'
+require_relative 'active_genie/utils/deep_merge'
 
 module ActiveGenie
   autoload :Extractor, File.join(__dir__, 'active_genie/extractor')
@@ -24,8 +25,16 @@ module ActiveGenie
       @configuration ||= Configuration.new
     end
 
+    def new_configuration(new_config)
+      return new_config if new_config.instance_of?(Configuration)
+
+      Configuration.new(
+        DeepMerge.call(@configuration.to_h, new_config)
+      )
+    end
+
     def logger
-      @logger ||= ActiveGenie::Logger.new()
+      @logger ||= Logger.new
     end
 
     def load_tasks

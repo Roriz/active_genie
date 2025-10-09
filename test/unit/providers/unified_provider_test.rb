@@ -6,15 +6,6 @@ require_relative '../../../lib/active_genie/providers/unified_provider'
 module ActiveGenie
   module Providers
     class UnifiedProviderTest < Minitest::Test
-      def setup
-        @basic_config = Configuration.new
-
-        @basic_config.providers.add(Config::Providers::OpenaiConfig)
-        @basic_config.providers.add(Config::Providers::GoogleConfig)
-        @basic_config.providers.add(Config::Providers::AnthropicConfig)
-        @basic_config.providers.add(Config::Providers::DeepseekConfig)
-      end
-
       EXAMPLE_FUNCTION = {
         name: 'test_function',
         description: 'Test function',
@@ -29,7 +20,7 @@ module ActiveGenie
       EXAMPLE_MESSAGES = [{ role: 'user', content: 'Test message' }].freeze
 
       def test_choose_openai_by_provider_name
-        config = @basic_config.merge({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
+        config = Configuration.new({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -43,7 +34,7 @@ module ActiveGenie
       end
 
       def test_choose_openai_by_model_name
-        config = @basic_config.merge({ llm: { model: 'gpt-5' }, providers: { openai: { api_key: 'secret' } } })
+        config = Configuration.new({ llm: { model: 'gpt-5' }, providers: { openai: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -63,7 +54,7 @@ module ActiveGenie
       end
 
       def test_choose_openai_by_available_provider
-        config = @basic_config.merge({ providers: { openai: { api_key: 'secret' } } })
+        config = Configuration.new({ providers: { openai: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -83,8 +74,8 @@ module ActiveGenie
       end
 
       def test_choose_openai_by_default_provider
-        config = @basic_config.merge({ providers: { default: 'openai', google: { api_key: 'secret' },
-                                                    openai: { api_key: 'secret' } } })
+        config = Configuration.new({ providers: { default: 'openai', google: { api_key: 'secret' },
+                                                  openai: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -104,10 +95,10 @@ module ActiveGenie
       end
 
       def test_choose_openai_by_recommended_model
-        config = @basic_config.merge({
-                                       llm: { recommended_model: 'gpt-9' },
-                                       providers: { openai: { api_key: 'secret' } }
-                                     })
+        config = Configuration.new({
+                                     llm: { recommended_model: 'gpt-9' },
+                                     providers: { openai: { api_key: 'secret' } }
+                                   })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -127,7 +118,7 @@ module ActiveGenie
       end
 
       def test_google_function_calling
-        config = @basic_config.merge({ llm: { provider_name: 'google' }, providers: { google: { api_key: 'secret' } } })
+        config = Configuration.new({ llm: { provider_name: 'google' }, providers: { google: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -141,8 +132,8 @@ module ActiveGenie
       end
 
       def test_choose_google_by_default_provider
-        config = @basic_config.merge({ providers: { default: 'google', google: { api_key: 'secret' },
-                                                    openai: { api_key: 'secret' } } })
+        config = Configuration.new({ providers: { default: 'google', google: { api_key: 'secret' },
+                                                  openai: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -162,7 +153,7 @@ module ActiveGenie
       end
 
       def test_choose_google_by_available_provider
-        config = @basic_config.merge({ providers: { google: { api_key: 'secret' } } })
+        config = Configuration.new({ providers: { google: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -182,8 +173,8 @@ module ActiveGenie
       end
 
       def test_deepseek_function_calling
-        config = @basic_config.merge({ llm: { provider_name: 'deepseek' },
-                                       providers: { deepseek: { api_key: 'secret' } } })
+        config = Configuration.new({ llm: { provider_name: 'deepseek' },
+                                     providers: { deepseek: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -197,8 +188,8 @@ module ActiveGenie
       end
 
       def test_anthropic_function_calling
-        config = @basic_config.merge({ llm: { provider_name: 'anthropic' },
-                                       providers: { anthropic: { api_key: 'secret' } } })
+        config = Configuration.new({ llm: { provider_name: 'anthropic' },
+                                     providers: { anthropic: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
@@ -213,7 +204,7 @@ module ActiveGenie
 
       # Test response normalization
       def test_response_normalization
-        config = @basic_config.merge({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
+        config = Configuration.new({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
 
         mock_provider_instance = Minitest::Mock.new
         mock_response = {

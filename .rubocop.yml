@@ -29,6 +29,7 @@ Metrics/MethodLength:
   Exclude:
     - 'test/**/*'
     - 'benchmark/**/*'
+    - 'lib/tasks/**/*'
 
 Metrics/ClassLength:
   CountComments: false

@@ -5,7 +5,7 @@ require_relative 'base_config'
 module ActiveGenie
   module Config
     class RankerConfig < BaseConfig
-      attr_accessor :score_variation_threshold
+      attr_writer :score_variation_threshold
 
       def score_variation_threshold
         @score_variation_threshold ||= 30

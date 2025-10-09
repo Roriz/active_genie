@@ -35,6 +35,7 @@ module ActiveGenie
 
         private
 
+        # rubocop:disable Metrics/AbcSize, Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
         def model_and_provider_by(config)
           model, provider_name = explicit_choice(config)
           model, provider_name = global_default(config) if model.nil? && provider_name.nil?
@@ -45,6 +46,7 @@ module ActiveGenie
 
           [model, provider_name]
         end
+        # rubocop:enable Metrics/AbcSize, Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
 
         def explicit_choice(config)
           model = config.llm.model

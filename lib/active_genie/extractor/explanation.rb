@@ -29,6 +29,7 @@ module ActiveGenie
         @text = text
         @data_to_extract = data_to_extract
         @initial_config = config
+        super
       end
 
       def call
@@ -80,11 +81,9 @@ module ActiveGenie
       end
 
       def response_formatted(provider_response)
-        data = provider_response.reject do |key, value|
-          value.nil? || (provider_response.key?("#{key}_accuracy") && provider_response["#{key}_accuracy"] < min_accuracy)
-        end
+        data = provider_response.slice(*@data_to_extract.keys.map(&:to_s)).transform_keys(&:to_sym)
 
-        first_reasoning_key = data.find { |key, _value| key.to_s.end_with?('_explanation') }
+        first_reasoning_key = provider_response["#{provider_response.keys.first}_explanation"]
 
         ActiveGenie::Response.new(
           data:,
@@ -102,17 +101,12 @@ module ActiveGenie
       end
 
       def config
-        @config ||= begin
-          ActiveGenie::Configuration.new(
-            ActiveGenie::DeepMerge.call(
-              ActiveGenie::DeepMerge.call(
-                ActiveGenie.configuration.to_h,
-                @initial_config
-              ),
-              { llm: { recommended_model: 'deepseek-chat' } }
-            )
+        @config ||= ActiveGenie.new_configuration(
+          ActiveGenie::DeepMerge.call(
+            { llm: { recommended_model: 'deepseek-chat' } },
+            @initial_config
           )
-        end
+        )
       end
     end
   end

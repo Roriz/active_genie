@@ -12,7 +12,7 @@ module ActiveGenie
         @higher_tier = players.calc_higher_tier
         @lower_tier = players.calc_lower_tier
         @criteria = criteria
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
         @tmp_highers = []
         @total_tokens = 0
         @previous_elo = @players.to_h { |player| [player.id, player.elo] }
@@ -20,10 +20,10 @@ module ActiveGenie
       end
 
       def call
-        @config.log.add_observer(observers: ->(log) { log_observer(log) })
-        @config.log.additional_context = { elo_id: }
+        config.log.add_observer(observers: ->(log) { log_observer(log) })
+        config.log.additional_context = { elo_id: }
 
-        ActiveGenie::FiberByBatch.call(matches, config: @config) do |player_a, player_b|
+        ActiveGenie::FiberByBatch.call(matches, config:) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
 
           update_players_elo(winner, loser)
@@ -59,11 +59,16 @@ module ActiveGenie
       end
 
       def debate(player_a, player_b)
+        debate_config = ActiveGenie::DeepMerge.call(
+          config.to_h,
+          { log: { additional_context: { player_a_id: player_a.id, player_b_id: player_b.id } } }
+        )
+
         result = ActiveGenie::Comparator.by_debate(
           player_a.content,
           player_b.content,
           @criteria,
-          config: @config.merge(additional_context: { player_a_id: player_a.id, player_b_id: player_b.id })
+          config: ActiveGenie.new_configuration(debate_config)
         )
 
         winner, loser = case result['winner']
@@ -94,7 +99,7 @@ module ActiveGenie
           higher_tier_ids = @higher_tier.map(&:id).join(',')
           lower_tier_ids = @lower_tier.map(&:id).join(',')
 
-          ranker_unique_key = [higher_tier_ids, lower_tier_ids, @criteria, @config.to_json].join('-')
+          ranker_unique_key = [higher_tier_ids, lower_tier_ids, @criteria].join('-')
           Digest::MD5.hexdigest(ranker_unique_key)
         end
       end
@@ -112,7 +117,7 @@ module ActiveGenie
           players_elo_diff:
         }
 
-        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **report }, config: @config)
+        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **report }, config:)
 
         report
       end
@@ -134,6 +139,10 @@ module ActiveGenie
 
       def log_observer(log)
         @total_tokens += log[:total_tokens] if log[:code] == :llm_usage
+      end
+
+      def config
+        @config ||= ActiveGenie.new_configuration(@initial_config)
       end
     end
   end

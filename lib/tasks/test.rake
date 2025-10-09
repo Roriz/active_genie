@@ -6,17 +6,27 @@ namespace :test do
   Rake::TestTask.new(:unit) do |t|
     t.pattern = 'test/unit/**/*_test.rb'
   end
+  desc 'Run unit tests'
+  task unit: :reset_env
 
   Rake::TestTask.new(:integration) do |t|
     t.pattern = 'test/integration/**/*_test.rb'
   end
+  desc 'Run integration tests like install rails'
+  task integration: :reset_env
 
+  desc 'Run all tests (unit and integration)'
   task default: %i[unit integration]
+
+  desc 'Reset environment variables for API keys'
+  task :reset_env do
+    reset_environment_variables
+  end
 end
 
 desc 'Run all tests (unit and integration) or a specific test file'
 task :test, [:file_path] do |_t, args|
-  reset_envoriment_variables
+  reset_environment_variables
 
   if args[:file_path]
     file_path, line_number = args[:file_path].split(':')
@@ -58,7 +68,7 @@ def find_test_name_at_line(file_path, line_number)
   nil
 end
 
-def reset_envoriment_variables
+def reset_environment_variables
   ENV['OPENAI_API_KEY'] = nil
   ENV['GEMINI_API_KEY'] = nil
   ENV['ANTHROPIC_API_KEY'] = nil

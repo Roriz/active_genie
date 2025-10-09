@@ -28,6 +28,7 @@ module ActiveGenie
         @text = text
         @data_to_extract = data_to_extract
         @initial_config = config
+        super
       end
 
       def call
@@ -50,12 +51,12 @@ module ActiveGenie
       end
 
       def config
-        @config ||= begin
-          c = ActiveGenie.configuration.merge(@initial_config)
-          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
-
-          c
-        end
+        @config ||= ActiveGenie.new_configuration(
+          ActiveGenie::DeepMerge.call(
+            { llm: { recommended_model: 'deepseek-chat' } },
+            @initial_config
+          )
+        )
       end
     end
   end

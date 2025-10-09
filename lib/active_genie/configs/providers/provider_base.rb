@@ -4,7 +4,6 @@ module ActiveGenie
   module Config
     module Providers
       class ProviderBase
-
         def initialize(api_key: nil, organization: nil, api_url: nil, default_model: nil)
           @api_key = api_key
           @organization = organization
@@ -23,7 +22,7 @@ module ActiveGenie
         # Checks if the given model is valid for this provider. Example provider.valid_model?('gpt-4') => true
         # @param model [String, nil] The model name to validate.
         # @return [Boolean] True if the model is valid, false otherwise.
-        def valid_model?(model)
+        def valid_model?(_model)
           false
         end
 

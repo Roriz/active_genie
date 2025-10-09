@@ -35,11 +35,12 @@ module ActiveGenie
         @players = Entities::Players.new(players)
         @criteria = criteria
         @juries = Array(juries).compact.uniq
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
+        super
       end
 
       def call
-        @config.log.additional_context = { ranker_id: }
+        config.log.additional_context = { ranker_id: }
 
         set_initial_player_scores!
         eliminate_obvious_bad_players!
@@ -64,12 +65,7 @@ module ActiveGenie
       private
 
       def set_initial_player_scores!
-        Scoring.call(
-          @players,
-          @criteria,
-          juries: @juries,
-          config: @config
-        )
+        Scoring.call(@players, @criteria, juries: @juries, config:)
       end
 
       def eliminate_obvious_bad_players!
@@ -79,11 +75,7 @@ module ActiveGenie
       end
 
       def run_elo_round!
-        Elo.call(
-          @players,
-          @criteria,
-          config: @config
-        )
+        Elo.call(@players, @criteria, config:)
       end
 
       def eliminate_lower_tier_players!
@@ -101,16 +93,12 @@ module ActiveGenie
       end
 
       def run_free_for_all!
-        FreeForAll.call(
-          @players,
-          @criteria,
-          config: @config
-        )
+        FreeForAll.call(@players, @criteria, config:)
       end
 
       def sorted_players
         players = @players.sorted
-        ActiveGenie.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) }, config: @config)
+        ActiveGenie.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) }, config:)
 
         players.map(&:to_h)
       end
@@ -118,10 +106,19 @@ module ActiveGenie
       def ranker_id
         @ranker_id ||= begin
           player_ids = @players.map(&:id).join(',')
-          ranker_unique_key = [player_ids, @criteria, @config.to_json].join('-')
+          ranker_unique_key = [player_ids, @criteria].join('-')
 
           Digest::MD5.hexdigest(ranker_unique_key)
         end
+      end
+
+      def config
+        @config ||= ActiveGenie.new_configuration(
+          DeepMerge.call(
+            @initial_config,
+            { log: { additional_context: { ranker_id: } } }
+          )
+        )
       end
     end
   end

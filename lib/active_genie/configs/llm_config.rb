@@ -5,8 +5,10 @@ require_relative 'base_config'
 module ActiveGenie
   module Config
     class LlmConfig < BaseConfig
-      attr_accessor :model, :recommended_model, :temperature, :max_tokens, :max_retries, :retry_delay,
-                    :read_timeout, :open_timeout, :provider, :max_fibers, :provider_name
+      attr_accessor :model, :recommended_model, :max_retries, :retry_delay,
+                    :read_timeout, :open_timeout, :provider
+      attr_writer :temperature, :max_fibers, :max_tokens
+      attr_reader :provider_name
 
       def temperature
         @temperature ||= 0

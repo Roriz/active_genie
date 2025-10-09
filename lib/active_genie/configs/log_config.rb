@@ -5,7 +5,8 @@ require_relative 'base_config'
 module ActiveGenie
   module Config
     class LogConfig < BaseConfig
-      attr_accessor :file_path, :fine_tune_file_path, :additional_context, :output, :observers
+      attr_reader :output
+      attr_writer :file_path, :fine_tune_file_path
 
       def file_path
         @file_path ||= 'log/active_genie.log'

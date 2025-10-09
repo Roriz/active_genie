@@ -10,16 +10,16 @@ module ActiveGenie
       @raw = raw
     end
 
-    def to_s
-      { data: @data, reasoning: @reasoning, raw: @raw }.to_s
-    end
-
     def to_h
       { data: @data, reasoning: @reasoning, raw: @raw }
     end
 
-    def to_json(*)
-      to_h.to_json(*)
+    def to_s
+      to_h.to_s
+    end
+
+    def to_json(...)
+      to_h.to_json(...)
     end
   end
 end

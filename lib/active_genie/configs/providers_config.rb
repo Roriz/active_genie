@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require_relative 'base_config'
-require_relative './providers/openai_config'
-require_relative './providers/google_config'
-require_relative './providers/anthropic_config'
-require_relative './providers/deepseek_config'
+require_relative 'providers/openai_config'
+require_relative 'providers/google_config'
+require_relative 'providers/anthropic_config'
+require_relative 'providers/deepseek_config'
 
 module ActiveGenie
   module Config
@@ -14,12 +14,10 @@ module ActiveGenie
           openai: Providers::OpenaiConfig.new(**args.fetch(:openai, {})),
           google: Providers::GoogleConfig.new(**args.fetch(:google, {})),
           anthropic: Providers::AnthropicConfig.new(**args.fetch(:anthropic, {})),
-          deepseek: Providers::DeepseekConfig.new(**args.fetch(:deepseek, {})),
+          deepseek: Providers::DeepseekConfig.new(**args.fetch(:deepseek, {}))
         }
-        super(**args)
+        super
       end
-
-      attr_accessor :default
 
       def default
         @default ||= ENV.fetch('PROVIDER_NAME', nil)
