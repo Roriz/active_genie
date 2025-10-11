@@ -15,7 +15,6 @@ module ActiveGenie
       # @return [Array of strings] List of items
       def initialize(theme, config: {})
         @theme = theme
-        @initial_config = config
         super(config:)
       end
 

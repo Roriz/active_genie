@@ -104,12 +104,12 @@ module ActiveGenie
         @juries ||= if @param_juries.any?
                       @param_juries
                     else
-                      ::ActiveGenie::Lister::Juries.call(@text, @criteria, config:)
+                      ::ActiveGenie::Lister::Juries.call(@text, @criteria, config:).data
                     end
       end
 
       def module_config
-        { llm: { recommended_model: 'deepseek-chat' } },
+        { llm: { recommended_model: 'deepseek-chat' } }
       end
     end
   end

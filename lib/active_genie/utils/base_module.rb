@@ -21,7 +21,7 @@ module ActiveGenie
     def config
       @config ||= ActiveGenie.new_configuration(
         ActiveGenie::DeepMerge.call(
-          @initial_config,
+          @initial_config.to_h,
           module_config
         )
       )

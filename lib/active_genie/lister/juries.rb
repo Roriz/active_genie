@@ -25,7 +25,6 @@ module ActiveGenie
       def initialize(text, criteria, config: {})
         @text = text
         @criteria = criteria
-        @initial_config = config
         super(config:)
       end
 
