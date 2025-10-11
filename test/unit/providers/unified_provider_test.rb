@@ -117,6 +117,29 @@ module ActiveGenie
         assert_equal 'gpt-9', received_config.llm.model
       end
 
+      def test_recommended_model_without_valid_provider
+        config = Configuration.new({
+                                     llm: { recommended_model: 'gpt-9' },
+                                     providers: { google: { api_key: 'secret' } }
+                                   })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::GoogleProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gemini-2.5-flash', received_config.llm.model
+      end
+
       def test_google_function_calling
         config = Configuration.new({ llm: { provider_name: 'google' }, providers: { google: { api_key: 'secret' } } })
 
