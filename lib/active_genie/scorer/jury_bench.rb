@@ -31,8 +31,7 @@ module ActiveGenie
         @text = text
         @criteria = criteria
         @param_juries = Array(juries).compact.uniq
-        @initial_config = config
-        super
+        super(config:)
       end
 
       def call
@@ -109,13 +108,8 @@ module ActiveGenie
                     end
       end
 
-      def config
-        @config ||= ActiveGenie.new_configuration(
-          ActiveGenie::DeepMerge.call(
-            { llm: { recommended_model: 'deepseek-chat' } },
-            @initial_config
-          )
-        )
+      def module_config
+        { llm: { recommended_model: 'deepseek-chat' } },
       end
     end
   end

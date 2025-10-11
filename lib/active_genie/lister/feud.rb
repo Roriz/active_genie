@@ -16,7 +16,7 @@ module ActiveGenie
       def initialize(theme, config: {})
         @theme = theme
         @initial_config = config
-        super
+        super(config:)
       end
 
       # @return [Array of strings] The list of items
@@ -49,13 +49,8 @@ module ActiveGenie
         config.lister.number_of_items
       end
 
-      def config
-        @config ||= ActiveGenie.new_configuration(
-          ActiveGenie::DeepMerge.call(
-            { llm: { recommended_model: 'deepseek-chat' } },
-            @initial_config
-          )
-        )
+      def module_config
+        { llm: { recommended_model: 'deepseek-chat' } }
       end
     end
   end

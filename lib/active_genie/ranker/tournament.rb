@@ -35,13 +35,10 @@ module ActiveGenie
         @players = Entities::Players.new(players)
         @criteria = criteria
         @juries = Array(juries).compact.uniq
-        @initial_config = config
-        super
+        super(config:)
       end
 
       def call
-        config.log.additional_context = { ranker_id: }
-
         set_initial_player_scores!
         eliminate_obvious_bad_players!
 
@@ -112,13 +109,8 @@ module ActiveGenie
         end
       end
 
-      def config
-        @config ||= ActiveGenie.new_configuration(
-          DeepMerge.call(
-            @initial_config,
-            { log: { additional_context: { ranker_id: } } }
-          )
-        )
+      def module_config
+        { log: { additional_context: { ranker_id: } } }
       end
     end
   end

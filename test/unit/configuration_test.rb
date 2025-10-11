@@ -18,7 +18,7 @@ module ActiveGenie
         text,
         schema,
         config: {
-          providers: { openai: { api_key: 'google_secret' } }
+          providers: { openai: { api_key: 'openai_secret' } }
         }
       )
 

@@ -63,8 +63,11 @@ module ActiveGenie
 
         def module_recommendation(config)
           model = config.llm.recommended_model
+          provider_name = config.providers.provider_name_by_model(model) if model
 
-          [model, nil]
+          return nil if model.nil? || provider_name.nil?
+
+          [model, provider_name]
         end
 
         def infer_from_partial(config, model, provider_name)

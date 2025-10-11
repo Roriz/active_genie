@@ -27,8 +27,7 @@ module ActiveGenie
         @player_a = player_a
         @player_b = player_b
         @criteria = criteria
-        @initial_config = config
-        super
+        super(config:)
       end
 
       # @return [ComparatorResponse] The evaluation result containing the winner and reasoning
@@ -60,13 +59,8 @@ module ActiveGenie
         ActiveGenie::Response.new(data: winner, reasoning:, raw: provider_response)
       end
 
-      def config
-        @config ||= ActiveGenie.new_configuration(
-          ActiveGenie::DeepMerge.call(
-            { llm: { recommended_model: 'deepseek-chat' } },
-            @initial_config
-          )
-        )
+      def module_config
+        { llm: { recommended_model: 'deepseek-chat' } }
       end
     end
   end

@@ -26,7 +26,7 @@ module ActiveGenie
         @text = text
         @criteria = criteria
         @initial_config = config
-        super
+        super(config:)
       end
 
       def call
@@ -77,13 +77,8 @@ module ActiveGenie
         @prompt ||= File.read(File.join(__dir__, 'juries.prompt.md'))
       end
 
-      def config
-        @config ||= ActiveGenie.new_configuration(
-          ActiveGenie::DeepMerge.call(
-            { llm: { recommended_model: 'deepseek-chat' } },
-            @initial_config
-          )
-        )
+      def module_config
+        { llm: { recommended_model: 'deepseek-chat' } }
       end
     end
   end
