@@ -10,6 +10,10 @@ module ActiveGenie
       @raw = raw
     end
 
+    def explanation
+      @reasoning
+    end
+
     def to_h
       { data: @data, reasoning: @reasoning, raw: @raw }
     end

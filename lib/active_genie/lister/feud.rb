@@ -35,7 +35,7 @@ module ActiveGenie
 
         ActiveGenie::Response.new(
           data: provider_response['items'] || [],
-          reasoning: provider_response['items_explanation'],
+          reasoning: provider_response['why_these_items'],
           raw: provider_response
         )
       end
