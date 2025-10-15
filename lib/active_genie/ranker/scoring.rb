@@ -29,12 +29,14 @@ module ActiveGenie
       end
 
       def generate_score(player)
-        score, reasoning = ActiveGenie::Scorer.by_jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           player.content,
           @criteria,
           @juries,
           config:
-        ).values_at('final_score', 'final_reasoning')
+        )
+        score = result.data.to_i
+        reasoning = result.reasoning
 
         ActiveGenie.logger.call({ code: :new_score, player_id: player.id, score:, reasoning: }, config:)
 

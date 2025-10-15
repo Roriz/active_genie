@@ -16,9 +16,6 @@ module ActiveGenie
       end
 
       def call
-        config.log.add_observer(observers: ->(log) { log_observer(log) })
-        config.log.additional_context = { free_for_all_id: }
-
         ActiveGenie::FiberByBatch.call(matches, config:) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
 
@@ -57,7 +54,8 @@ module ActiveGenie
 
         ActiveGenie.logger.call(
           {
-            **additional_context,
+            player_a_id: player_a.id,
+            player_b_id: player_b.id,
             code: :free_for_all,
             winner_id: winner&.id,
             loser_id: loser&.id,
@@ -106,7 +104,16 @@ module ActiveGenie
       end
 
       def config
-        @config ||= ActiveGenie.new_configuration(@initial_config)
+        @config ||= begin
+          c = ActiveGenie.new_configuration(
+            ActiveGenie::DeepMerge.call(
+              @initial_config.to_h,
+              { log: { context: { free_for_all_id: } } }
+            )
+          )
+          c.log.add_observer(observers: ->(log) { log_observer(log) })
+          c
+        end
       end
     end
   end

@@ -18,7 +18,7 @@ module ActiveGenie
     def initialize(response)
       super(format(
         TEXT,
-        code: @code,
+        code: response&.code.to_s,
         body: response&.body.to_s.strip.empty? ? '(no body)' : response&.body.to_s
       ))
     end
