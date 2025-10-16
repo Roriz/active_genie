@@ -71,10 +71,10 @@ module ActiveGenie
           config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner, loser = case result['winner']
-                        when 'player_a' then [player_a, player_b]
-                        when 'player_b' then [player_b, player_a]
-                        when 'draw' then [nil, nil]
+        winner = result.data
+        loser = case winner
+                        when player_a then player_b
+                        else player_a
                         end
 
         [winner, loser]

@@ -27,7 +27,8 @@ module ActiveGenie
 
         response = request(payload)
 
-        raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.keys.empty?
+        raise InvalidResponseError, "Invalid response: #{response}" if response.keys.empty?
+        raise InvalidResponseError, "Invalid response: empty" if response.nil?
 
         ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: }, config: @config)
 
@@ -54,6 +55,8 @@ module ActiveGenie
 
         parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
         parsed_response['message'] || parsed_response
+      rescue JSON::ParserError
+        raise InvalidResponseError, "Invalid response: #{response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')}"
       end
 
       def function_to_tool(function)

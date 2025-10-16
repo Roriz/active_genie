@@ -46,10 +46,9 @@ module ActiveGenie
           config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner, loser = case result['winner']
-                        when 'player_a' then [player_a, player_b]
-                        when 'player_b' then [player_b, player_a]
-                        when 'draw' then [nil, nil]
+        winner, loser = case result.data
+                        when player_a.to_s then [player_a, player_b]
+                        else [player_b, player_a]
                         end
 
         ActiveGenie.logger.call(
@@ -57,9 +56,9 @@ module ActiveGenie
             player_a_id: player_a.id,
             player_b_id: player_b.id,
             code: :free_for_all,
-            winner_id: winner&.id,
-            loser_id: loser&.id,
-            reasoning: result['reasoning']
+            winner: winner.to_s[0..20],
+            loser: loser.to_s[0..20],
+            reasoning: result.reasoning
           }, config:
         )
 

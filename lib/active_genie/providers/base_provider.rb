@@ -177,7 +177,7 @@ module ActiveGenie
           raise ActiveGenie::ProviderServerError, response if response&.code.to_i >= 500
 
           response
-        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderServerError => e
+        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderServerError, JSON::ParserError => e
           raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)
