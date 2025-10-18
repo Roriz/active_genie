@@ -51,7 +51,7 @@ module ActiveGenie
         run_free_for_all!
 
         ActiveGenie::Response.new(
-          data: sorted_players,
+          data: sorted_players.map(&:content),
           raw: @players.map(&:to_h)
         )
       end
@@ -97,7 +97,7 @@ module ActiveGenie
         players = @players.sorted
         ActiveGenie.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) }, config:)
 
-        players.map(&:to_h)
+        players
       end
 
       def ranker_id
