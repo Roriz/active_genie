@@ -60,7 +60,7 @@ module ActiveGenie
       end
 
       def module_config
-        { llm: { recommended_model: 'deepseek-chat' } }
+        { llm: { recommended_model: 'claude-haiku-4-5' } }
       end
     end
   end

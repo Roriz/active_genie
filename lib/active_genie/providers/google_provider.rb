@@ -29,7 +29,9 @@ module ActiveGenie
         }
         params = { key: provider_config.api_key }
 
-        response = request(payload, params)
+        response = retry_with_backoff do
+          request(payload, params)
+        end
 
         json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
         return nil if json_string.nil? || json_string.empty?

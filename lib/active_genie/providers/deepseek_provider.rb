@@ -25,7 +25,9 @@ module ActiveGenie
           model:
         }
 
-        response = request(payload)
+        response = retry_with_backoff do
+          request(payload)
+        end
 
         raise InvalidResponseError, "Invalid response: #{response}" if response.keys.empty?
         raise InvalidResponseError, "Invalid response: empty" if response.nil?
@@ -53,10 +55,16 @@ module ActiveGenie
           }, config: @config
         )
 
-        parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
+        parsed_response = JSON.parse(get_response_body(response))
         parsed_response['message'] || parsed_response
       rescue JSON::ParserError
-        raise InvalidResponseError, "Invalid response: #{response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')}"
+        raise InvalidResponseError, "Invalid response: #{get_response_body(response)}"
+      end
+
+      def get_response_body(response)
+        response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')
+                .gsub(', " "', '')
+                .strip
       end
 
       def function_to_tool(function)

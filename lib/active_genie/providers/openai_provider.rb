@@ -25,7 +25,9 @@ module ActiveGenie
           model:
         }
 
-        response = request(payload)
+        response = retry_with_backoff do
+          request(payload)
+        end
 
         raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.keys.empty?
 

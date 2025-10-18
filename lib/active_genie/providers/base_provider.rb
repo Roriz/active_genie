@@ -104,9 +104,7 @@ module ActiveGenie
         http.read_timeout = @config.llm.read_timeout || DEFAULT_TIMEOUT
         http.open_timeout = @config.llm.open_timeout || DEFAULT_OPEN_TIMEOUT
 
-        retry_with_backoff do
-          http.request(request)
-        end
+        http.request(request)
       end
 
       # Apply headers to the request
@@ -172,12 +170,8 @@ module ActiveGenie
         retries = 0
 
         begin
-          response = yield
-
-          raise ActiveGenie::ProviderServerError, response if response&.code.to_i >= 500
-
-          response
-        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderServerError, JSON::ParserError => e
+          yield
+        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ActiveGenie::ProviderServerError, JSON::ParserError => e
           raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)
