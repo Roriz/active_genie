@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 module ActiveGenie
-  class Response
-    attr_reader :data, :reasoning, :raw
+  class Result
+    attr_reader :data, :reasoning, :metadata
 
-    def initialize(data:, raw:, reasoning: nil)
+    def initialize(data:, metadata:, reasoning: nil)
       @data = data
       @reasoning = reasoning
-      @raw = raw
+      @metadata = metadata
     end
 
     def explanation
@@ -15,7 +15,7 @@ module ActiveGenie
     end
 
     def to_h
-      { data: @data, reasoning: @reasoning, raw: @raw }
+      { data: @data, reasoning: @reasoning, metadata: @metadata }
     end
 
     def to_s

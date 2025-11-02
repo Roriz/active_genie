@@ -29,7 +29,7 @@ module ActiveGenie
           update_players_elo(winner, loser)
         end
 
-        build_report
+        build_result
       end
 
       DEBATE_PER_PLAYER = 3
@@ -71,7 +71,7 @@ module ActiveGenie
           config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner = result.data
+        winner = result.raw['winner']
         loser = case winner
                         when player_a then player_b
                         else player_a
@@ -104,22 +104,24 @@ module ActiveGenie
         end
       end
 
-      def build_report
-        report = {
-          elo_id:,
-          players_in: players_in.map(&:id),
-          debates_count: matches.size,
-          total_tokens: @total_tokens,
-          players_in_round: players_in.map(&:id),
-          previous_highest_elo: @previous_highest_elo,
-          highest_elo:,
-          highest_elo_diff: highest_elo - @previous_highest_elo,
-          players_elo_diff:
-        }
+      def build_result
+        result = ActiveGenie::Result.new(
+          data: @players.map(&:content),
+          metadata: {
+            elo_id:,
+            players: @players,
+            debates_count: matches.size,
+            total_tokens: @total_tokens,
+            previous_highest_elo: @previous_highest_elo,
+            highest_elo:,
+            highest_elo_diff: highest_elo - @previous_highest_elo,
+            players_elo_diff:
+          }
+        )
 
-        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **report }, config:)
+        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **result.raw }, config:)
 
-        report
+        result
       end
 
       def players_in

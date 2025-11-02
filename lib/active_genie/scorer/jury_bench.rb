@@ -47,10 +47,10 @@ module ActiveGenie
           config:
         )
 
-        ActiveGenie::Response.new(
+        ActiveGenie::Result.new(
           data: provider_response['final_score'] || 0,
           reasoning: provider_response['final_reasoning'],
-          raw: provider_response
+          metadata: provider_response
         )
       end
 

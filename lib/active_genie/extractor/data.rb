@@ -53,9 +53,9 @@ module ActiveGenie
       def response_formatted(provider_response)
         data = provider_response.compact
 
-        ActiveGenie::Response.new(
+        ActiveGenie::Result.new(
           data:,
-          raw: provider_response
+          metadata: provider_response
         )
       end
 

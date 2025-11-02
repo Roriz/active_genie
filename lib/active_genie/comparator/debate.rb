@@ -56,7 +56,7 @@ module ActiveGenie
                   end
         reasoning = provider_response['impartial_judge_winner_reasoning']
 
-        ActiveGenie::Response.new(data: winner, reasoning:, raw: provider_response)
+        ActiveGenie::Result.new(data: winner, reasoning:, metadata: provider_response)
       end
 
       def module_config

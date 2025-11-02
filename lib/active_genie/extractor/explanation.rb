@@ -84,10 +84,10 @@ module ActiveGenie
 
         first_reasoning_key = provider_response["#{provider_response.keys.first}_explanation"]
 
-        ActiveGenie::Response.new(
+        ActiveGenie::Result.new(
           data:,
           reasoning: first_reasoning_key,
-          raw: provider_response
+          metadata: provider_response
         )
       end
 

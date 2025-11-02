@@ -24,13 +24,12 @@ player_b = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
 result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
-# => ComparatorResponse(
-#      winner: "Implementation uses dependency injection for better testability",
-#      loser: "Code has high test coverage but tightly coupled components",
+# => ActiveGenie::Result(
+#      data: "Implementation uses dependency injection for better testability",
 #      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection,
 #                 which allows for easier testing and component replacement. While Player B has good test coverage,
 #                 the tight coupling makes the code harder to maintain and modify.",
-#      raw: {...}
+#      metadata: {...}
 #    )
 ```
 
@@ -96,11 +95,10 @@ player_b = "Iron Ox, a powerful brawler whose Ox Bull Charge style uses immense 
 criteria = "Determine the winner of the fight based on skill, strategy, and adaptability in a one-on-one duel."
 
 result = ActiveGenie::Comparator.by_fight(player_a, player_b, criteria)
-# => ComparatorResponse(
-#      winner: "Master Crane, a graceful fighter...",
-#      loser: "Iron Ox, a powerful brawler...",
+# => ActiveGenie::Result(
+#      data: "Master Crane, a graceful fighter...",
 #      reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct...",
-#      raw: {...}
+#      metadata: {...}
 #    )
 ```
 

@@ -50,9 +50,9 @@ module ActiveGenie
 
         run_free_for_all!
 
-        ActiveGenie::Response.new(
+        ActiveGenie::Result.new(
           data: sorted_players.map(&:content),
-          raw: @players.map(&:to_h)
+          metadata: @players.map(&:to_h)
         )
       end
 

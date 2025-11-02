@@ -63,10 +63,10 @@ module ActiveGenie
           config:
         )
 
-        ActiveGenie::Response.new(
+        ActiveGenie::Result.new(
           data: provider_response['juries'] || [],
           reasoning: provider_response['why_these_juries'],
-          raw: provider_response
+          metadata: provider_response
         )
       end
 

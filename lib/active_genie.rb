@@ -3,7 +3,7 @@
 require_relative 'active_genie/logger'
 require_relative 'active_genie/configuration'
 
-require_relative 'active_genie/entities/response'
+require_relative 'active_genie/entities/result'
 require_relative 'active_genie/utils/base_module'
 require_relative 'active_genie/utils/deep_merge'
 

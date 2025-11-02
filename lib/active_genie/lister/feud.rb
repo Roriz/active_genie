@@ -32,10 +32,10 @@ module ActiveGenie
           config:
         )
 
-        ActiveGenie::Response.new(
+        ActiveGenie::Result.new(
           data: provider_response['items'] || [],
           reasoning: provider_response['why_these_items'],
-          raw: provider_response
+          metadata: provider_response
         )
       end
 
