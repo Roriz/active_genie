@@ -20,7 +20,10 @@ module ActiveGenie
       end
 
       def default
-        @default ||= ENV.fetch('PROVIDER_NAME', nil)
+        @default ||= begin
+          normalize_env = ENV.fetch('PROVIDER_NAME', nil)&.to_s&.downcase&.strip
+          normalize_env.size.positive? ? normalize_env : nil
+        end
       end
 
       def default=(provider)

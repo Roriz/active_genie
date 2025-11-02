@@ -2,7 +2,6 @@
 
 | Config | Type | Description | Default |
 |--------|------|-------------|---------|
-| `llm.provider` | Symbol | LLM provider (openai, anthropic, etc) | `nil` |
 | `llm.model` | String | Model to use | `nil` |
 | `llm.temperature` | Float | Temperature to use | `0` |
 | `llm.max_tokens` | Integer | Maximum tokens to use | `4096` |

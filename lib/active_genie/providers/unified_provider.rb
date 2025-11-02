@@ -50,7 +50,7 @@ module ActiveGenie
 
         def explicit_choice(config)
           model = config.llm.model
-          provider_name = config.llm.provider || config.llm.provider_name
+          provider_name = config.providers.default
 
           [model, provider_name]
         end

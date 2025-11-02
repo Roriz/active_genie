@@ -25,7 +25,6 @@ module ActiveGenie
 
         result = Elo.call(@players, @criteria, config: { providers: { openai: { api_key: 'test_key' } } })
 
-        debugger
         assert result.id, '641a838fbe63f87c76e1ebbe1a6cc829'
       end
 

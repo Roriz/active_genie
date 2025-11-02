@@ -6,7 +6,7 @@ module ActiveGenie
   module Config
     class LlmConfig < BaseConfig
       attr_accessor :model, :recommended_model, :max_retries, :retry_delay,
-                    :read_timeout, :open_timeout, :provider
+                    :read_timeout, :open_timeout
       attr_writer :temperature, :max_fibers, :max_tokens
       attr_reader :provider_name
 
@@ -20,12 +20,6 @@ module ActiveGenie
 
       def max_tokens
         @max_tokens ||= 4096
-      end
-
-      def provider_name=(provider_name)
-        return if provider_name.nil? || provider_name.empty?
-
-        @provider_name = provider_name.to_s.downcase.strip.to_sym
       end
     end
   end
