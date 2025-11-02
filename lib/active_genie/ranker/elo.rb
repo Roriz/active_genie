@@ -29,7 +29,7 @@ module ActiveGenie
           update_players_elo(winner, loser)
         end
 
-        build_result
+        elo_result
       end
 
       DEBATE_PER_PLAYER = 3
@@ -38,24 +38,24 @@ module ActiveGenie
       private
 
       def matches
-        match_keys = {}
-
-        @higher_tier.each_with_object([]) do |attack_player, matches|
+        @matches ||= @lower_tier.each_with_object([]) do |lower_player, matches|
           DEBATE_PER_PLAYER.times do
             higher_player = next_higher_player
 
-            next if match_keys["#{attack_player.id}_#{higher_player.id}"]
+            if matches.include?([lower_player, higher_player])
+              puts 'Skipping duplicate match'
+              next
+            end
 
-            match_keys["#{attack_player.id}_#{higher_player.id}"] = true
-            matches << [attack_player, higher_player]
+            matches << [lower_player, higher_player]
           end
         end
       end
 
       def next_higher_player
-        @tmp_highers = @higher_tier.shuffle if @tmp_highers.empty?
+        @tmp_highers = @higher_tier.dup if @tmp_highers.empty?
 
-        @tmp_highers.pop
+        @tmp_highers.count % 2 ? @tmp_highers.shift : @tmp_highers.pop
       end
 
       def debate(player_a, player_b)
@@ -71,11 +71,7 @@ module ActiveGenie
           config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner = result.raw['winner']
-        loser = case winner
-                        when player_a then player_b
-                        else player_a
-                        end
+        winner, loser = result.data == player_a.content ? [player_a, player_b] : [player_b, player_a]
 
         [winner, loser]
       end
@@ -104,7 +100,7 @@ module ActiveGenie
         end
       end
 
-      def build_result
+      def elo_result
         result = ActiveGenie::Result.new(
           data: @players.map(&:content),
           metadata: {
@@ -119,7 +115,7 @@ module ActiveGenie
           }
         )
 
-        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **result.raw }, config:)
+        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **result.metadata }, config:)
 
         result
       end
