@@ -22,7 +22,7 @@ module ActiveGenie
           update_players_score(winner, loser)
         end
 
-        build_report
+        build_result
       end
 
       private
@@ -85,17 +85,21 @@ module ActiveGenie
         end
       end
 
-      def build_report
-        report = {
-          free_for_all_id:,
-          debates_count: matches.size,
-          duration_seconds: Time.now - @start_time,
-          total_tokens: @total_tokens
-        }
+      def build_result
+        result = ActiveGenie::Result.new(
+          data: @players.sorted.map(&:content),
+          metadata: {
+            free_for_all_id:,
+            players: @players,
+            debates_count: matches.size,
+            duration_seconds: Time.now - @start_time,
+            total_tokens: @total_tokens
+          }
+        )
 
-        ActiveGenie.logger.call({ code: :free_for_all_report, **report }, config:)
+        ActiveGenie.logger.call({ code: :free_for_all_report, **result.metadata }, config:)
 
-        report
+        result
       end
 
       def log_observer(log)

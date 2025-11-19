@@ -43,9 +43,9 @@ module ActiveGenie
         eliminate_obvious_bad_players!
 
         while @players.elo_eligible?
-          elo_report = run_elo_round!
+          elo_result = run_elo_round!
           eliminate_lower_tier_players!
-          rebalance_players!(elo_report)
+          rebalance_players!(elo_result)
         end
 
         run_free_for_all!
@@ -79,13 +79,13 @@ module ActiveGenie
         @players.calc_lower_tier.each { |player| player.eliminated = ELIMINATION_RELEGATION }
       end
 
-      def rebalance_players!(elo_report)
-        return if elo_report[:highest_elo_diff].negative?
+      def rebalance_players!(elo_result)
+        return if elo_result.metadata[:highest_elo_diff].negative?
 
         @players.eligible.each do |player|
-          next if elo_report[:players_in_round].include?(player.id)
+          next if elo_result.metadata[:players_in_round].include?(player.id)
 
-          player.elo += elo_report[:highest_elo_diff]
+          player.elo += elo_result.metadata[:highest_elo_diff]
         end
       end
 

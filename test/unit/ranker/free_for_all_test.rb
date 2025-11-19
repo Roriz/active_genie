@@ -76,7 +76,7 @@ module ActiveGenie
 
         # Free-for-all should have n * (n-1) / 2 matches (all combinations)
         expected_matches = (5 * 4) / 2
-        assert_equal expected_matches, result[:debates_count]
+        assert_equal expected_matches, result.metadata[:debates_count]
       end
 
       def test_matches_are_all_unique_combinations
@@ -116,7 +116,7 @@ module ActiveGenie
 
         # C(10,2) = 45 matches
         expected_matches = (10 * 9) / 2
-        assert_equal expected_matches, result[:debates_count]
+        assert_equal expected_matches, result.metadata[:debates_count]
 
         # Verify all players have participated in battles
         players.each do |player|
@@ -133,10 +133,10 @@ module ActiveGenie
 
         result = FreeForAll.call(players, criteria, config: { providers: { openai: { api_key: 'test_key' } } })
 
-        assert result[:free_for_all_id].is_a?(String), 'Should have a free_for_all_id'
-        assert result[:debates_count].is_a?(Integer), 'Should have debates_count'
-        assert result[:duration_seconds].is_a?(Float), 'Should have duration_seconds'
-        assert result[:total_tokens].is_a?(Integer), 'Should have total_tokens'
+        assert result.metadata[:free_for_all_id].is_a?(String), 'Should have a free_for_all_id'
+        assert result.metadata[:debates_count].is_a?(Integer), 'Should have debates_count'
+        assert result.metadata[:duration_seconds].is_a?(Float), 'Should have duration_seconds'
+        assert result.metadata[:total_tokens].is_a?(Integer), 'Should have total_tokens'
       end
     end
   end
