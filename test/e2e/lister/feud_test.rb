@@ -9,7 +9,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Industries that are most likely to be affected by climate change'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         assert_includes result, 'Agriculture', "Agriculture should be in the list, full result: #{result}"
         assert_includes result, 'Energy', "Energy should be in the list, full result: #{result}"
@@ -21,7 +21,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Favorite fast foods'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         assert_includes result, 'Pizza', "Pizza should be in the list, full result: #{result}"
         assert_includes result, 'Hamburgers', "Hamburgers should be in the list, full result: #{result}"
@@ -31,7 +31,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular american breakfast foods'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         breakfast_items = %w[Eggs Toast Cereal Pancakes Bacon Coffee]
 
@@ -43,7 +43,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Comfort foods people crave during winter'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         comfort_foods = ['Soup', 'Hot chocolate', 'Stew', 'Chili', 'Mac and cheese']
 
@@ -56,7 +56,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Factors consumers consider when buying a smartphone'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         assert_includes result, 'Price', "Price should be in the list, full result: #{result}"
         buying_factors = ['Battery life', 'Camera quality', 'Storage', 'Brand']
@@ -69,7 +69,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Reasons people prefer online shopping over in-store shopping'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         shopping_reasons = ['Convenience', 'Better prices', 'No crowds', 'Save time', 'More selection']
 
@@ -82,7 +82,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular streaming services'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         streaming_services = ['Netflix', 'YouTube', 'Disney+', 'Amazon Prime', 'Hulu']
 
@@ -94,7 +94,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular movie genres'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         movie_genres = %w[Action Comedy Drama Horror Romance]
 
@@ -107,7 +107,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most common job interview questions'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         interview_questions = ['Tell me about yourself', 'Why do you want this job', 'What are your strengths',
                                'What are your weaknesses', 'Where do you see yourself']
@@ -124,7 +124,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most valued employee benefits'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         benefits = ['Health insurance', 'Vacation time', 'Retirement plan', 'Flexible schedule', 'Remote work']
 
@@ -137,7 +137,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most common New Year resolutions'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         resolutions = ['Lose weight', 'Exercise more', 'Eat healthier', 'Save money', 'Quit smoking']
 
@@ -149,7 +149,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Things people like to do on weekends'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         weekend_activities = ['Sleep in', 'Spend time with family', 'Watch movies', 'Go out to eat', 'Exercise']
 
@@ -161,7 +161,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Ways people relieve stress'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         stress_relief = ['Exercise', 'Listen to music', 'Sleep', 'Talk to friends', 'Watch TV']
 
@@ -174,7 +174,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular social media platforms'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         social_platforms = %w[Facebook Instagram Twitter TikTok YouTube]
 
@@ -187,7 +187,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Things people always forget to pack when traveling'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         forgotten_items = ['Phone charger', 'Toothbrush', 'Underwear', 'Medications', 'Sunglasses']
 
@@ -200,7 +200,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular types of exercise'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         exercise_types = ['Walking', 'Running', 'Swimming', 'Cycling', 'Weight lifting']
 
@@ -212,7 +212,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Reasons people go on diets'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         diet_reasons = ['Lose weight', 'Get healthy', 'Look better', 'Feel better', 'Doctor advice']
 
@@ -225,7 +225,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Common problems students face when studying'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         study_problems = ['Procrastination', 'Distractions', 'Time management', 'Understanding material', 'Motivation']
 
@@ -237,7 +237,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Biggest challenges of parenting'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         parenting_challenges = ['Lack of sleep', 'Time management', 'Discipline', 'Money', 'Patience']
 
@@ -250,7 +250,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most hated household chores'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         chores = ['Dishes', 'Cleaning bathrooms', 'Laundry', 'Vacuuming', 'Taking out trash']
 
@@ -262,7 +262,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular home improvement projects'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         projects = ['Painting', 'Kitchen remodel', 'Bathroom remodel', 'Landscaping', 'Flooring']
 
@@ -274,7 +274,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular Christmas gifts'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         christmas_gifts = ['Clothes', 'Electronics', 'Toys', 'Gift cards', 'Books']
 
@@ -286,7 +286,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most popular pets'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         pets = %w[Dogs Cats Fish Birds]
 
@@ -298,7 +298,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Things that make people feel old when they realize younger generations do not know about them'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         old_things = ['VHS tapes', 'Dial-up internet', 'Pay phones', 'CD players', 'Blockbuster']
 
@@ -310,7 +310,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most annoying things about modern technology'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         assert_instance_of Array, result
         assert result.all? { |item| item.is_a?(String) }, 'All items should be strings'
@@ -332,7 +332,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Common reasons why startups fail'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         failure_reasons = ['No market need', 'Ran out of cash', 'Not the right team', 'Competition', 'Poor marketing']
 
@@ -344,7 +344,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Things that annoy people most in the workplace'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         pet_peeves = ['Loud talking', 'Micromanagement', 'Poor communication', 'Meeting overload', 'Messy common areas']
 
@@ -356,7 +356,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Best ways to network professionally'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         networking_tips = ['Attend industry events', 'Use LinkedIn', 'Ask for referrals', 'Join professional groups',
                            'Follow up']
@@ -369,7 +369,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'What makes meetings ineffective'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         meeting_issues = ['No clear agenda', 'Too many people', 'Off-topic discussions', 'Too long', 'No follow-up']
 
@@ -382,7 +382,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most common problems during video calls'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         video_problems = ['Bad internet connection', 'Audio issues', 'Camera not working', 'Background noise',
                           'Frozen screen']
@@ -396,7 +396,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Biggest challenges people face when trying to budget'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         budget_challenges = ['Unexpected expenses', 'Low income', 'Lack of discipline', 'Too complicated',
                              'Emergency fund']
@@ -409,7 +409,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Reasons people are afraid to start investing'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         investment_fears = ['Fear of losing money', 'Too complicated', 'Not enough money',
                             'Don\'t know where to start', 'Market volatility']
@@ -422,7 +422,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most common sources of debt for young adults'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         debt_sources = ['Student loans', 'Credit cards', 'Car loans', 'Medical bills', 'Housing costs']
 
@@ -434,7 +434,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Top financial goals people want to achieve'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         financial_goals = ['Emergency fund', 'Buy a house', 'Retire comfortably', 'Pay off debt', 'Start investing']
 
@@ -447,7 +447,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Activities that help improve mental health'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         mental_health_activities = ['Exercise', 'Meditation', 'Talking to friends', 'Getting enough sleep',
                                     'Spending time outdoors']
@@ -461,7 +461,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Negative effects of social media on society'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         social_problems = ['Cyberbullying', 'Misinformation', 'Addiction', 'Privacy concerns', 'Comparison culture']
 
@@ -473,7 +473,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Biggest problems facing local communities'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         community_problems = ['Crime', 'Traffic', 'Lack of affordable housing', 'Poor schools', 'Economic inequality']
 
@@ -486,7 +486,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Things individuals can do to help fight climate change'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         climate_actions = ['Reduce energy use', 'Use public transportation', 'Recycle', 'Eat less meat',
                            'Buy sustainable products']
@@ -499,7 +499,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Biggest sources of plastic pollution'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         pollution_sources = ['Single-use bags', 'Water bottles', 'Food packaging', 'Straws', 'Microplastics']
 
@@ -511,7 +511,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Barriers that prevent people from living more sustainably'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         sustainability_barriers = ['Cost', 'Convenience', 'Lack of options', 'Time constraints', 'Lack of knowledge']
 
@@ -524,7 +524,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Biggest sources of stress for college students'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         stress_sources = ['Financial pressure', 'Academic workload', 'Career uncertainty', 'Social pressure',
                           'Time management']
@@ -537,7 +537,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Challenges students face with online learning'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         online_challenges = ['Lack of interaction', 'Technical issues', 'Distractions at home', 'Self-motivation',
                              'Time zone differences']
@@ -550,7 +550,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most effective study habits for academic success'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         study_habits = ['Regular schedule', 'Take breaks', 'Active note-taking', 'Practice tests',
                         'Eliminate distractions']
@@ -564,7 +564,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most frustrating aspects of daily commuting'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         commute_frustrations = ['Traffic jams', 'Public transport delays', 'High costs', 'Crowded trains',
                                 'Parking problems']
@@ -577,7 +577,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most important factors when buying a car'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         car_factors = ['Price', 'Fuel efficiency', 'Reliability', 'Safety ratings', 'Resale value']
 
@@ -589,7 +589,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Ways to improve public transportation'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         transport_improvements = ['More frequent service', 'Better cleanliness', 'Lower costs', 'Real-time updates',
                                   'More routes']
@@ -602,7 +602,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Worst things about living in a big city'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         city_downsides = ['High cost of living', 'Traffic', 'Noise', 'Crowding', 'Pollution']
 
@@ -615,7 +615,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Things that make customers not want to shop at a store'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         deal_breakers = ['Poor customer service', 'High prices', 'Long wait times', 'Messy store', 'Limited selection']
 
@@ -627,7 +627,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Things that trigger impulse buying'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         buying_triggers = ['Sales and discounts', 'Emotional state', 'Limited time offers', 'Product placement',
                            'Social influence']
@@ -640,7 +640,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'What customers expect from good customer service'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         service_expectations = ['Quick response', 'Friendly staff', 'Problem resolution', 'Knowledge', 'Follow-up']
 
@@ -653,7 +653,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Most controversial political topics'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         political_topics = ['Healthcare', 'Immigration', 'Gun control', 'Taxes', 'Education']
 
@@ -665,7 +665,7 @@ module ActiveGenie
         result = ActiveGenie::Lister.with_feud(
           'Biggest productivity killers in the modern workplace'
         )
-        result = result.map(&:downcase)
+        result = result.data.map(&:downcase)
 
         productivity_killers = ['Constant notifications', 'Unnecessary meetings', 'Email overload',
                                 'Open office distractions', 'Multitasking']

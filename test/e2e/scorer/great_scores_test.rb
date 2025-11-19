@@ -18,9 +18,9 @@ module ActiveGenie
           ['marketing_specialist']
         )
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected to be at greater than 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected to be at greater than 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_clarity
@@ -33,9 +33,9 @@ module ActiveGenie
           content, 'Evaluate clarity and completeness of instructions', ['ux_writer']
         )
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected to be at greater than 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected to be at greater than 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_code_review_quality
@@ -49,9 +49,9 @@ module ActiveGenie
           content, 'Evaluate code review quality and completeness', ['senior_software_engineer']
         )
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected to be at greater than 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected to be at greater than 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_educational_value
@@ -68,9 +68,9 @@ module ActiveGenie
           content, 'Evaluate educational value and technical accuracy', ['ml_expert']
         )
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected to be at greater than 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected to be at greater than 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_marketplace_product_quality
@@ -101,9 +101,9 @@ module ActiveGenie
         result = ActiveGenie::Scorer.by_jury_bench(product_description, criteria,
                                                    %w[ebay_seller_moderator ebay_product_analyzer])
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected to be at greater than 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected to be at greater than 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_technical_difficulty_of_jira_task
@@ -124,9 +124,9 @@ module ActiveGenie
 
         result = ActiveGenie::Scorer.by_jury_bench(jira_task, criteria, reviewers)
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected to be at greater than 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected to be at greater than 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
     end
   end

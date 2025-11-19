@@ -8,7 +8,7 @@ module ActiveGenie
     empty_tests.each_with_index do |test, index|
       define_method("test_empty_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
-        module_asserts(result, test[:expected])
+        module_asserts(result.data, test[:expected])
       end
     end
 
@@ -17,7 +17,7 @@ module ActiveGenie
     marketplace_tests.each_with_index do |test, index|
       define_method("test_marketplace_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
-        module_asserts(result, test[:expected])
+        module_asserts(result.data, test[:expected])
       end
     end
 
@@ -25,7 +25,7 @@ module ActiveGenie
     others_tests.each_with_index do |test, index|
       define_method("test_others_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
-        module_asserts(result, test[:expected])
+        module_asserts(result.data, test[:expected])
       end
     end
 
@@ -34,7 +34,7 @@ module ActiveGenie
     social_media_tests.each_with_index do |test, index|
       define_method("test_social_media_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_explanation(*test[:input])
-        module_asserts(result, test[:expected])
+        module_asserts(result.data, test[:expected])
       end
     end
 
@@ -43,7 +43,7 @@ module ActiveGenie
     litote_affirmative_tests.each_with_index do |test, index|
       define_method("test_litote_affirmative_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_litote(*test[:input])
-        module_asserts(result, test[:expected])
+        module_asserts(result.data, test[:expected])
       end
     end
 
@@ -51,7 +51,7 @@ module ActiveGenie
     litote_litotes_tests.each_with_index do |test, index|
       define_method("test_litote_litotes_#{test[:input][0].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
         result = ActiveGenie::Extractor.with_litote(*test[:input])
-        module_asserts(result, test[:expected])
+        module_asserts(result.data, test[:expected])
       end
     end
 

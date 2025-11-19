@@ -24,7 +24,7 @@ module ActiveGenie
         provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           FUNCTION,
-          config: @config
+          config:
         )
 
         response_formatted(provider_response)

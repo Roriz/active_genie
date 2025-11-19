@@ -12,12 +12,12 @@ module ActiveGenie
           ['qa_engineer']
         )
 
-        assert_operator result['final_score'], :>=, 10,
-                        "Expected to be at greater than 10, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 50,
-                        "Expected to be at less than 50, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 10,
+                        "Expected to be at greater than 10, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 50,
+                        "Expected to be at less than 50, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_technical_accuracy
@@ -29,12 +29,12 @@ module ActiveGenie
           ['technical_writer']
         )
 
-        assert_operator result['final_score'], :>=, 10,
-                        "Expected to be at greater than 10, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 50,
-                        "Expected to be at less than 50, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 10,
+                        "Expected to be at greater than 10, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 50,
+                        "Expected to be at less than 50, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_code_review_feedback
@@ -45,12 +45,12 @@ module ActiveGenie
           ['senior_software_engineer']
         )
 
-        assert_operator result['final_score'], :>=, 10,
-                        "Expected to be at greater than 10, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 50,
-                        "Expected to be at less than 50, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 10,
+                        "Expected to be at greater than 10, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 50,
+                        "Expected to be at less than 50, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
     end
   end
