@@ -90,7 +90,7 @@ module ActiveGenie
         def tier_size
           size = (eligible_size / 3).ceil
 
-          if eligible_size < 10
+          if eligible_size < 10 * 2
             (eligible_size / 2).ceil
           else
             size.clamp(10, eligible_size - 10)
