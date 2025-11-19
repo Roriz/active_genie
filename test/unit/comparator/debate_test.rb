@@ -40,7 +40,8 @@ module ActiveGenie
         end
 
         assert_equal 'Player A content', result.data
-        assert_equal 'Maintainability hinges on modularity and ease of change. While coverage is valuable for safety, tightly coupled code remains hard to evolve. Dependency injection demonstrably improves modularity and reduces maintenance risk, so it better meets the criteria.', result.reasoning
+        assert_equal 'Maintainability hinges on modularity and ease of change. While coverage is valuable for safety, tightly coupled code remains hard to evolve. Dependency injection demonstrably improves modularity and reduces maintenance risk, so it better meets the criteria.',
+                     result.reasoning
       end
 
       def test_google_request
@@ -72,12 +73,14 @@ module ActiveGenie
           assert_equal 'user', contents[1]['role']
 
           text_parts = contents.flat_map { |c| c['parts'].map { |p| p['text'] } }
+
           assert_includes text_parts, "criteria: #{criteria}"
           assert_includes text_parts, "player_a: #{player_a}"
           assert_includes text_parts, "player_b: #{player_b}"
         end
         assert_equal 'Player A content', result.data
-        assert_equal 'Player_a\'s emphasis on dependency injection directly addresses fundamental aspects of code quality and maintainability by reducing coupling and enhancing modularity. While player_b\'s high test coverage is commendable for quality, the admission of tightly coupled components is a significant detriment to long-term maintainability. Tightly coupled systems, even with high test coverage, are harder to evolve and refactor. Player_a\'s approach fosters a more robust, adaptable, and inherently maintainable codebase from its architectural foundation, making it superior in the long run.', result.reasoning
+        assert_equal 'Player_a\'s emphasis on dependency injection directly addresses fundamental aspects of code quality and maintainability by reducing coupling and enhancing modularity. While player_b\'s high test coverage is commendable for quality, the admission of tightly coupled components is a significant detriment to long-term maintainability. Tightly coupled systems, even with high test coverage, are harder to evolve and refactor. Player_a\'s approach fosters a more robust, adaptable, and inherently maintainable codebase from its architectural foundation, making it superior in the long run.',
+                     result.reasoning
       end
 
       def test_deepseek_request
@@ -113,7 +116,8 @@ module ActiveGenie
           assert(request_body['tools'].any? { |t| t['type'] == 'function' })
         end
         assert_equal 'Player A content', result.data
-        assert_equal 'While both approaches have merits, code quality and maintainability favor player_a\'s dependency injection. Tight coupling creates technical debt that grows over time, making changes riskier and more expensive. High test coverage is valuable but doesn\'t address architectural flaws. Dependency injection promotes better separation of concerns, easier testing, and long-term maintainability. The initial complexity investment pays dividends in reduced maintenance costs and greater flexibility for future enhancements.', result.reasoning
+        assert_equal 'While both approaches have merits, code quality and maintainability favor player_a\'s dependency injection. Tight coupling creates technical debt that grows over time, making changes riskier and more expensive. High test coverage is valuable but doesn\'t address architectural flaws. Dependency injection promotes better separation of concerns, easier testing, and long-term maintainability. The initial complexity investment pays dividends in reduced maintenance costs and greater flexibility for future enhancements.',
+                     result.reasoning
       end
 
       def test_anthropic_request
@@ -146,7 +150,8 @@ module ActiveGenie
         end
 
         assert_equal 'Player A content', result.data
-        assert_equal 'While test coverage is important, dependency injection offers superior code maintainability and testability. Loose coupling enables easier modifications, better separation of concerns, and more flexible software design.', result.reasoning
+        assert_equal 'While test coverage is important, dependency injection offers superior code maintainability and testability. Loose coupling enables easier modifications, better separation of concerns, and more flexible software design.',
+                     result.reasoning
       end
     end
   end

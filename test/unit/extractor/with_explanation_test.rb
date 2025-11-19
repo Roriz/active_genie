@@ -52,8 +52,9 @@ module ActiveGenie
         expected_data = {
           name: 'John Doe',
           age: 25,
-          profession: 'Software Engineer',
+          profession: 'Software Engineer'
         }
+
         assert_equal expected_data, result.data
       end
 
@@ -89,8 +90,9 @@ module ActiveGenie
         expected_data = {
           name: 'John Doe',
           age: 25,
-          profession: 'software engineer',
+          profession: 'software engineer'
         }
+
         assert_equal expected_data, result.data
       end
 
@@ -121,8 +123,10 @@ module ActiveGenie
           assert_equal 1, request_body['tools'].length
 
           tool = request_body['tools'].first
+
           assert_equal 'data_extractor', tool['name']
           parameters = tool['input_schema']
+
           assert parameters.key?('properties')
           properties = parameters['properties']
 
@@ -139,8 +143,9 @@ module ActiveGenie
         expected_data = {
           name: 'John Doe',
           age: 25,
-          profession: 'software engineer',
+          profession: 'software engineer'
         }
+
         assert_equal expected_data, result.data
       end
 
@@ -181,8 +186,9 @@ module ActiveGenie
         expected_data = {
           name: 'John Doe',
           age: 25,
-          profession: 'software engineer',
+          profession: 'software engineer'
         }
+
         assert_equal expected_data, result.data
       end
     end

@@ -30,7 +30,7 @@ module ActiveGenie
         end
 
         raise InvalidResponseError, "Invalid response: #{response}" if response.keys.empty?
-        raise InvalidResponseError, "Invalid response: empty" if response.nil?
+        raise InvalidResponseError, 'Invalid response: empty' if response.nil?
 
         ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: }, config: @config)
 

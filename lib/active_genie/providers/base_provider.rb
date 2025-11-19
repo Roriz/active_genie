@@ -171,7 +171,8 @@ module ActiveGenie
 
         begin
           yield
-        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ActiveGenie::ProviderServerError, JSON::ParserError => e
+        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ActiveGenie::ProviderServerError,
+               JSON::ParserError => e
           raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)

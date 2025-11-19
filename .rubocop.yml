@@ -41,7 +41,7 @@ Metrics/ClassLength:
 Layout/LineLength:
   AllowedPatterns: ['\s#']
   Exclude:
-    - 'benchmark/**/*'
+    - 'test/**/*'
 
 Metrics/AbcSize:
   Exclude:

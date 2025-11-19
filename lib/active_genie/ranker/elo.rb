@@ -42,10 +42,7 @@ module ActiveGenie
           DEBATE_PER_PLAYER.times do
             higher_player = next_higher_player
 
-            if matches.include?([lower_player, higher_player])
-              puts 'Skipping duplicate match'
-              next
-            end
+            next if matches.include?([lower_player, higher_player])
 
             matches << [lower_player, higher_player]
           end

@@ -30,7 +30,7 @@ module ActiveGenie
           request_body = JSON.parse(req.body)
           messages = request_body['messages']
 
-          assert_equal messages.any? { |m| m['role'] == 'user' && m['content'].include?(@criteria) }, true
+          assert(messages.any? { |m| m['role'] == 'user' && m['content'].include?(@criteria) })
         end
 
         reasoning = "The text demonstrates a solid understanding of advanced software design principles, with a focus on dependency injection and SOLID principles. While the statement shows awareness of best practices for code quality and maintainability, it lacks specific implementation details. The score reflects a good conceptual approach to software design, with room for more detailed technical elaboration.
@@ -46,6 +46,7 @@ Improvement Opportunities:
 - Offer more context about the actual code structure
 
 The score of 73 places this in the \"Good\" range, indicating a strong conceptual understanding with potential for more detailed technical demonstration."
+
         assert_equal 73, result.data
         assert_equal reasoning, result.reasoning
       end
@@ -69,11 +70,12 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
           request_body = JSON.parse(req.body)
           messages = request_body['messages']
 
-          assert_equal messages.any? { |m| m['role'] == 'user' && m['content'].include?(@criteria) }, true
+          assert(messages.any? { |m| m['role'] == 'user' && m['content'].include?(@criteria) })
         end
 
         assert_equal 62, result.data
-        assert result.reasoning.include?('Both jurors recognize that the practices mentioned (DI and SOLID) are strong indicators')
+        assert_includes result.reasoning,
+                        'Both jurors recognize that the practices mentioned (DI and SOLID) are strong indicators'
       end
 
       def test_google_request
@@ -91,16 +93,18 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
           }
         )
 
-        assert_requested(:post, %r{https://generativelanguage.googleapis.com/v1beta/models/.*:generateContent}, times: 2) do |req|
+        assert_requested(:post, %r{https://generativelanguage.googleapis.com/v1beta/models/.*:generateContent},
+                         times: 2) do |req|
           request_body = JSON.parse(req.body)
           contents = request_body['contents']
 
-          assert_equal contents.any? { |c| c['parts'].any? { |p| p['text'].include?(@criteria) } }, true
+          assert(contents.any? { |c| c['parts'].any? { |p| p['text'].include?(@criteria) } })
         end
 
         assert_equal 80, result.data
-        expected_reasoning = "The implementation uses dependency injection for better testability and follows SOLID principles"
-        assert result.reasoning.include?(expected_reasoning)
+        expected_reasoning = 'The implementation uses dependency injection for better testability and follows SOLID principles'
+
+        assert_includes result.reasoning, expected_reasoning
       end
 
       def test_deepseek_request
@@ -122,12 +126,13 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
           request_body = JSON.parse(req.body)
           messages = request_body['messages']
 
-          assert_equal messages.any? { |m| m['role'] == 'user' && m['content'].include?(@criteria) }, true
+          assert(messages.any? { |m| m['role'] == 'user' && m['content'].include?(@criteria) })
         end
 
-        reasoning = "The text demonstrates awareness of important software engineering principles"
-        assert_equal 72.5, result.data
-        assert result.reasoning.include?(reasoning)
+        reasoning = 'The text demonstrates awareness of important software engineering principles'
+
+        assert_in_delta(72.5, result.data)
+        assert_includes result.reasoning, reasoning
       end
     end
   end
