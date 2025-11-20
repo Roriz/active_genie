@@ -145,16 +145,6 @@ result.data
 # Access overall reasoning
 result.reasoning
 # => "Scoring methodology and aggregation explanation"
-
-# Access metadata
-result.metadata
-# => {
-#      provider: :openai,
-#      model: "gpt-4o-mini",
-#      tokens: {...},
-#      reviewers_count: 3,
-#      auto_selected_reviewers: false
-#    }
 ```
 
 -----

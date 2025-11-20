@@ -49,9 +49,6 @@ result.data
 
 result.reasoning
 # => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
-
-result.metadata
-# => { provider: :openai, model: "gpt-4o-mini", tokens: {...}, total_comparisons: 12, duration_ms: 5400 }
 ```
 
 ## Advanced Usage Examples
@@ -178,17 +175,6 @@ result.data
 # Access ranking methodology reasoning
 result.reasoning
 # => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
-
-# Access metadata
-result.metadata
-# => {
-#      provider: :openai,
-#      model: "gpt-4o-mini",
-#      tokens: {...},
-#      total_comparisons: 12,
-#      duration_ms: 5400,
-#      methodology: "tournament"
-#    }
 ```
 
 ### .by_tournament(players, criteria, config: {})

@@ -23,8 +23,6 @@ result.data
 result.reasoning
 # => "List generated using Family Feud style survey simulation reflecting general public opinion"
 
-result.metadata
-# => { provider: :openai, model: "gpt-4o-mini", tokens: {...}, list_size: 5 }
 ```
 
 Generate a list with custom configuration:
@@ -161,16 +159,6 @@ result.data
 # Access reasoning
 result.reasoning
 # => "List generated using Family Feud style survey simulation"
-
-# Access metadata
-result.metadata
-# => {
-#      provider: :openai,
-#      model: "gpt-4o-mini",
-#      tokens: {...},
-#      list_size: 5,
-#      methodology: "feud"
-#    }
 ```
 
 -----

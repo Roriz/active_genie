@@ -384,15 +384,6 @@ result.data
 result.reasoning
 # => "Explanation of extraction methodology and approach"
 
-# Access metadata about the operation
-result.metadata
-# => {
-#      provider: :openai,
-#      model: "gpt-4o-mini",
-#      tokens: { input: 150, output: 75, total: 225 },
-#      duration_ms: 1234
-#    }
-
 # Convert to different formats
 result.to_h    # => { data: {...}, reasoning: "...", metadata: {...} }
 result.to_json # => JSON string

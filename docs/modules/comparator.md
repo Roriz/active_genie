@@ -32,14 +32,6 @@ result.data
 #                  which allows for easier testing and component replacement. While Player B has good test coverage,
 #                  the tight coupling makes the code harder to maintain and modify."
 #    }
-
-result.metadata
-# => {
-#      provider: :openai,
-#      model: "gpt-4o-mini",
-#      tokens: {...},
-#      debate_rounds: 3
-#    }
 ```
 
 ## Tips
@@ -74,16 +66,6 @@ result.data
 # Access overall reasoning
 result.reasoning
 # => "Debate methodology and decision process explanation"
-
-# Access metadata
-result.metadata
-# => {
-#      provider: :openai,
-#      model: "gpt-4o-mini",
-#      tokens: {...},
-#      debate_rounds: 3,
-#      duration_ms: 2500
-#    }
 ```
 
 -----
@@ -130,14 +112,6 @@ result.data
 #      winner: "Master Crane, a graceful fighter...",
 #      loser: "Iron Ox, a powerful brawler...",
 #      reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct..."
-#    }
-
-result.metadata
-# => {
-#      provider: :openai,
-#      model: "gpt-4o-mini",
-#      tokens: {...},
-#      fight_rounds: 10
 #    }
 ```
 
