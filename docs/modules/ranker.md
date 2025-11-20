@@ -31,6 +31,7 @@ players = [
 criteria = "Evaluate code quality, maintainability, and software engineering best practices"
 
 result = ActiveGenie::Ranker.call(players, criteria)
+result.data
 # => {
 #      players: [
 #        { content: "Uses modern design patterns...", score: 85, elo: 1245, rank: 1, eliminated: nil },
@@ -45,6 +46,12 @@ result = ActiveGenie::Ranker.call(players, criteria)
 #        ffa_matches: 6
 #      }
 #    }
+
+result.reasoning
+# => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
+
+result.metadata
+# => { provider: :openai, model: "gpt-4o-mini", tokens: {...}, total_comparisons: 12, duration_ms: 5400 }
 ```
 
 ## Advanced Usage Examples
@@ -148,10 +155,41 @@ The primary entry point that automatically selects the best ranking methodology 
 - `criteria` [String] - The evaluation criteria that defines what makes one player better than another.
 - `config` [Hash] - Additional configuration for customizing the ranking behavior.
 
-**Returns a Hash containing:**
+**Returns `ActiveGenie::Result` instance containing:**
 
-- `players` [Array of Hash] - Ranked list of players with their scores, ELO ratings, and statistics.
-- `statistics` [Hash] - Summary information about the ranking process (total players, eliminations, rounds, etc.).
+```ruby
+result = ActiveGenie::Ranker.call(players, criteria)
+
+# Access ranking data
+result.data
+# => {
+#      players: [
+#        { content: "...", score: 85, elo: 1245, rank: 1, ... },
+#        ...
+#      ],
+#      statistics: {
+#        total_players: 4,
+#        eliminated_players: 0,
+#        elo_rounds: 1,
+#        ffa_matches: 6
+#      }
+#    }
+
+# Access ranking methodology reasoning
+result.reasoning
+# => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
+
+# Access metadata
+result.metadata
+# => {
+#      provider: :openai,
+#      model: "gpt-4o-mini",
+#      tokens: {...},
+#      total_comparisons: 12,
+#      duration_ms: 5400,
+#      methodology: "tournament"
+#    }
+```
 
 ### .by_tournament(players, criteria, config: {})
 

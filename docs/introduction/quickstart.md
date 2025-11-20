@@ -20,6 +20,9 @@ schema = {
 # Works consistently across any AI provider
 result = ActiveGenie::Extractor.call(product_text, schema, 
   config: { provider_name: :openai, model: 'gpt-4o-mini' })
+
+# Returns an ActiveGenie::Result instance
+result.data
 # => {
 #      brand: "Sony",
 #      display_size: "65\"",
@@ -36,6 +39,7 @@ sentiment_schema = {
 }
 
 result = ActiveGenie::Extractor.with_litote(review, sentiment_schema)
+result.data
 # => {
 #      sentiment: "mixed",
 #      satisfaction_level: 3,
@@ -55,6 +59,8 @@ criteria = "Evaluate technical quality, completeness, and engineering best pract
 # Same interface works with any AI provider
 result = ActiveGenie::Scorer.call(code_review, criteria,
   config: { provider_name: :anthropic, model: 'claude-3-5-haiku' })
+
+result.data
 # => {
 #      senior_software_engineer_score: 94,
 #      senior_software_engineer_reasoning: "Excellent implementation with proper algorithm choice, comprehensive testing, and performance considerations",
@@ -64,6 +70,9 @@ result = ActiveGenie::Scorer.call(code_review, criteria,
 #      devops_engineer_reasoning: "Good performance benchmarking approach, suggests monitoring and observability awareness",
 #      final_score: 91.3
 #    }
+
+result.reasoning
+# => "Combined evaluation from 3 expert reviewers with weighted scoring methodology"
 
 # Custom expert reviewers for specialized evaluation
 medical_text = "Patient shows 17% improvement in cardiac ejection fraction following 6-week therapy protocol"
@@ -84,11 +93,16 @@ criteria = "Evaluate long-term maintainability, testability, and team productivi
 # Consistent debate structure across all AI providers
 result = ActiveGenie::Comparator.call(player_a, player_b, criteria,
   config: { provider_name: :google, model: 'gemini-2.0-flash' })
+
+result.data
 # => {
 #      winner: "Implementation uses dependency injection...",
 #      loser: "Code achieves 95% test coverage...",
 #      reasoning: "Player A's dependency injection approach provides superior long-term maintainability through loose coupling, while Player B's high coverage is valuable but doesn't address the structural concerns for future development"
 #    }
+
+result.reasoning
+# => "Structured debate with opening arguments, rebuttals, and final statements evaluated by impartial judge"
 
 # Specialized fight mode for character battles
 fighter_a = "Master Crane: graceful fighter using Crane Kung Fu with lightness, precision, and momentum redirection"
@@ -120,6 +134,8 @@ criteria = "Best choice for real-time collaborative application with complex dat
 # Automatic methodology selection based on player count
 result = ActiveGenie::Ranker.call(api_options, criteria,
   config: { provider_name: :openai, model: 'gpt-4o' })
+
+result.data
 # => {
 #      players: [
 #        { content: "GraphQL API with efficient query...", score: 89, elo: 1245, rank: 1 },
@@ -129,6 +145,9 @@ result = ActiveGenie::Ranker.call(api_options, criteria,
 #      ],
 #      statistics: { total_players: 4, elo_rounds: 2, ffa_matches: 6 }
 #    }
+
+result.reasoning
+# => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
 
 # Tournament mode for comprehensive ranking
 result = ActiveGenie::Ranker.by_tournament(api_options, criteria)
@@ -157,6 +176,8 @@ theme = "Features smartphone users care about most when choosing a new device"
 # Works identically across all AI providers
 result = ActiveGenie::Lister.call(theme,
   config: { provider_name: :anthropic, model: 'claude-3-5-haiku' })
+
+result.data
 # => [
 #      "Battery life",
 #      "Camera quality", 
@@ -167,11 +188,15 @@ result = ActiveGenie::Lister.call(theme,
 #      "Processing speed"
 #    ]
 
+result.reasoning
+# => "List generated using Family Feud style survey simulation reflecting general public opinion"
+
 # Generate expert jury recommendations
 content = "Technical proposal for implementing microservices architecture with event-driven communication"
 evaluation_criteria = "Assess technical feasibility, business impact, and implementation complexity"
 
-experts = ActiveGenie::Lister.with_juries(content, evaluation_criteria)
+result = ActiveGenie::Lister.with_juries(content, evaluation_criteria)
+result.data
 # => [
 #      "Software Architect",
 #      "DevOps Engineer", 
@@ -188,6 +213,32 @@ result = ActiveGenie::Lister.call("Most popular breakfast foods worldwide",
 **Model-Agnostic**: List generation adapts to different AI models' cultural knowledge and reasoning  
 
 *Recommended models*: `gpt-4o-mini`, `claude-3-5-haiku`, `gemini-2.0-flash`
+
+---
+
+## Understanding ActiveGenie::Result
+
+All ActiveGenie modules return an `ActiveGenie::Result` instance with three main components:
+
+```ruby
+result = ActiveGenie::Extractor.call(text, schema)
+
+# Access the extracted/generated data
+result.data
+# => { ... } # The main result (hash, array, etc.)
+
+# Access the reasoning/explanation
+result.reasoning  # or result.explanation (alias)
+# => "Explanation of how the result was generated"
+
+# Convert to different formats
+result.to_h    # => { data: {...}, reasoning: "...", metadata: {...} }
+```
+
+This consistent return type across all modules provides:
+- **Predictable interface**: Same structure regardless of which module you use
+- **Full transparency**: Access to reasoning and metadata for debugging and monitoring
+- **Easy serialization**: Built-in methods for converting to hash or JSON
 
 ---
 
