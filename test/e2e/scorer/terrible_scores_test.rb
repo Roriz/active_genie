@@ -12,7 +12,7 @@ module ActiveGenie
           ['system_reliability_engineer']
         )
 
-        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result.data, :<=, 20, "Expected to be at less than 20, but was #{result.data}, because: #{result.reasoning}"
       end
 
       def test_evaluate_completeness
@@ -22,7 +22,7 @@ module ActiveGenie
           ['system_architect']
         )
 
-        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result.data, :<=, 20, "Expected to be at less than 20, but was #{result.data}, because: #{result.reasoning}"
       end
 
       def test_marketplace_product_quality
@@ -42,7 +42,7 @@ module ActiveGenie
         result = ActiveGenie::Scorer.by_jury_bench(product_description, criteria,
                                                    %w[ebay_seller_moderator ebay_product_analyzer])
 
-        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result.data, :<=, 20, "Expected to be at less than 20, but was #{result.data}, because: #{result.reasoning}"
       end
 
       def test_technical_difficulty_of_jira_task
@@ -60,7 +60,7 @@ module ActiveGenie
 
         result = ActiveGenie::Scorer.by_jury_bench(jira_task, criteria, reviewers)
 
-        assert_operator result['final_score'], :<=, 20, "Expected to be at less than 20, but was #{result['final_score']}, because: #{result['final_reasoning']}"
+        assert_operator result.data, :<=, 20, "Expected to be at less than 20, but was #{result.data}, because: #{result.reasoning}"
       end
     end
   end

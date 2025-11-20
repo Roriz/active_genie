@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\n  \"theme\": \"Industries that are most likely to be affected by climate change\",\n  \"why_these_items\": \"These industries were chosen because their operations, assets, and customer bases are directly and visibly vulnerable to the physical impacts of climate change (e.g., extreme weather, sea-level rise, resource scarcity) or to the policy and market shifts driven by climate change concerns. They represent sectors where the average person would most readily identify a clear and significant link to climate change effects, often experiencing these impacts personally or through news reports.\",\n  \"items\": [\n    \"Agriculture/Farming\",\n    \"Tourism\",\n    \"Insurance\",\n    \"Fishing/Seafood\",\n    \"Real Estate\"\n  ]\n}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 403,
+    "candidatesTokenCount": 158,
+    "totalTokenCount": 1356,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 403
+      }
+    ],
+    "thoughtsTokenCount": 795
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "72zkaMHzJMKtqtsPnN3UyQs"
+}

@@ -109,16 +109,16 @@ module ActiveGenie
           }
         )
 
-        assert_equal 'Startup on Rails', result[:title]
+        assert_equal 'Startup on Rails', result.data[:title]
         assert_equal 'Irina Nazarova (CEO @ Evil Martians) - Startup on Rails - Tropical on Rails 2025',
-                     result[:raw_title]
-        assert_equal ['Irina Nazarova'], result[:speakers], result[:speakers_explanation]
-        assert_includes result[:event_name], 'Tropical on Rails'
-        assert_nil result[:happened_at], result[:happened_at_explanation]
-        assert_equal '2025-04-25T14:59:40Z', result[:published_at], result[:published_at_explanation]
-        assert_nil result[:announced_at], result[:announced_at_explanation]
-        assert_equal 'english', result[:language], result[:language_explanation]
-        assert_nil result[:slides_url], result[:slides_url_explanation]
+                     result.data[:raw_title]
+        assert_equal ['Irina Nazarova'], result.data[:speakers], result.data[:speakers_explanation]
+        assert_includes result.data[:event_name], 'Tropical on Rails'
+        assert_nil result.data[:happened_at], result.data[:happened_at_explanation]
+        assert_equal '2025-04-25T14:59:40Z', result.data[:published_at], result.data[:published_at_explanation]
+        assert_nil result.data[:announced_at], result.data[:announced_at_explanation]
+        assert_equal 'english', result.data[:language], result.data[:language_explanation]
+        assert_nil result.data[:slides_url], result.data[:slides_url_explanation]
       end
     end
   end

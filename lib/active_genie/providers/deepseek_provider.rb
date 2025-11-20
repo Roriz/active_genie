@@ -25,14 +25,14 @@ module ActiveGenie
           model:
         }
 
-        response = request(payload)
-
-        if response.nil? || response.keys.empty?
-          raise InvalidResponseError,
-                "Invalid response: #{response}"
+        response = retry_with_backoff do
+          request(payload)
         end
 
-        @config.logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
+        raise InvalidResponseError, "Invalid response: #{response}" if response.keys.empty?
+        raise InvalidResponseError, 'Invalid response: empty' if response.nil?
+
+        ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: }, config: @config)
 
         response
       end
@@ -44,7 +44,7 @@ module ActiveGenie
 
         return nil if response.nil?
 
-        @config.logger.call(
+        ActiveGenie.logger.call(
           {
             code: :llm_usage,
             input_tokens: response.dig('usage', 'prompt_tokens'),
@@ -52,11 +52,19 @@ module ActiveGenie
             total_tokens: response.dig('usage', 'total_tokens'),
             model:,
             usage: response['usage']
-          }
+          }, config: @config
         )
 
-        parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))
+        parsed_response = JSON.parse(get_response_body(response))
         parsed_response['message'] || parsed_response
+      rescue JSON::ParserError
+        raise InvalidResponseError, "Invalid response: #{get_response_body(response)}"
+      end
+
+      def get_response_body(response)
+        response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')
+                .gsub(', " "', '')
+                .strip
       end
 
       def function_to_tool(function)

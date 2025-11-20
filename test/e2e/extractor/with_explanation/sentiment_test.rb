@@ -29,9 +29,9 @@ module ActiveGenie
 
         result = ActiveGenie::Extractor.with_explanation(job_description, data_to_extract)
 
-        assert result[:need_graduation]
-        assert_equal 1, result[:required_minimal_years_of_experience]
-        assert_equal 'Marketing', result[:discipline]
+        assert result.data[:need_graduation]
+        assert_equal 1, result.data[:required_minimal_years_of_experience]
+        assert_equal 'Marketing', result.data[:discipline]
       end
     end
   end

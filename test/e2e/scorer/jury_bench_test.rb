@@ -25,9 +25,9 @@ module ActiveGenie
           %w[senior_ruby_developer code_architect]
         )
 
-        assert_operator result['final_score'], :>=, 70,
-                        "Expected high quality code to score >= 70, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 70,
+                        "Expected high quality code to score >= 70, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_poor_marketing_copy
@@ -39,12 +39,12 @@ module ActiveGenie
           ['marketing_director']
         )
 
-        assert_operator result['final_score'], :>=, 5,
-                        "Expected minimal score >= 5, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 35,
-                        "Expected poor marketing copy <= 35, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 5,
+                        "Expected minimal score >= 5, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 35,
+                        "Expected poor marketing copy <= 35, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_excellent_medical_documentation
@@ -58,9 +58,9 @@ module ActiveGenie
           %w[cardiologist medical_writer]
         )
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected excellent medical documentation >= 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected excellent medical documentation >= 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_average_tutorial_content
@@ -78,12 +78,12 @@ module ActiveGenie
           ['technical_educator']
         )
 
-        assert_operator result['final_score'], :>=, 45,
-                        "Expected average tutorial content >= 45, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 75,
-                        "Expected tutorial to have improvement areas <= 75, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 45,
+                        "Expected average tutorial content >= 45, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 75,
+                        "Expected tutorial to have improvement areas <= 75, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_professional_customer_support_response
@@ -97,9 +97,9 @@ module ActiveGenie
           %w[customer_success_manager support_specialist]
         )
 
-        assert_operator result['final_score'], :>=, 75,
-                        "Expected professional support response >= 75, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 75,
+                        "Expected professional support response >= 75, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_technical_blog_post_excerpt
@@ -113,12 +113,12 @@ module ActiveGenie
           ['medical_ai_expert']
         )
 
-        assert_operator result['final_score'], :>=, 55,
-                        "Expected decent technical content >= 55, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 85,
-                        "Expected room for specificity <= 85, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 55,
+                        "Expected decent technical content >= 55, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 85,
+                        "Expected room for specificity <= 85, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_code_review_comment
@@ -132,9 +132,9 @@ module ActiveGenie
           %w[senior_developer security_engineer]
         )
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected thorough code review >= 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected thorough code review >= 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_regulatory_compliance_content
@@ -148,9 +148,9 @@ module ActiveGenie
           ['regulatory_affairs_specialist']
         )
 
-        assert_operator result['final_score'], :>=, 85,
-                        "Expected strong regulatory content >= 85, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 85,
+                        "Expected strong regulatory content >= 85, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_terrible_documentation
@@ -162,12 +162,12 @@ module ActiveGenie
           %w[technical_writer developer_experience_engineer]
         )
 
-        assert_operator result['final_score'], :>=, 0,
-                        "Expected minimum score >= 0, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 25,
-                        "Expected terrible documentation <= 25, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 0,
+                        "Expected minimum score >= 0, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 25,
+                        "Expected terrible documentation <= 25, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_excellent_api_documentation
@@ -201,9 +201,9 @@ module ActiveGenie
           ['api_documentation_specialist']
         )
 
-        assert_operator result['final_score'], :>=, 70,
-                        "Expected excellent API docs >= 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 70,
+                        "Expected excellent API docs >= 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_security_vulnerability_report
@@ -230,9 +230,9 @@ module ActiveGenie
           %w[security_analyst penetration_tester]
         )
 
-        assert_operator result['final_score'], :>=, 80,
-                        "Expected excellent security report >= 80, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 80,
+                        "Expected excellent security report >= 80, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_user_experience_feedback
@@ -246,12 +246,12 @@ module ActiveGenie
           ['ux_designer']
         )
 
-        assert_operator result['final_score'], :>=, 70,
-                        "Expected good UX feedback >= 70, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 90,
-                        "Expected room for more detail <= 90, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 70,
+                        "Expected good UX feedback >= 70, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 90,
+                        "Expected room for more detail <= 90, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_business_proposal_excerpt
@@ -265,12 +265,12 @@ module ActiveGenie
           %w[business_analyst venture_capitalist]
         )
 
-        assert_operator result['final_score'], :>=, 60,
-                        "Expected decent business proposal >= 60, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
-        assert_operator result['final_score'], :<=, 85,
-                        "Expected need for more validation <= 85, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 60,
+                        "Expected decent business proposal >= 60, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
+        assert_operator result.data, :<=, 85,
+                        "Expected need for more validation <= 85, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
 
       def test_evaluate_academic_research_abstract
@@ -294,9 +294,9 @@ module ActiveGenie
           ['research_scientist']
         )
 
-        assert_operator result['final_score'], :>=, 75,
-                        "Expected solid research abstract >= 75, but was #{result['final_score']}, " \
-                        "because: #{result['final_reasoning']}"
+        assert_operator result.data, :>=, 75,
+                        "Expected solid research abstract >= 75, but was #{result.data}, " \
+                        "because: #{result.reasoning}"
       end
     end
   end

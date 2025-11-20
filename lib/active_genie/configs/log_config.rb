@@ -1,28 +1,41 @@
 # frozen_string_literal: true
 
+require_relative 'base_config'
+
 module ActiveGenie
   module Config
-    class LogConfig
+    class LogConfig < BaseConfig
+      attr_reader :output
       attr_writer :file_path, :fine_tune_file_path
-      attr_reader :output, :observers
 
       def file_path
-        @file_path || 'log/active_genie.log'
+        @file_path ||= 'log/active_genie.log'
       end
 
       def fine_tune_file_path
-        @fine_tune_file_path || 'log/active_genie_fine_tune.log'
+        @fine_tune_file_path ||= 'log/active_genie_fine_tune.log'
+      end
+
+      def observers=(observers)
+        Array(observers).each do |observer|
+          add_observer(observers: [observer[:observer]], scope: observer[:scope] || {})
+        end
+      end
+
+      def observers
+        @observers ||= []
       end
 
       def additional_context
-        @additional_context || {}
+        @additional_context ||= {}
       end
 
       def additional_context=(context)
-        @additional_context = additional_context.merge(context).compact
+        @additional_context = additional_context.merge(context || {}).compact
       end
 
       def output=(output)
+        return if output.nil?
         raise InvalidLogOutputError, output unless output.respond_to?(:call)
 
         @output = output
@@ -49,16 +62,6 @@ module ActiveGenie
 
       def clear_observers
         @observers = []
-      end
-
-      def merge(config_params = {})
-        dup.tap do |config|
-          config_params.compact.each do |key, value|
-            config.send("#{key}=", value) if config.respond_to?("#{key}=")
-          end
-
-          config.add_observer(config_params[:observers]) if config_params[:observers]
-        end
       end
     end
   end

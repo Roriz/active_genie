@@ -21,13 +21,13 @@ module ActiveGenie
           {  role: 'user', content: "criteria: #{@criteria}" }
         ]
 
-        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           FUNCTION,
-          config: @config
+          config:
         )
 
-        response_formatted(response)
+        response_formatted(provider_response)
       end
 
       PROMPT = File.read(File.join(__dir__, 'fight.prompt.md'))

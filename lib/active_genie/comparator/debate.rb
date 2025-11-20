@@ -14,11 +14,7 @@ module ActiveGenie
     # @example Debate usage with two players and criteria
     #   Debate.call("Player A content", "Player B content", "Evaluate keyword usage and pattern matching")
     #
-    class Debate
-      def self.call(...)
-        new(...).call
-      end
-
+    class Debate < ActiveGenie::BaseModule
       # @param player_a [String] The content or submission from the first player
       # @param player_b [String] The content or submission from the second player
       # @param criteria [String] The evaluation criteria or rules to assess against
@@ -31,7 +27,7 @@ module ActiveGenie
         @player_a = player_a
         @player_b = player_b
         @criteria = criteria
-        @initial_config = config
+        super(config:)
       end
 
       # @return [ComparatorResponse] The evaluation result containing the winner and reasoning
@@ -43,9 +39,9 @@ module ActiveGenie
           {  role: 'user', content: "criteria: #{@criteria}" }
         ]
 
-        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(messages, FUNCTION, config:)
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(messages, FUNCTION, config:)
 
-        response_formatted(response)
+        response_formatted(provider_response)
       end
 
       PROMPT = File.read(File.join(__dir__, 'debate.prompt.md'))
@@ -53,37 +49,18 @@ module ActiveGenie
 
       private
 
-      def response_formatted(response)
-        winner, loser = case response['impartial_judge_winner']
-                        when 'player_a' then [@player_a, @player_b]
-                        when 'player_b' then [@player_b, @player_a]
-                        end
-        reasoning = response['impartial_judge_winner_reasoning']
+      def response_formatted(provider_response)
+        winner, = case provider_response['impartial_judge_winner']
+                  when 'player_a' then [@player_a, @player_b]
+                  when 'player_b' then [@player_b, @player_a]
+                  end
+        reasoning = provider_response['impartial_judge_winner_reasoning']
 
-        comparator_response = ActiveGenie::Comparator::ComparatorResponse.new(winner:, loser:, reasoning:,
-                                                                              raw: response)
-        log_comparator(comparator_response)
-
-        comparator_response
+        ActiveGenie::Result.new(data: winner, reasoning:, metadata: provider_response)
       end
 
-      def log_comparator(comparator_response)
-        config.logger.call(
-          code: :comparator,
-          player_a: @player_a[0..30],
-          player_b: @player_b[0..30],
-          criteria: @criteria[0..30],
-          **comparator_response.to_h
-        )
-      end
-
-      def config
-        @config ||= begin
-          c = ActiveGenie.configuration.merge(@initial_config)
-          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
-
-          c
-        end
+      def module_config
+        { llm: { recommended_model: 'claude-haiku-4-5' } }
       end
     end
   end

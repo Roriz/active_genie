@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
 require_relative '../providers/unified_provider'
+require_relative '../utils/deep_merge'
 
 module ActiveGenie
   module Extractor
-    class Explanation
-      def self.call(...)
-        new(...).call
-      end
-
+    class Explanation < ActiveGenie::BaseModule
       # Extracts structured data from text based on a predefined schema.
       #
       # @param text [String] The input text to analyze and extract data from
@@ -31,7 +28,7 @@ module ActiveGenie
       def initialize(text, data_to_extract, config: {})
         @text = text
         @data_to_extract = data_to_extract
-        @initial_config = config
+        super(config:)
       end
 
       def call
@@ -46,16 +43,18 @@ module ActiveGenie
         function[:parameters][:properties] = properties
         function[:parameters][:required] = properties.keys
 
-        response = function_calling(messages, function)
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
+          messages,
+          function,
+          config: config
+        )
 
-        simplify_response(response)
+        response_formatted(provider_response)
       end
 
       private
 
       def data_to_extract_with_explanation
-        return @data_to_extract unless config.extractor.with_explanation
-
         with_explanation = {}
 
         @data_to_extract.each do |key, value|
@@ -80,38 +79,16 @@ module ActiveGenie
         with_explanation
       end
 
-      def function_calling(messages, function)
-        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
-          messages,
-          function,
-          config: config
+      def response_formatted(provider_response)
+        data = provider_response.slice(*@data_to_extract.keys.map(&:to_s)).transform_keys(&:to_sym)
+
+        first_reasoning_key = provider_response["#{provider_response.keys.first}_explanation"]
+
+        ActiveGenie::Result.new(
+          data:,
+          reasoning: first_reasoning_key,
+          metadata: provider_response
         )
-
-        config.logger.call(
-          {
-            code: :extractor,
-            text: @text[0..30],
-            data_to_extract: function[:parameters][:properties],
-            extracted_data: response
-          }
-        )
-
-        response
-      end
-
-      def simplify_response(response)
-        return response if config.extractor.verbose
-
-        simplified_response = {}
-
-        @data_to_extract.each_key do |key|
-          next unless response.key?(key.to_s)
-          next if response.key?("#{key}_accuracy") && response["#{key}_accuracy"] < min_accuracy
-
-          simplified_response[key] = response[key.to_s]
-        end
-
-        simplified_response
       end
 
       def min_accuracy
@@ -122,13 +99,8 @@ module ActiveGenie
         File.read(File.join(__dir__, 'explanation.prompt.md'))
       end
 
-      def config
-        @config ||= begin
-          c = ActiveGenie.configuration.merge(@initial_config)
-          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
-
-          c
-        end
+      def module_config
+        { llm: { recommended_model: 'deepseek-chat' } }
       end
     end
   end

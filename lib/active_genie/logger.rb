@@ -5,32 +5,24 @@ require 'fileutils'
 
 module ActiveGenie
   class Logger
-    def initialize(log_config: nil)
-      @log_config = log_config || ActiveGenie.configuration.log
-    end
-
-    def call(data)
-      log = data.merge(@log_config.additional_context)
+    def call(data, config:)
+      log = data.merge(config.log.additional_context || {})
                 .merge(
                   timestamp: Time.now,
                   process_id: Process.pid
                 )
 
-      persist!(log)
-      output_call(log)
-      call_observers(log)
+      persist!(log, config:)
+      output_call(log, config:)
+      call_observers(log, config:)
 
       log
     end
 
-    def merge(log_config = nil)
-      new(log_config:)
-    end
-
     private
 
-    def call_observers(log)
-      Array(@log_config.observers).each do |observer|
+    def call_observers(log, config:)
+      Array(config.log.observers).each do |observer|
         next unless observer[:scope].all? { |key, value| log[key.to_sym] == value }
 
         observer[:observer]&.call(log)
@@ -39,9 +31,9 @@ module ActiveGenie
       end
     end
 
-    def output_call(log)
-      if @log_config.output
-        @log_config.output&.call(log)
+    def output_call(log, config:)
+      if config.log.output
+        config.log.output&.call(log)
       else
         $stdout.puts log
       end
@@ -49,20 +41,16 @@ module ActiveGenie
       call(code: :output_error, error: e.message)
     end
 
-    def persist!(log)
-      file_path = log_to_file_path(log)
+    def persist!(log, config:)
+      file_path = if log.key?(:fine_tune) && log[:fine_tune]
+                    config.log.fine_tune_file_path
+                  else
+                    config.log.file_path
+                  end
       folder_path = File.dirname(file_path)
 
       FileUtils.mkdir_p(folder_path)
       File.write(file_path, "#{JSON.generate(log)}\n", mode: 'a')
-    end
-
-    def log_to_file_path(log)
-      if log.key?(:fine_tune) && log[:fine_tune]
-        @log_config.fine_tune_file_path
-      else
-        @log_config.file_path
-      end
     end
   end
 end

@@ -1,0 +1,9 @@
+{
+  "name": "data_extractor",
+  "description": "Extract structured and typed data from text",
+  "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": {}
+  }
+}

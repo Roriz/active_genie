@@ -12,14 +12,12 @@ module ActiveGenie
       def initialize(players, criteria, juries: [], config: nil)
         @players = Entities::Players.new(players)
         @criteria = criteria
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
         @juries = Array(juries).compact.uniq
       end
 
       def call
-        @config.log.additional_context = { ranker_scoring_id: }
-
-        ActiveGenie::FiberByBatch.call(players_without_score, config: @config) do |player|
+        ActiveGenie::FiberByBatch.call(players_without_score, config:) do |player|
           player.score = generate_score(player)
         end
       end
@@ -31,14 +29,16 @@ module ActiveGenie
       end
 
       def generate_score(player)
-        score, reasoning = ActiveGenie::Scorer.by_jury_bench(
+        result = ActiveGenie::Scorer.by_jury_bench(
           player.content,
           @criteria,
           @juries,
-          config: @config
-        ).values_at('final_score', 'final_reasoning')
+          config:
+        )
+        score = result.data.to_i
+        reasoning = result.reasoning
 
-        @config.logger.call({ code: :new_score, player_id: player.id, score:, reasoning: })
+        ActiveGenie.logger.call({ code: :new_score, player_id: player.id, score:, reasoning: }, config:)
 
         score
       end
@@ -48,9 +48,9 @@ module ActiveGenie
           response = ActiveGenie::Lister.juries(
             [@players.sample.content, @players.sample.content].join("\n\n"),
             @criteria,
-            config: @config
+            config:
           )
-          @config.logger.call({ code: :new_juries, juries: response })
+          ActiveGenie.logger.call({ code: :new_juries, juries: response }, config:)
           response
         end
       end
@@ -58,10 +58,19 @@ module ActiveGenie
       def ranker_scoring_id
         @ranker_scoring_id ||= begin
           player_ids = players_without_score.map(&:id).join(',')
-          ranker_unique_key = [player_ids, @criteria, @config.to_json].join('-')
+          ranker_unique_key = [player_ids, @criteria].join('-')
 
           "#{Digest::MD5.hexdigest(ranker_unique_key)}-scoring"
         end
+      end
+
+      def config
+        @config ||= ActiveGenie.new_configuration(
+          DeepMerge.call(
+            @initial_config,
+            { log: { additional_context: { ranker_scoring_id: } } }
+          )
+        )
       end
     end
   end

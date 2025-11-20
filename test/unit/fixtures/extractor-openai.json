@@ -1,0 +1,45 @@
+{
+  "id": "chatcmpl-CNuD4rNWVxlztfWQc8YM4yvjIpxme",
+  "object": "chat.completion",
+  "created": 1759813650,
+  "model": "gpt-5-mini-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_P6rCkhs8GBR8Wiue6DsFZCtp",
+            "type": "function",
+            "function": {
+              "name": "data_extractor",
+              "arguments": "{\"name\":\"John Doe\",\"name_explanation\":\"The user explicitly provided the full name 'John Doe' in the message.\",\"name_accuracy\":100,\"age\":25,\"age_explanation\":\"The user explicitly stated '25 years old' in the message.\",\"age_accuracy\":100,\"profession\":\"Software Engineer\",\"profession_explanation\":\"The user explicitly stated 'works as a software engineer' in the message.\",\"profession_accuracy\":100}"
+            }
+          }
+        ],
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 554,
+    "completion_tokens": 360,
+    "total_tokens": 914,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

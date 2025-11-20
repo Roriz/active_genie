@@ -84,7 +84,7 @@ The LLM configuration is used to define settings for interacting with Large Lang
 
 ```ruby
 ActiveGenie.configure do |config|
-  config.llm.provider = :openai
+  config.providers.provider = :openai
   config.llm.model = 'gpt-999'
   config.llm.temperature = 0.1
   config.llm.max_tokens = 8000

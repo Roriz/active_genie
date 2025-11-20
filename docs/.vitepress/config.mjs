@@ -35,8 +35,7 @@ export default defineConfig({
         items: [
           { text: 'What is ActiveGenie?', link: '/introduction/what-is-active-genie' },
           { text: 'Installation', link: '/introduction/installation' },
-          { text: 'Quickstart', link: '/introduction/quickstart' },
-          { text: 'Basic Configuration', link: '/introduction/basic-configuration' },
+          { text: 'Quickstart', link: '/introduction/quickstart' }
         ]
       },
       {

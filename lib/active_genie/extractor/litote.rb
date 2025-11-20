@@ -4,11 +4,7 @@ require_relative 'explanation'
 
 module ActiveGenie
   module Extractor
-    class Litote
-      def self.call(...)
-        new(...).call
-      end
-
+    class Litote < ActiveGenie::BaseModule
       # Extracts data from informal text while also detecting litotes and their meanings.
       # This method extends the basic extraction by analyzing rhetorical devices.
       #
@@ -31,13 +27,16 @@ module ActiveGenie
       def initialize(text, data_to_extract, config: {})
         @text = text
         @data_to_extract = data_to_extract
-        @initial_config = config
+        super(config:)
       end
 
       def call
         response = Explanation.call(@text, extract_with_litote, config:)
 
-        response = Explanation.call(response[:litote_rephrased], @data_to_extract, config:) if response[:message_litote]
+        if response.data[:message_litote]
+          response = Explanation.call(response.data[:litote_rephrased], @data_to_extract,
+                                      config:)
+        end
 
         response
       end
@@ -50,13 +49,8 @@ module ActiveGenie
         @data_to_extract.merge(parameters)
       end
 
-      def config
-        @config ||= begin
-          c = ActiveGenie.configuration.merge(@initial_config)
-          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
-
-          c
-        end
+      def module_config
+        { llm: { recommended_model: 'deepseek-chat' } }
       end
     end
   end

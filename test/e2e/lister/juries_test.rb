@@ -14,7 +14,7 @@ module ActiveGenie
         # Should include database-related expertise
         db_roles = ['Database Architect', 'Data Engineer', 'System Architect', 'Performance Engineer',
                     'Backend Engineer']
-        matching_roles = result.select { |jury| db_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| db_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include database expertise, full result: #{result}"
@@ -28,7 +28,7 @@ module ActiveGenie
 
         # Should include financial expertise
         financial_roles = ['Financial Analyst', 'Investment Advisor', 'CFO', 'Equity Analyst', 'Risk Manager']
-        matching_roles = result.select { |jury| financial_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| financial_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include financial expertise, full result: #{result}"
@@ -43,7 +43,7 @@ module ActiveGenie
         # Should include strategy and operations expertise
         strategy_roles = ['Strategy Consultant', 'Business Analyst', 'Operations Manager', 'Market Researcher',
                           'International Business Expert', 'Market Analysts']
-        matching_roles = result.select { |jury| strategy_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| strategy_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include strategic expertise, full result: #{result}"
@@ -59,7 +59,7 @@ module ActiveGenie
         # Should include medical and research expertise
         medical_roles = ['Endocrinologist', 'Clinical Researcher', 'Biostatistician', 'Medical Writer',
                          'Regulatory Affairs Specialist']
-        matching_roles = result.select { |jury| medical_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| medical_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include medical expertise, full result: #{result}"
@@ -75,7 +75,7 @@ module ActiveGenie
         # Should include legal expertise
         legal_roles = ['Contract Attorney', 'Contract Lawyers', 'IP Lawyer', 'Intellectual Property Lawyers',
                        'Intellectual Property Lawyer', 'Technology Lawyer', 'Risk Analyst', 'Compliance Officer']
-        matching_roles = result.select { |jury| legal_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| legal_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include legal expertise, full result: #{result}"
@@ -90,7 +90,7 @@ module ActiveGenie
         # Should include privacy and compliance expertise
         compliance_roles = ['Privacy Officer', 'Compliance Specialist', 'Data Protection Officer', 'Legal Counsel',
                             'Risk Manager']
-        matching_roles = result.select { |jury| compliance_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| compliance_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include compliance expertise, full result: #{result}"
@@ -106,7 +106,7 @@ module ActiveGenie
         # Should include educational and technical expertise
         education_roles = ['Computer Science Professor', 'Curriculum Designer', 'Educational Technologist',
                            'Industry Professional', 'Academic Advisor']
-        matching_roles = result.select { |jury| education_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| education_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include educational expertise, full result: #{result}"
@@ -121,7 +121,7 @@ module ActiveGenie
         # Should include instructional design and subject matter expertise
         instructional_roles = ['Instructional Designer', 'Data Scientist', 'E-learning Specialist', 'UX Designer',
                                'Educational Content Writer']
-        matching_roles = result.select { |jury| instructional_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| instructional_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include instructional expertise, full result: #{result}"
@@ -137,7 +137,7 @@ module ActiveGenie
         # Should include design and branding expertise
         design_roles = ['Brand Designer', 'Graphic Designer', 'Creative Director', 'Marketing Specialist',
                         'Visual Designer']
-        matching_roles = result.select { |jury| design_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| design_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include design expertise, full result: #{result}"
@@ -151,7 +151,7 @@ module ActiveGenie
 
         # Should include UX/UI and accessibility expertise
         ux_roles = ['UX Designer', 'UI Designer', 'Accessibility Specialist', 'Mobile App Designer', 'User Researcher']
-        matching_roles = result.select { |jury| ux_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| ux_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include UX/UI expertise, full result: #{result}"
@@ -167,7 +167,7 @@ module ActiveGenie
         # Should include environmental expertise
         environmental_roles = ['Environmental Scientist', 'Ecologist', 'Environmental Engineer',
                                'Conservation Biologist', 'Sustainability Expert']
-        matching_roles = result.select { |jury| environmental_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| environmental_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include environmental expertise, full result: #{result}"
@@ -182,7 +182,7 @@ module ActiveGenie
         # Should include research and climate expertise
         research_roles = ['Climate Scientist', 'Remote Sensing Specialist', 'Urban Planner', 'Research Methodologist',
                           'Geospatial Analyst']
-        matching_roles = result.select { |jury| research_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| research_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include research expertise, full result: #{result}"
@@ -197,7 +197,7 @@ module ActiveGenie
         # Should include diverse expertise for complex topic
         interdisciplinary_roles = ['AI Ethics Expert', 'AI Ethicists', 'Healthcare Informaticist', 'Medical Ethicist',
                                    'Data Scientist', 'Regulatory Affairs Specialist', 'Clinical Researcher']
-        matching_roles = result.select { |jury| interdisciplinary_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| interdisciplinary_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include relevant interdisciplinary expertise, full result: #{result}"
@@ -211,7 +211,7 @@ module ActiveGenie
 
         # Should include relevant technical expertise even for short content
         technical_roles = ['C++ Developer', 'Software Engineer', 'Performance Engineer', 'Systems Programmer']
-        matching_roles = result.select { |jury| technical_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| technical_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include technical expertise for code review, full result: #{result}"
@@ -226,7 +226,7 @@ module ActiveGenie
         # Should have appropriate expertise
         ml_roles = ['Data Scientist', 'Machine Learning Engineer', 'Business Analyst', 'Customer Success Manager',
                     'Analytics Engineer']
-        matching_roles = result.select { |jury| ml_roles.any? { |role| jury.include?(role) } }
+        matching_roles = result.data.select { |jury| ml_roles.any? { |role| jury.include?(role) } }
 
         assert_operator matching_roles.length, :>=, 1,
                         "Should include ML expertise, full result: #{result}"

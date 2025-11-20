@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'net/http'
+require_relative '../errors/provider_server_error'
 
 module ActiveGenie
   module Providers
@@ -103,9 +104,7 @@ module ActiveGenie
         http.read_timeout = @config.llm.read_timeout || DEFAULT_TIMEOUT
         http.open_timeout = @config.llm.open_timeout || DEFAULT_OPEN_TIMEOUT
 
-        retry_with_backoff do
-          http.request(request)
-        end
+        http.request(request)
       end
 
       # Apply headers to the request
@@ -153,7 +152,7 @@ module ActiveGenie
       #
       # @param details [Hash] Request and response details
       def log_request_details(uri:, request:, response:, start_time:, parsed_response:)
-        @config.logger.call(
+        ActiveGenie.logger.call(
           {
             code: :http_request,
             uri: uri.to_s,
@@ -161,7 +160,7 @@ module ActiveGenie
             status: response.code,
             duration: Time.now - start_time,
             response_size: parsed_response.to_s.bytesize
-          }
+          }, config: @config
         )
       end
 
@@ -171,23 +170,22 @@ module ActiveGenie
         retries = 0
 
         begin
-          response = yield
-
-          raise ActiveGenie::ProviderServerError, response if response&.code.to_i >= 500
-
-          response
-        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderServerError => e
+          yield
+        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ActiveGenie::ProviderServerError,
+               JSON::ParserError => e
           raise if retries > max_retries
 
           sleep_time = retry_delay * (2**retries)
           retries += 1
 
-          @config.logger.call(
-            code: :retry_attempt,
-            attempt: retries,
-            max_retries:,
-            next_retry_in_seconds: sleep_time,
-            error: e.message
+          ActiveGenie.logger.call(
+            {
+              code: :retry_attempt,
+              attempt: retries,
+              max_retries:,
+              next_retry_in_seconds: sleep_time,
+              error: e.message
+            }, config: @config
           )
 
           sleep(sleep_time)

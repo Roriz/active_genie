@@ -12,7 +12,7 @@ module ActiveGenie
         @higher_tier = players.calc_higher_tier
         @lower_tier = players.calc_lower_tier
         @criteria = criteria
-        @config = ActiveGenie.configuration.merge(config)
+        @initial_config = config
         @tmp_highers = []
         @total_tokens = 0
         @previous_elo = @players.to_h { |player| [player.id, player.elo] }
@@ -20,16 +20,16 @@ module ActiveGenie
       end
 
       def call
-        @config.log.add_observer(observers: ->(log) { log_observer(log) })
-        @config.log.additional_context = { elo_id: }
+        config.log.add_observer(observers: ->(log) { log_observer(log) })
+        config.log.additional_context = { elo_id: }
 
-        ActiveGenie::FiberByBatch.call(matches, config: @config) do |player_a, player_b|
+        ActiveGenie::FiberByBatch.call(matches, config:) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
 
           update_players_elo(winner, loser)
         end
 
-        build_report
+        elo_result
       end
 
       DEBATE_PER_PLAYER = 3
@@ -38,39 +38,37 @@ module ActiveGenie
       private
 
       def matches
-        match_keys = {}
-
-        @higher_tier.each_with_object([]) do |attack_player, matches|
+        @matches ||= @lower_tier.each_with_object([]) do |lower_player, matches|
           DEBATE_PER_PLAYER.times do
             higher_player = next_higher_player
 
-            next if match_keys["#{attack_player.id}_#{higher_player.id}"]
+            next if matches.include?([lower_player, higher_player])
 
-            match_keys["#{attack_player.id}_#{higher_player.id}"] = true
-            matches << [attack_player, higher_player]
+            matches << [lower_player, higher_player]
           end
         end
       end
 
       def next_higher_player
-        @tmp_highers = @higher_tier.shuffle if @tmp_highers.empty?
+        @tmp_highers = @higher_tier.dup if @tmp_highers.empty?
 
-        @tmp_highers.pop
+        @tmp_highers.count % 2 ? @tmp_highers.shift : @tmp_highers.pop
       end
 
       def debate(player_a, player_b)
+        debate_config = ActiveGenie::DeepMerge.call(
+          config.to_h,
+          { log: { additional_context: { player_a_id: player_a.id, player_b_id: player_b.id } } }
+        )
+
         result = ActiveGenie::Comparator.by_debate(
           player_a.content,
           player_b.content,
           @criteria,
-          config: @config.merge(additional_context: { player_a_id: player_a.id, player_b_id: player_b.id })
+          config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner, loser = case result['winner']
-                        when 'player_a' then [player_a, player_b]
-                        when 'player_b' then [player_b, player_a]
-                        when 'draw' then [nil, nil]
-                        end
+        winner, loser = result.data == player_a.content ? [player_a, player_b] : [player_b, player_a]
 
         [winner, loser]
       end
@@ -94,27 +92,30 @@ module ActiveGenie
           higher_tier_ids = @higher_tier.map(&:id).join(',')
           lower_tier_ids = @lower_tier.map(&:id).join(',')
 
-          ranker_unique_key = [higher_tier_ids, lower_tier_ids, @criteria, @config.to_json].join('-')
+          ranker_unique_key = [higher_tier_ids, lower_tier_ids, @criteria].join('-')
           Digest::MD5.hexdigest(ranker_unique_key)
         end
       end
 
-      def build_report
-        report = {
-          elo_id:,
-          players_in: players_in.map(&:id),
-          debates_count: matches.size,
-          total_tokens: @total_tokens,
-          players_in_round: players_in.map(&:id),
-          previous_highest_elo: @previous_highest_elo,
-          highest_elo:,
-          highest_elo_diff: highest_elo - @previous_highest_elo,
-          players_elo_diff:
-        }
+      def elo_result
+        result = ActiveGenie::Result.new(
+          data: @players.sorted.map(&:content),
+          metadata: {
+            elo_id:,
+            players: @players,
+            players_in_round: players_in.map(&:id),
+            debates_count: matches.size,
+            total_tokens: @total_tokens,
+            previous_highest_elo: @previous_highest_elo,
+            highest_elo:,
+            highest_elo_diff: highest_elo - @previous_highest_elo,
+            players_elo_diff:
+          }
+        )
 
-        @config.logger.call({ elo_id:, code: :elo_report, **report })
+        ActiveGenie.logger.call({ elo_id:, code: :elo_report, **result.metadata }, config:)
 
-        report
+        result
       end
 
       def players_in
@@ -134,6 +135,10 @@ module ActiveGenie
 
       def log_observer(log)
         @total_tokens += log[:total_tokens] if log[:code] == :llm_usage
+      end
+
+      def config
+        @config ||= ActiveGenie.new_configuration(@initial_config)
       end
     end
   end

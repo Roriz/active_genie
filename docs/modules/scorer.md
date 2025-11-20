@@ -28,6 +28,7 @@ criteria = "Evaluate code quality, maintainability, and adherence to best practi
 reviewers = ["Senior Software Engineer", "Code Architect"]
 
 result = ActiveGenie::Scorer.call(content, criteria, reviewers)
+result.data
 # => {
 #      "senior_software_engineer_score" => 92,
 #      "senior_software_engineer_reasoning" => "Excellent use of dependency injection which enhances testability. SOLID principles are well-applied, making the code maintainable and extensible.",
@@ -47,6 +48,7 @@ content = "Patient shows significant improvement in cardiac function with ejecti
 criteria = "Evaluate medical accuracy, clarity, and clinical relevance"
 
 result = ActiveGenie::Scorer.call(content, criteria)
+result.data
 # => {
 #      "cardiologist_score" => 94,
 #      "cardiologist_reasoning" => "Clinically significant improvement in ejection fraction indicates excellent therapeutic response. The measurement is within normal ranges.",
@@ -126,11 +128,24 @@ Main interface for scoring text content with expert evaluation.
 | `config` | Hash | Additional configuration options for scoring behavior |
 
 #### Returns
-Hash containing detailed scoring results:
-- `{reviewer_name}_score` [Number] - Individual reviewer scores (0-100)
-- `{reviewer_name}_reasoning` [String] - Detailed explanation from each reviewer
-- `final_score` [Number] - Aggregated final score based on all reviewers
-- `final_reasoning` [String] - Summary reasoning explaining the final score
+`ActiveGenie::Result` instance with:
+
+```ruby
+result = ActiveGenie::Scorer.call(text, criteria, reviewers)
+
+# Access scoring data
+result.data
+# => {
+#      "{reviewer_name}_score" => 92,          # Individual reviewer scores (0-100)
+#      "{reviewer_name}_reasoning" => "...",   # Detailed explanation from each reviewer
+#      "final_score" => 90.5,                  # Aggregated final score
+#      "final_reasoning" => "..."              # Summary reasoning
+#    }
+
+# Access overall reasoning
+result.reasoning
+# => "Scoring methodology and aggregation explanation"
+```
 
 -----
 

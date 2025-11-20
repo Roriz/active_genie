@@ -11,6 +11,7 @@ Generate a list of items for a given theme:
 ```ruby
 theme = "Industries that are most likely to be affected by climate change"
 result = ActiveGenie::Lister.call(theme)
+result.data
 # => [
 #      "Agriculture",
 #      "Insurance", 
@@ -18,6 +19,10 @@ result = ActiveGenie::Lister.call(theme)
 #      "Fishing",
 #      "Real Estate"
 #    ]
+
+result.reasoning
+# => "List generated using Family Feud style survey simulation reflecting general public opinion"
+
 ```
 
 Generate a list with custom configuration:
@@ -25,6 +30,7 @@ Generate a list with custom configuration:
 ```ruby
 theme = "Most popular breakfast foods"
 result = ActiveGenie::Lister.call(theme, config: { number_of_items: 8 })
+result.data
 # => [
 #      "Eggs",
 #      "Toast", 
@@ -49,6 +55,7 @@ The default "Family Feud" style survey simulation, perfect for general public op
 ```ruby
 theme = "Things people do when they're bored"
 result = ActiveGenie::Lister.with_feud(theme)
+result.data
 # => [
 #      "Watch TV",
 #      "Browse social media",
@@ -65,6 +72,7 @@ Generates a list of expert jury roles suitable for evaluating specific content:
 text = "A technical proposal for implementing microservices architecture"
 criteria = "Evaluate technical feasibility and business impact"
 result = ActiveGenie::Lister.with_juries(text, criteria)
+result.data
 # => [
 #      "Software Architect",
 #      "DevOps Engineer",
@@ -78,6 +86,7 @@ result = ActiveGenie::Lister.with_juries(text, criteria)
 ```ruby
 theme = "Factors consumers consider when buying a smartphone"
 result = ActiveGenie::Lister.call(theme)
+result.data
 # => [
 #      "Price",
 #      "Battery life",
@@ -91,6 +100,7 @@ result = ActiveGenie::Lister.call(theme)
 ```ruby
 theme = "Topics people want to learn about in online courses"
 result = ActiveGenie::Lister.call(theme, config: { number_of_items: 10 })
+result.data
 # => [
 #      "Programming",
 #      "Digital Marketing",
@@ -109,6 +119,7 @@ result = ActiveGenie::Lister.call(theme, config: { number_of_items: 10 })
 ```ruby
 theme = "Common challenges faced by remote workers"
 result = ActiveGenie::Lister.call(theme)
+result.data
 # => [
 #      "Communication issues",
 #      "Work-life balance",
@@ -136,33 +147,37 @@ The primary interface that uses the Feud methodology by default.
   - `theme` [String] - The topic or question for the survey. Should be framed as something you'd ask in a public survey.
   - `config` [Hash] - Additional configuration that modifies the generation behavior. The most relevant option is `number_of_items` to control the size of the list.
 
-**Returns an `Array` of strings containing:**
+**Returns `ActiveGenie::Result` instance containing:**
 
-  - A numbered list of items representing the most common answers for the given theme, ordered by popularity.
+```ruby
+result = ActiveGenie::Lister.call(theme)
+
+# Access the list
+result.data
+# => ["Item 1", "Item 2", "Item 3", ...]
+
+# Access reasoning
+result.reasoning
+# => "List generated using Family Feud style survey simulation"
+```
 
 -----
 
 ### .with_feud(theme, config: {})
 
-Explicitly uses the "Family Feud" survey methodology.
+Explicitly uses the "Family Feud" survey methodology. Returns `ActiveGenie::Result` with the same structure as `.call()`.
 
   - `theme` [String] - The topic or question for the survey.
   - `config` [Hash] - Additional configuration that modifies the generation behavior.
-
-**Returns an `Array` of strings containing:**
-
-  - A numbered list of items representing survey responses, ordered from most to least common.
 
 -----
 
 ### .with_juries(text, criteria, config: {})
 
-Generates a list of expert jury roles suitable for evaluating specific content against given criteria.
+Generates a list of expert jury roles suitable for evaluating specific content against given criteria. Returns `ActiveGenie::Result`.
 
   - `text` [String] - The content that needs to be evaluated by experts.
   - `criteria` [String] - The evaluation criteria that will guide jury selection.
   - `config` [Hash] - Additional configuration that modifies the recommendation process.
-
-**Returns an `Array` of strings containing:**
 
   - A list of expert roles or jury types best suited to evaluate the given content and criteria.

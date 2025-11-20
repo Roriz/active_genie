@@ -8,8 +8,6 @@ module ActiveGenie
       # Configuration class for the Google Generative Language API client.
       # Manages API keys, URLs, model selections, and client instantiation.
       class GoogleConfig < ProviderBase
-        NAME = :google
-
         # Retrieves the API key.
         # Falls back to the GENERATIVE_LANGUAGE_GOOGLE_API_KEY environment variable if not set.
         # @return [String, nil] The API key.
@@ -24,6 +22,14 @@ module ActiveGenie
           # NOTE: Google Generative Language API uses a specific path structure like /v1beta/models/{model}:generateContent
           # The base URL here should be just the domain part.
           @api_url || 'https://generativelanguage.googleapis.com'
+        end
+
+        def default_model
+          @default_model || 'gemini-2.5-flash'
+        end
+
+        def valid_model?(model)
+          model.include?('gemini')
         end
       end
     end

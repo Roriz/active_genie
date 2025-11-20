@@ -9,17 +9,13 @@ module ActiveGenie
     # @example Feud usage with two players and criteria
     #   Feud.call("Industries that are most likely to be affected by climate change")
     #
-    class Feud
-      def self.call(...)
-        new(...).call
-      end
-
+    class Feud < ActiveGenie::BaseModule
       # @param theme [String] The theme for the feud
       # @param config [Hash] Additional configuration options
       # @return [Array of strings] List of items
       def initialize(theme, config: {})
         @theme = theme
-        @initial_config = config
+        super(config:)
       end
 
       # @return [Array of strings] The list of items
@@ -30,14 +26,17 @@ module ActiveGenie
           {  role: 'user', content: "theme: #{@theme}" }
         ]
 
-        response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           FUNCTION,
           config:
         )
 
-        log_feud(response)
-        response['items'] || []
+        ActiveGenie::Result.new(
+          data: provider_response['items'] || [],
+          reasoning: provider_response['why_these_items'],
+          metadata: provider_response
+        )
       end
 
       PROMPT = File.read(File.join(__dir__, 'feud.prompt.md'))
@@ -49,21 +48,8 @@ module ActiveGenie
         config.lister.number_of_items
       end
 
-      def log_feud(response)
-        config.logger.call(
-          code: :feud,
-          theme: @theme[0..30],
-          items: response['items'].map { |item| item[0..30] }
-        )
-      end
-
-      def config
-        @config ||= begin
-          c = ActiveGenie.configuration.merge(@initial_config)
-          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
-
-          c
-        end
+      def module_config
+        { llm: { recommended_model: 'claude-haiku-4-5' } }
       end
     end
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'entities/players'
+require_relative '../entities/players'
 require_relative 'free_for_all'
 require_relative 'elo'
 require_relative 'scoring'
@@ -30,33 +30,30 @@ require_relative 'scoring'
 # @return [Hash] Final ranked player results
 module ActiveGenie
   module Ranker
-    class Tournament
-      def self.call(...)
-        new(...).call
-      end
-
+    class Tournament < ActiveGenie::BaseModule
       def initialize(players, criteria, juries: [], config: {})
         @players = Entities::Players.new(players)
         @criteria = criteria
         @juries = Array(juries).compact.uniq
-        @config = ActiveGenie.configuration.merge(config)
+        super(config:)
       end
 
       def call
-        @config.log.additional_context = { ranker_id: }
-
         set_initial_player_scores!
         eliminate_obvious_bad_players!
 
         while @players.elo_eligible?
-          elo_report = run_elo_round!
+          elo_result = run_elo_round!
           eliminate_lower_tier_players!
-          rebalance_players!(elo_report)
+          rebalance_players!(elo_result)
         end
 
         run_free_for_all!
 
-        sorted_players
+        ActiveGenie::Result.new(
+          data: sorted_players.map(&:content),
+          metadata: @players.map(&:to_h)
+        )
       end
 
       ELIMINATION_VARIATION = 'variation_too_high'
@@ -65,12 +62,7 @@ module ActiveGenie
       private
 
       def set_initial_player_scores!
-        Scoring.call(
-          @players,
-          @criteria,
-          juries: @juries,
-          config: @config
-        )
+        Scoring.call(@players, @criteria, juries: @juries, config:)
       end
 
       def eliminate_obvious_bad_players!
@@ -80,49 +72,45 @@ module ActiveGenie
       end
 
       def run_elo_round!
-        Elo.call(
-          @players,
-          @criteria,
-          config: @config
-        )
+        Elo.call(@players, @criteria, config:)
       end
 
       def eliminate_lower_tier_players!
         @players.calc_lower_tier.each { |player| player.eliminated = ELIMINATION_RELEGATION }
       end
 
-      def rebalance_players!(elo_report)
-        return if elo_report[:highest_elo_diff].negative?
+      def rebalance_players!(elo_result)
+        return if elo_result.metadata[:highest_elo_diff].negative?
 
         @players.eligible.each do |player|
-          next if elo_report[:players_in_round].include?(player.id)
+          next if elo_result.metadata[:players_in_round].include?(player.id)
 
-          player.elo += elo_report[:highest_elo_diff]
+          player.elo += elo_result.metadata[:highest_elo_diff]
         end
       end
 
       def run_free_for_all!
-        FreeForAll.call(
-          @players,
-          @criteria,
-          config: @config
-        )
+        FreeForAll.call(@players, @criteria, config:)
       end
 
       def sorted_players
         players = @players.sorted
-        @config.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) })
+        ActiveGenie.logger.call({ ranker_id:, code: :ranker_final, players: players.map(&:to_h) }, config:)
 
-        players.map(&:to_h)
+        players
       end
 
       def ranker_id
         @ranker_id ||= begin
           player_ids = @players.map(&:id).join(',')
-          ranker_unique_key = [player_ids, @criteria, @config.to_json].join('-')
+          ranker_unique_key = [player_ids, @criteria].join('-')
 
           Digest::MD5.hexdigest(ranker_unique_key)
         end
+      end
+
+      def module_config
+        { log: { additional_context: { ranker_id: } } }
       end
     end
   end

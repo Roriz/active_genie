@@ -26,6 +26,7 @@ schema = {
 }
 
 result = ActiveGenie::Extractor.call(text, schema)
+result.data
 # => {
 #      name: "John Doe",
 #      name_explanation: "Found directly at the beginning of text",
@@ -54,6 +55,7 @@ schema = {
 }
 
 result = ActiveGenie::Extractor.with_explanation(product, schema)
+result.data
 # => {
 #      brand: "Sony",
 #      brand_explanation: "Brand name at the beginning",
@@ -93,6 +95,7 @@ schema = {
 }
 
 result = ActiveGenie::Extractor.call(post, schema)
+result.data
 # => {
 #      action: "like",
 #      action_explanation: "Primary action mentioned first",
@@ -145,6 +148,7 @@ schema = {
 }
 
 result = ActiveGenie::Extractor.with_litote(chat, schema)
+result.data
 # => {
 #      sentiment: "mixed",
 #      sentiment_explanation: "Uses litote 'isn't terrible' showing mild approval, balanced by 'not exactly amazing'",
@@ -183,6 +187,7 @@ schema = {
 }
 
 result = ActiveGenie::Extractor.with_litote(review, schema)
+result.data
 # => {
 #      overall_rating: 4,
 #      overall_rating_explanation: "Positive sentiment via litote 'isn't bad at all'",
@@ -325,8 +330,9 @@ config = {
 Identical to `.call()` but includes detailed explanations for each extracted field. Use this method when you need transparency in the extraction process or for debugging purposes.
 
 ```ruby
-# Returns additional *_explanation fields
+# Returns ActiveGenie::Result with additional *_explanation fields in data
 result = ActiveGenie::Extractor.with_explanation(text, schema)
+result.data
 # => {
 #      name: "John Doe",
 #      name_explanation: "Found directly at the beginning of the text",
@@ -345,6 +351,7 @@ Specialized extraction method that analyzes rhetorical devices and informal lang
 
 ```ruby
 result = ActiveGenie::Extractor.with_litote("The weather isn't bad", schema)
+result.data
 # => {
 #      mood: "positive",
 #      mood_explanation: "Positive sentiment expressed through litote",
@@ -357,20 +364,29 @@ result = ActiveGenie::Extractor.with_litote("The weather isn't bad", schema)
 
 ## Response Structure
 
-All extractor methods return a `Hash` with the following pattern:
+All extractor methods return an `ActiveGenie::Result` instance with:
 
 ```ruby
-{
-  # Extracted fields matching your schema
-  field_name: extracted_value,
-  
-  # Explanation fields (with_explanation and with_litote only)
-  field_name_explanation: "Reasoning for extraction",
-  
-  # Litote-specific fields (with_litote only)
-  message_litote: true/false,
-  litote_rephrased: "Positive rephrasing of original text"
-}
+result = ActiveGenie::Extractor.call(text, schema)
+
+# Access extracted data
+result.data
+# => {
+#      field_name: extracted_value,
+#      # With explanation/litote methods:
+#      field_name_explanation: "Reasoning for extraction",
+#      # Litote-specific fields (with_litote only):
+#      message_litote: true/false,
+#      litote_rephrased: "Positive rephrasing of original text"
+#    }
+
+# Access reasoning about the extraction process
+result.reasoning
+# => "Explanation of extraction methodology and approach"
+
+# Convert to different formats
+result.to_h    # => { data: {...}, reasoning: "...", metadata: {...} }
+result.to_json # => JSON string
 ```
 
 ### Error Handling
@@ -385,6 +401,7 @@ The extractor gracefully handles various error conditions:
 ```ruby
 begin
   result = ActiveGenie::Extractor.call(text, schema)
+  data = result.data
 rescue ActiveGenie::InvalidProviderError => e
   # Handle provider configuration issues
 rescue ActiveGenie::ExtractionError => e

@@ -12,7 +12,7 @@ module ActiveGenie
           'who is stronger? Without any restrictions'
         )
 
-        assert_equal 'Goku', result.winner
+        assert_equal 'Goku', result.data
       end
     end
   end

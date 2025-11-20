@@ -10,22 +10,19 @@ module ActiveGenie
       def initialize(players, criteria, config: nil)
         @players = Entities::Players.new(players)
         @criteria = criteria
-        @config = config || ActiveGenie.configuration
+        @initial_config = config
         @start_time = Time.now
         @total_tokens = 0
       end
 
       def call
-        @config.log.add_observer(observers: ->(log) { log_observer(log) })
-        @config.log.additional_context = { free_for_all_id: }
-
-        ActiveGenie::FiberByBatch.call(matches, config: @config) do |player_a, player_b|
+        ActiveGenie::FiberByBatch.call(matches, config:) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
 
           update_players_score(winner, loser)
         end
 
-        build_report
+        build_result
       end
 
       private
@@ -37,29 +34,32 @@ module ActiveGenie
       end
 
       def debate(player_a, player_b)
-        log_context = { player_a_id: player_a.id, player_b_id: player_b.id }
+        debate_config = ActiveGenie::DeepMerge.call(
+          config.to_h,
+          { log: { additional_context: { player_a_id: player_a.id, player_b_id: player_b.id } } }
+        )
 
         result = ActiveGenie::Comparator.by_debate(
           player_a.content,
           player_b.content,
           @criteria,
-          config: @config.merge(additional_context: log_context)
+          config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner, loser = case result['winner']
-                        when 'player_a' then [player_a, player_b]
-                        when 'player_b' then [player_b, player_a]
-                        when 'draw' then [nil, nil]
+        winner, loser = case result.data
+                        when player_a.to_s then [player_a, player_b]
+                        else [player_b, player_a]
                         end
 
-        @config.logger.call(
+        ActiveGenie.logger.call(
           {
-            **log_context,
+            player_a_id: player_a.id,
+            player_b_id: player_b.id,
             code: :free_for_all,
-            winner_id: winner&.id,
-            loser_id: loser&.id,
-            reasoning: result['reasoning']
-          }
+            winner: winner.to_s[0..20],
+            loser: loser.to_s[0..20],
+            reasoning: result.reasoning
+          }, config:
         )
 
         [winner, loser]
@@ -80,26 +80,43 @@ module ActiveGenie
       def free_for_all_id
         @free_for_all_id ||= begin
           eligible_ids = @players.eligible.map(&:id).join(',')
-          ranking_unique_key = [eligible_ids, @criteria, @config.to_json].join('-')
+          ranking_unique_key = [eligible_ids, @criteria].join('-')
           Digest::MD5.hexdigest(ranking_unique_key)
         end
       end
 
-      def build_report
-        report = {
-          free_for_all_id:,
-          debates_count: matches.size,
-          duration_seconds: Time.now - @start_time,
-          total_tokens: @total_tokens
-        }
+      def build_result
+        result = ActiveGenie::Result.new(
+          data: @players.sorted.map(&:content),
+          metadata: {
+            free_for_all_id:,
+            players: @players,
+            debates_count: matches.size,
+            duration_seconds: Time.now - @start_time,
+            total_tokens: @total_tokens
+          }
+        )
 
-        @config.logger.call({ code: :free_for_all_report, **report })
+        ActiveGenie.logger.call({ code: :free_for_all_report, **result.metadata }, config:)
 
-        report
+        result
       end
 
       def log_observer(log)
         @total_tokens += log[:total_tokens] if log[:code] == :llm_usage
+      end
+
+      def config
+        @config ||= begin
+          c = ActiveGenie.new_configuration(
+            ActiveGenie::DeepMerge.call(
+              @initial_config.to_h,
+              { log: { context: { free_for_all_id: } } }
+            )
+          )
+          c.log.add_observer(observers: ->(log) { log_observer(log) })
+          c
+        end
       end
     end
   end

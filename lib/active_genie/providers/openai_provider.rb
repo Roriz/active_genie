@@ -25,11 +25,13 @@ module ActiveGenie
           model:
         }
 
-        response = request(payload)
+        response = retry_with_backoff do
+          request(payload)
+        end
 
         raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.keys.empty?
 
-        @config.logger.call({ code: :function_calling, fine_tune: true, payload:, response: })
+        ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: }, config: @config)
 
         response
       end
@@ -41,7 +43,7 @@ module ActiveGenie
 
         return nil if response.nil?
 
-        @config.logger.call(
+        ActiveGenie.logger.call(
           {
             code: :llm_usage,
             input_tokens: response.dig('usage', 'prompt_tokens'),
@@ -49,7 +51,7 @@ module ActiveGenie
             total_tokens: response.dig('usage', 'total_tokens'),
             model:,
             usage: response['usage']
-          }
+          }, config: @config
         )
 
         parsed_response = JSON.parse(response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments'))

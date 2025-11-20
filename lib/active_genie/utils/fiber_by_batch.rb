@@ -8,9 +8,9 @@ module ActiveGenie
 
     def call(items, config:, &block)
       items.each_slice(config.llm.max_fibers).to_a.each do |batch|
-        Async do
+        Async do |task|
           tasks = batch.map do |item|
-            Async { block.call(item) }
+            task.async { block.call(item) }
           end
 
           tasks.each(&:wait)

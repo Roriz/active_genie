@@ -22,7 +22,7 @@ module ActiveGenie
         define_method("test_#{test[:input][2].downcase.gsub(' ', '_').gsub('.', '')}_#{index}") do
           result = ActiveGenie::Comparator.by_debate(*test[:input])
 
-          assert_equal test[:input][test[:expected]], result.winner
+          assert_equal test[:input][test[:expected]], result.data
         end
       end
 
@@ -47,7 +47,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal dresses[1], result.winner
+        assert_equal dresses[1], result.data
       end
 
       def test_stackoverflow_questions
@@ -65,7 +65,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal stackoverflow_issues[0], result.winner
+        assert_equal stackoverflow_issues[0], result.data
       end
 
       def test_code_quality_comparison
@@ -86,7 +86,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal implementations[0], result.winner
+        assert_equal implementations[0], result.data
       end
 
       def test_smartphone_comparison_for_photography
@@ -111,9 +111,9 @@ module ActiveGenie
         )
 
         # Both are strong contenders, but testing the debate logic
-        refute_nil result.winner
+        refute_nil result.data
         refute_nil result.reasoning
-        assert_includes [phones[0], phones[1]], result.winner
+        assert_includes [phones[0], phones[1]], result.data
       end
 
       def test_learning_platform_comparison
@@ -136,7 +136,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal platforms[0], result.winner
+        assert_equal platforms[0], result.data
       end
 
       def test_transportation_for_urban_commute
@@ -158,9 +158,9 @@ module ActiveGenie
           criteria
         )
 
-        refute_nil result.winner
+        refute_nil result.data
         refute_nil result.reasoning
-        assert_includes [options[0], options[1]], result.winner
+        assert_includes [options[0], options[1]], result.data
       end
 
       def test_database_architecture_decision
@@ -184,7 +184,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal databases[0], result.winner
+        assert_equal databases[0], result.data
       end
 
       def test_investment_strategy_comparison
@@ -208,7 +208,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal strategies[0], result.winner
+        assert_equal strategies[0], result.data
       end
 
       def test_web_framework_for_startup
@@ -230,7 +230,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal frameworks[0], result.winner
+        assert_equal frameworks[0], result.data
       end
 
       def test_exercise_routine_for_busy_parent
@@ -254,9 +254,9 @@ module ActiveGenie
           criteria
         )
 
-        refute_nil result.winner
+        refute_nil result.data
         refute_nil result.reasoning
-        assert_includes [routines[0], routines[1]], result.winner
+        assert_includes [routines[0], routines[1]], result.data
       end
 
       def test_cloud_provider_for_ecommerce
@@ -280,9 +280,9 @@ module ActiveGenie
           criteria
         )
 
-        refute_nil result.winner
+        refute_nil result.data
         refute_nil result.reasoning
-        assert_includes [providers[0], providers[1]], result.winner
+        assert_includes [providers[0], providers[1]], result.data
       end
 
       def test_communication_tool_for_remote_team
@@ -306,7 +306,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal tools[0], result.winner
+        assert_equal tools[0], result.data
       end
 
       def test_home_security_system_comparison
@@ -328,7 +328,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal systems[1], result.winner
+        assert_equal systems[1], result.data
       end
 
       def test_laptop_for_creative_professional
@@ -351,7 +351,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal laptops[0], result.winner
+        assert_equal laptops[0], result.data
       end
 
       def test_programming_language_for_ai_project
@@ -375,9 +375,9 @@ module ActiveGenie
           criteria
         )
 
-        refute_nil result.winner
+        refute_nil result.data
         refute_nil result.reasoning
-        assert_includes [languages[0], languages[1]], result.winner
+        assert_includes [languages[0], languages[1]], result.data
       end
 
       def test_meal_prep_strategy_for_healthy_eating
@@ -400,7 +400,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal strategies[0], result.winner
+        assert_equal strategies[0], result.data
       end
 
       def test_cryptocurrency_investment_approach
@@ -424,7 +424,7 @@ module ActiveGenie
           criteria
         )
 
-        assert_equal approaches[0], result.winner
+        assert_equal approaches[0], result.data
       end
     end
   end

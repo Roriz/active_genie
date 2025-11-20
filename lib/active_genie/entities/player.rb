@@ -92,6 +92,10 @@ module ActiveGenie
           }
         end
 
+        def to_s
+          content.to_s
+        end
+
         def method_missing(method_name, *args, &)
           if method_name == :[] && args.size == 1
             attr_name = args.first.to_sym

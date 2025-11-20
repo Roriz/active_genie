@@ -8,8 +8,6 @@ module ActiveGenie
       # Configuration class for the OpenAI API client.
       # Manages API keys, organization IDs, URLs, model selections, and client instantiation.
       class OpenaiConfig < ProviderBase
-        NAME = :openai
-
         # Retrieves the API key.
         # Falls back to the OPENAI_API_KEY environment variable if not set.
         # @return [String, nil] The API key.
@@ -22,6 +20,14 @@ module ActiveGenie
         # @return [String] The API base URL.
         def api_url
           @api_url || 'https://api.openai.com/v1'
+        end
+
+        def default_model
+          @default_model || 'gpt-5-mini'
+        end
+
+        def valid_model?(model)
+          model.include?('gpt')
         end
       end
     end

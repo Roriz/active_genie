@@ -24,14 +24,14 @@ player_b = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
 result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
-# => ComparatorResponse(
+result.data
+# => {
 #      winner: "Implementation uses dependency injection for better testability",
 #      loser: "Code has high test coverage but tightly coupled components",
 #      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection,
-#                 which allows for easier testing and component replacement. While Player B has good test coverage,
-#                 the tight coupling makes the code harder to maintain and modify.",
-#      raw: {...}
-#    )
+#                  which allows for easier testing and component replacement. While Player B has good test coverage,
+#                  the tight coupling makes the code harder to maintain and modify."
+#    }
 ```
 
 ## Tips
@@ -50,12 +50,23 @@ result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
   - `criteria` [String] - The evaluation criteria or rules to assess against.
   - `config` [Hash] - Additional configuration that modifies the comparator evaluation behavior.
 
-**Returns a `ComparatorResponse` containing:**
+**Returns `ActiveGenie::Result` instance containing:**
 
-  - `winner` [String] - The winning player's content (either `player_a` or `player_b`).
-  - `loser` [String] - The losing player's content (either `player_a` or `player_b`).
-  - `reasoning` [String] - A short explanation of why the winner was chosen.
-  - `raw` [Hash] - The raw response from the provider. **Warning:** Do not use this directly, as the keys can change without notice. This is for debugging purposes only.
+```ruby
+result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
+
+# Access comparison results
+result.data
+# => {
+#      winner: "...",   # The winning player's content
+#      loser: "...",    # The losing player's content
+#      reasoning: "..." # Explanation of why the winner was chosen
+#    }
+
+# Access overall reasoning
+result.reasoning
+# => "Debate methodology and decision process explanation"
+```
 
 -----
 
@@ -96,12 +107,12 @@ player_b = "Iron Ox, a powerful brawler whose Ox Bull Charge style uses immense 
 criteria = "Determine the winner of the fight based on skill, strategy, and adaptability in a one-on-one duel."
 
 result = ActiveGenie::Comparator.by_fight(player_a, player_b, criteria)
-# => ComparatorResponse(
+result.data
+# => {
 #      winner: "Master Crane, a graceful fighter...",
 #      loser: "Iron Ox, a powerful brawler...",
-#      reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct...",
-#      raw: {...}
-#    )
+#      reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct..."
+#    }
 ```
 
 ## Tips

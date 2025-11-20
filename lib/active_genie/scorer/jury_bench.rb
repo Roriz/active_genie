@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../providers/unified_provider'
+require_relative '../utils/text_case'
 
 module ActiveGenie
   module Scorer
@@ -17,7 +18,7 @@ module ActiveGenie
     # @example Usage with automatic jury recommendation
     #   JuryBench.call("Sample text", "Evaluate technical accuracy")
     #
-    class JuryBench
+    class JuryBench < ActiveGenie::BaseModule
       # @param text [String] The text content to be evaluated
       # @param criteria [String] The evaluation criteria or rubric to assess against
       # @param juries [Array<String>] Optional list of specific juries. If empty,
@@ -26,15 +27,11 @@ module ActiveGenie
       # @return [Hash] The evaluation result containing the scores and reasoning
       #   @return [Number] :final_score The final score of the text based on the criteria and juries
       #   @return [String] :final_reasoning Detailed explanation of why the final score was reached
-      def self.call(...)
-        new(...).call
-      end
-
       def initialize(text, criteria, juries = [], config: {})
         @text = text
         @criteria = criteria
         @param_juries = Array(juries).compact.uniq
-        @initial_config = config
+        super(config:)
       end
 
       def call
@@ -44,24 +41,17 @@ module ActiveGenie
           {  role: 'user', content: "Text to score: #{@text}" }
         ]
 
-        result = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
+        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
           build_function,
           config:
         )
 
-        result['final_score'] = 0 if result['final_score'].nil?
-
-        config.logger.call({
-                             code: :Scorer,
-                             text: @text[0..30],
-                             criteria: @criteria[0..30],
-                             juries: juries,
-                             score: result['final_score'],
-                             reasoning: result['final_reasoning']
-                           })
-
-        result
+        ActiveGenie::Result.new(
+          data: provider_response['final_score'] || 0,
+          reasoning: provider_response['final_reasoning'],
+          metadata: provider_response
+        )
       end
 
       PROMPT = File.read(File.join(__dir__, 'jury_bench.prompt.md'))
@@ -84,11 +74,12 @@ module ActiveGenie
         @properties ||= begin
           tmp = {}
           juries.each do |jury|
-            tmp["#{jury}_reasoning"] = {
+            jury_key = ActiveGenie::TextCase.underscore(jury)
+            tmp["#{jury_key}_reasoning"] = {
               type: 'string',
               description: "The reasoning of the Scorer process by #{jury}."
             }
-            tmp["#{jury}_score"] = {
+            tmp["#{jury_key}_score"] = {
               type: 'number',
               description: "The score given by #{jury}.",
               min: 0,
@@ -113,17 +104,12 @@ module ActiveGenie
         @juries ||= if @param_juries.any?
                       @param_juries
                     else
-                      ::ActiveGenie::Lister::Juries.call(@text, @criteria, config:)
+                      ::ActiveGenie::Lister::Juries.call(@text, @criteria, config:).data
                     end
       end
 
-      def config
-        @config ||= begin
-          c = ActiveGenie.configuration.merge(@initial_config)
-          c.llm.recommended_model = 'deepseek-chat' unless c.llm.recommended_model
-
-          c
-        end
+      def module_config
+        { llm: { recommended_model: 'deepseek-chat' } }
       end
     end
   end

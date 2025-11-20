@@ -1,0 +1,39 @@
+{
+  "id": "ca34d9cf-2acc-40b0-8209-ee584493a792",
+  "object": "chat.completion",
+  "created": 1759812661,
+  "model": "deepseek-chat",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_ox8zGqwE9pGUNRgC4odXD5CQ",
+            "type": "function",
+            "function": {
+              "name": "data_extractor",
+              "arguments": "{\"name\": \"John Doe\", \"name_explanation\": \"The name 'John Doe' is explicitly stated in the text.\", \"name_accuracy\": 100, \"age\": 25, \"age_explanation\": \"The age '25 years old' is explicitly stated in the text.\", \"age_accuracy\": 100, \"profession\": \"software engineer\", \"profession_explanation\": \"The profession 'software engineer' is explicitly stated in the text.\", \"profession_accuracy\": 100}"
+            }
+          }
+        ]
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 749,
+    "completion_tokens": 115,
+    "total_tokens": 864,
+    "prompt_tokens_details": {
+      "cached_tokens": 704
+    },
+    "prompt_cache_hit_tokens": 704,
+    "prompt_cache_miss_tokens": 45
+  },
+  "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache"
+}

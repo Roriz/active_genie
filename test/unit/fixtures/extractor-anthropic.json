@@ -1,0 +1,37 @@
+{
+  "id": "msg_01URiFCWtS4cd5scAvGQygA6",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-3-5-haiku-20241022",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01Dw5SePiRoLQa6Z6RAV6peu",
+      "name": "data_extractor",
+      "input": {
+        "name": "John Doe",
+        "name_explanation": "Directly stated in the user message",
+        "name_accuracy": 100,
+        "age": 25,
+        "age_explanation": "Explicitly mentioned in the user message",
+        "age_accuracy": 100,
+        "profession": "software engineer",
+        "profession_explanation": "Directly stated in the user message",
+        "profession_accuracy": 100
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 1044,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 202,
+    "service_tier": "standard"
+  }
+}
