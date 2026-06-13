@@ -2,6 +2,8 @@
 
 require_relative '../providers/unified_provider'
 
+require 'json'
+
 module ActiveGenie
   module Lister
     # The Juries class intelligently suggests appropriate jury roles
@@ -53,7 +55,7 @@ module ActiveGenie
                 }
               }
             },
-            required: %w[reasoning juries]
+            required: %w[why_these_juries juries]
           }
         }
 
@@ -63,8 +65,18 @@ module ActiveGenie
           config:
         )
 
+        juries = provider_response['juries'] || []
+        if juries.is_a?(String)
+          begin
+            juries = JSON.parse(juries)
+          rescue JSON::ParserError
+            juries = juries.split(',').map(&:strip)
+          end
+        end
+        juries = Array(juries).map(&:to_s).map(&:strip).reject(&:empty?)
+
         ActiveGenie::Result.new(
-          data: provider_response['juries'] || [],
+          data: juries,
           reasoning: provider_response['why_these_juries'],
           metadata: provider_response
         )

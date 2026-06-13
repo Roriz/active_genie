@@ -35,8 +35,8 @@ module ActiveGenie
 
         result = Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
-        assert_equal 'Player A content', result.data[0]
-        assert_equal 'Player B content', result.data[1]
+        assert_equal 'Player B content', result.data[0]
+        assert_equal 'Player A content', result.data[1]
       end
 
       def test_metadata_contains_required_fields
@@ -65,9 +65,9 @@ module ActiveGenie
 
         result = Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
-        # Winner should gain ELO, loser should lose ELO
-        assert_equal 1016, result.metadata[:players].first.elo
-        assert_equal 985, result.metadata[:players].last.elo
+        # Winner (player_b) should gain ELO, loser (player_a) should lose ELO
+        assert_equal 985, result.metadata[:players].first.elo
+        assert_equal 1016, result.metadata[:players].last.elo
       end
 
       def test_correct_number_of_debates_calculated
@@ -99,8 +99,8 @@ module ActiveGenie
 
         # Check that elo_diff is calculated
         assert_instance_of Hash, result.metadata[:players_elo_diff]
-        assert_equal 16, result.metadata[:players_elo_diff]['player_a']
-        assert_equal(-15, result.metadata[:players_elo_diff]['player_b'])
+        assert_equal(-15, result.metadata[:players_elo_diff]['player_a'])
+        assert_equal 16, result.metadata[:players_elo_diff]['player_b']
       end
 
       def test_highest_elo_tracking

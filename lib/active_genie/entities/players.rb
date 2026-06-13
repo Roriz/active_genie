@@ -37,12 +37,14 @@ module ActiveGenie
           all_scores.sum.to_f / all_scores.size
         end
 
+        # Since eligible is sorted in descending order (best player first),
+        # lower_tier represents the worst performing players at the end of the array.
         def calc_higher_tier
-          eligible[(tier_size * -1)..]
+          eligible[(tier_size * -2)...(tier_size * -1)]
         end
 
         def calc_lower_tier
-          eligible[(tier_size * -2)...(tier_size * -1)]
+          eligible[(tier_size * -1)..]
         end
 
         def eligible

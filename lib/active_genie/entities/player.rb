@@ -7,16 +7,21 @@ module ActiveGenie
     module Entities
       class Player
         def initialize(params)
-          @params = params.is_a?(String) ? { content: params } : params.dup
-          @params[:content] ||= @params
+          @params = if params.is_a?(String)
+                      { content: params }
+                    elsif params.respond_to?(:transform_keys)
+                      params.transform_keys(&:to_sym)
+                    else
+                      params.dup
+                    end
         end
 
         def content
-          @content ||= @params[:content]
+          @content ||= @params[:content] || @params
         end
 
         def name
-          @name ||= @params[:name] || content[0..10]
+          @name ||= @params[:name] || (content.is_a?(Hash) ? (content[:name] || content.to_s[0..10]) : content[0..10])
         end
 
         def id
