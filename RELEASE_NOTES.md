@@ -1,4 +1,4 @@
-# ActiveGenie v0.30.9 Release Notes
+# ActiveGenie v0.30.10 Release Notes
 
 This release contains bug fixes to improve LLM compatibility, data safety, and Elo tournament ranking.
 
@@ -17,7 +17,7 @@ This release contains bug fixes to improve LLM compatibility, data safety, and E
 To upgrade to the latest version of `active_genie`, update your Gemfile:
 
 ```ruby
-gem 'active_genie', '0.30.9'
+gem 'active_genie', '0.30.10'
 ```
 
 And run:

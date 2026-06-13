@@ -4,5 +4,5 @@ VERSION=$(cat VERSION)
 
 bundle exec gem build active_genie.gemspec
 bundle exec gem uninstall active_genie
-bundle exec gem install -f ./active_genie-${VERSION}.gem
+bundle exec gem install -f ./active_genie-${VERSION}.gem --no-document
 
