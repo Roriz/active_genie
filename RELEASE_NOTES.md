@@ -1,14 +1,15 @@
-# ActiveGenie v0.30.10 Release Notes
+# ActiveGenie v0.30.11 Release Notes
 
-This release contains bug fixes to improve LLM compatibility, data safety, and Elo tournament ranking.
+This release introduces improvements to debate criteria evaluation, deterministic sorting, API configuration propagation, and integration test setup.
 
 ## What's Changed
 
-### Bug Fixes
+### Features & Improvements
 
-1. **Elo Tournament Relegation Indexing**: Fixed array slicing in `ActiveGenie::Ranker::Entities::Players` (`calc_higher_tier` / `calc_lower_tier`) to target and eliminate the actual worst-performing players.
-2. **Player Circular Reference**: Fixed `Player` initialization to avoid circular references and JSON serialization crashes (`JSON::NestingError`) when passed hashes with string keys.
-3. **Lister Juries Schema Mismatch**: Fixed required field name mismatch (`why_these_juries` vs `reasoning`) in the JSON schema and added robust coercion for stringified arrays.
+1. **Debate Criteria Scores**: Added six detailed evaluation metrics (`adherence_score`, `quality_score`, and `risk_avoidance_score` for both players) to the debate JSON schema for more granular judging.
+2. **Deterministic Player Sorting**: Ensured deterministic sorting order of players by falling back to the player's ID when their Elo/ranking scores are identical.
+3. **LLM Temperature Configuration**: Passed the configured `temperature` parameter to OpenAI and DeepSeek provider API calls to respect LLM config overrides.
+4. **Robust Integration Testing**: Configured the integration tests to run with unbundled environments using `Bundler.with_unbundled_env` and referencing the local path to ensure robust, offline-friendly testing.
 
 ---
 
@@ -17,7 +18,7 @@ This release contains bug fixes to improve LLM compatibility, data safety, and E
 To upgrade to the latest version of `active_genie`, update your Gemfile:
 
 ```ruby
-gem 'active_genie', '0.30.10'
+gem 'active_genie', '0.30.11'
 ```
 
 And run:

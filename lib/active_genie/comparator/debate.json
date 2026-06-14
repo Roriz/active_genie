@@ -20,6 +20,30 @@
         "type": "string",
         "description": "player_b counter arguments for why they should be the winner compared to player_a. Max of 100 words."
       },
+      "player_a_adherence_score": {
+        "type": "integer",
+        "description": "Score (1-5) of how well player_a meets the explicit requirements of the criteria."
+      },
+      "player_b_adherence_score": {
+        "type": "integer",
+        "description": "Score (1-5) of how well player_b meets the explicit requirements of the criteria."
+      },
+      "player_a_quality_score": {
+        "type": "integer",
+        "description": "Score (1-5) of player_a's overall quality and detail completeness relative to the criteria."
+      },
+      "player_b_quality_score": {
+        "type": "integer",
+        "description": "Score (1-5) of player_b's overall quality and detail completeness relative to the criteria."
+      },
+      "player_a_risk_avoidance_score": {
+        "type": "integer",
+        "description": "Score (1-5) of how well player_a avoids conflicts, trade-offs, or negative factors relative to the criteria (higher is better/safer)."
+      },
+      "player_b_risk_avoidance_score": {
+        "type": "integer",
+        "description": "Score (1-5) of how well player_b avoids conflicts, trade-offs, or negative factors relative to the criteria (higher is better/safer)."
+      },
       "impartial_judge_winner_reasoning": {
         "type": "string",
         "description": "The detailed reasoning about why the impartial judge chose the winner. Max of 100 words."
@@ -30,7 +54,12 @@
         "enum": ["player_a", "player_b"]
       }
     },
-    "required": ["player_a_sell_himself", "player_b_sell_himself", "player_a_arguments", "player_b_counter",
-                 "impartial_judge_winner_reasoning", "impartial_judge_winner"]
+    "required": [
+      "player_a_sell_himself", "player_b_sell_himself", "player_a_arguments", "player_b_counter",
+      "player_a_adherence_score", "player_b_adherence_score",
+      "player_a_quality_score", "player_b_quality_score",
+      "player_a_risk_avoidance_score", "player_b_risk_avoidance_score",
+      "impartial_judge_winner_reasoning", "impartial_judge_winner"
+    ]
   }
 }

@@ -22,7 +22,8 @@ module ActiveGenie
           tools: [function_to_tool(function)],
           tool_choice: { type: 'function', function: { name: function[:name] } },
           stream: false,
-          model:
+          model:,
+          temperature: @config.llm.temperature
         }
 
         response = retry_with_backoff do

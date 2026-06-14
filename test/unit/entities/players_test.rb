@@ -35,6 +35,20 @@ module ActiveGenie
           assert_equal "player_0", higher_tier.first.id
           assert_equal "player_9", higher_tier.last.id
         end
+
+        def test_sorted_deterministic_tie_breaker
+          # Create players with identical scores/sort values but different IDs
+          players_data = [
+            { id: "player_c", content: "Player C", score: 50 },
+            { id: "player_a", content: "Player A", score: 50 },
+            { id: "player_b", content: "Player B", score: 50 }
+          ]
+
+          players = Players.new(players_data)
+          sorted = players.sorted
+
+          assert_equal %w[player_a player_b player_c], sorted.map(&:id)
+        end
       end
     end
   end

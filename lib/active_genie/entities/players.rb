@@ -60,7 +60,7 @@ module ActiveGenie
         end
 
         def sorted
-          @players.sort_by { |p| -p.sort_value }
+          @players.sort_by { |p| [-p.sort_value, p.id] }
         end
 
         def to_json(*_args)
