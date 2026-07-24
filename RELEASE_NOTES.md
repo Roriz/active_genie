@@ -1,17 +1,31 @@
-# ActiveGenie v0.30.12 Release Notes
+# ActiveGenie v0.31.0 Release Notes
 
-This release introduces comprehensive real-layer test coverage and assertion improvements across core modules without artificial mocking.
+This release introduces LLM token logprobs continuous scoring across provider layers and evaluation modules to improve decision accuracy and precision.
 
 ## What's Changed
 
-### Features & Test Coverage Improvements
+### Features & Continuous Scoring Architecture
 
-1. **Tournament Ranker Coverage (`Ranker::Tournament`)**: Added real integration tests for score variation elimination (`variation_too_high`), Elo tier relegation (`relegation_tier`), Elo non-participant rebalancing, juries normalization, and `ranker_id` generation.
-2. **JuryBench Scorer Coverage (`Scorer::JuryBench`)**: Added tests for explicit vs automatic jury recommendation, function schema property generation with underscored jury names, fallback zero scores, and provider metadata format.
-3. **Juries Lister Coverage (`Lister::Juries`)**: Added tests for stringified JSON array parsing, comma-separated string parsing with space/empty string filtering, non-string element normalization, and `identify_jury` tool payload structure.
-4. **Feud Lister Coverage (`Lister::Feud`)**: Added tests for dynamic `number_of_items` configuration in system prompts, missing items fallback, and recommended model configuration.
-5. **Structured Data Extractor Coverage (`Extractor::Data`)**: Added new unit tests verifying schema property injection, missing explanation field exclusion, and `.compact` filtering for `nil` values in extracted data.
-6. **Debate Comparator Coverage (`Comparator::Debate`)**: Added tests for `player_b` as winner, draw/nil winner handling, metadata breakdown assertions, and delegation methods.
+1. **Logprobs Continuous Scoring Engine (`ActiveGenie::Utils::LogprobsCalculator`)**:
+   - Computes continuous expected rewards $R(x, \tau) = \sum \phi(v_g) \cdot p_\theta(v_g)$ from token log probabilities.
+   - Converts token log probabilities $p = e^{\text{logprob}}$ across numeric scale tokens and letter-mapped tokens (`A`..`E`).
+   - Linearly normalizes continuous expected values into $[0.0, 1.0]$ ranges and aggregates multi-pass scores across criteria and repetitions.
+
+2. **Provider Logprobs Support**:
+   - **Google Provider (`GoogleProvider`)**: Enabled `responseLogprobs` and `logprobs` in `generationConfig`. Added automatic fallback for models where logprobs are unsupported by the API endpoint.
+   - **OpenAI Provider (`OpenaiProvider`)**: Added `logprobs` and `top_logprobs` parameters in Chat Completions. Standardized OpenAI step logprobs into unified `chosenCandidates` and `topCandidates` structure.
+
+3. **Debate Comparator Logprobs Decision (`Comparator::Debate`)**:
+   - Computes continuous expected reward scores $R_A$ and $R_B$ across adherence, quality, and risk-avoidance sub-criteria.
+   - Determines winners using continuous expected reward scores and candidate probability metrics.
+
+4. **JuryBench Scorer Continuous Scoring (`Scorer::JuryBench`)**:
+   - Extracts candidate logprobs for `final_score` and individual juror scores.
+   - Returns continuous floating-point scores in `result.data` and rich logprobs metadata in `result.metadata`.
+
+5. **Updated Default Provider Models**:
+   - Google default model updated to `gemini-3.5-flash-lite`.
+   - OpenAI default model updated to `gpt-5.6-luna`.
 
 ---
 
@@ -20,7 +34,7 @@ This release introduces comprehensive real-layer test coverage and assertion imp
 To upgrade to the latest version of `active_genie`, update your Gemfile:
 
 ```ruby
-gem 'active_genie', '0.30.12'
+gem 'active_genie', '0.31.0'
 ```
 
 And run:

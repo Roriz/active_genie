@@ -310,6 +310,39 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
         assert_equal res1.data, res2.data
         assert_equal res1.reasoning, res2.reasoning
       end
+
+      def test_logprobs_continuous_final_score_calculation
+        mock_logprobs_response = {
+          data: {
+            'final_score' => 80,
+            'final_reasoning' => 'High quality response'
+          },
+          logprobs: {
+            'chosenCandidates' => [
+              { 'token' => 'final_score' }, { 'token' => '": ' }, { 'token' => '85' }
+            ],
+            'topCandidates' => [
+              { 'candidates' => [{ 'token' => 'final_score' }] },
+              { 'candidates' => [{ 'token' => '": ' }] },
+              {
+                'candidates' => [
+                  { 'token' => '85', 'logProbability' => -0.22314 },
+                  { 'token' => '80', 'logProbability' => -1.60943 }
+                ]
+              }
+            ]
+          }
+        }
+
+        ActiveGenie::Providers::UnifiedProvider.stub(:function_calling, mock_logprobs_response) do
+          result = JuryBench.call(@text_to_score, @criteria, ['Grammar Expert'])
+
+          assert_in_delta 84.0, result.data, 0.5
+          assert_equal 'High quality response', result.reasoning
+          assert_equal true, result.metadata['logprobs_used']
+          assert_in_delta 84.0, result.metadata['continuous_final_score'], 0.5
+        end
+      end
     end
   end
 end

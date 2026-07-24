@@ -19,7 +19,7 @@ module ActiveGenie
           deepseek: DeepseekProvider
         }.freeze
 
-        def function_calling(messages, function, config: {})
+        def function_calling(messages, function, config: {}, logprobs: false, top_logprobs: 5)
           model, provider_name = model_and_provider_by(config)
 
           provider = PROVIDER_NAME_TO_PROVIDER[provider_name&.to_sym]
@@ -28,7 +28,12 @@ module ActiveGenie
 
           config.llm.model = model
 
-          response = provider.new(config).function_calling(messages, function)
+          provider_instance = provider.new(config)
+          response = if logprobs
+                       provider_instance.function_calling(messages, function, logprobs:, top_logprobs:)
+                     else
+                       provider_instance.function_calling(messages, function)
+                     end
 
           normalize_response(response)
         end
@@ -86,8 +91,13 @@ module ActiveGenie
         end
 
         def normalize_response(response)
-          response.each do |key, value|
-            response[key] = nil if ['null', 'none', 'undefined', '', 'unknown',
+          return response if response.nil?
+
+          target_hash = response.is_a?(Hash) && response.key?(:data) ? response[:data] : response
+          return response unless target_hash.is_a?(Hash)
+
+          target_hash.each do |key, value|
+            target_hash[key] = nil if ['null', 'none', 'undefined', '', 'unknown',
                                     '<unknown>'].include?(value.to_s.strip.downcase)
           end
 

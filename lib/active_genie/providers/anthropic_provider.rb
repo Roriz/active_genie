@@ -16,7 +16,7 @@ module ActiveGenie
       #   Claude uses 'user', 'assistant', and 'system' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-      def function_calling(messages, function)
+      def function_calling(messages, function, **_options)
         system_message, user_messages = split_messages(messages)
         tool = function_to_tool(function)
 

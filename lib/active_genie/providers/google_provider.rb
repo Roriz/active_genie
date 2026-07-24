@@ -15,25 +15,29 @@ module ActiveGenie
       #   Each hash should have :role ('user' or 'model') and :content (String).
       #   Google Generative Language uses 'user' and 'model' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-      def function_calling(messages, function)
+      # @param logprobs [Boolean] Whether to request and return token log probabilities.
+      # @param top_logprobs [Integer] Number of top candidate log probabilities per token step.
+      # @return [Hash, nil] The parsed JSON object, or { data: Hash, logprobs: Hash } if logprobs requested.
+      def function_calling(messages, function, logprobs: false, top_logprobs: 5)
         contents = convert_messages_to_contents(messages, function)
         contents << output_as_json_schema(function)
 
-        payload = {
-          contents:,
-          generationConfig: {
-            response_mime_type: 'application/json',
-            temperature: 0.1
-          }
+        generation_config = {
+          response_mime_type: 'application/json',
+          temperature: 0.1
         }
-        params = { key: provider_config.api_key }
-
-        response = retry_with_backoff do
-          request(payload, params)
+        if logprobs
+          generation_config[:responseLogprobs] = true
+          generation_config[:logprobs] = top_logprobs
         end
 
-        json_string = response&.dig('candidates', 0, 'content', 'parts', 0, 'text')
+        payload = { contents:, generationConfig: generation_config }
+        params = { key: provider_config.api_key }
+
+        response = execute_function_calling_request(payload, params, generation_config, logprobs)
+        return nil if response.nil?
+
+        json_string = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
         return nil if json_string.nil? || json_string.empty?
 
         ActiveGenie.logger.call(
@@ -41,7 +45,30 @@ module ActiveGenie
           config: @config
         )
 
-        normalize_response(json_string)
+        parsed_data = normalize_response(json_string)
+        return parsed_data unless logprobs
+
+        logprobs_data = response&.dig('candidates', 0, 'logprobsResult')
+        { data: parsed_data, logprobs: logprobs_data }
+      end
+
+      # Extracts field candidates from logprobsResult.
+      def extract_field_logprobs(logprobs_result, field_name, token_map: nil)
+        ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(logprobs_result, field_name, token_map:)
+      end
+
+      # Computes expected value and normalized score from candidate logprobs.
+      def calculate_continuous_score(candidates, min_score: nil, max_score: nil, token_map: nil)
+        ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(
+          candidates, min_score:, max_score:, token_map:
+        )
+      end
+
+      # Aggregates raw expected rewards across multiple evaluation criteria (C) and repetitions (K).
+      def aggregate_expected_rewards(expected_rewards, min_score: 1.0, max_score: 5.0)
+        ActiveGenie::Utils::LogprobsCalculator.aggregate_expected_rewards(
+          expected_rewards, min_score:, max_score:
+        )
       end
 
       API_VERSION_PATH = 'v1beta/models'
@@ -51,6 +78,20 @@ module ActiveGenie
       }.freeze
 
       private
+
+      def execute_function_calling_request(payload, params, generation_config, logprobs_requested)
+        retry_with_backoff do
+          request(payload, params)
+        end
+      rescue ActiveGenie::Providers::BaseProvider::ProviderUnknownError => e
+        raise unless logprobs_requested && e.message.include?('Logprobs is not enabled')
+
+        generation_config.delete(:responseLogprobs)
+        generation_config.delete(:logprobs)
+        retry_with_backoff do
+          request(payload, params)
+        end
+      end
 
       def request(payload, params)
         response = post(url, payload, headers: DEFAULT_HEADERS, params:)

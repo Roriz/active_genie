@@ -218,6 +218,37 @@ module ActiveGenie
         assert_equal res1.reasoning, res3.reasoning
       end
 
+      def test_logprobs_winner_determination
+        mock_logprobs_response = {
+          data: {
+            'impartial_judge_winner' => 'player_b',
+            'impartial_judge_winner_reasoning' => 'Player A has higher continuous scores.'
+          },
+          logprobs: {
+            'chosenCandidates' => [
+              { 'token' => 'player_a_adherence_score' }, { 'token' => '": ' }, { 'token' => '5' },
+              { 'token' => 'player_b_adherence_score' }, { 'token' => '": ' }, { 'token' => '2' }
+            ],
+            'topCandidates' => [
+              { 'candidates' => [{ 'token' => 'player_a_adherence_score' }] },
+              { 'candidates' => [{ 'token' => '": ' }] },
+              { 'candidates' => [{ 'token' => '5', 'logProbability' => -0.1 }, { 'token' => '4', 'logProbability' => -2.0 }] },
+              { 'candidates' => [{ 'token' => 'player_b_adherence_score' }] },
+              { 'candidates' => [{ 'token' => '": ' }] },
+              { 'candidates' => [{ 'token' => '2', 'logProbability' => -0.1 }, { 'token' => '3', 'logProbability' => -2.0 }] }
+            ]
+          }
+        }
+
+        ActiveGenie::Providers::UnifiedProvider.stub(:function_calling, mock_logprobs_response) do
+          result = Debate.call(@player_a, @player_b, @criteria)
+
+          assert_equal 'Player A content', result.data
+          assert_equal true, result.metadata['logprobs_used']
+          assert_equal 'player_a', result.metadata['logprobs_winner']
+        end
+      end
+
       private
 
       def stub_debate_response(winner:, reasoning:)

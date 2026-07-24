@@ -16,7 +16,7 @@ module ActiveGenie
       #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @return [Hash, nil] The parsed JSON object matching the schema, or nil if parsing fails or content is empty.
-      def function_calling(messages, function)
+      def function_calling(messages, function, **_options)
         payload = {
           messages:,
           tools: [function_to_tool(function)],
