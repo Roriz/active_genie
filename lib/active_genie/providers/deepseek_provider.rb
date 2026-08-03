@@ -10,6 +10,10 @@ module ActiveGenie
     class DeepseekProvider < BaseProvider
       class InvalidResponseError < StandardError; end
 
+      # Thinking-mode models reject a forced tool_choice. The error text names
+      # the offending parameter, so detect it and fall back to 'auto'.
+      TOOL_CHOICE_CONFLICT_HINT = 'does not support this tool_choice'
+
       # Requests structured JSON output from the Deepseek model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
@@ -26,9 +30,7 @@ module ActiveGenie
           temperature: @config.llm.temperature
         }
 
-        response = retry_with_backoff do
-          request(payload)
-        end
+        response = request_allowing_tool_choice_fallback(payload)
 
         raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.empty?
 
@@ -38,6 +40,19 @@ module ActiveGenie
       end
 
       private
+
+      # Sends the request, and if the model rejects a forced tool_choice,
+      # falls back to letting it choose. Reasoning models refuse the forced
+      # form, so detect the error rather than tracking which models reason.
+      # Mutates payload so the caller logs whichever variant succeeded.
+      def request_allowing_tool_choice_fallback(payload)
+        retry_with_backoff { request(payload) }
+      rescue ProviderUnknownError => e
+        raise if payload[:tool_choice] == 'auto' || !e.message.include?(TOOL_CHOICE_CONFLICT_HINT)
+
+        payload[:tool_choice] = 'auto'
+        retry_with_backoff { request(payload) }
+      end
 
       def request(payload)
         response = post(url, payload, headers: headers)

@@ -15,7 +15,8 @@ class ContactBusinessCardDataTest < Minitest::Test
     
     assert_kind_of ActiveGenie::Result, result
     
-    data = result.data
+    # Extractor.data returns string keys; normalize before symbol access.
+    data = result.data.transform_keys(&:to_sym)
     # WHY: An easy extraction should pinpoint exact fields accurately
     assert_equal "John Doe", data[:name], "Expected exact name, got #{data[:name]}"
     assert_equal "john.doe@example.com", data[:email], "Expected exact email, got #{data[:email]}"

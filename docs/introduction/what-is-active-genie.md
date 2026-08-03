@@ -115,17 +115,17 @@ Each module uses a prompt built for exactly one job. That trades generality for 
 
 ActiveGenie ships a 100-test end-to-end suite that runs against live provider APIs without mocks or recorded fixtures. Assertions check decision quality rather than only whether a response parsed.
 
-Best measured pass rate per module, across OpenAI, Anthropic, Google, and DeepSeek:
+Best measured pass rate per module, from the August 2026 run:
 
 | Module | Best pass rate | Model |
 | :--- | :---: | :--- |
-| `Comparator` | 100% | all four providers |
-| `Lister` | 100% | `claude-haiku-4-5-20251001` |
-| `Scorer` | 100% | `gpt-4o-mini`, `gemini-3.5-flash-lite` |
-| `Ranker` | 75% | `gpt-4o-mini` |
-| `Extractor` | 70% | `gemini-3.5-flash-lite` |
+| `Comparator` | 100% | `gpt-5.6-luna`, `gemini-3.5-flash-lite`, `deepseek-v4-flash` |
+| `Extractor` | 100% | `gpt-5.6-luna`, `claude-haiku-4-5` |
+| `Lister` | 100% | `gpt-5.6-luna`, `claude-haiku-4-5`, `deepseek-v4-flash` |
+| `Scorer` | 100% | `gemini-3.5-flash-lite` |
+| `Ranker` | 75% | `gpt-5.6-luna`, `deepseek-v4-flash` |
 
-Overall, OpenAI and Anthropic tie at 86%, Google reaches 85%, and DeepSeek 81%.
+Overall, `gpt-5.6-luna` leads at 94%, `claude-haiku-4-5` and `gemini-3.5-flash-lite` tie at 91%, and `deepseek-v4-flash` reaches 86%. `Ranker` trails the other modules because of a known bug in `Ranker.by_scoring` rather than model quality.
 
 See the [benchmark](/benchmark/latest) for the full methodology, per-module breakdowns, and notable failures.
 
@@ -144,7 +144,7 @@ end
 
 # Override for one call. The provider is inferred from the model name.
 ActiveGenie::Lister.call("Topics for a tech blog",
-  config: { llm: { model: 'claude-haiku-4-5-20251001' } })
+  config: { llm: { model: 'claude-haiku-4-5' } })
 ```
 
 ActiveGenie handles provider-specific request formats, schema quirks, and response shapes internally, so your call site stays the same when you switch.

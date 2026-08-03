@@ -15,10 +15,10 @@ REQUIRED_ENV_KEYS = {
 }.freeze
 
 DEFAULT_E2E_MODELS = {
-  'openai' => 'gpt-4o-mini',
-  'anthropic' => 'claude-haiku-4-5-20251001',
+  'openai' => 'gpt-5.6-luna',
+  'anthropic' => 'claude-haiku-4-5',
   'google' => 'gemini-3.5-flash-lite',
-  'deepseek' => 'deepseek-chat'
+  'deepseek' => 'deepseek-v4-flash'
 }.freeze
 
 keys = REQUIRED_ENV_KEYS[provider_name]

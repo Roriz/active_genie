@@ -15,7 +15,8 @@ class RetailProductListingDataTest < Minitest::Test
     
     assert_kind_of ActiveGenie::Result, result
     
-    data = result.data
+    # Extractor.data returns string keys; normalize before symbol access.
+    data = result.data.transform_keys(&:to_sym)
     # WHY: The LLM should extract explicit facts with formatting correctly
     assert_match(/SuperGamer X100 Pro/, data[:product_name], "Expected product name to match, got #{data[:product_name]}")
     assert_equal 149.99, data[:price].to_f, "Expected exact price, got #{data[:price]}"

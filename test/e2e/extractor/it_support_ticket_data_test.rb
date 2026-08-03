@@ -14,7 +14,8 @@ class ItSupportTicketDataTest < Minitest::Test
     
     assert_kind_of ActiveGenie::Result, result
     
-    data = result.data
+    # Extractor.data returns string keys; normalize before symbol access.
+    data = result.data.transform_keys(&:to_sym)
     # WHY: The LLM needs to deduce boolean urgency from tone/context, and extract the department
     assert_equal true, data[:is_urgent], "Expected is_urgent to be true, got #{data[:is_urgent]}"
     assert_match(/accounting/i, data[:department].to_s, "Expected department to be accounting, got #{data[:department]}")

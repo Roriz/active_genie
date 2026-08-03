@@ -95,7 +95,7 @@ ActiveGenie::Lister.call(theme, config: { lister: { number_of_items: 10 } })
 > [!WARNING]
 > `number_of_items` goes to the model as an instruction. ActiveGenie does not enforce the count afterwards. You will get the requested number in almost all cases, but check `data.size` before you index into fixed positions.
 
-ActiveGenie tunes `.with_feud` against `claude-haiku-4-5-20251001` and `.with_juries` against `deepseek-chat`. See [Configuration](/reference/config) for the full set of options and [Observability & errors](/reference/observability) for failure handling.
+ActiveGenie tunes `.with_feud` against `claude-haiku-4-5` and `.with_juries` against `deepseek-chat`. See [Configuration](/reference/config) for the full set of options and [Observability & errors](/reference/observability) for failure handling.
 
 ## Cost
 

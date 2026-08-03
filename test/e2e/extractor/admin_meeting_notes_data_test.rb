@@ -8,14 +8,15 @@ class AdminMeetingNotesDataTest < Minitest::Test
     schema = {
       date: { type: 'string', description: 'Date of the meeting' },
       location: { type: 'string', description: 'Location of the meeting' },
-      attendees: { type: 'array', description: 'List of people who attended' }
+      attendees: { type: 'array', items: { type: 'string' }, description: 'List of people who attended' }
     }
 
     result = ActiveGenie::Extractor.data(text, schema)
     
     assert_kind_of ActiveGenie::Result, result
     
-    data = result.data
+    # Extractor.data returns string keys; normalize before symbol access.
+    data = result.data.transform_keys(&:to_sym)
     # WHY: The LLM must handle messy conversational text and extract structured information
     assert_match(/November 14|14th of November|Tuesday the 14th/i, data[:date].to_s, "Expected date to match loosely, got #{data[:date]}")
     assert_match(/HQ|5th avenue/i, data[:location].to_s, "Expected location to match, got #{data[:location]}")

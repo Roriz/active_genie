@@ -47,7 +47,7 @@ ActiveGenie ships with four providers: OpenAI, Anthropic, DeepSeek, and Google. 
 | Provider | Key | Environment variable | Default model | Default API URL |
 | :--- | :--- | :--- | :--- | :--- |
 | OpenAI | `:openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | `https://api.openai.com/v1` |
-| Anthropic | `:anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-4-5-20251001` | `https://api.anthropic.com` |
+| Anthropic | `:anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-4-5` | `https://api.anthropic.com` |
 | DeepSeek | `:deepseek` | `DEEPSEEK_API_KEY` | `deepseek-chat` | `https://api.deepseek.com/v1` |
 | Google | `:google` | `GENERATIVE_LANGUAGE_GOOGLE_API_KEY`, falling back to `GEMINI_API_KEY` | `gemini-3.5-flash-lite` | `https://generativelanguage.googleapis.com` |
 
@@ -107,8 +107,8 @@ Each module declares the model it was tuned against. ActiveGenie falls back to t
 | :--- | :--- |
 | `Extractor` (all strategies) | `deepseek-chat` |
 | `Scorer` | `deepseek-chat` |
-| `Comparator` | `claude-haiku-4-5-20251001` |
-| `Lister.with_feud` | `claude-haiku-4-5-20251001` |
+| `Comparator` | `claude-haiku-4-5` |
+| `Lister.with_feud` | `claude-haiku-4-5` |
 | `Lister.with_juries` | `deepseek-chat` |
 | `Ranker` | inherits from `Scorer` and `Comparator`, which it composes |
 

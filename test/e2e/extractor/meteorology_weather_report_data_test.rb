@@ -15,7 +15,8 @@ class MeteorologyWeatherReportDataTest < Minitest::Test
     
     assert_kind_of ActiveGenie::Result, result
     
-    data = result.data
+    # Extractor.data returns string keys; normalize before symbol access.
+    data = result.data.transform_keys(&:to_sym)
     # WHY: The LLM needs to convert worded numbers ('ninety-five', 'thirty') into numerical values
     assert_equal 95, data[:temperature], "Expected temperature to be 95, got #{data[:temperature]}"
     assert_equal 30, data[:humidity], "Expected humidity to be 30, got #{data[:humidity]}"

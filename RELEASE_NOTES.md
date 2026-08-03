@@ -1,82 +1,71 @@
-# ActiveGenie v0.32.1 Release Notes
+# ActiveGenie v0.32.2 Release Notes
 
-A documentation accuracy release. Every page was verified line by line against the source, which turned up one provider compatibility bug and a set of documented APIs that did not match the code. No public API changed.
+Support for the current generation of provider models, plus fixes to the end-to-end suite that had been misreporting `Extractor` quality. Benchmark numbers were re-measured from scratch against `gpt-5.6-luna`, `claude-haiku-4-5`, `gemini-3.5-flash-lite`, and `deepseek-v4-flash`.
 
 ## What's Changed
 
-### 1. Fixed: schema property keys rejected by Anthropic
+### 1. Fixed: reasoning models could not be used at all
 
-`Scorer` builds its response schema from jury names, so a jury called `"Senior Software Engineer"` produced the property key `Senior Software Engineer_score`. Anthropic validates property keys against `^[a-zA-Z0-9_.-]{1,64}$` and rejected the request with a 400. OpenAI, DeepSeek, and Google accept spaces, so the failure only appeared on Anthropic.
+Two of the four current models were unusable with ActiveGenie before this release. Both failed at the request layer, so nothing they did ever reached a module.
 
-`ActiveGenie::TextCase.underscore` had two gaps behind this:
+`gpt-5.6-luna` returned a 400: *"Function tools with reasoning_effort are not supported for gpt-5.6-luna in /v1/chat/completions. To use function tools, use /v1/responses or set reasoning_effort to 'none'."* ActiveGenie never sends `reasoning_effort`, so the model reasons by default and OpenAI then refuses function tools.
 
-- It returned the input unchanged when the string had no uppercase letter, hyphen, or `::`, so a lowercase jury name kept its spaces.
-- On the main path it only translated spaces and hyphens, leaving `&`, `(`, `)`, and `'` in place.
+`deepseek-v4-flash` returned a 400: *"Thinking mode does not support this tool_choice."* ActiveGenie forces `tool_choice` to a named function, which thinking-mode models reject.
 
-It now sanitizes to the allowed character set, collapses repeated separators, truncates at 64 characters, and falls back to `unnamed` when nothing usable remains. Previously working names such as `"Senior Software Engineer"` and `"Front-End Developer"` produce the same keys as before.
+Both providers now detect the specific error and retry once with an adjusted payload: `reasoning_effort: 'none'` for OpenAI, `tool_choice: 'auto'` for DeepSeek. The detection is based on the error text rather than a list of model names, so a future reasoning model works without a code change.
 
-A second case sat behind the same limit. `Scorer` appends `_reasoning` and `_score` to the sanitized name, so a 64 character key became a 74 character property. `underscore` now takes a `max_length:` keyword and `Scorer` reserves room for the longest suffix.
+The fallback only triggers on the matching error. Sending `reasoning_effort` unconditionally would break non-reasoning models, which reject it as an unrecognized argument.
 
-This restores `Scorer` and `Ranker` on Anthropic, which were failing on every call that reached the jury schema. Added `test/unit/utils/text_case_test.rb` with 13 regression tests; the helper previously had none.
+### 2. Anthropic model alias
 
-Measured effect on the 100 test end-to-end suite against `claude-haiku-4-5-20251001`: 73 passing before the fix, 87 after. `Scorer` went from 12/20 to 19/20 and `Ranker` from 8/20 to 15/20.
+`recommended_model` and the provider `default_model` now use the `claude-haiku-4-5` alias rather than the pinned `claude-haiku-4-5-20251001` snapshot, so the alias tracks the current release. This also resolves two unit tests that had been asserting the alias and failing. The unit suite is green.
 
-### 2. Corrected documented APIs that did not match the code
+### 3. Fixed: end-to-end tests that could not pass
 
-The return shapes were wrong for four of the five modules. `Result#data` is narrow, and the detail lives in `metadata`:
+Nine tests in the suite were failing for reasons unrelated to model quality.
 
-- `Comparator` returns the winning input itself, not a hash. There is no `loser` key.
-- `Scorer` returns the final score as a number, not a hash of per-jury scores.
-- `Ranker` returns a plain array ordered best first. There is no `rank` or `statistics` key.
-- `Extractor` returns only the schema fields. The `*_explanation` and `*_accuracy` fields are in `metadata`.
-- `Extractor.call` returns symbol keys while `Extractor.data` returns string keys.
+Six called `Extractor.data`, which returns string keys, and then read the result with symbol keys. Every lookup returned `nil`. This is the same string versus symbol inconsistency documented in the Extractor guide, and the test suite was tripping over it too.
 
-The per-call `config:` hash is nested by section. Every documented example used a flat form that ActiveGenie silently ignores:
+Three declared `type: 'array'` without an `items` type. `gpt-5.6-luna` validates schemas strictly and rejected them with a 400; the other three providers accepted them and returned `nil` for the field.
 
-```ruby
-config: { model: 'deepseek-chat' }          # ignored, raises nothing
-config: { llm: { model: 'deepseek-chat' } } # correct
-```
+Together these had been holding `Extractor` at roughly 65% on every provider. After the fix it scores 90% to 100%. The module was never the weak point the earlier numbers suggested. Assertions were not loosened, only the key access and schema declarations were corrected.
 
-Configuration reference corrections: `config.ranking` is `config.ranker`, `config.data_extractor` is `config.extractor`, `config.llm.provider` is `provider_name` and is read only, and `providers.add` takes `(name, provider_configs)`. The settings `with_explanation`, `verbose`, and `llm.client` do not exist and were removed from the docs. `config.lister.number_of_items`, `config.llm.max_fibers`, and `config.llm.recommended_model` were undocumented and are now covered.
+### 4. Benchmark re-measured
 
-Also removed several model identifiers that do not exist, including `gpt-5.6-luna`, `deepseek-v4-flash`, and the `gpt-999` placeholder. Model IDs now live in a single table in the configuration reference, sourced from the provider defaults and each module's `recommended_model`.
+All four providers ran the same 100 tests on the same day against this version.
 
-### 3. Documented behaviour that was previously undocumented
+| Provider | Model | Pass rate |
+| :--- | :--- | :---: |
+| OpenAI | `gpt-5.6-luna` | 94% |
+| Anthropic | `claude-haiku-4-5` | 91% |
+| Google | `gemini-3.5-flash-lite` | 91% |
+| DeepSeek | `deepseek-v4-flash` | 86% |
 
-- The five error classes, and which of them actually get raised.
-- Retries cover connection timeouts and refused connections only. A non-2xx response becomes `ProviderUnknownError`, which the retry path does not catch, so rate limits and provider outages are not retried.
-- Requests run concurrently through `async` in batches of `config.llm.max_fibers`, default 10.
-- Call volume per module. `Ranker` debates every surviving pair, so cost grows quadratically: 4 items is 6 debates, 30 items is 435.
-- Ruby 3.4.0 or newer is required.
-- How to stub `ActiveGenie::Providers::UnifiedProvider.function_calling` when testing application code.
-- `Comparator.by_debate` and `Extractor.data`, both public and both previously absent from the docs.
+Zero errors across all four runs, against 6 in the previous measurement.
 
-### 4. Known issues now stated in the docs rather than left implicit
+The benchmark page now also states plainly how to read the numbers, including which columns are distorted by known defects.
 
-- `config.extractor.min_accuracy` has no effect. The private `min_accuracy` method in `explanation.rb` is never called, and nothing filters on the `*_accuracy` values the model returns.
-- `ActiveGenie::ProviderServerError`, `InvalidModelError`, and `InvalidProviderError` are defined but never raised.
-- `Ranker.by_scoring` returns the internal batching structure instead of an `ActiveGenie::Result`.
+### 5. Known issues affecting the benchmark
 
-### 5. Documentation restructure
+`Ranker.by_scoring` returns the internal batching structure rather than the scored players, so a request for three scored items yields one batch. Four `Ranker` tests fail on every provider because of this and cannot pass on any model until it is fixed. It accounts for most of the gap between `Ranker` and the other modules.
 
-All five module pages follow one template. Installation is framework agnostic with Rails in its own section, rather than assuming Rails throughout. The benchmark history page was removed along with its charts, leaving a single benchmark page. The landing page CTA no longer points at an unreachable host, and the feature cards link to their module pages.
+`Comparator` scores 100% on three of four providers, so its assertions no longer separate strong models from weak ones and are due for tightening.
 
-Prose across all 13 pages and the README was rewritten in one plain, direct voice.
+`Comparator.by_fight` returned a nil winner twice on `claude-haiku-4-5`, while `by_debate` passed every test on the same model. That points at the fight prompt rather than the model.
+
+### 6. Benchmark model defaults
+
+`test/e2e/test_helper.rb` now targets the four models above. These are deliberately separate from the library's own provider defaults, which are unchanged, so benchmarking a new model does not alter what the gem does for everyone else.
 
 ---
 
 ## Upgrading
 
-No code changes are required. Anyone using `Scorer` or `Ranker` with Anthropic should upgrade, since those paths were failing before this release.
-
-Update your Gemfile:
+No code changes are required, and no public API changed. Upgrade if you want to use `gpt-5.6-luna` or `deepseek-v4-flash`, which do not work on earlier versions.
 
 ```ruby
-gem 'active_genie', '0.32.1'
+gem 'active_genie', '0.32.2'
 ```
-
-And run:
 
 ```bash
 bundle install

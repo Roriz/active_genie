@@ -12,6 +12,12 @@ module ActiveGenie
     class OpenaiProvider < BaseProvider
       class InvalidResponseError < StandardError; end
 
+      # Reasoning models reject function tools on /v1/chat/completions unless
+      # reasoning is switched off. The error names the offending parameter, so
+      # detect it and retry with reasoning disabled rather than maintaining a
+      # list of which models reason by default.
+      REASONING_CONFLICT_HINT = 'reasoning_effort'
+
       # Requests structured JSON output from the OpenAI model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
@@ -34,9 +40,7 @@ module ActiveGenie
           payload[:top_logprobs] = top_logprobs
         end
 
-        raw_response = retry_with_backoff do
-          request(payload)
-        end
+        raw_response = request_allowing_reasoning_fallback(payload)
 
         raise InvalidResponseError, "Invalid response: #{raw_response}" if raw_response.nil? || raw_response.keys.empty?
 
@@ -69,6 +73,18 @@ module ActiveGenie
       end
 
       private
+
+      # Sends the request, and if the model refuses function tools while
+      # reasoning is active, disables reasoning and sends it once more.
+      # Mutates payload so the caller logs whichever variant succeeded.
+      def request_allowing_reasoning_fallback(payload)
+        retry_with_backoff { request(payload) }
+      rescue ProviderUnknownError => e
+        raise if payload.key?(:reasoning_effort) || !e.message.include?(REASONING_CONFLICT_HINT)
+
+        payload[:reasoning_effort] = 'none'
+        retry_with_backoff { request(payload) }
+      end
 
       def request(payload)
         response = post(url, payload, headers:)

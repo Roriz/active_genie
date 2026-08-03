@@ -241,7 +241,7 @@ ActiveGenie::Scorer.call(text, criteria, config: { providers: { default: 'anthro
 The same call works against any provider:
 
 ```ruby
-%w[gpt-4o-mini claude-haiku-4-5-20251001 deepseek-chat gemini-3.5-flash-lite].each do |model|
+%w[gpt-4o-mini claude-haiku-4-5 deepseek-chat gemini-3.5-flash-lite].each do |model|
   ActiveGenie::Comparator.call(player_a, player_b, criteria, config: { llm: { model: model } })
 end
 ```

@@ -1,14 +1,15 @@
 # Benchmark
 
-**Version**: v0.32.0
+**Version**: v0.32.2
+**Measured**: 3 August 2026
 **Suite**: 100 end-to-end tests across 5 modules, 20 per module
-**Providers**: OpenAI, Google, DeepSeek, Anthropic
+**Providers**: OpenAI, Anthropic, Google, DeepSeek
 
 ## What this measures
 
 Every test in this suite calls a live provider API. The suite uses no mocks, stubs, or recorded fixtures. A test passes only if the model's decision is correct, so the assertions check whether the model picked the right winner, extracted the right value, or put the right item first.
 
-Earlier versions of this suite asserted things like "reasoning is longer than 10 characters" or "the score is between 0 and 100". Assertions like those pass almost unconditionally and measure nothing. Swapping them for assertions on decision quality dropped pass rates to between 70% and 90%, which is a more useful band. A regression is visible at that level, and the failures that remain point at real weaknesses.
+Earlier versions of this suite asserted things like "reasoning is longer than 10 characters" or "the score is between 0 and 100". Assertions like those pass almost unconditionally and measure nothing. They were replaced with assertions on decision quality, so a failure now means the model got something wrong rather than that it wrote a short sentence.
 
 **What it does not measure**: latency, cost, throughput, or behaviour on your own data. Treat the pass rates as a regression signal and a rough capability comparison.
 
@@ -16,139 +17,107 @@ Results vary between runs. LLM outputs are non-deterministic and providers updat
 
 ## Results
 
-| Rank | Provider | Model | Passed | Pass rate | Measured |
-| :---: | :--- | :--- | :---: | :---: | :--- |
-| 1 | OpenAI | `gpt-4o-mini` | 86 / 100 | 86% | 2026-08-02 |
-| 1 | Anthropic | `claude-haiku-4-5-20251001` | 86 / 100 | 86% | 2026-08-03 |
-| 3 | Google | `gemini-3.5-flash-lite` | 85 / 100 | 85% | 2026-08-02 |
-| 4 | DeepSeek | `deepseek-chat` | 81 / 100 | 81% | 2026-08-02 |
+All four providers ran the same 100 tests on the same day against the same version of the gem.
 
-The three providers measured on 2026-08-02 ran on v0.32.0. Anthropic ran on 2026-08-03, after the schema key fix described below. Rows measured on different days are not perfectly comparable, since providers update models without notice.
-
-> [!NOTE]
-> Anthropic was previously unmeasurable. `Scorer` builds its response schema from jury names, so a jury called `"Senior Software Engineer"` produced the property key `Senior Software Engineer_score`. Anthropic validates property keys against `^[a-zA-Z0-9_.-]{1,64}$` and rejected those requests with a 400, which took out `Scorer` and every `Ranker` call that depends on it. The other three providers accept spaces, so the problem only showed up here. Fixed in v0.32.1.
->
-> One `Ranker` test in the run above still hit a related case, where the sanitized jury name left no room for the `_reasoning` suffix within the 64 character limit. That is also fixed in v0.32.1, and the test passes on re-run, which puts the effective figure at 87 / 100. The table reports the measured full-suite result.
+| Rank | Provider | Model | Passed | Pass rate |
+| :---: | :--- | :--- | :---: | :---: |
+| 1 | OpenAI | `gpt-5.6-luna` | 94 / 100 | 94% |
+| 2 | Anthropic | `claude-haiku-4-5` | 91 / 100 | 91% |
+| 2 | Google | `gemini-3.5-flash-lite` | 91 / 100 | 91% |
+| 4 | DeepSeek | `deepseek-v4-flash` | 86 / 100 | 86% |
 
 ## By module
 
-| Module | OpenAI | Google | DeepSeek | Anthropic |
+| Module | OpenAI | Anthropic | Google | DeepSeek |
 | :--- | :---: | :---: | :---: | :---: |
-| `Comparator` | 100% (20/20) | 100% (20/20) | 100% (20/20) | 100% (20/20) |
-| `Extractor` | 65% (13/20) | 70% (14/20) | 65% (13/20) | 65% (13/20) |
-| `Lister` | 90% (18/20) | 85% (17/20) | 95% (19/20) | 100% (20/20) |
-| `Ranker` | 75% (15/20) | 70% (14/20) | 70% (14/20) | 70% (14/20) |
-| `Scorer` | 100% (20/20) | 100% (20/20) | 75% (15/20) | 95% (19/20) |
-| **Total** | **86%** | **85%** | **81%** | **86%** |
+| `Comparator` | 100% (20/20) | 90% (18/20) | 100% (20/20) | 100% (20/20) |
+| `Extractor` | 100% (20/20) | 100% (20/20) | 95% (19/20) | 90% (18/20) |
+| `Lister` | 100% (20/20) | 100% (20/20) | 90% (18/20) | 100% (20/20) |
+| `Ranker` | 75% (15/20) | 70% (14/20) | 70% (14/20) | 75% (15/20) |
+| `Scorer` | 95% (19/20) | 95% (19/20) | 100% (20/20) | 65% (13/20) |
+| **Total** | **94%** | **91%** | **91%** | **86%** |
 
-`Comparator` passes everywhere, which suggests its assertions are now the loosest in the suite and are due for tightening. `Extractor` is the weakest module across every provider, and the failures cluster on strict schema key matching and litote resolution.
+## How to read these numbers
+
+Three caveats matter more than the ranking.
+
+**`Ranker` is depressed by a library bug, not by the models.** Four of the six `Ranker` failures are the same four tests on every provider, and they fail because [`Ranker.by_scoring`](/modules/ranker#by-scoring-players-criteria-juries-config) returns the internal batching structure instead of the scored players. A test asking for three scored bugs gets one batch back. Those four tests cannot pass on any model until that is fixed. Discount roughly 4 points from every provider's `Ranker` column when comparing models to each other.
+
+**`Comparator` barely discriminates.** Three of four providers score 100%. Assertions that almost everything passes are not measuring much, and they are due for tightening.
+
+**`Extractor` results changed meaning this release.** Six tests in this module read string-keyed results with symbol keys, and three declared array schemas without an `items` type. They failed on every provider for reasons unrelated to model quality. Both are fixed, which is why `Extractor` jumped from roughly 65% to 90% and above. Comparisons with benchmark figures from before v0.32.2 are not meaningful for this module.
 
 ## Notable failures
 
-The examples below are actual outputs from this run. They show what the pass rates on their own leave out.
+Real outputs from this run.
 
-### Ingredients instead of experts
+### Every model ranks Python above Scratch for seven-year-olds
 
-- **Module**: `ActiveGenie::Lister.with_juries`
-- **Test**: `test/e2e/lister/health_food_safety_juries_test.rb`
-- **Prompt**: Generate expert jury roles to inspect a food poisoning outbreak at a restaurant.
-- **Expected**: Roles such as `"Food Safety Inspector"`, `"Public Health Officer"`, `"Microbiologist"`.
-- **Google (`gemini-3.5-flash-lite`) returned**:
+- **Module**: `ActiveGenie::Ranker.by_elo`
+- **Test**: `test/e2e/ranker/education_programming_elo_test.rb`
+- **Prompt**: Rank programming languages for teaching seven-year-olds to code.
+- **Expected**: `Scratch` first.
+- **All four providers returned**: `{"language":"Python","paradigm":"General purpose"}` first.
 
-```json
-[
-  "1. Lettuce",
-  "2. Spinach",
-  "3. Tomatoes",
-  "4. Improper handwashing by staff",
-  "5. Cross-contamination from raw meat",
-  "6. Unwashed produce"
-]
-```
+This is the only test in the suite that fails on every provider for genuine model reasons. Each model weights general-purpose utility over age-appropriateness and puts text syntax ahead of drag-and-drop blocks for children who are still learning to read.
 
-The model read "juries" as a request for causes of the outbreak and listed ingredients and hygiene failures instead of the people who would evaluate it.
+### Severity scored as quality
 
-### Observations instead of evaluators
+- **Module**: `ActiveGenie::Scorer`
+- **Test**: `test/e2e/scorer/security_system_posture_low_test.rb`
+- **Prompt**: Score the security posture of a system with SQL injection, persistent XSS, and credentials committed to a public repository. A vulnerable system should score low.
+- **Expected**: 40 or below.
+- **Anthropic (`claude-haiku-4-5`) returned**: **96**, reasoning that the posture is "critically compromised" and represents "a catastrophic security failure".
+- **DeepSeek (`deepseek-v4-flash`) returned**: 58.
+
+The reasoning is correct and the number is inverted. Both models described the system accurately as catastrophically insecure, then scored that description highly. They graded how well the text characterises the problem rather than how good the posture is. This is the clearest example in the suite of an ambiguous criteria producing a confidently wrong number, and it is a good argument for stating explicitly which direction a score runs.
+
+### Observations returned instead of experts
 
 - **Module**: `ActiveGenie::Lister.with_juries`
 - **Test**: `test/e2e/lister/environmental_oil_spill_juries_test.rb`
 - **Prompt**: Identify expert jury roles for evaluating an offshore oil spill.
-- **Expected**: `"Marine Biologist"`, `"Environmental Scientist"`, `"Coast Guard Officer"`.
+- **Expected**: An environmental scientist or ecologist among the roles.
 - **Google (`gemini-3.5-flash-lite`) returned**:
 
 ```json
 [
-  "Dead or oil-covered seabirds and wildlife",
-  "Black sludge on sandy beaches",
-  "Economic damage to local fishing and tourism",
-  "High-pressure washing of rocks and shoreline",
-  "Containment booms and skimmer boats"
+  "1. Dead fish and wildlife",
+  "2. Oil-covered beaches",
+  "3. Boom containment floating barriers",
+  "4. Chemical dispersants",
+  "5. Pressure washing rocks",
+  "6. Volunteer bird rescue"
 ]
 ```
 
-This is the same failure mode. The model described the disaster instead of naming experts qualified to judge it.
+Two failure modes at once. The model listed observations of the disaster rather than people qualified to judge it, and it wrote list numbering into the string values, which breaks exact matching on the returned items.
 
-### Python ranked above Scratch for seven-year-olds
+### Consistently harsh scoring
 
-- **Module**: `ActiveGenie::Ranker.by_elo`
-- **Test**: `test/e2e/ranker/education_programming_elo_test.rb`
-- **Prompt**: Rank programming languages (Python, Scratch, COBOL) for teaching seven-year-olds to code.
-- **Expected**: Scratch first, Python second, COBOL third.
-- **OpenAI (`gpt-4o-mini`) returned**:
+- **Module**: `ActiveGenie::Scorer`
+- **Test**: `test/e2e/scorer/legal_brief_quality_test.rb`
+- **Expected**: 50 or above for a well-written legal brief.
+- **DeepSeek (`deepseek-v4-flash`) returned**: 24, while its own reasoning called the text "polished, clear, and grammatically impeccable" and credited "thorough research, relevant precedent, sound structure".
 
-1. `Python`: "General purpose with clean, readable syntax"
-2. `Scratch`: "Visual block-based"
-3. `COBOL`: "Legacy enterprise language"
+DeepSeek accounts for 7 of the 13 `Scorer` failures across all providers, and the pattern is consistent: it acknowledges the strengths and then scores well below the threshold. If you use `Scorer` with this model, calibrate your thresholds against it rather than reusing thresholds tuned on another provider.
 
-The model weighted general-purpose utility over age-appropriateness and put text syntax above drag-and-drop blocks for children who are still learning to read.
+### Empty winner on fight comparisons
 
-### Brand ranked above price
+- **Module**: `ActiveGenie::Comparator.by_fight`
+- **Tests**: `test/e2e/comparator/medical_device_process_fight_test.rb`, `test/e2e/comparator/wedding_catering_fight_test.rb`
+- **Anthropic (`claude-haiku-4-5`) returned**: `nil` for the winner.
 
-- **Module**: `ActiveGenie::Lister.with_feud`
-- **Test**: `test/e2e/lister/marketplace_search_feud_test.rb`
-- **Prompt**: Survey the top search filter people use when buying electronics online.
-- **Expected top answer**: `"Price"` or `"Price Range"`.
-- **OpenAI (`gpt-4o-mini`) returned**: `Brand`, `Price`, `Customer Rating`.
-
-The ordering is defensible, but it is not the survey consensus the Feud methodology is meant to reproduce.
-
-### Numbering baked into array items
-
-- **Module**: `ActiveGenie::Lister.with_juries`
-- **Test**: `test/e2e/lister/finance_crypto_fraud_juries_test.rb`
-- **Prompt**: List jury roles for a cross-border cryptocurrency fraud trial.
-- **DeepSeek (`deepseek-chat`) returned**:
-
-```json
-[
-  "1. Securities and Exchange Commission (SEC)",
-  "2. Financial Crimes Enforcement Network (FinCEN)",
-  "3. Department of Justice (DOJ)",
-  "4. Interpol",
-  "5. Internal Revenue Service (IRS)"
-]
-```
-
-The roles are reasonable. The problem is formatting: the model wrote list numbering into the string values, which breaks exact matching on the returned items.
-
-### Over-corrected understatement
-
-- **Module**: `ActiveGenie::Extractor.with_litote`
-- **Test**: `test/e2e/extractor/tech_software_quality_litote_test.rb`
-- **Input**: *"The software is not without its flaws."*
-- **Expected**: A quality assessment reading as `"moderate"`, `"imperfect"`, or `"mixed"`.
-- **DeepSeek (`deepseek-chat`) returned**: `{ "quality_assessment": "Poor" }`
-
-The model detected the litote but resolved it too far. "Not without flaws" concedes imperfection; it does not say the software is bad.
+Both of Anthropic's `Comparator` failures are `by_fight` returning no winner rather than the wrong one. `by_debate` passed every test on the same model, so this looks specific to the fight prompt and worth investigating as a possible library issue rather than a model preference.
 
 ## Methodology
 
 - **No mocks.** Every test calls a live endpoint through `ActiveGenie::Providers::UnifiedProvider`.
-- **Inline data.** Test inputs live in the test file, so you can read a scenario without chasing fixtures.
+- **Inline data.** Test inputs live in the test file, so a scenario is readable without chasing fixtures.
 - **Assertions on decisions**, per module:
-  - `Comparator`: the model picks the correct winner on clear-cut pairs.
+  - `Comparator`: the correct winner is chosen on clear-cut pairs.
   - `Extractor`: exact field values, enum membership, and litote resolution.
-  - `Lister`: the expected answers appear, in the expected order.
+  - `Lister`: expected answers appear, in the expected order.
   - `Ranker`: the clear best and clear worst land at the correct ends.
   - `Scorer`: scores clear the expected threshold (`≥ 70` for strong inputs, `≤ 40` for weak ones).
 
@@ -157,16 +126,16 @@ The model detected the litote but resolved it too far. "Not without flaws" conce
 Set the API key for the provider you want to test, then:
 
 ```shell
-# One provider
+# One provider, using that provider's default benchmark model
 PROVIDER_NAME=anthropic bundle exec rake test:e2e
 
 # Override the model
-PROVIDER_NAME=openai MODEL=gpt-4o bundle exec rake test:e2e
+PROVIDER_NAME=openai MODEL=gpt-4o-mini bundle exec rake test:e2e
 
 # A single module
-PROVIDER_NAME=deepseek bundle exec ruby -Itest test/e2e/scorer/*_test.rb
+PROVIDER_NAME=deepseek bundle exec ruby -Itest -e 'Dir.glob("test/e2e/scorer/*_test.rb").each { |f| require File.expand_path(f) }'
 ```
 
-`PROVIDER_NAME` accepts `openai`, `anthropic`, `google`, or `deepseek`, and defaults to `openai`. Each provider's default model is listed in [Configuration](/reference/config#providers-config-providers).
+`PROVIDER_NAME` accepts `openai`, `anthropic`, `google`, or `deepseek`, and defaults to `openai`. The model defaults per provider are set in `test/e2e/test_helper.rb` and are the four listed in the results table above. They are deliberately separate from the library's own defaults in [Configuration](/reference/config#providers-config-providers), so benchmarking a new model does not change what the gem does for everyone else.
 
 This suite is ActiveGenie's regression check. It runs against every supported provider before a release.

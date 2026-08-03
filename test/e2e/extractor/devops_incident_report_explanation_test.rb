@@ -7,7 +7,7 @@ class DevopsIncidentReportExplanationTest < Minitest::Test
     text = "At 14:00 UTC, the authentication service started failing with 500s. Investigation revealed that a botched database migration locked the users table, causing cascading timeouts in the API gateway and the frontend dashboard."
     schema = {
       root_cause: { type: 'string', description: 'The underlying cause of the incident' },
-      affected_systems: { type: 'array', description: 'Systems that experienced impact' }
+      affected_systems: { type: 'array', items: { type: 'string' }, description: 'Systems that experienced impact' }
     }
 
     result = ActiveGenie::Extractor.with_explanation(text, schema)
