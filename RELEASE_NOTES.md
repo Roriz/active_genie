@@ -1,72 +1,46 @@
-# ActiveGenie v0.32.2 Release Notes
+# ActiveGenie v0.32.3 Release Notes
 
-Support for the current generation of provider models, plus fixes to the end-to-end suite that had been misreporting `Extractor` quality. Benchmark numbers were re-measured from scratch against `gpt-5.6-luna`, `claude-haiku-4-5`, `gemini-3.5-flash-lite`, and `deepseek-v4-flash`.
+Documentation only. No library code changed. The benchmark now reports variation across repeated runs instead of a single measurement.
 
 ## What's Changed
 
-### 1. Fixed: reasoning models could not be used at all
+### 1. Benchmark run three times per provider
 
-Two of the four current models were unusable with ActiveGenie before this release. Both failed at the request layer, so nothing they did ever reached a module.
+The suite ran three full repetitions against each of the four providers, 1,200 test executions in total, on the same day and the same version of the gem.
 
-`gpt-5.6-luna` returned a 400: *"Function tools with reasoning_effort are not supported for gpt-5.6-luna in /v1/chat/completions. To use function tools, use /v1/responses or set reasoning_effort to 'none'."* ActiveGenie never sends `reasoning_effort`, so the model reasons by default and OpenAI then refuses function tools.
+| Provider | Model | Run 1 | Run 2 | Run 3 | Mean | Range |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| OpenAI | `gpt-5.6-luna` | 94 | 94 | 93 | 93.7% | 93 to 94 |
+| Anthropic | `claude-haiku-4-5` | 91 | 94 | 93 | 92.7% | 91 to 94 |
+| Google | `gemini-3.5-flash-lite` | 91 | 90 | 93 | 91.3% | 90 to 93 |
+| DeepSeek | `deepseek-v4-flash` | 86 | 89 | 87 | 87.3% | 86 to 89 |
 
-`deepseek-v4-flash` returned a 400: *"Thinking mode does not support this tool_choice."* ActiveGenie forces `tool_choice` to a named function, which thinking-mode models reject.
+### 2. The ranking published in v0.32.2 was not reliable
 
-Both providers now detect the specific error and retry once with an adjusted payload: `reasoning_effort: 'none'` for OpenAI, `tool_choice: 'auto'` for DeepSeek. The detection is based on the error text rather than a list of model names, so a future reasoning model works without a code change.
+That release reported a single run: OpenAI 94, Anthropic 91, Google 91, DeepSeek 86. Repeating the measurement shows those numbers sit inside a 3 point band of run-to-run noise.
 
-The fallback only triggers on the matching error. Sending `reasoning_effort` unconditionally would break non-reasoning models, which reject it as an unrecognized argument.
+The ranges for OpenAI, Anthropic, and Google overlap, so this suite provides no evidence that the three differ in quality. Anthropic produced both the joint best single run and the lowest of its own three. Anyone choosing between them should use cost, latency, or availability rather than these scores.
 
-### 2. Anthropic model alias
+`deepseek-v4-flash` is the one genuine separation. Its best run still falls below every other provider's worst run, and the deficit is concentrated in `Scorer`.
 
-`recommended_model` and the provider `default_model` now use the `claude-haiku-4-5` alias rather than the pinned `claude-haiku-4-5-20251001` snapshot, so the alias tracks the current release. This also resolves two unit tests that had been asserting the alias and failing. The unit suite is green.
+### 3. Variation chart
 
-### 3. Fixed: end-to-end tests that could not pass
+The benchmark page now carries a dot plot showing all three runs per provider with the observed range. It is an inline SVG that follows the reader's light or dark theme, with a per-dot tooltip giving the exact run and score.
 
-Nine tests in the suite were failing for reasons unrelated to model quality.
+The per-module table reports the mean with the observed range wherever runs disagreed, so a stable module is visibly distinct from a volatile one. `Lister` on Google is the least stable at 16 to 18 out of 20. `Ranker` is the most stable, but that reflects a known bug rather than consistency.
 
-Six called `Extractor.data`, which returns string keys, and then read the result with symbol keys. Every lookup returned `nil`. This is the same string versus symbol inconsistency documented in the Extractor guide, and the test suite was tripping over it too.
+### 4. Known issues unchanged
 
-Three declared `type: 'array'` without an `items` type. `gpt-5.6-luna` validates schemas strictly and rejected them with a 400; the other three providers accepted them and returned `nil` for the field.
+`Ranker.by_scoring` still returns the internal batching structure rather than the scored players. The same four tests fail on every provider in every run because of it, and no model can pass them until it is fixed.
 
-Together these had been holding `Extractor` at roughly 65% on every provider. After the fix it scores 90% to 100%. The module was never the weak point the earlier numbers suggested. Assertions were not loosened, only the key access and schema declarations were corrected.
-
-### 4. Benchmark re-measured
-
-All four providers ran the same 100 tests on the same day against this version.
-
-| Provider | Model | Pass rate |
-| :--- | :--- | :---: |
-| OpenAI | `gpt-5.6-luna` | 94% |
-| Anthropic | `claude-haiku-4-5` | 91% |
-| Google | `gemini-3.5-flash-lite` | 91% |
-| DeepSeek | `deepseek-v4-flash` | 86% |
-
-Zero errors across all four runs, against 6 in the previous measurement.
-
-The benchmark page now also states plainly how to read the numbers, including which columns are distorted by known defects.
-
-### 5. Known issues affecting the benchmark
-
-`Ranker.by_scoring` returns the internal batching structure rather than the scored players, so a request for three scored items yields one batch. Four `Ranker` tests fail on every provider because of this and cannot pass on any model until it is fixed. It accounts for most of the gap between `Ranker` and the other modules.
-
-`Comparator` scores 100% on three of four providers, so its assertions no longer separate strong models from weak ones and are due for tightening.
-
-`Comparator.by_fight` returned a nil winner twice on `claude-haiku-4-5`, while `by_debate` passed every test on the same model. That points at the fight prompt rather than the model.
-
-### 6. Benchmark model defaults
-
-`test/e2e/test_helper.rb` now targets the four models above. These are deliberately separate from the library's own provider defaults, which are unchanged, so benchmarking a new model does not alter what the gem does for everyone else.
+`Comparator` scores 100% for three of four providers in every run, so its assertions no longer discriminate.
 
 ---
 
 ## Upgrading
 
-No code changes are required, and no public API changed. Upgrade if you want to use `gpt-5.6-luna` or `deepseek-v4-flash`, which do not work on earlier versions.
+Nothing to do. This release changes documentation only.
 
 ```ruby
-gem 'active_genie', '0.32.2'
-```
-
-```bash
-bundle install
+gem 'active_genie', '0.32.3'
 ```

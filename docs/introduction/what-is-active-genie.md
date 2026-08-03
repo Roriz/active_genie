@@ -115,7 +115,7 @@ Each module uses a prompt built for exactly one job. That trades generality for 
 
 ActiveGenie ships a 100-test end-to-end suite that runs against live provider APIs without mocks or recorded fixtures. Assertions check decision quality rather than only whether a response parsed.
 
-Best measured pass rate per module, from the August 2026 run:
+Best mean pass rate per module, across three runs in August 2026:
 
 | Module | Best pass rate | Model |
 | :--- | :---: | :--- |
@@ -125,7 +125,7 @@ Best measured pass rate per module, from the August 2026 run:
 | `Scorer` | 100% | `gemini-3.5-flash-lite` |
 | `Ranker` | 75% | `gpt-5.6-luna`, `deepseek-v4-flash` |
 
-Overall, `gpt-5.6-luna` leads at 94%, `claude-haiku-4-5` and `gemini-3.5-flash-lite` tie at 91%, and `deepseek-v4-flash` reaches 86%. `Ranker` trails the other modules because of a known bug in `Ranker.by_scoring` rather than model quality.
+Across three full runs per provider, `gpt-5.6-luna` averaged 93.7%, `claude-haiku-4-5` 92.7%, `gemini-3.5-flash-lite` 91.3%, and `deepseek-v4-flash` 87.3%. The first three overlap within run-to-run noise, so treat them as a tie and choose on cost or latency. `Ranker` trails the other modules because of a known bug in `Ranker.by_scoring` rather than model quality.
 
 See the [benchmark](/benchmark/latest) for the full methodology, per-module breakdowns, and notable failures.
 
