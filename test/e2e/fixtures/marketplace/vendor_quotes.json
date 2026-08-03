@@ -1,0 +1,25 @@
+{
+  "project": "Enterprise Cloud Migration & Managed DevOps",
+  "vendor_a": {
+    "name": "CloudScale Systems",
+    "total_bid_usd": 120000,
+    "timeline_weeks": 8,
+    "sla": "99.99% Uptime SLA",
+    "features": [
+      "Full AWS landing zone setup with Terraform",
+      "24/7 dedicated support engineer",
+      "Kubernetes cluster setup with automated CI/CD pipelines"
+    ]
+  },
+  "vendor_b": {
+    "name": "DevOps Experts Inc",
+    "total_bid_usd": 85000,
+    "timeline_weeks": 12,
+    "sla": "99.9% Uptime SLA",
+    "features": [
+      "Standard GCP infrastructure setup",
+      "Business-hours support",
+      "Docker container deployment with GitHub Actions"
+    ]
+  }
+}

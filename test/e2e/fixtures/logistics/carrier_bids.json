@@ -1,0 +1,27 @@
+{
+  "shipment_id": "SHP-4091",
+  "origin": "Chicago, IL",
+  "destination": "Dallas, TX",
+  "cargo_type": "Refrigerated Medical Supplies (2-8°C)",
+  "weight_lbs": 18000,
+  "bids": [
+    {
+      "carrier": "ColdChain Express",
+      "price_usd": 3200,
+      "transit_hours": 24,
+      "temp_monitoring_guarantee": true
+    },
+    {
+      "carrier": "Speedy Haulers",
+      "price_usd": 2400,
+      "transit_hours": 36,
+      "temp_monitoring_guarantee": false
+    },
+    {
+      "carrier": "National Logistics Co",
+      "price_usd": 2900,
+      "transit_hours": 28,
+      "temp_monitoring_guarantee": true
+    }
+  ]
+}

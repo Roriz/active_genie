@@ -1,0 +1,11 @@
+{
+  "patient_id": "PT-7712",
+  "chief_complaint": "Acute shortness of breath and chest tightness radiating to left arm for 45 minutes.",
+  "vitals": {
+    "blood_pressure": "155/95",
+    "heart_rate": 112,
+    "oxygen_saturation": 93,
+    "temperature_celsius": 37.1
+  },
+  "medical_history": "Type 2 Diabetes, Hypertension, Former smoker"
+}

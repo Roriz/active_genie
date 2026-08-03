@@ -1,0 +1,7 @@
+{
+  "ticket_id": "TCK-88102",
+  "customer_tier": "Enterprise",
+  "description": "Production database connection pool exhausted during payment gateway callback webhook. Customers receiving 500 errors on checkout page.",
+  "recent_logs": "ERROR PoolExhaustedException: Connection timeout waiting for connection from pool of 50 connections.",
+  "impact": "High revenue impact ($10k/min lost sales)"
+}

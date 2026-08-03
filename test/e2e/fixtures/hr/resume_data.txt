@@ -1,0 +1,18 @@
+Alex Rivera
+Email: alex.rivera@devmail.com | Phone: (555) 234-5678 | San Francisco, CA
+
+SUMMARY
+Staff Backend Engineer with 8 years of experience building high-throughput distributed systems in Ruby, Go, and PostgreSQL. Led architecture redesign of payment microservices handling $200M annual volume.
+
+EXPERIENCE
+FinTech Core - Staff Software Engineer (2021 - Present)
+- Architected event-driven ledger system processing 10,000 TPS using Kafka and Ruby on Rails.
+- Reduced p99 latency by 45% through query optimization and Redis caching layer.
+
+CloudScale Solutions - Senior Software Engineer (2017 - 2021)
+- Developed RESTful & gRPC services using Go and PostgreSQL.
+- Managed Kubernetes deployments on AWS EKS using Terraform.
+
+SKILLS
+Languages: Ruby, Go, SQL, Python, JavaScript
+Frameworks/Tools: Rails, PostgreSQL, Redis, Kafka, Docker, Kubernetes, AWS, Terraform

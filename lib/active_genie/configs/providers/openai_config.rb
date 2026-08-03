@@ -23,7 +23,7 @@ module ActiveGenie
         end
 
         def default_model
-          @default_model || 'gpt-5.6-luna'
+          @default_model || 'gpt-4o-mini'
         end
 
         def valid_model?(model)

@@ -146,7 +146,7 @@ With every release, we run a suite of **400+ test cases** across multiple provid
 | **Extractor** | 94% | `deepseek-chat` |
 | **Comparator** | 96% | `claude-sonnet-4-20250514` |
 | **Scorer** | 83% | `deepseek-chat` |
-| **Lister** | 68% | `claude-3-5-haiku-20241022` |
+| **Lister** | 68% | `claude-sonnet-4-5` |
 | **Ranker** | 67% | `gemini-2.5-flash` |
 
 *See our [detailed benchmark results](/benchmark/latest) for full methodology and metrics.*
@@ -169,7 +169,7 @@ end
 # Override to use Anthropic for a specific creative task
 result = ActiveGenie::Lister.call(
   "Topics for a tech blog",
-  config: { model: "claude-3-5-haiku-20241022" }
+  config: { model: "claude-sonnet-4-5" }
 )
 ```
 

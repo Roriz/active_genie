@@ -1,0 +1,16 @@
+{
+  "applicant": {
+    "name": "Sarah Jenkins",
+    "annual_income": 95000,
+    "debt_to_income_ratio": 0.28,
+    "credit_score": 745,
+    "late_payments_last_24_months": 0,
+    "employment_status": "Employed - Senior Software Engineer (3 years)"
+  },
+  "requested_line": 20000,
+  "criteria": [
+    { "name": "Income Verification", "weight": 0.3 },
+    { "name": "Credit History", "weight": 0.4 },
+    { "name": "Debt-to-Income Ratio", "weight": 0.3 }
+  ]
+}

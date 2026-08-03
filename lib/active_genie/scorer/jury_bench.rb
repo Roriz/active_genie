@@ -82,7 +82,7 @@ module ActiveGenie
       end
 
       def calculate_final_score(data, logprobs_result)
-        fallback_score = data&.dig('final_score') || 0
+        fallback_score = data&.dig('final_score') || data&.dig(:final_score) || 0
         return [fallback_score, {}] if logprobs_result.nil?
 
         final_score_cands = ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(

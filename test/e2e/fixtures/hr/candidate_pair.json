@@ -1,0 +1,15 @@
+{
+  "target_role": "Lead DevOps & Reliability Engineer",
+  "candidate_1": {
+    "name": "Jordan Lee",
+    "years_experience": 9,
+    "primary_stack": ["Terraform", "Kubernetes", "AWS", "Python", "Prometheus"],
+    "highlights": "Managed 500+ node Kubernetes clusters at Fortune 500 tech firm. strong incident management background."
+  },
+  "candidate_2": {
+    "name": "Morgan Smith",
+    "years_experience": 5,
+    "primary_stack": ["Docker", "Ansible", "GCP", "Bash"],
+    "highlights": "Built CI/CD pipeline automation for medium SaaS startup. Fast learner, strong scripting skills."
+  }
+}

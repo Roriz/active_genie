@@ -1,0 +1,26 @@
+{
+  "search_query": "Wireless noise-canceling headphones for remote software engineering work",
+  "products": [
+    {
+      "id": "prod_1",
+      "title": "AcousticPro ANC 500",
+      "price": 299.99,
+      "rating": 4.8,
+      "features": ["Active Noise Cancellation", "40hr Battery Life", "Dual Microphone for Clear Calls"]
+    },
+    {
+      "id": "prod_2",
+      "title": "BasicBuds Lite",
+      "price": 29.99,
+      "rating": 3.9,
+      "features": ["Passive Noise Isolation", "6hr Battery Life", "Single Built-in Mic"]
+    },
+    {
+      "id": "prod_3",
+      "title": "StudioMaster Wired Monitor",
+      "price": 199.99,
+      "rating": 4.6,
+      "features": ["Zero Latency Wired", "High-Resolution Audio Drivers", "No Microphone"]
+    }
+  ]
+}

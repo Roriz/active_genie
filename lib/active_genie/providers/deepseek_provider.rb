@@ -30,8 +30,7 @@ module ActiveGenie
           request(payload)
         end
 
-        raise InvalidResponseError, "Invalid response: #{response}" if response.keys.empty?
-        raise InvalidResponseError, 'Invalid response: empty' if response.nil?
+        raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.empty?
 
         ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: }, config: @config)
 
@@ -56,29 +55,36 @@ module ActiveGenie
           }, config: @config
         )
 
-        parsed_response = JSON.parse(get_response_body(response))
+        body_str = get_response_body(response)
+        parsed_response = parse_json_safely(body_str)
         parsed_response['message'] || parsed_response
+      end
+
+      def parse_json_safely(body_str)
+        JSON.parse(body_str)
       rescue JSON::ParserError
-        raise InvalidResponseError, "Invalid response: #{get_response_body(response)}"
+        repaired = body_str.gsub(/"(\w+)":\s*([A-Za-z][^,\}\n]+)/) do
+          key = Regexp.last_match(1)
+          val = Regexp.last_match(2).strip
+          val_quoted = val.start_with?('"') ? val : "\"#{val.gsub('"', '\"')}\""
+          "\"#{key}\": #{val_quoted}"
+        end
+        JSON.parse(repaired)
+      rescue JSON::ParserError
+        raise InvalidResponseError, "Invalid response: #{body_str}"
       end
 
       def get_response_body(response)
-        response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')
-                .gsub(', " "', '')
-                .strip
+        body = response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')
+        return '' if body.nil?
+
+        body.strip
       end
 
       def function_to_tool(function)
         {
           type: 'function',
-          function: {
-            **function,
-            parameters: {
-              **function[:parameters],
-              additionalProperties: false
-            },
-            strict: true
-          }.compact
+          function: function
         }
       end
 

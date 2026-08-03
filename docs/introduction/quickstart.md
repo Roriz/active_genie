@@ -58,7 +58,7 @@ criteria = "Evaluate technical quality, completeness, and engineering best pract
 
 # Same interface works with any AI provider
 result = ActiveGenie::Scorer.call(code_review, criteria,
-  config: { provider_name: :anthropic, model: 'claude-3-5-haiku' })
+  config: { provider_name: :anthropic, model: 'claude-sonnet-4-5' })
 
 result.data
 # => {
@@ -175,7 +175,7 @@ theme = "Features smartphone users care about most when choosing a new device"
 
 # Works identically across all AI providers
 result = ActiveGenie::Lister.call(theme,
-  config: { provider_name: :anthropic, model: 'claude-3-5-haiku' })
+  config: { provider_name: :anthropic, model: 'claude-sonnet-4-5' })
 
 result.data
 # => [
@@ -212,7 +212,7 @@ result = ActiveGenie::Lister.call("Most popular breakfast foods worldwide",
 **Consistent**: Same ordering logic and popularity assessment across all AI providers  
 **Model-Agnostic**: List generation adapts to different AI models' cultural knowledge and reasoning  
 
-*Recommended models*: `gpt-4o-mini`, `claude-3-5-haiku`, `gemini-2.0-flash`
+*Recommended models*: `gpt-5.6-luna`, `claude-haiku-4.5`, `gemini-3.5-flash-lite`, `deepseek-v4-flash`
 
 ---
 
@@ -251,7 +251,7 @@ Switch between any AI provider without changing your application logic:
 config = { provider_name: :openai, model: 'gpt-4o-mini' }
 
 # Anthropic  
-config = { provider_name: :anthropic, model: 'claude-3-5-haiku' }
+config = { provider_name: :anthropic, model: 'claude-sonnet-4-5' }
 
 # Google
 config = { provider_name: :google, model: 'gemini-2.0-flash' }

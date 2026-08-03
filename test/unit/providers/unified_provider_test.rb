@@ -70,7 +70,7 @@ module ActiveGenie
 
         mock_provider_instance.verify
 
-        assert_equal 'gpt-5.6-luna', received_config.llm.model
+        assert_equal 'gpt-4o-mini', received_config.llm.model
       end
 
       def test_choose_openai_by_default_provider
@@ -91,7 +91,7 @@ module ActiveGenie
 
         mock_provider_instance.verify
 
-        assert_equal 'gpt-5.6-luna', received_config.llm.model
+        assert_equal 'gpt-4o-mini', received_config.llm.model
       end
 
       def test_choose_openai_by_recommended_model

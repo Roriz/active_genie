@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../entities/players'
+
 module ActiveGenie
   module Ranker
     class Elo
@@ -8,9 +10,9 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, config: nil)
-        @players = players
-        @higher_tier = players.calc_higher_tier
-        @lower_tier = players.calc_lower_tier
+        @players = Entities::Players.new(players)
+        @higher_tier = @players.calc_higher_tier
+        @lower_tier = @players.calc_lower_tier
         @criteria = criteria
         @initial_config = config
         @tmp_highers = []

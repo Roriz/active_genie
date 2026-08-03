@@ -62,7 +62,7 @@ schema = {
 result = ActiveGenie::Extractor.call(
   text,
   schema,
-  config: { provider_name: :openai, model: 'gpt-4.1-mini' } # optional
+  config: { provider_name: :openai, model: 'gpt-5.6-luna' } # optional
 )
 # => {
 #      brand: "Nike",
