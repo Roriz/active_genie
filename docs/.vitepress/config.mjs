@@ -22,7 +22,7 @@ export default defineConfig({
     logo: '/logo.webp',
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Docs', link: '/introduction/installation' },
+      { text: 'Docs', link: '/introduction/what-is-active-genie' },
     ],
 
     search: {
@@ -51,15 +51,14 @@ export default defineConfig({
       {
         text: 'Benchmark',
         items: [
-          { text: 'Latest', link: '/benchmark/latest' },
-          { text: 'History', link: '/benchmark/history' },
+          { text: 'Latest results', link: '/benchmark/latest' },
         ]
       },
       {
         text: 'Reference',
         items: [
           { text: 'Configuration', link: '/reference/config' },
-          { text: 'Observability', link: '/reference/observability' },
+          { text: 'Observability & errors', link: '/reference/observability' },
         ]
       },
     ],

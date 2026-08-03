@@ -10,8 +10,8 @@ hero:
     alt: ActiveGenie
   actions:
     - theme: brand
-      text: Try it out
-      link: https://app.activegenie.ai
+      text: Get started
+      link: /introduction/quickstart
 
     - theme: alt
       text: What is ActiveGenie?
@@ -26,16 +26,26 @@ features:
   - icon: 👨🏻‍💻
     title: Extractor
     details: Typed data from unstructured text
+    link: /modules/extractor
+    linkText: Read the docs
   - icon: ⚔️
     title: Comparator
-    details: Compare two items and choose the best
+    details: Compare two items and pick the better one
+    link: /modules/comparator
+    linkText: Read the docs
   - icon: 💯
     title: Scorer
-    details: Given a text, return a score from 0 to 100
+    details: Score text from 0 to 100 with an expert jury
+    link: /modules/scorer
+    linkText: Read the docs
   - icon: 📝
     title: Lister
-    details: Given a theme, return the items
+    details: Generate an ordered list from a theme
+    link: /modules/lister
+    linkText: Read the docs
   - icon: 🏆
     title: Ranker
-    details: Given a list, return ranked items
+    details: Rank a list from best to worst
+    link: /modules/ranker
+    linkText: Read the docs
 ---

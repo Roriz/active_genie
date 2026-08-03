@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.version       = File.read(File.expand_path('VERSION', __dir__)).strip
   spec.summary       = 'The Lodash for GenAI: Consistent + Model-Agnostic'
   spec.description   = <<~DESC
-    ActiveGenie is an enabler for creating reliable GenAI features, offering powerful, model-agnostic tools across any provider. It allows you to settle subjective comparisons with a `ActibeGenie::Comparator` module that stages a political debate, get accurate scores from an AI jury using `ActiveGenie::Scorer`, and rank large datasets using `ActiveGenie::Ranker`'s tournament-style system.
+    ActiveGenie is a toolkit for building reliable GenAI features in Ruby, with model-agnostic modules that work across providers. It allows you to settle subjective comparisons with an `ActiveGenie::Comparator` module that stages a structured debate, get accurate scores from an AI jury using `ActiveGenie::Scorer`, and rank large datasets using `ActiveGenie::Ranker`'s tournament-style system.
     This reliability is built on three core pillars:
     - Custom Benchmarking: Testing for consistency with every new version and model update.
     - Reasoning Prompting: Utilizing human reasoning techniques (like debate and jury review) to control a model's reasoning.

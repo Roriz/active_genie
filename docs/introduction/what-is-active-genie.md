@@ -1,94 +1,22 @@
 # What is ActiveGenie?
 
-Building with Generative AI can be chaotic. You get inconsistent outputs, unpredictable behavior, and a constant, time-consuming need to re-engineer prompts for different models. This makes it incredibly difficult to build features that are reliable enough for production.
+LLMs are inconsistent. The same prompt returns different shapes on different days, and output that worked on one model breaks on another. Getting a reliable answer usually means rewriting prompts every time you change providers.
 
-**ActiveGenie** is your toolkit for taming that chaos. It's an enabler for creating **reliable, production-ready GenAI features** by offering powerful, **model-agnostic tools** that deliver consistent results from supported providers.
-
-Instead of wrestling with the low-level complexities of LLMs, you can solve real-world problems with a simple, consistent API.
+**ActiveGenie** is a Ruby toolkit that puts a stable interface over that. Each module solves one narrowly defined problem, such as extracting fields from text or comparing two options, and returns the same type no matter which provider answered.
 
 > [!TIP]
-> Convinced already? Jump straight to the [Quickstart Guide](/introduction/quickstart) to get started in minutes.
+> Already convinced? Go to the [Quickstart](/introduction/quickstart).
+
+> [!NOTE]
+> Outputs on this page are illustrative. LLM responses vary between runs and models. The shape stays stable, but the exact values will differ.
 
 -----
 
-## See It In Action
+## The five modules
 
-### 1. ActiveGenie::Comparator
+### Extractor
 
-`Comparator` conducts a structured "political debate" between two players to determine a clear winner based on your criteria, providing detailed reasoning for its choice.
-
-```ruby
-player_a = "Implementation uses dependency injection for better testability"
-player_b = "Code has high test coverage but tightly coupled components"
-criteria = "Evaluate code quality and maintainability"
-
-result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
-# => ComparatorResponse(
-#      winner: "Implementation uses dependency injection for better testability",
-#      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection..."
-#    )
-```
-
-**Perfect for:**
-
-  - **Better copy**: Choosing between marketing copy variants.
-  - **Best product**: Selecting the best product by abstract criteria.
-  - **Balance Gamification**: Compare player strategies to give more points to better ones.
-
-### 2. ActiveGenie::Scorer
-
-`Scorer` assembles an **AI jury** of specialists (e.g., a cardiologist, a senior developer, a marketing expert) to provide an objective quality assessment with detailed feedback from multiple perspectives.
-
-```ruby
-content = "Patient shows significant improvement in cardiac function with ejection fraction increased from 45% to 62%"
-criteria = "Evaluate medical accuracy, clarity, and clinical relevance"
-
-result = ActiveGenie::Scorer.call(content, criteria)
-# => {
-#      "cardiologist_score" => 94,
-#      "cardiologist_reasoning" => "Clinically significant improvement in ejection fraction...",
-#      "medical_writer_score" => 87,
-#      "final_score" => 90.7
-#    }
-```
-
-**Perfect for:**
-
-  - **Content quality**: Evaluating articles, documentation, or marketing copy.
-  - **Compliance**: Scoring content against regulatory or brand standards.
-  - **Assessment**: Evaluating essays, reports, or technical answers.
-
-### 3. ActiveGenie::Ranker
-
-`Ranker` organizes a multi-stage tournament, combining initial scoring + ELO ratings + free for all debates to produce a reliably sorted list.
-
-```ruby
-solutions = [
-  "Uses modern design patterns with proper separation of concerns",
-  "Implementation uses dependency injection for better testability",
-  "Legacy code with tightly coupled components but working functionality"
-]
-criteria = "Evaluate code quality and software engineering best practices"
-
-result = ActiveGenie::Ranker.call(solutions, criteria)
-# => {
-#      players: [
-#        { content: "Uses modern design patterns...", score: 85, elo: 1245, rank: 1 },
-#        { content: "Implementation uses dependency injection...", score: 82, elo: 1198, rank: 2 },
-#        # ... more ranked results
-#      ]
-#    }
-```
-
-**Perfect for:**
-
-  - **Candidate evaluation**: Ranking job applicants based on qualifications.
-  - **Product comparison**: Ranking features, vendors, or solutions.
-  - **Content curation**: Prioritizing articles, posts, or media.
-
-### 4. ActiveGenie::Extractor
-
-Turn messy text into clean, structured data. `Extractor` uses your defined schema to parse unstructured text, even handling informal language and complex context with ease.
+Turns unstructured text into typed data matching a schema you define.
 
 ```ruby
 product_text = "Sony 65\" Class BRAVIA XR X95K 4K HDR Mini LED TV - $1999.99 (Save $500)"
@@ -98,98 +26,137 @@ schema = {
   price: { type: 'number', minimum: 0, description: 'Current price' }
 }
 
-result = ActiveGenie::Extractor.call(product_text, schema)
-# => { brand: \"Sony\", display_size: \"65\", price: 1999.99 }
+ActiveGenie::Extractor.call(product_text, schema).data
+# => { brand: "Sony", display_size: "65\"", price: 1999.99 }
 ```
 
-**Perfect for:**
+Useful for parsing product listings, pulling structure out of support tickets, and normalizing documents.
 
-  - **E-commerce**: Parsing product listings and reviews.
-  - **Customer support**: Extracting structured insights from support tickets.
-  - **Content management**: Automatically structuring documents and articles.
+### Scorer
 
-### 5. ActiveGenie::Lister
-
-`Lister` simulates a "Family Feud" style survey to generate ordered lists based on popular options.
+Assembles a jury of domain experts (a cardiologist, a senior developer, a compliance officer) and returns a single score. Each juror's reasoning stays available on the result.
 
 ```ruby
-theme = "Factors consumers consider when buying a smartphone"
-result = ActiveGenie::Lister.call(theme)
-# => [ "Price", "Battery life", "Camera quality", "Storage capacity", "Brand reputation" ]
+content = "Patient shows significant improvement in cardiac function with ejection fraction increased from 45% to 62%"
+criteria = "Evaluate medical accuracy, clarity, and clinical relevance"
+
+result = ActiveGenie::Scorer.call(content, criteria)
+
+result.data
+# => 91
+
+result.metadata['cardiologist_reasoning']
+# => "Clinically significant improvement in ejection fraction, correctly reported."
 ```
 
-**Perfect for:**
+Common uses are content quality, compliance checks, and grading.
 
-  - **Market research**: Understanding consumer priorities.
-  - **Content strategy**: Generating topic ideas based on popular demand.
-  - **Tags and categories**: Creating relevant tags for articles or products.
+### Comparator
+
+Runs a structured debate between two options, then an impartial judge picks one.
+
+```ruby
+player_a = "Implementation uses dependency injection for better testability"
+player_b = "Code has high test coverage but tightly coupled components"
+
+ActiveGenie::Comparator.call(player_a, player_b, "Evaluate code quality and maintainability").data
+# => "Implementation uses dependency injection for better testability"
+```
+
+The winner comes back exactly as you passed it in, so you can compare it against your original input directly. Useful for choosing between copy variants, products, or strategies.
+
+### Lister
+
+Simulates a public survey and returns answers ordered by how commonly people would name them.
+
+```ruby
+ActiveGenie::Lister.call("Factors consumers consider when buying a smartphone").data
+# => ["Price", "Battery life", "Camera quality", "Storage capacity", "Brand reputation"]
+```
+
+Useful for market research, content planning, and generating tags. The ordering reflects popular opinion rather than factual ranking.
+
+### Ranker
+
+Orders a list by running a tournament: scoring, elimination, ELO rounds, then head-to-head debates.
+
+```ruby
+solutions = [
+  "Uses modern design patterns with proper separation of concerns",
+  "Implementation uses dependency injection for better testability",
+  "Legacy code with tightly coupled components but working functionality"
+]
+
+ActiveGenie::Ranker.call(solutions, "Evaluate software engineering best practices").data
+# => ["Uses modern design patterns...", "Implementation uses dependency injection...", "Legacy code..."]
+```
+
+Useful for candidate evaluation, vendor comparison, and content curation. It is also the most expensive module. See [Cost](/modules/ranker#cost).
 
 -----
 
-## The Pillars of ActiveGenie: How We Guarantee Results
+## How consistency is achieved
 
-Our modules are built on a foundation of principles that ensure reliability, consistency, and flexibility.
+### One return type
 
-### Pillar 1: Consistency
+Every module returns an `ActiveGenie::Result` with `data`, `reasoning`, and `metadata`. `data` is narrow (the score, the winner, the list), so your code never has to parse prose. `metadata` carries the full underlying response for debugging.
 
-For consistency we use a multi-layered approach to force LLMs to produce predictable, high-quality outputs.
+### Reasoning prompting
 
-  * **Reasoning Prompting**: We use human reasoning techniques to control a model's thought process. Instead of just asking for an answer, we force the model to stage a political debate (`Comparator`) or form a jury of experts (`Scorer`). This structured reasoning provides far more consistent results.
-  * **Overfitted Prompts**: Each module uses highly specialized prompts that are "overfitted" for a single purpose. This allows for a higher degree of precision and control over the output, making the modules reliable for their specific tasks.
+Rather than asking a model for an answer, ActiveGenie makes it work through a structure: a debate with counter-arguments (`Comparator`), a panel of experts scoring independently (`Scorer`), a survey simulation (`Lister`). Forcing the reasoning path produces far more stable results than asking directly.
 
-### Pillar 2: Verifiable
+### Overfitted prompts
 
-With every release, we run a suite of **400+ test cases** across multiple providers to validate performance. This prevents regressions, ensures quality, and helps you choose the most cost-effective model for your needs.
+Each module uses a prompt built for exactly one job. That trades generality for precision: the prompts do not generalize to other tasks, but they handle their own reliably.
 
-| Module | Best Precision | Recommended Model |
-|---|---|---|
-| **Extractor** | 94% | `deepseek-chat` |
-| **Comparator** | 96% | `claude-sonnet-4-20250514` |
-| **Scorer** | 83% | `deepseek-chat` |
-| **Lister** | 68% | `claude-sonnet-4-5` |
-| **Ranker** | 67% | `gemini-2.5-flash` |
+-----
 
-*See our [detailed benchmark results](/benchmark/latest) for full methodology and metrics.*
+## Verified against real providers
 
-### Pillar 3: Model agnostic
+ActiveGenie ships a 100-test end-to-end suite that runs against live provider APIs without mocks or recorded fixtures. Assertions check decision quality rather than only whether a response parsed.
 
-The LLM landscape changes daily. ActiveGenie is designed to be **model-agnostic**, giving you the freedom to adapt without rewriting your code.
+Best measured pass rate per module, across OpenAI, Anthropic, Google, and DeepSeek:
 
-  * **No Vendor Lock-In**: Switch between providers with a single line of configuration. Your application code remains unchanged, protected from breaking API changes and provider-specific quirks.
-  * **Use the Best Model for the Job**: Mix and match providers and models to optimize for cost, speed, or accuracy on a per-call basis.
+| Module | Best pass rate | Model |
+| :--- | :---: | :--- |
+| `Comparator` | 100% | all four providers |
+| `Lister` | 100% | `claude-haiku-4-5-20251001` |
+| `Scorer` | 100% | `gpt-4o-mini`, `gemini-3.5-flash-lite` |
+| `Ranker` | 75% | `gpt-4o-mini` |
+| `Extractor` | 70% | `gemini-3.5-flash-lite` |
+
+Overall, OpenAI and Anthropic tie at 86%, Google reaches 85%, and DeepSeek 81%.
+
+See the [benchmark](/benchmark/latest) for the full methodology, per-module breakdowns, and notable failures.
+
+-----
+
+## Model agnostic
+
+You select providers in configuration, and you can override the model for a single call.
 
 ```ruby
-# Set OpenAI as the default
 ActiveGenie.configure do |config|
-  config.providers.openai.api_key = "your-openai-key"
-  config.providers.anthropic.api_key = "your-anthropic-key"
+  config.providers.openai.api_key = ENV['OPENAI_API_KEY']
+  config.providers.anthropic.api_key = ENV['ANTHROPIC_API_KEY']
   config.providers.default = :openai
 end
 
-# Override to use Anthropic for a specific creative task
-result = ActiveGenie::Lister.call(
-  "Topics for a tech blog",
-  config: { model: "claude-sonnet-4-5" }
-)
+# Override for one call. The provider is inferred from the model name.
+ActiveGenie::Lister.call("Topics for a tech blog",
+  config: { llm: { model: 'claude-haiku-4-5-20251001' } })
 ```
 
-  * **No More Prompt Engineering Headaches**: We handle the complexity of provider-specific formatting, token optimization, and best practices internally. You just call the module.
+ActiveGenie handles provider-specific request formats, schema quirks, and response shapes internally, so your call site stays the same when you switch.
 
-**Supported Providers:** OpenAI, Anthropic, Google, DeepSeek, and more coming soon.
+Supported providers are OpenAI, Anthropic, Google, and DeepSeek.
 
 -----
 
-## Your Journey Starts Here
+## Where to go next
 
-Ready to add reliable GenAI capabilities to your application?
+1. [Installation](/introduction/installation) covers requirements and setup.
+2. [Quickstart](/introduction/quickstart) walks through all five modules with working examples.
+3. [Configuration](/reference/config) documents providers, models, retries, and concurrency.
 
-1.  **[Installation](/introduction/installation)** - Get ActiveGenie set up in minutes.
-2.  **[Quickstart Guide](/introduction/quickstart)** - Try our modules with hands-on examples.
-3.  **[Module Documentation](/modules/comparator)** - Deep dive into each module's advanced capabilities.
-
-Or explore specific modules based on your needs:
-- **[Comparator](/modules/comparator)** - For choosing between alternatives
-- **[Extractor](/modules/extractor)** - For structuring unstructured data  
-- **[Scorer](/modules/scorer)** - For quality assessment and expert evaluation
-- **[Lister](/modules/lister)** - For market research and content planning
-- **[Ranker](/modules/ranker)** - For multi-option evaluation and ranking
+Or jump to a module: [Extractor](/modules/extractor) · [Scorer](/modules/scorer) · [Comparator](/modules/comparator) · [Lister](/modules/lister) · [Ranker](/modules/ranker)

@@ -1,418 +1,255 @@
 # Extractor
 
-The **Extractor** module analyzes unstructured text and extracts structured data using AI-powered analysis. It handles everything from simple data extraction to complex informal language patterns, making it perfect for processing user-generated content, product descriptions, social media posts, and conversational text.
+Turns unstructured text into typed, structured data using a schema you define.
 
-Think of it as your **intelligent data parser** that can understand context, handle typos, interpret slang, and even detect rhetorical devices like sarcasm and understatement.
+> [!NOTE]
+> Outputs on this page are illustrative. LLM responses vary between runs and models, so expect the same shape with different values.
 
-## Features
+## How it works
 
-- **Structured data extraction** - Extract typed data from unstructured text using predefined JSON schemas
-- **Informal text analysis** - Identifies and handles informal language patterns, including litotes, slang, and conversational expressions
-- **Explanation tracking** - Provides reasoning for each extracted data point, improving transparency and debugging
-- **Schema validation** - Supports complex validation rules including enums, ranges, and custom constraints
-- **Multi-format support** - Works with social media posts, product listings, reviews, chat messages, and more
+You describe the fields you want. `Extractor` asks the model to fill them, constrained to the types you declared.
 
-## Basic Usage
+It has three strategies:
 
-Extract structured data from text using predefined schemas:
+- Explanation, the default, extracts each field *and* asks the model to justify it and rate its own confidence. The justifications land in `metadata`, so you can see why the model returned a given value.
+- Data extracts the fields only. That is one less thing for the model to generate, so it's cheaper and faster, but it leaves no audit trail.
+- Litote handles understatement. "Not bad at all" means good, and a naive extraction reads the negative and gets it backwards.
 
-```ruby
-# Simple person extraction
-text = "John Doe is 25 years old and works as a software engineer"
-schema = {
-  name: { type: 'string', description: 'Full name of the person' },
-  age: { type: 'integer', description: 'Age in years' },
-  profession: { type: 'string', description: 'Job title or profession' }
-}
-
-result = ActiveGenie::Extractor.call(text, schema)
-result.data
-# => {
-#      name: "John Doe",
-#      name_explanation: "Found directly at the beginning of text",
-#      age: 25,
-#      age_explanation: "Explicitly stated as 25 years old",
-#      profession: "software engineer",
-#      profession_explanation: "Identified as job title after 'works as'"
-#    }
-```
-
-## Real-World Examples
-
-### E-commerce Product Extraction
-
-Perfect for parsing product listings from various sources:
+## Basic usage
 
 ```ruby
-product = "Sony 65\" Class BRAVIA XR X95K 4K HDR Mini LED TV - $1999.99 (Save $500)"
+text = "Sony 65\" Class BRAVIA XR X95K 4K HDR Mini LED TV - $1999.99 (Save $500)"
+
 schema = {
   brand: { type: 'string', description: 'Product brand' },
   display_size: { type: 'string', description: 'Screen size with units' },
-  model: { type: 'string', description: 'Product model name' },
-  display_type: { type: 'string', description: 'Type of display technology' },
   price: { type: 'number', minimum: 0, description: 'Current price' },
-  discount: { type: 'number', minimum: 0, description: 'Discount amount if any' }
+  discount: { type: 'number', minimum: 0, description: 'Amount saved' }
 }
 
-result = ActiveGenie::Extractor.with_explanation(product, schema)
+result = ActiveGenie::Extractor.call(text, schema)
+
 result.data
-# => {
-#      brand: "Sony",
-#      brand_explanation: "Brand name at the beginning",
-#      display_size: "65\"",
-#      display_size_explanation: "Size specification before 'Class'",
-#      model: "BRAVIA XR X95K",
-#      model_explanation: "Model name between Class and display type",
-#      display_type: "4K HDR Mini LED TV",
-#      display_type_explanation: "Complete display technology description",
-#      price: 1999.99,
-#      price_explanation: "Current price after dash in USD format",
-#      discount: 500,
-#      discount_explanation: "Savings amount in parentheses"
-#    }
-```
-
-### Social Media Analysis
-
-Extract insights from social media posts and interactions:
-
-```ruby
-post = "@alice liked @dave's photo and commented: 'Amazing sunset at the beach!'"
-schema = {
-  action: {
-    type: 'string',
-    enum: ["post", "comment", "like", "share", "retweet", "reply"],
-    description: 'Primary social media action'
-  },
-  username: { type: 'string', description: 'Acting user' },
-  target_user: { type: 'string', description: 'Target of the action' },
-  content_type: { type: 'string', description: 'Type of content interacted with' },
-  sentiment: {
-    type: 'string',
-    enum: ["positive", "negative", "neutral"],
-    description: 'Overall sentiment of interaction'
-  }
-}
-
-result = ActiveGenie::Extractor.call(post, schema)
-result.data
-# => {
-#      action: "like",
-#      action_explanation: "Primary action mentioned first",
-#      username: "alice",
-#      username_explanation: "User performing the action",
-#      target_user: "dave",
-#      target_user_explanation: "Owner of the content being liked",
-#      content_type: "photo",
-#      content_type_explanation: "Type specified as 'photo'",
-#      sentiment: "positive",
-#      sentiment_explanation: "Comment shows enthusiasm about sunset"
-#    }
-```
-
-## Informal Text Processing
-
-The **`with_litote`** method extends basic extraction by analyzing rhetorical devices and informal language patterns commonly found in conversational text. This is particularly valuable for processing user-generated content where people use indirect expressions, understatement, and informal speech patterns.
-
-### Rhetorical Patterns Detected
-
-- **Litotes** ("not bad", "isn't terrible") - Understatement using double negatives
-- **Affirmative expressions** ("sure", "absolutely", "no problem") - Positive confirmations
-- **Negative expressions** ("nah", "not really", "kind of meh") - Soft rejections
-- **Sarcasm indicators** - Context-based sarcasm detection
-- **Informal intensifiers** ("super", "totally", "kinda") - Casual emphasis
-
-### Chat Message Analysis
-
-Perfect for analyzing customer support chats, user feedback, and conversational interfaces:
-
-```ruby
-chat = "The new update isn't terrible, but it's not exactly amazing either"
-schema = {
-  sentiment: {
-    type: 'string',
-    enum: ['positive', 'negative', 'neutral', 'mixed'],
-    description: 'Overall sentiment toward the update'
-  },
-  satisfaction_level: {
-    type: 'integer',
-    minimum: 1,
-    maximum: 5,
-    description: 'Satisfaction rating from 1-5'
-  },
-  feedback_type: {
-    type: 'string',
-    enum: ['compliment', 'complaint', 'suggestion', 'neutral_observation'],
-    description: 'Type of feedback being provided'
-  }
-}
-
-result = ActiveGenie::Extractor.with_litote(chat, schema)
-result.data
-# => {
-#      sentiment: "mixed",
-#      sentiment_explanation: "Uses litote 'isn't terrible' showing mild approval, balanced by 'not exactly amazing'",
-#      satisfaction_level: 3,
-#      satisfaction_level_explanation: "Lukewarm response indicates moderate satisfaction",
-#      feedback_type: "neutral_observation",
-#      feedback_type_explanation: "Balanced assessment without strong positive or negative bias",
-#      message_litote: true,
-#      litote_rephrased: "The new update is okay, but it could be better"
-#    }
-```
-
-### Review Analysis
-
-Extract meaningful insights from informal product reviews:
-
-```ruby
-review = "This restaurant isn't bad at all! The service wasn't horrible either."
-schema = {
-  overall_rating: {
-    type: 'integer',
-    minimum: 1,
-    maximum: 5,
-    description: 'Overall restaurant rating'
-  },
-  service_rating: {
-    type: 'integer',
-    minimum: 1,
-    maximum: 5,
-    description: 'Service quality rating'
-  },
-  recommendation: {
-    type: 'boolean',
-    description: 'Would recommend to others'
-  }
-}
-
-result = ActiveGenie::Extractor.with_litote(review, schema)
-result.data
-# => {
-#      overall_rating: 4,
-#      overall_rating_explanation: "Positive sentiment via litote 'isn't bad at all'",
-#      service_rating: 3,
-#      service_rating_explanation: "Moderate positive via 'wasn't horrible'",
-#      recommendation: true,
-#      recommendation_explanation: "Overall positive tone suggests recommendation",
-#      message_litote: true,
-#      litote_rephrased: "This restaurant is quite good! The service was decent too."
-#    }
-```
-
-### Performance Considerations
-
-⚠️ **Processing Impact**: The `with_litote` method performs additional rhetorical analysis, which:
-- Requires 2-3x more processing time than basic extraction
-- May involve multiple AI model calls for complex text
-- Best suited for conversational text under 500 words
-- Consider background processing for high-volume applications
-
-### When to Use Litote Processing
-
-**✅ Ideal for:**
-- Customer feedback and reviews
-- Chat message analysis
-- Social media sentiment analysis
-- Survey responses with informal language
-- User-generated content moderation
-
-**❌ Not recommended for:**
-- Formal documents or technical texts
-- High-volume real-time processing
-- Simple data extraction without sentiment needs
-- Structured data like product catalogs
-
-## Tips & Best Practices
-
-- **Be descriptive with your schemas.** Include detailed descriptions for each field to help the AI understand what you're looking for. The more context you provide, the better the extraction quality.
-
-- **Use validation constraints effectively.** Leverage `enum`, `minimum`, `maximum`, and other JSON schema constraints to guide extraction and ensure data quality.
-
-- **Handle missing data gracefully.** Not all text will contain every field in your schema. The extractor will only return fields it can confidently identify.
-
-- **Optimize schema complexity.** While the extractor can handle complex nested schemas, simpler schemas generally produce more reliable results and faster processing.
-
-- **Choose the right method for your use case:**
-  - Use `.call()` for straightforward data extraction from structured text
-  - Use `.with_explanation()` when you need reasoning for debugging or transparency
-  - Use `.with_litote()` for informal, conversational, or user-generated content
-
-- **Test with real data.** Use representative samples of your actual text data when designing schemas, as real-world text often contains unexpected variations.
-
-- **Consider context windows.** For very long texts, consider breaking them into smaller chunks as AI models have token limits that can affect extraction quality.
-
-## Advanced Schema Patterns
-
-### Multi-Type Fields
-
-Handle fields that could have multiple valid types:
-
-```ruby
-# Product price that might be a number or "Contact for pricing"
-schema = {
-  price: {
-    oneOf: [
-      { type: 'number', minimum: 0 },
-      { type: 'string', enum: ['Contact for pricing', 'Price on request', 'TBD'] }
-    ]
-  }
-}
-```
-
-### Array Extraction
-
-Extract lists and collections from text:
-
-```ruby
-text = "The product is available in red, blue, and green colors"
-schema = {
-  colors: {
-    type: 'array',
-    items: { type: 'string' },
-    description: 'Available color options'
-  }
-}
-# => { colors: ["red", "blue", "green"] }
-```
-
-### Conditional Fields
-
-Create context-dependent extraction rules:
-
-```ruby
-review = "Great hotel! The pool was amazing and the spa was relaxing. Breakfast could be better."
-schema = {
-  rating: { type: 'integer', minimum: 1, maximum: 5 },
-  amenities_mentioned: {
-    type: 'array',
-    items: {
-      type: 'object',
-      properties: {
-        name: { type: 'string' },
-        sentiment: { type: 'string', enum: ['positive', 'negative', 'neutral'] }
-      }
-    }
-  }
-}
+# => { brand: "Sony", display_size: "65\"", price: 1999.99, discount: 500.0 }
 ```
 
 ## Interface
 
-### `.call(text, data_to_extract, config = {})`
+### `.call(text, data_to_extract, config: {})`
 
-The primary extraction method that analyzes text and returns structured data based on your schema.
+Extracts with explanations. Alias for `.with_explanation`.
 
-#### Parameters
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `text` | String | The text to extract from. |
+| `data_to_extract` | Hash | Schema describing the fields. See [Schemas](#schemas). |
+| `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
 
-| Name | Type | Description | Required | Example |
-| --- | --- | --- | --- | --- |
-| `text` | `String` | The text to analyze and extract data from | Yes | `"John Doe is 25 years old"` |
-| `data_to_extract` | `Hash` | JSON schema defining the data structure to extract | Yes | `{ name: { type: 'string' } }` |
-| `config` | `Hash` | Additional extraction configuration options | No | `{ model: "gpt-4", provider_name: "openai" }` |
+### `.with_explanation(text, data_to_extract, config: {})`
 
-#### Returns
-`Hash` containing extracted values matching the schema structure, with explanation fields when using `with_explanation`.
+Identical to `.call`. Use it when you want the strategy named explicitly at the call site.
 
-#### Configuration Options
+### `.data(text, data_to_extract, config: {})`
+
+Extracts the fields without the explanation pass, which costs less and runs faster.
+
 ```ruby
-config = {
-  model: "gpt-4o",           # AI model to use
-  provider_name: "openai",        # AI provider (openai, anthropic, google, deepseek)
-  temperature: 0.1,          # Lower values for more consistent extraction
-  max_tokens: 1000,          # Maximum response length
-  timeout: 30                # Request timeout in seconds
+result = ActiveGenie::Extractor.data(text, schema)
+
+result.data
+# => { "brand" => "Sony", "price" => 1999.99 }
+
+result.reasoning
+# => nil
+```
+
+> [!WARNING]
+> `.data` returns **string** keys and a `nil` reasoning; `.call` returns **symbol** keys and populated reasoning. Swapping one for the other will silently break key access:
+>
+> ```ruby
+> ActiveGenie::Extractor.call(text, schema).data[:brand]  # => "Sony"
+> ActiveGenie::Extractor.data(text, schema).data[:brand]  # => nil
+> ActiveGenie::Extractor.data(text, schema).data['brand'] # => "Sony"
+> ```
+>
+> Normalize with `transform_keys(&:to_sym)` if you need to switch between them.
+
+The two strategies can also disagree on the extraction itself. Requiring the model to justify a field tends to tighten it. Extracting `brand` from `"Nike Air Max 90 - Size 42 - $199.99"`:
+
+```ruby
+ActiveGenie::Extractor.call(text, schema).data[:brand]  # => "Nike"
+ActiveGenie::Extractor.data(text, schema).data['brand'] # => "Nike Air Max 90"
+```
+
+When precision matters more than cost, prefer `.call`.
+
+### `.with_litote(text, data_to_extract, config: {})`
+
+Detects understatement and extracts from the plain meaning instead of the literal words.
+
+```ruby
+review = "The new update isn't terrible, but it's not exactly amazing either"
+
+schema = {
+  sentiment: { type: 'string', enum: %w[positive negative neutral mixed] },
+  satisfaction_level: { type: 'integer', minimum: 1, maximum: 5 }
+}
+
+result = ActiveGenie::Extractor.with_litote(review, schema)
+
+result.data
+# => { sentiment: "mixed", satisfaction_level: 3 }
+```
+
+This runs in two passes. The first extracts your fields alongside `message_litote` and `litote_rephrased`. If a litote was detected, it rephrases the text plainly and extracts your fields again from the rephrasing.
+
+> [!IMPORTANT]
+> The two outcomes return different keys:
+>
+> - When a litote is detected, a second extraction runs against your original schema, so `data` contains **only your fields**. `message_litote` and `litote_rephrased` are not present.
+> - When no litote is detected, `data` contains your fields **plus** `message_litote: false` and `litote_rephrased`.
+>
+> Use `result.data.fetch(:message_litote, true)` rather than assuming the key exists.
+
+## Return value
+
+Returns an [`ActiveGenie::Result`](/introduction/quickstart#understanding-activegenie-result).
+
+| Strategy | `data` keys | `data` contents | `reasoning` |
+| :--- | :--- | :--- | :--- |
+| `.call` / `.with_explanation` | Symbols | Your schema fields only | The first field's explanation |
+| `.data` | Strings | The provider response, compacted | `nil` |
+| `.with_litote` | Symbols | Your schema fields, plus litote fields only when no litote was found | The first field's explanation |
+
+> [!IMPORTANT]
+> The `*_explanation` and `*_accuracy` fields are **not** in `data`. They are in `metadata`.
+
+```ruby
+result = ActiveGenie::Extractor.call("Nike Air Max 90 - Size 42 - $199.99",
+                                     { brand: { type: 'string' }, price: { type: 'number' } })
+
+result.data
+# => { brand: "Nike", price: 199.99 }
+
+result.metadata
+# => {
+#      "brand" => "Nike",
+#      "brand_explanation" => "Brand name at the start of the product title",
+#      "brand_accuracy" => 100,
+#      "price" => 199.99,
+#      "price_explanation" => "Price in USD at the end of the string",
+#      "price_accuracy" => 100
+#    }
+```
+
+`*_accuracy` is the model's own confidence on a 0-100 scale. A 100 means the value was stated explicitly in the text, and a 0 means the model could not determine it.
+
+## Schemas
+
+A schema is a hash of field names to descriptors.
+
+| Key | Purpose |
+| :--- | :--- |
+| `type` | `'string'`, `'number'`, `'integer'`, `'boolean'`, `'array'`, `'object'` |
+| `description` | What the field means. Nothing else in the schema affects extraction quality as much. |
+| `enum` | Restricts the value to a fixed set. |
+| `minimum` / `maximum` | Numeric bounds. |
+| `items` | Element descriptor for `array` types. |
+
+```ruby
+schema = {
+  sentiment: {
+    type: 'string',
+    enum: %w[positive negative neutral],
+    description: 'Overall tone of the message'
+  },
+  rating: {
+    type: 'integer',
+    minimum: 1,
+    maximum: 5,
+    description: 'Star rating, if one is stated'
+  },
+  tags: {
+    type: 'array',
+    items: { type: 'string' },
+    description: 'Topics mentioned'
+  }
 }
 ```
 
-### `.with_explanation(text, data_to_extract, config = {})`
+## Configuration
 
-Identical to `.call()` but includes detailed explanations for each extracted field. Use this method when you need transparency in the extraction process or for debugging purposes.
+| Setting | Default | Description |
+| :--- | :--- | :--- |
+| `config.extractor.min_accuracy` | `70` | Intended confidence floor for a field. |
+
+> [!WARNING]
+> `min_accuracy` is **not currently enforced**. The `*_accuracy` values are returned in `metadata` but nothing is filtered against this threshold. Apply it yourself if you need it:
+>
+> ```ruby
+> result = ActiveGenie::Extractor.call(text, schema)
+> trusted = result.data.reject { |k, _| result.metadata["#{k}_accuracy"].to_i < 70 }
+> ```
+
+`Extractor` is tuned against `deepseek-chat` across all three strategies. See [Configuration](/reference/config) for the full set of options and [Observability & errors](/reference/observability) for failure handling.
+
+## Cost
+
+| Strategy | LLM calls | Relative output size |
+| :--- | :--- | :--- |
+| `.data` | 1 | Smallest |
+| `.call` / `.with_explanation` | 1 | Larger: three fields generated per schema field |
+| `.with_litote` | 1 or 2 | Second call only when a litote is detected |
+
+The explanation pass roughly triples the generated tokens, since every field produces a value, an explanation, and an accuracy score. Use `.data` for high-volume extraction where you won't inspect the reasoning.
+
+## Tips
+
+- Descriptions matter more than types. `description: 'Screen size with units'` is what makes the model return `"65\""` rather than `65`. Write them for a human who has never seen your data.
+- Use `enum` whenever the value set is known. It turns an open-ended generation into a classification, which is more reliable.
+- Ask for what's in the text. The model guesses at fields that require inference, so check `*_accuracy` for anything not stated explicitly.
+- Prefer `string` for anything with units or formatting. Sizes, phone numbers, and SKUs lose information when coerced to numbers.
+- Reach for `.with_litote` on human-written opinion such as reviews, feedback, and chat messages. Skip it for structured product data, where it only adds a possible second call.
+- Normalize keys at the boundary. If your code path may use either `.call` or `.data`, symbolize once on the way out.
+
+## Examples
+
+### Support ticket triage
 
 ```ruby
-# Returns ActiveGenie::Result with additional *_explanation fields in data
-result = ActiveGenie::Extractor.with_explanation(text, schema)
-result.data
-# => {
-#      name: "John Doe",
-#      name_explanation: "Found directly at the beginning of the text",
-#      age: 25,
-#      age_explanation: "Explicitly stated as '25 years old'"
-#    }
+schema = {
+  category: { type: 'string', enum: %w[billing technical account feature_request] },
+  urgency: { type: 'string', enum: %w[low medium high critical] },
+  summary: { type: 'string', description: 'One-sentence restatement of the problem' }
+}
+
+ActiveGenie::Extractor.call(ticket_body, schema)
 ```
 
-### `.with_litote(text, data_to_extract, config = {})`
-
-Specialized extraction method that analyzes rhetorical devices and informal language patterns. Best for conversational text, reviews, and user-generated content.
-
-#### Additional Returns
-- `message_litote` - Boolean indicating if litotes were detected
-- `litote_rephrased` - Positive rephrasing of the original text (when applicable)
+### Review sentiment with understatement
 
 ```ruby
-result = ActiveGenie::Extractor.with_litote("The weather isn't bad", schema)
-result.data
-# => {
-#      mood: "positive",
-#      mood_explanation: "Positive sentiment expressed through litote",
-#      message_litote: true,
-#      litote_rephrased: "The weather is good"
-#    }
+schema = {
+  overall_rating: { type: 'integer', minimum: 1, maximum: 5 },
+  recommendation: { type: 'boolean', description: 'Would the reviewer recommend it?' }
+}
+
+ActiveGenie::Extractor.with_litote(
+  "This restaurant isn't bad at all. The service wasn't horrible either.",
+  schema
+)
+# => { overall_rating: 4, recommendation: true }
 ```
 
----
-
-## Response Structure
-
-All extractor methods return an `ActiveGenie::Result` instance with:
+### High-volume product parsing
 
 ```ruby
-result = ActiveGenie::Extractor.call(text, schema)
+schema = {
+  brand: { type: 'string' },
+  price: { type: 'number', minimum: 0 }
+}
 
-# Access extracted data
-result.data
-# => {
-#      field_name: extracted_value,
-#      # With explanation/litote methods:
-#      field_name_explanation: "Reasoning for extraction",
-#      # Litote-specific fields (with_litote only):
-#      message_litote: true/false,
-#      litote_rephrased: "Positive rephrasing of original text"
-#    }
-
-# Access reasoning about the extraction process
-result.reasoning
-# => "Explanation of extraction methodology and approach"
-
-# Convert to different formats
-result.to_h    # => { data: {...}, reasoning: "...", metadata: {...} }
-result.to_json # => JSON string
-```
-
-### Error Handling
-
-The extractor gracefully handles various error conditions:
-
-- **Missing fields**: Fields not found in text are omitted from results
-- **Type mismatches**: Invalid data types are either converted or omitted
-- **API failures**: Network issues return partial results when possible
-- **Schema validation**: Invalid schemas raise descriptive errors
-
-```ruby
-begin
-  result = ActiveGenie::Extractor.call(text, schema)
-  data = result.data
-rescue ActiveGenie::InvalidProviderError => e
-  # Handle provider configuration issues
-rescue ActiveGenie::ExtractionError => e
-  # Handle extraction-specific errors
+listings.map do |listing|
+  ActiveGenie::Extractor.data(listing, schema).data.transform_keys(&:to_sym)
 end
 ```
-
-⚠️ **Performance Considerations**
-
-- **Basic extraction** (`.call`): ~1-3 seconds for typical text
-- **With explanations**: ~2-5 seconds due to additional reasoning
-- **Litote processing**: ~3-8 seconds for rhetorical analysis
-- **Batch processing**: Consider background jobs for high-volume extraction
-- **Token limits**: Large texts may be truncated; consider chunking for optimal results

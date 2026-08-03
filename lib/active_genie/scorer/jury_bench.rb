@@ -52,6 +52,9 @@ module ActiveGenie
 
       PROMPT = File.read(File.join(__dir__, 'jury_bench.prompt.md'))
 
+      # Longest suffix appended to a jury key when building schema properties.
+      JURY_KEY_SUFFIX = '_reasoning'
+
       private
 
       def response_formatted(provider_response)
@@ -105,7 +108,7 @@ module ActiveGenie
 
       def compute_jury_expected_values(logprobs_result)
         juries.filter_map do |jury|
-          jury_key = ActiveGenie::TextCase.underscore(jury)
+          jury_key = jury_key_for(jury)
           cands = ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(logprobs_result, "#{jury_key}_score")
           calc = ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(cands, min_score: 0.0, max_score: 100.0)
           calc&.expected_value
@@ -141,7 +144,7 @@ module ActiveGenie
         @properties ||= begin
           tmp = {}
           juries.each do |jury|
-            jury_key = ActiveGenie::TextCase.underscore(jury)
+            jury_key = jury_key_for(jury)
             tmp["#{jury_key}_reasoning"] = {
               type: 'string',
               description: "The reasoning of the Scorer process by #{jury}."
@@ -165,6 +168,15 @@ module ActiveGenie
 
           tmp
         end
+      end
+
+      # Jury names become JSON schema property keys, which providers cap at 64
+      # characters. Reserve room for the suffix so the combined key still fits.
+      def jury_key_for(jury)
+        ActiveGenie::TextCase.underscore(
+          jury,
+          max_length: ActiveGenie::TextCase::MAX_KEY_LENGTH - JURY_KEY_SUFFIX.length
+        )
       end
 
       def juries

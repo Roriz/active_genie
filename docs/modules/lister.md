@@ -1,183 +1,136 @@
 # Lister
 
-The **Lister** module generates a list of items based on a given theme, inspired by the game "Family Feud." It impersonates a survey of average people's opinions and generates an ordered, survey-style answer list. The goal is to determine the most common answers for a given topic, with the most likely answers appearing first.
+Generates an ordered list of items for a theme, ranked by how commonly people would name them.
 
-The module uses AI to reason about what answers would be mentioned most frequently if a group of average people were surveyed on the given theme, ensuring the results reflect general public opinion and cultural impact.
+> [!NOTE]
+> Outputs on this page are illustrative. LLM responses vary between runs and models, so expect the same shape of result with different values in it.
 
-## Basic Usage
+## How it works
 
-Generate a list of items for a given theme:
+`Lister` has two strategies.
+
+Feud, the default, simulates a Family Feud survey. The model works out what a group of ordinary people would say if you asked them the question, then returns the answers in the order they would come up. What you get back is popular consensus, closer to cultural familiarity than to expert opinion or a factual ranking.
+
+Juries takes a piece of content and a criteria, then returns the expert roles best suited to evaluating it. [`Scorer`](/modules/scorer) uses this internally to assemble its jury.
+
+## Basic usage
 
 ```ruby
-theme = "Industries that are most likely to be affected by climate change"
+theme = "Industries most likely to be affected by climate change"
+
 result = ActiveGenie::Lister.call(theme)
+
 result.data
-# => [
-#      "Agriculture",
-#      "Insurance", 
-#      "Tourism",
-#      "Fishing",
-#      "Real Estate"
-#    ]
+# => ["Agriculture", "Insurance", "Tourism", "Fishing", "Real Estate"]
 
 result.reasoning
-# => "List generated using Family Feud style survey simulation reflecting general public opinion"
-
+# => "Agriculture and insurance are the two most frequently cited because their
+#     exposure is direct and widely reported."
 ```
 
-Generate a list with custom configuration:
+Control the length with `config.lister.number_of_items`:
 
 ```ruby
-theme = "Most popular breakfast foods"
-result = ActiveGenie::Lister.call(theme, config: { number_of_items: 8 })
-result.data
-# => [
-#      "Eggs",
-#      "Toast", 
-#      "Cereal",
-#      "Pancakes",
-#      "Bacon",
-#      "Coffee",
-#      "Orange Juice",
-#      "Oatmeal"
-#    ]
+ActiveGenie::Lister.call("Most popular breakfast foods",
+  config: { lister: { number_of_items: 8 } })
 ```
-
-## Advanced Usage
-
-### Different Methodologies
-
-The Lister module provides different approaches for generating lists based on your specific needs:
-
-#### Feud (Default)
-The default "Family Feud" style survey simulation, perfect for general public opinion topics:
-
-```ruby
-theme = "Things people do when they're bored"
-result = ActiveGenie::Lister.with_feud(theme)
-result.data
-# => [
-#      "Watch TV",
-#      "Browse social media",
-#      "Listen to music", 
-#      "Read a book",
-#      "Take a nap"
-#    ]
-```
-
-#### Juries
-Generates a list of expert jury roles suitable for evaluating specific content:
-
-```ruby
-text = "A technical proposal for implementing microservices architecture"
-criteria = "Evaluate technical feasibility and business impact"
-result = ActiveGenie::Lister.with_juries(text, criteria)
-result.data
-# => [
-#      "Software Architect",
-#      "DevOps Engineer",
-#      "Business Analyst"
-#    ]
-```
-
-## Real-World Examples
-
-### Market Research
-```ruby
-theme = "Factors consumers consider when buying a smartphone"
-result = ActiveGenie::Lister.call(theme)
-result.data
-# => [
-#      "Price",
-#      "Battery life",
-#      "Camera quality",
-#      "Storage capacity",
-#      "Brand reputation"
-#    ]
-```
-
-### Content Planning
-```ruby
-theme = "Topics people want to learn about in online courses"
-result = ActiveGenie::Lister.call(theme, config: { number_of_items: 10 })
-result.data
-# => [
-#      "Programming",
-#      "Digital Marketing",
-#      "Data Analysis",
-#      "Graphic Design",
-#      "Photography",
-#      "Language Learning",
-#      "Personal Finance",
-#      "Cooking",
-#      "Fitness",
-#      "Public Speaking"
-#    ]
-```
-
-### Problem-Solving
-```ruby
-theme = "Common challenges faced by remote workers"
-result = ActiveGenie::Lister.call(theme)
-result.data
-# => [
-#      "Communication issues",
-#      "Work-life balance",
-#      "Isolation and loneliness",
-#      "Technical difficulties",
-#      "Time management"
-#    ]
-```
-
-## Tips
-
-  - **Be specific with your theme.** A clear and concise theme will produce better, more relevant results. Instead of "food," try "comfort foods people crave during winter."
-  - **Think like a survey.** The module is designed to mimic popular opinion, so frame your themes as questions you might ask a group of people in a mall or on the street.
-  - **Order matters.** The returned list is ordered by popular consensus, from most to least common. The first items should represent what most people would immediately think of.
-  - **Consider cultural context.** The results reflect general cultural awareness and popular opinions, making them ideal for market research, content creation, and understanding public perception.
-  - **Use descriptive themes.** Instead of "cars," try "car features that are most important to families" or "reasons people choose electric vehicles."
-  - **Avoid overly technical topics.** The feud methodology works best with themes that average people can relate to and have opinions about.
 
 ## Interface
 
-### .call(theme, config: {})
+### `.call(theme, config: {})`
 
-The primary interface that uses the Feud methodology by default.
+Generates a survey-style list. This is an alias for `.with_feud`.
 
-  - `theme` [String] - The topic or question for the survey. Should be framed as something you'd ask in a public survey.
-  - `config` [Hash] - Additional configuration that modifies the generation behavior. The most relevant option is `number_of_items` to control the size of the list.
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `theme` | String | The question or topic to survey. |
+| `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
 
-**Returns `ActiveGenie::Result` instance containing:**
+### `.with_feud(theme, config: {})`
+
+Identical to `.call`. Use it when you want the strategy named explicitly at the call site.
+
+### `.with_juries(text, criteria, config: {})`
+
+Returns the expert roles suited to evaluating the given content against the given criteria.
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `text` | String | The content that needs evaluating. |
+| `criteria` | String | What the evaluation should assess. |
+| `config` | Hash | Per-call configuration overrides. |
 
 ```ruby
-result = ActiveGenie::Lister.call(theme)
+result = ActiveGenie::Lister.with_juries(
+  "A technical proposal for implementing microservices architecture",
+  "Evaluate technical feasibility and business impact"
+)
 
-# Access the list
 result.data
-# => ["Item 1", "Item 2", "Item 3", ...]
-
-# Access reasoning
-result.reasoning
-# => "List generated using Family Feud style survey simulation"
+# => ["Software Architect", "DevOps Engineer", "Business Analyst"]
 ```
 
------
+`number_of_items` does not apply here. The model picks however many juries the content calls for.
 
-### .with_feud(theme, config: {})
+## Return value
 
-Explicitly uses the "Family Feud" survey methodology. Returns `ActiveGenie::Result` with the same structure as `.call()`.
+Returns an [`ActiveGenie::Result`](/introduction/quickstart#understanding-activegenie-result).
 
-  - `theme` [String] - The topic or question for the survey.
-  - `config` [Hash] - Additional configuration that modifies the generation behavior.
+| Accessor | Type | Contents |
+| :--- | :--- | :--- |
+| `data` | Array&lt;String&gt; | The list, ordered most to least common. Empty array if the model returns nothing usable. |
+| `reasoning` | String | Why these items, in this order. |
+| `metadata` | Hash | The raw provider response, keyed by strings. |
 
------
+## Configuration
 
-### .with_juries(text, criteria, config: {})
+| Setting | Default | Applies to | Description |
+| :--- | :--- | :--- | :--- |
+| `config.lister.number_of_items` | `5` | `.call`, `.with_feud` | How many items to generate. |
 
-Generates a list of expert jury roles suitable for evaluating specific content against given criteria. Returns `ActiveGenie::Result`.
+```ruby
+ActiveGenie::Lister.call(theme, config: { lister: { number_of_items: 10 } })
+```
 
-  - `text` [String] - The content that needs to be evaluated by experts.
-  - `criteria` [String] - The evaluation criteria that will guide jury selection.
-  - `config` [Hash] - Additional configuration that modifies the recommendation process.
+> [!WARNING]
+> `number_of_items` goes to the model as an instruction. ActiveGenie does not enforce the count afterwards. You will get the requested number in almost all cases, but check `data.size` before you index into fixed positions.
 
-  - A list of expert roles or jury types best suited to evaluate the given content and criteria.
+ActiveGenie tunes `.with_feud` against `claude-haiku-4-5-20251001` and `.with_juries` against `deepseek-chat`. See [Configuration](/reference/config) for the full set of options and [Observability & errors](/reference/observability) for failure handling.
+
+## Cost
+
+Both strategies make one LLM call per invocation, whatever you set `number_of_items` to.
+
+## Tips
+
+- Write the theme as a survey question. "Comfort foods people crave in winter" works, where a bare "food" gives the model nothing to survey.
+- The order means something. Items come back sorted by popular consensus, so the first few are what most people would name straight away.
+- Feud gives you opinion rather than fact. That suits market research, where what people believe matters. For items ordered by merit, use [`Ranker`](/modules/ranker) instead.
+- Keep technical themes away from Feud. The method assumes ordinary people have opinions on the subject. Ask for "Best Rust async runtimes" and you get a list that looks plausible while resting on no survey at all.
+- Answers carry cultural bias. They follow the model's training distribution, which skews toward English-language, Western consensus. Name the market in the theme if you need a specific one.
+- Check the size before you index. Prefer `data.first(3)` over `data[2]`.
+
+## Examples
+
+### Market research
+
+```ruby
+ActiveGenie::Lister.call("Factors consumers consider when buying a smartphone")
+# => ["Price", "Battery life", "Camera quality", "Storage capacity", "Brand reputation"]
+```
+
+### Content planning
+
+```ruby
+ActiveGenie::Lister.call("Topics people want to learn about in online courses",
+  config: { lister: { number_of_items: 10 } })
+```
+
+### Reusing a jury across a batch
+
+```ruby
+criteria = "Evaluate technical feasibility and business impact"
+juries = ActiveGenie::Lister.with_juries(sample_proposal, criteria).data
+
+proposals.map { |p| ActiveGenie::Scorer.call(p, criteria, juries) }
+```

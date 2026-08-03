@@ -1,370 +1,218 @@
 # Ranker
 
-The **Ranker** module organizes and ranks multiple players based on their content quality through a sophisticated multi-stage evaluation process. It combines scoring, elimination, ELO rating, and head-to-head comparisons to produce fair and accurate rankings.
+Orders a list of items from best to worst against a criteria.
 
-The ranking system is designed to handle any number of players, from small groups to large tournaments, automatically adapting its methodology based on the size and quality distribution of the player pool.
+> [!NOTE]
+> Outputs on this page are illustrative. LLM responses vary between runs and models, so the shape stays stable while the exact values change.
 
-## Overview
+> [!WARNING]
+> `Ranker` is the most expensive module by a wide margin. Its head-to-head stage grows quadratically with the number of items. Read [Cost](#cost) before ranking more than a handful.
 
-The ranking system performs the following steps:
+## How it works
 
-1. **Initial Scoring**: Each player's textual content is evaluated using `ActiveGenie::Scorer`. This produces a `score` based on multiple expert reviews, establishing baseline quality metrics.
+`Ranker` composes [`Scorer`](/modules/scorer) and [`Comparator`](/modules/comparator) into a tournament:
 
-2. **Elimination of Poor Performers**: Players whose scores show a high coefficient of variation (indicating inconsistency) are progressively eliminated. This ensures that only competitive candidates continue in the ranking process.
+1. Scoring: a jury scores every item independently.
+2. Variation elimination: the lowest scorer is dropped repeatedly until the spread of remaining scores falls below `config.ranker.score_variation_threshold`. That clears out obvious losers before any money goes into debates.
+3. ELO rounds run while more than 15 items remain. Lower-tier items debate higher-tier ones, three debates each, and ELO ratings are updated. Lower tiers are relegated between rounds.
+4. Free-for-all: every surviving pair debates head-to-head. A win is worth 3 points and a draw 1.
 
-3. **ELO Ranking**: If there are more than 10 eligible players, an ELO-based ranking is applied. Battles between players are simulated via `ActiveGenie::Comparator`, and scores are updated using an ELO algorithm tailored to the ranking context.
+Scoring alone is cheap but coarse, while debates are expensive but decisive. The elimination stages exist so the debates get spent only where the ordering is still uncertain.
 
-4. **Free-for-All Matches**: Finally, the remaining players engage in head-to-head matches where each unique pair competes. Match outcomes (wins, losses, draws) are recorded to finalize the rankings.
-
-## Basic Usage
-
-Rank a collection of players based on specific criteria:
-
-```ruby
-players = [
-  "Implementation uses dependency injection for better testability",
-  "Code has comprehensive documentation and clear naming conventions", 
-  "Uses modern design patterns with proper separation of concerns",
-  "Legacy code with tightly coupled components but working functionality"
-]
-
-criteria = "Evaluate code quality, maintainability, and software engineering best practices"
-
-result = ActiveGenie::Ranker.call(players, criteria)
-result.data
-# => {
-#      players: [
-#        { content: "Uses modern design patterns...", score: 85, elo: 1245, rank: 1, eliminated: nil },
-#        { content: "Implementation uses dependency injection...", score: 82, elo: 1198, rank: 2, eliminated: nil },
-#        { content: "Code has comprehensive documentation...", score: 78, elo: 1156, rank: 3, eliminated: nil },
-#        { content: "Legacy code with tightly coupled...", score: 45, elo: 892, rank: 4, eliminated: nil }
-#      ],
-#      statistics: {
-#        total_players: 4,
-#        eliminated_players: 0,
-#        elo_rounds: 1,
-#        ffa_matches: 6
-#      }
-#    }
-
-result.reasoning
-# => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
-```
-
-## Advanced Usage Examples
-
-### Ranking Product Descriptions
-
-```ruby
-products = [
-  "iPhone 15 Pro Max with A17 Pro chip, titanium design, and advanced camera system",
-  "Samsung Galaxy S24 Ultra with S Pen, 200MP camera, and AI-powered features",
-  "Google Pixel 8 Pro with computational photography and pure Android experience",
-  "OnePlus 12 with fast charging, flagship performance, and OxygenOS"
-]
-
-criteria = "Best smartphone for photography enthusiasts who value camera quality, image processing, and creative features"
-
-result = ActiveGenie::Ranker.call(products, criteria, config: { 
-  ranker: { score_variation_threshold: 25 },
-  providers: { openai: { model: "gpt-4" } }
-})
-```
-
-### Ranking Code Solutions
+## Basic usage
 
 ```ruby
 solutions = [
-  { name: "Solution A", content: "Uses recursion with memoization for dynamic programming approach" },
-  { name: "Solution B", content: "Iterative solution with O(1) space complexity using two variables" },
-  { name: "Solution C", content: "Brute force approach with nested loops, easy to understand" },
-  { name: "Solution D", content: "Functional programming approach using reduce and immutable data" }
+  "Uses modern design patterns with proper separation of concerns",
+  "Implementation uses dependency injection for better testability",
+  "Legacy code with tightly coupled components but working functionality"
 ]
-
-criteria = "Evaluate algorithmic efficiency, code readability, and maintainability for a fibonacci sequence implementation"
+criteria = "Evaluate code quality and software engineering best practices"
 
 result = ActiveGenie::Ranker.call(solutions, criteria)
+
+result.data
+# => [
+#      "Uses modern design patterns with proper separation of concerns",
+#      "Implementation uses dependency injection for better testability",
+#      "Legacy code with tightly coupled components but working functionality"
+#    ]
 ```
 
-## Components
-
-- **Tournament**: The main orchestrator that combines all ranking methodologies. Handles the complete multi-stage process from initial scoring through final rankings.
-
-- **Scoring**: Evaluates each player's content using AI-powered scoring with multiple expert reviewers to establish baseline quality metrics.
-
-- **ELO Ranking**: Applies an ELO-based system to rank players through simulated head-to-head battles. Updates players' ELO scores based on match outcomes with penalties for losses and bonuses for wins.
-
-- **Free-for-All**: Conducts comprehensive pairwise matches among eligible players to record detailed win/loss/draw statistics and refine the final standings.
-
-## Usage
-
-### Basic Ranking
-
-Call the ranker using:
-
-```ruby
-result = ActiveGenie::Ranker.call(players, criteria, config: {})
-```
-
-### Tournament Mode
-
-For tournament-style ranking with full multi-stage evaluation:
-
-```ruby
-result = ActiveGenie::Ranker.by_tournament(players, criteria, config: {})
-```
-
-### ELO-Only Ranking
-
-For pure ELO-based ranking without initial scoring:
-
-```ruby
-result = ActiveGenie::Ranker.by_elo(players, criteria, config: {})
-```
-
-### Free-for-All Ranking
-
-For head-to-head matches without ELO progression:
-
-```ruby
-result = ActiveGenie::Ranker.by_free_for_all(players, criteria, config: {})
-```
-
-### Score-Only Ranking
-
-For simple scoring without competitive matches:
-
-```ruby
-result = ActiveGenie::Ranker.by_scoring(players, criteria, config: {})
-```
-
-- `players`: A collection of player instances (strings, hashes, or objects), each containing textual content to be evaluated.
-- `criteria`: A string defining the evaluation criteria used by the scoring and comparison systems.
-- `config`: A hash of additional parameters for customization (e.g., model, api_key, thresholds).
+`data` is your items, reordered best-first. Everything else is in `metadata`.
 
 ## Interface
 
-### .call(players, criteria, config: {})
+### `.call(players, criteria, juries: [], config: {})`
 
-The primary entry point that automatically selects the best ranking methodology based on the number of players and their characteristics.
+Runs the full tournament. Alias for `.by_tournament`.
 
-- `players` [Array of String or Hash ] - Collection of player content to rank. Can be simple strings or complex objects with metadata.
-- `criteria` [String] - The evaluation criteria that defines what makes one player better than another.
-- `config` [Hash] - Additional configuration for customizing the ranking behavior.
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `players` | Array&lt;String, Hash&gt; | The items to rank. |
+| `criteria` | String | What to rank against. |
+| `juries` | Array&lt;String&gt; | Optional. Expert roles for the scoring stage. Generated per item when empty. |
+| `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
 
-**Returns `ActiveGenie::Result` instance containing:**
+> [!IMPORTANT]
+> `juries` is a **keyword** argument here. [`Scorer`](/modules/scorer) takes the same concept **positionally**. They are not interchangeable.
+>
+> ```ruby
+> ActiveGenie::Scorer.call(text, criteria, juries)          # positional
+> ActiveGenie::Ranker.call(items, criteria, juries: juries) # keyword
+> ```
+
+### `.by_tournament(players, criteria, juries: [], config: {})`
+
+Identical to `.call`. Use it when you want the strategy named explicitly at the call site.
+
+### `.by_elo(players, criteria, config: {})`
+
+Runs one ELO round only: lower-tier items debate higher-tier ones, three debates each. Items must already carry scores, so you normally run this on the output of a scoring pass rather than on raw input.
+
+### `.by_free_for_all(players, criteria, config: {})`
+
+Every pair debates, with no scoring, elimination, or ELO stage beforehand. It gives the most thorough ordering available and costs the most. See [Cost](#cost).
+
+### `.by_scoring(players, criteria, juries: [], config: {})`
+
+Scores every item and sorts by score, without running any debates. It is the cheap approximation: good enough for a rough ordering, unreliable when items are closely matched.
+
+> [!WARNING]
+> `.by_scoring` does **not** return an `ActiveGenie::Result`. Unlike every other method in the library, it returns the internal batching structure from the concurrent scoring pass. Use `.call` or `.by_tournament` if you need the standard `Result` interface.
+
+## Return value
+
+`.call`, `.by_tournament`, `.by_elo`, and `.by_free_for_all` return an [`ActiveGenie::Result`](/introduction/quickstart#understanding-activegenie-result).
+
+| Accessor | Type | Contents |
+| :--- | :--- | :--- |
+| `data` | Array | Your items, reordered best-first. Contents only, without scores or ranks. |
+| `reasoning` | `nil` | Not populated by `Ranker`. |
+| `metadata` | Array&lt;Hash&gt; | One hash per item, carrying its scores and tournament record. |
+
+> [!IMPORTANT]
+> There is no `players` key and no `statistics` key. `data` is a plain array, and rank is positional: `data[0]` is the winner.
+
+Each entry in `metadata` has this shape:
 
 ```ruby
-result = ActiveGenie::Ranker.call(players, criteria)
-
-# Access ranking data
-result.data
+result.metadata.first
 # => {
-#      players: [
-#        { content: "...", score: 85, elo: 1245, rank: 1, ... },
-#        ...
-#      ],
-#      statistics: {
-#        total_players: 4,
-#        eliminated_players: 0,
-#        elo_rounds: 1,
-#        ffa_matches: 6
-#      }
+#      id: "8f14e45fceea167a5a36dedd4bea2543",
+#      name: "Uses modern design",
+#      content: "Uses modern design patterns with proper separation of concerns",
+#      score: 85,
+#      elo: 1245,
+#      ffa_win_count: 2,
+#      ffa_lose_count: 0,
+#      ffa_draw_count: 0,
+#      eliminated: nil,
+#      ffa_score: 6,
+#      sort_value: 6
 #    }
-
-# Access ranking methodology reasoning
-result.reasoning
-# => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
 ```
 
-### .by_tournament(players, criteria, config: {})
+`eliminated` is `nil` for surviving items, or `"variation_too_high"` / `"relegation_tier"` for items dropped during the elimination stages. Eliminated items still appear in the ordering, below the survivors.
 
-Full multi-stage tournament ranking with scoring, elimination, ELO battles, and free-for-all matches.
+To pair items with their scores:
 
-### .by_elo(players, criteria, config: {})
+```ruby
+result.metadata.sort_by { |p| -p[:sort_value] }.each_with_index do |player, i|
+  puts "#{i + 1}. #{player[:content]} (score: #{player[:score]}, elo: #{player[:elo]})"
+end
+```
 
-Pure ELO-based ranking through head-to-head battles. Best for competitive scenarios where relative performance matters more than absolute scores.
+## Configuration
 
-### .by_free_for_all(players, criteria, config: {})
+| Setting | Default | Description |
+| :--- | :--- | :--- |
+| `config.ranker.score_variation_threshold` | `30` | Coefficient of variation the field must fall below. The lowest scorer is eliminated repeatedly until the spread drops under this value. Lower it to eliminate more aggressively and run fewer debates. |
+| `config.llm.max_fibers` | `10` | How many debates run concurrently. |
 
-Complete round-robin tournament where every player faces every other player exactly once.
+```ruby
+ActiveGenie::Ranker.call(items, criteria,
+  config: { ranker: { score_variation_threshold: 20 }, llm: { max_fibers: 4 } })
+```
 
-### .by_scoring(players, criteria, config: {})
+`Ranker` has no model of its own. It inherits whatever `Scorer` and `Comparator` resolve to. See [Configuration](/reference/config) and [Observability & errors](/reference/observability).
 
-Simple scoring-based ranking using AI evaluation without competitive matches.
+## Cost
 
------
+Almost all of the cost comes from the number of debates, so estimate it before putting `Ranker` in production.
 
-### Player Response Structure
+| Stage | LLM calls |
+| :--- | :--- |
+| Scoring | 1 per item with `juries:` supplied, 2 per item without |
+| ELO rounds | 3 debates per lower-tier item, per round, only while more than 15 items remain |
+| Free-for-all | `n × (n - 1) / 2` debates across surviving items |
 
-Each player in the results contains:
+The free-for-all stage is quadratic, and it dominates everything else:
 
-- `content` [String] - The original player content that was evaluated.
-- `name` [String] - Player identifier (auto-generated from content if not provided).
-- `score` [Integer] - Quality score from 0-100 based on AI evaluation.
-- `elo` [Integer] - ELO rating reflecting competitive performance.
-- `rank` [Integer] - Final position in the rankings (1 = best).
-- `eliminated` [String|nil] - Reason for elimination if applicable.
-- `ffa_wins` [Integer] - Number of free-for-all victories.
-- `ffa_losses` [Integer] - Number of free-for-all defeats.
-- `ffa_draws` [Integer] - Number of free-for-all draws.
+| Surviving items | Free-for-all debates |
+| :---: | :---: |
+| 4 | 6 |
+| 8 | 28 |
+| 15 | 105 |
+| 30 | 435 |
+| 50 | 1,225 |
 
-### Statistics Structure
+A 4-item ranking without supplied juries costs roughly 14 calls. A 30-item ranking can exceed 500, and every one of those is a billed request.
 
-The statistics object provides:
+To keep it manageable:
 
-- `total_players` [Integer] - Initial number of players in the ranking.
-- `eliminated_players` [Integer] - Number of players eliminated during the process.
-- `elo_rounds` [Integer] - Number of ELO ranking rounds conducted.
-- `ffa_matches` [Integer] - Total number of free-for-all matches played.
-- `coefficient_of_variation` [Float] - Measure of score consistency among players.
+- Supply `juries:`. That halves the scoring stage and makes scores comparable across items.
+- Lower `score_variation_threshold` so more items are eliminated before the quadratic stage.
+- Use `.by_scoring` for large lists. Its cost is linear, and it is adequate when you only need a rough ordering or a shortlist.
+- Run two passes on large inputs: shortlist with `.by_scoring`, then run `.call` on the top handful.
+
+```ruby
+# 200 candidates: score everything cheaply, rank only the finalists.
+shortlist = candidates
+  .map { |c| [c, ActiveGenie::Scorer.call(c, criteria, juries).data] }
+  .max_by(10, &:last)
+  .map(&:first)
+
+ActiveGenie::Ranker.call(shortlist, criteria, juries: juries)
+```
+
+Requests run concurrently in batches of `config.llm.max_fibers`. Lower it if you hit provider rate limits. The library does not retry rate-limit responses automatically. See [Observability & errors](/reference/observability).
 
 ## Tips
 
-- **Be specific about player content.** The more descriptive and detailed each player's content, the better the AI can evaluate and compare them. Include relevant characteristics that relate to your criteria.
+- Rank comparable things. The criteria has to apply meaningfully to every item, and mixing categories produces arbitrary orderings.
+- Trust the top and bottom more than the middle. Tournaments resolve clear winners and clear losers reliably, while adjacent middle ranks are close to noise.
+- Supply juries if you want reproducibility. Generated juries vary per run, which moves scores, which moves the ordering.
+- Two items is not a ranking. Use [`Comparator`](/modules/comparator) instead, which takes one call rather than several.
+- Rank is positional. `data[0]` is the winner, and there is no `rank` key to look for.
+- Run it in a background job. A large ranking takes minutes and hundreds of requests.
 
-- **Write clear, focused criteria.** Specify exactly what you're looking for. Instead of "best code," use "most maintainable code with clear documentation and proper error handling."
+## Examples
 
-- **Consider player count.** Small groups (≤10 players) will use simpler ranking methods, while larger groups benefit from the full tournament system with multiple elimination rounds.
-
-- **Use structured player data when possible.** Instead of plain strings, provide hashes with additional metadata like names, categories, or pre-computed attributes.
-
-- **Monitor coefficient of variation.** High variation (>30) indicates inconsistent quality among players and may trigger more aggressive elimination rounds.
-
-- **Experiment with different ranking methods.** Try `by_elo` for competitive scenarios, `by_scoring` for quality-focused rankings, or `by_free_for_all` for comprehensive head-to-head analysis.
-
-The method processes the players through scoring, elimination, and ranking phases, then returns a hash containing the player statistics and rankings.
-
-## Practical Examples
-
-### Example 1: Restaurant Menu Items
+### Ranking job candidates
 
 ```ruby
-menu_items = [
-  "Grilled salmon with lemon herb butter, served with roasted vegetables and quinoa",
-  "Classic cheeseburger with lettuce, tomato, pickles on brioche bun with fries", 
-  "Vegan Buddha bowl with chickpeas, avocado, kale, and tahini dressing",
-  "Chicken tikka masala with basmati rice and naan bread"
-]
+juries = ["Hiring Manager", "Senior Engineer", "Technical Recruiter"]
 
-criteria = "Most appealing to health-conscious diners who value nutritional balance and fresh ingredients"
-
-result = ActiveGenie::Ranker.call(menu_items, criteria)
-# Will likely rank the Buddha bowl and salmon highly due to health focus
+ActiveGenie::Ranker.call(
+  candidate_summaries,
+  "Evaluate fit for a senior backend role: depth of experience, systems design, and communication",
+  juries: juries
+)
 ```
 
-### Example 2: Job Candidate Evaluations
+### Cheap ordering of a large list
 
 ```ruby
-candidates = [
-  {
-    name: "Alice Johnson",
-    content: "5 years React experience, led 3 major projects, strong in TypeScript and testing"
-  },
-  {
-    name: "Bob Smith", 
-    content: "10 years full-stack experience, knows multiple languages, good communication skills"
-  },
-  {
-    name: "Carol Davis",
-    content: "Recent bootcamp graduate, enthusiastic learner, built several personal projects"
-  }
-]
-
-criteria = "Best fit for senior frontend developer role requiring React expertise and team leadership"
-
-result = ActiveGenie::Ranker.by_tournament(candidates, criteria)
+ActiveGenie::Ranker.by_scoring(articles, "Evaluate depth and originality")
 ```
 
-### Example 3: Marketing Campaign Variations
+### Exhaustive ranking of a small set
 
 ```ruby
-campaigns = [
-  "Save 20% on all items this weekend only - Limited time offer!",
-  "Discover premium quality at everyday prices - Shop our collection", 
-  "Join thousands of happy customers - Experience the difference today",
-  "Free shipping on orders over $50 - No minimum purchase required"
-]
-
-criteria = "Most likely to drive immediate conversions for an e-commerce fashion brand targeting millennials"
-
-# Use ELO-only ranking for competitive comparison
-result = ActiveGenie::Ranker.by_elo(campaigns, criteria, config: {
-  providers: { openai: { model: "gpt-4" } }
-})
-```
-
-### Example 4: Content Strategy Analysis
-
-```ruby
-content_pieces = [
-  { 
-    type: "blog_post",
-    content: "How to optimize your LinkedIn profile for better job opportunities - comprehensive guide with examples"
-  },
-  {
-    type: "video_script", 
-    content: "5-minute tutorial showing step-by-step LinkedIn optimization with screen recording"
-  },
-  {
-    type: "infographic",
-    content: "Visual checklist of 10 essential LinkedIn profile elements with before/after examples"
-  },
-  {
-    type: "podcast_episode",
-    content: "Interview with hiring manager discussing what they look for in LinkedIn profiles"
-  }
-]
-
-criteria = "Most effective content format for engaging career-focused audience and driving profile views"
-
-result = ActiveGenie::Ranker.by_free_for_all(content_pieces, criteria)
-```
-
-## Possible improvements
-- Adjust initial criteria to ensure consistency
-- Adjust each player's content to ensure consistency  
-- Support players with images or audio
-- Parallelize processing battles and scoring
-
-## Ranking Configuration
-
-Configure the ranking behavior through the config hash:
-
-| Config | Description | Default | Example |
-|--------|-------------|---------|---------|
-| `score_variation_threshold` | Threshold for eliminating players with inconsistent scores (higher = more lenient) | `30` | `25` for stricter elimination |
-| `elo_k_factor` | ELO rating change sensitivity (higher = more volatile ratings) | `32` | `16` for stable rankings |
-| `elo_rounds_limit` | Maximum number of ELO rounds before moving to free-for-all | `10` | `5` for faster processing |
-| `min_players_for_elo` | Minimum players required to trigger ELO ranking | `10` | `15` for larger tournaments |
-
-### Provider Configuration
-
-| Config | Description | Default |
-|--------|-------------|---------|
-| `providers.openai.model` | OpenAI model for evaluations | `"gpt-4o"` |
-| `providers.anthropic.model` | Anthropic model for evaluations | `"claude-3-sonnet-20240229"` |
-| `providers.openai.api_key` | OpenAI API key | `ENV['OPENAI_API_KEY']` |
-
-Example configuration:
-
-```ruby
-config = {
-  ranker: {
-    score_variation_threshold: 25,
-    elo_k_factor: 24,
-    min_players_for_elo: 12
-  },
-  providers: {
-    openai: {
-      model: "gpt-4",
-      api_key: "your-api-key"
-    }
-  },
-  log: {
-    level: :debug
-  }
-}
-
-result = ActiveGenie::Ranker.call(players, criteria, config: config)
+ActiveGenie::Ranker.by_free_for_all(
+  ["Variant A", "Variant B", "Variant C", "Variant D"],
+  "Which headline would get the most clicks from software developers?"
+)
+# 6 debates
 ```

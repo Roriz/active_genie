@@ -1,276 +1,296 @@
-# Quick Start
+# Quickstart
 
-**ActiveGenie** delivers on two core promises: **Consistent** results across providers and models, and **Model-Agnostic** flexibility to use any AI service.
+ActiveGenie has five modules. They all return the same object, and they all run against any supported provider. Each section below has a working example and a note on what you get back.
+
+> [!NOTE]
+> Outputs on this page are illustrative. LLM responses vary between runs and between models, so expect the same shape with different values.
+
+Every example assumes a credentialed provider. See [Installation](/introduction/installation) if you haven't set one up.
 
 ## Extractor
-Transform unstructured text into reliable structured data using AI-powered analysis. Extract typed data from messy real-world content while handling informal language, rhetorical devices, and conversational patterns.
+
+The extractor turns unstructured text into typed data.
 
 ```ruby
-# Extract from product listing with inconsistent formatting
-product_text = "Sony 65\" BRAVIA XR - $1999.99 (Save $500!) Amazing 4K HDR quality"
+text = "Sony 65\" BRAVIA XR - $1999.99 (Save $500!) Amazing 4K HDR quality"
 
 schema = {
   brand: { type: 'string', description: 'Product brand' },
   display_size: { type: 'string', description: 'Screen size with units' },
   price: { type: 'number', minimum: 0, description: 'Current price' },
-  discount: { type: 'number', minimum: 0, description: 'Discount amount' },
-  features: { type: 'array', items: { type: 'string' }, description: 'Key features' }
+  discount: { type: 'number', minimum: 0, description: 'Amount saved' }
 }
 
-# Works consistently across any AI provider
-result = ActiveGenie::Extractor.call(product_text, schema, 
-  config: { provider_name: :openai, model: 'gpt-4o-mini' })
+result = ActiveGenie::Extractor.call(text, schema)
 
-# Returns an ActiveGenie::Result instance
 result.data
-# => {
-#      brand: "Sony",
-#      display_size: "65\"",
-#      price: 1999.99,
-#      discount: 500.0,
-#      features: ["BRAVIA XR", "4K HDR quality"]
-#    }
-
-# Handle informal language and rhetorical devices
-review = "The new update isn't terrible, but it's not exactly amazing either"
-sentiment_schema = {
-  sentiment: { type: 'string', enum: ['positive', 'negative', 'neutral', 'mixed'] },
-  satisfaction_level: { type: 'integer', minimum: 1, maximum: 5 }
-}
-
-result = ActiveGenie::Extractor.with_litote(review, sentiment_schema)
-result.data
-# => {
-#      sentiment: "mixed",
-#      satisfaction_level: 3,
-#      message_litote: true,
-#      litote_rephrased: "The new update is okay, but it could be better"
-#    }
+# => { brand: "Sony", display_size: "65\"", price: 1999.99, discount: 500.0 }
 ```
+
+The default strategy also records why it picked each field, under `metadata`:
+
+```ruby
+result.metadata['price_explanation']
+# => "Price in USD following the product name"
+result.metadata['price_accuracy']
+# => 100
+```
+
+If you don't need those explanations, use `.data` instead of `.call` for a cheaper request. It returns string keys rather than symbols:
+
+```ruby
+ActiveGenie::Extractor.data(text, schema).data
+# => { "brand" => "Sony", "price" => 1999.99 }
+```
+
+For text that uses understatement, `.with_litote` rephrases before extracting:
+
+```ruby
+ActiveGenie::Extractor.with_litote(
+  "The new update isn't terrible, but it's not exactly amazing either",
+  { sentiment: { type: 'string', enum: %w[positive negative neutral mixed] } }
+).data
+# => { sentiment: "mixed" }
+```
+
+[Full documentation →](/modules/extractor)
 
 ## Scorer
-Objective evaluation system using AI-powered expert reviewers. Get detailed scoring with transparent reasoning from multiple domain experts that automatically adapt to your content.
+
+The scorer rates text from 0 to 100. It assembles a jury of domain experts that fit the content.
 
 ```ruby
-# Automatic expert selection based on content
-code_review = "Added rate limiting with sliding window algorithm, includes comprehensive unit tests and performance benchmarks"
+code_review = "Added rate limiting with a sliding window algorithm, including unit tests and performance benchmarks"
 criteria = "Evaluate technical quality, completeness, and engineering best practices"
 
-# Same interface works with any AI provider
-result = ActiveGenie::Scorer.call(code_review, criteria,
-  config: { provider_name: :anthropic, model: 'claude-sonnet-4-5' })
+result = ActiveGenie::Scorer.call(code_review, criteria)
 
 result.data
-# => {
-#      senior_software_engineer_score: 94,
-#      senior_software_engineer_reasoning: "Excellent implementation with proper algorithm choice, comprehensive testing, and performance considerations",
-#      technical_architect_score: 89,
-#      technical_architect_reasoning: "Strong technical approach, could benefit from documentation of rate limiting strategy",
-#      devops_engineer_score: 91,
-#      devops_engineer_reasoning: "Good performance benchmarking approach, suggests monitoring and observability awareness",
-#      final_score: 91.3
-#    }
+# => 91
 
 result.reasoning
-# => "Combined evaluation from 3 expert reviewers with weighted scoring methodology"
-
-# Custom expert reviewers for specialized evaluation
-medical_text = "Patient shows 17% improvement in cardiac ejection fraction following 6-week therapy protocol"
-reviewers = ["Cardiologist", "Clinical Researcher", "Medical Writer"]
-
-result = ActiveGenie::Scorer.call(medical_text, "Evaluate clinical accuracy and reporting quality", reviewers)
+# => "All reviewers rate the implementation highly, citing the algorithm choice
+#     and the presence of both tests and benchmarks."
 ```
+
+`data` is the score itself. The per-jury breakdown is in `metadata`:
+
+```ruby
+result.metadata
+# => {
+#      "senior_software_engineer_score" => 94,
+#      "senior_software_engineer_reasoning" => "Appropriate algorithm, well tested.",
+#      "technical_architect_score" => 89,
+#      "technical_architect_reasoning" => "Sound approach; document the strategy.",
+#      "final_score" => 91,
+#      "final_reasoning" => "..."
+#    }
+```
+
+Supply your own juries to halve the cost and get stable keys:
+
+```ruby
+ActiveGenie::Scorer.call(medical_text, criteria, ["Cardiologist", "Medical Writer"])
+```
+
+[Full documentation →](/modules/scorer)
 
 ## Comparator
-Structured debate system that determines winners through AI-powered analysis. Conducts verbal debates where players present arguments, counter-arguments, and final statements before an impartial judge decides.
+
+The comparator picks a winner between two options.
 
 ```ruby
-# Code quality comparison with detailed reasoning
-player_a = "Implementation uses dependency injection with comprehensive interfaces, enabling easy testing and component replacement"
-player_b = "Code achieves 95% test coverage using traditional patterns with proven stability and team familiarity"
+player_a = "Implementation uses dependency injection, enabling easy testing and component replacement"
+player_b = "Code achieves 95% test coverage using traditional patterns with proven stability"
 criteria = "Evaluate long-term maintainability, testability, and team productivity"
 
-# Consistent debate structure across all AI providers
-result = ActiveGenie::Comparator.call(player_a, player_b, criteria,
-  config: { provider_name: :google, model: 'gemini-2.0-flash' })
+result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
 
 result.data
-# => {
-#      winner: "Implementation uses dependency injection...",
-#      loser: "Code achieves 95% test coverage...",
-#      reasoning: "Player A's dependency injection approach provides superior long-term maintainability through loose coupling, while Player B's high coverage is valuable but doesn't address the structural concerns for future development"
-#    }
-
-result.reasoning
-# => "Structured debate with opening arguments, rebuttals, and final statements evaluated by impartial judge"
-
-# Specialized fight mode for character battles
-fighter_a = "Master Crane: graceful fighter using Crane Kung Fu with lightness, precision, and momentum redirection"
-fighter_b = "Iron Ox: powerful brawler using Ox Bull Charge style with immense strength and overwhelming mass"
-fight_criteria = "Determine winner in one-on-one duel based on skill, strategy, and adaptability"
-
-result = ActiveGenie::Comparator.by_fight(fighter_a, fighter_b, fight_criteria)
+# => "Implementation uses dependency injection, enabling easy testing and component replacement"
 ```
 
-**Consistent**: Same debate process and winner determination logic across all AI providers  
-**Model-Agnostic**: Debate structure adapts to different AI reasoning capabilities seamlessly  
+`data` is the winning input, returned exactly as you passed it. The result has no `loser` key, so work it out yourself:
 
-*Recommended models*: `claude-3-5-sonnet`, `gpt-4`, `gemini-2.0-flash`
+```ruby
+winner = result.data
+loser  = (winner == player_a ? player_b : player_a)
+```
+
+`.by_fight` is a variant tuned for combat scenarios:
+
+```ruby
+ActiveGenie::Comparator.by_fight(
+  "Master Crane: graceful, precise, redirects momentum",
+  "Iron Ox: overwhelming strength and mass",
+  "Who wins a one-on-one duel?"
+)
+```
+
+[Full documentation →](/modules/comparator)
+
+## Lister
+
+The lister generates an ordered list for a theme, sorted by how commonly people would name each item.
+
+```ruby
+result = ActiveGenie::Lister.call("Features smartphone users care about most")
+
+result.data
+# => ["Battery life", "Camera quality", "Price", "Storage capacity", "Brand reputation"]
+```
+
+Set how many items you want:
+
+```ruby
+ActiveGenie::Lister.call("Most popular breakfast foods worldwide",
+  config: { lister: { number_of_items: 10 } })
+```
+
+`.with_juries` returns expert roles rather than survey answers:
+
+```ruby
+ActiveGenie::Lister.with_juries(
+  "Technical proposal for a microservices migration",
+  "Assess technical feasibility and business impact"
+).data
+# => ["Software Architect", "DevOps Engineer", "Business Analyst"]
+```
+
+[Full documentation →](/modules/lister)
 
 ## Ranker
-Sophisticated multi-stage ranking system combining ActiveGenie::Scorer + ActiveGenie::Comparator, statistical elimination, ELO algorithms, and head-to-head battles to produce fair and accurate rankings for any number of players.
+
+The ranker orders a list best first, using scoring, elimination, and head-to-head debates.
 
 ```ruby
-# Rank API approaches for a specific use case
 api_options = [
-  "REST API with comprehensive OpenAPI documentation and versioning strategy",
-  "GraphQL API with efficient query resolution and real-time subscriptions", 
-  "gRPC API with Protocol Buffers and bi-directional streaming capabilities",
-  "WebSocket API with custom protocol and connection state management"
+  "REST API with comprehensive OpenAPI documentation and versioning",
+  "GraphQL API with efficient query resolution and real-time subscriptions",
+  "gRPC API with Protocol Buffers and bi-directional streaming",
+  "WebSocket API with a custom protocol and connection state management"
 ]
 
-criteria = "Best choice for real-time collaborative application with complex data relationships"
-
-# Automatic methodology selection based on player count
-result = ActiveGenie::Ranker.call(api_options, criteria,
-  config: { provider_name: :openai, model: 'gpt-4o' })
-
-result.data
-# => {
-#      players: [
-#        { content: "GraphQL API with efficient query...", score: 89, elo: 1245, rank: 1 },
-#        { content: "WebSocket API with custom protocol...", score: 85, elo: 1198, rank: 2 },
-#        { content: "gRPC API with Protocol Buffers...", score: 78, elo: 1156, rank: 3 },
-#        { content: "REST API with comprehensive...", score: 72, elo: 1089, rank: 4 }
-#      ],
-#      statistics: { total_players: 4, elo_rounds: 2, ffa_matches: 6 }
-#    }
-
-result.reasoning
-# => "Ranking determined through multi-stage process: initial scoring, statistical elimination, and ELO-based head-to-head battles"
-
-# Tournament mode for comprehensive ranking
-result = ActiveGenie::Ranker.by_tournament(api_options, criteria)
-
-# ELO-only ranking for competitive scenarios  
-result = ActiveGenie::Ranker.by_elo(api_options, criteria)
-
-# Simple scoring without battles
-result = ActiveGenie::Ranker.by_scoring(api_options, criteria)
-```
-
-**Consistent**: Same ranking methodology and fairness algorithms across all AI providers  
-**Model-Agnostic**: Ranking logic works with any AI model's scoring and comparison capabilities  
-
-*Recommended models*: `gpt-4`, `claude-3-5-sonnet`, `gemini-2.0-flash`
-
-## Lister  
-*Consistent + Model-Agnostic*
-
-Generate ordered lists based on themes using "Family Feud" style survey simulation. Produces lists that reflect general public opinion and cultural consensus, perfect for market research and content planning.
-
-```ruby
-# Market research for product development
-theme = "Features smartphone users care about most when choosing a new device"
-
-# Works identically across all AI providers
-result = ActiveGenie::Lister.call(theme,
-  config: { provider_name: :anthropic, model: 'claude-sonnet-4-5' })
+result = ActiveGenie::Ranker.call(api_options, "Best fit for a real-time collaborative application")
 
 result.data
 # => [
-#      "Battery life",
-#      "Camera quality", 
-#      "Price",
-#      "Storage capacity",
-#      "Brand reputation",
-#      "Screen size",
-#      "Processing speed"
+#      "GraphQL API with efficient query resolution and real-time subscriptions",
+#      "WebSocket API with a custom protocol and connection state management",
+#      "gRPC API with Protocol Buffers and bi-directional streaming",
+#      "REST API with comprehensive OpenAPI documentation and versioning"
 #    ]
-
-result.reasoning
-# => "List generated using Family Feud style survey simulation reflecting general public opinion"
-
-# Generate expert jury recommendations
-content = "Technical proposal for implementing microservices architecture with event-driven communication"
-evaluation_criteria = "Assess technical feasibility, business impact, and implementation complexity"
-
-result = ActiveGenie::Lister.with_juries(content, evaluation_criteria)
-result.data
-# => [
-#      "Software Architect",
-#      "DevOps Engineer", 
-#      "Business Analyst",
-#      "Technical Product Manager"
-#    ]
-
-# Custom list size
-result = ActiveGenie::Lister.call("Most popular breakfast foods worldwide", 
-  config: { number_of_items: 10 })
 ```
 
-**Consistent**: Same ordering logic and popularity assessment across all AI providers  
-**Model-Agnostic**: List generation adapts to different AI models' cultural knowledge and reasoning  
+`data` is your items reordered, so rank is positional. Scores and ELO ratings live in `metadata`.
 
-*Recommended models*: `gpt-5.6-luna`, `claude-haiku-4.5`, `gemini-3.5-flash-lite`, `deepseek-v4-flash`
+> [!WARNING]
+> `Ranker` is expensive. Its final stage debates every surviving pair, so cost grows quadratically: 4 items is 6 debates, 30 items is 435. Read [Cost](/modules/ranker#cost) before ranking large lists.
 
----
+[Full documentation →](/modules/ranker)
 
 ## Understanding ActiveGenie::Result
 
-All ActiveGenie modules return an `ActiveGenie::Result` instance with three main components:
+Every module returns an `ActiveGenie::Result` with the same three accessors.
+
+| Accessor | Contents |
+| :--- | :--- |
+| `data` | The answer. Its type depends on the module (see the table below). |
+| `reasoning` | Why the module produced that answer. Aliased as `explanation`. |
+| `metadata` | The full underlying response, useful for debugging and auditing. String keys. |
+
+`data` is deliberately narrow. It holds the single thing you asked for rather than a wrapper around it:
+
+| Call | `data` type | `data` value |
+| :--- | :--- | :--- |
+| `Extractor.call` | Hash (symbol keys) | The extracted fields |
+| `Extractor.data` | Hash (string keys) | The extracted fields |
+| `Scorer.call` | Numeric | The final score, 0 to 100 |
+| `Comparator.call` | String or Hash | The winning input |
+| `Lister.call` | Array&lt;String&gt; | The list, most common first |
+| `Ranker.call` | Array | Your items, best first |
 
 ```ruby
-result = ActiveGenie::Extractor.call(text, schema)
-
-# Access the extracted/generated data
-result.data
-# => { ... } # The main result (hash, array, etc.)
-
-# Access the reasoning/explanation
-result.reasoning  # or result.explanation (alias)
-# => "Explanation of how the result was generated"
-
-# Convert to different formats
-result.to_h    # => { data: {...}, reasoning: "...", metadata: {...} }
+result.to_h    # => { data: ..., reasoning: "...", metadata: {...} }
+result.to_json # => "{\"data\":...}"
 ```
 
-This consistent return type across all modules provides:
-- **Predictable interface**: Same structure regardless of which module you use
-- **Full transparency**: Access to reasoning and metadata for debugging and monitoring
-- **Easy serialization**: Built-in methods for converting to hash or JSON
+> [!TIP]
+> Build on `data` and `reasoning`. Treat `metadata` as debugging output, since its keys follow the prompts and can change between versions.
 
----
+## Switching providers
 
-## Model-Agnostic Configuration
-
-Switch between any AI provider without changing your application logic:
+The `config:` keyword overrides configuration for a single call. Its keys are nested by section:
 
 ```ruby
-# OpenAI
-config = { provider_name: :openai, model: 'gpt-4o-mini' }
+# Pick a model. The provider is inferred from the model name.
+ActiveGenie::Extractor.call(text, schema, config: { llm: { model: 'deepseek-chat' } })
 
-# Anthropic  
-config = { provider_name: :anthropic, model: 'claude-sonnet-4-5' }
-
-# Google
-config = { provider_name: :google, model: 'gemini-2.0-flash' }
-
-# DeepSeek
-config = { provider_name: :deepseek, model: 'deepseek-chat' }
-
-# Use the same interface for any module
-ActiveGenie::Extractor.call(text, schema, config: config)
-ActiveGenie::Scorer.call(text, criteria, config: config)  
-ActiveGenie::Comparator.call(player_a, player_b, criteria, config: config)
-ActiveGenie::Ranker.call(players, criteria, config: config)
-ActiveGenie::Lister.call(theme, config: config)
+# Or name the provider and take its default model.
+ActiveGenie::Scorer.call(text, criteria, config: { providers: { default: 'anthropic' } })
 ```
 
-## Learn More
+> [!WARNING]
+> ActiveGenie silently ignores top-level keys. It raises no error, and the setting simply never applies.
+>
+> ```ruby
+> config: { model: 'deepseek-chat' }          # ignored
+> config: { llm: { model: 'deepseek-chat' } } # correct
+> ```
 
-- [**Extractor Module**](/modules/extractor) - Advanced schemas, informal text processing, and detailed extraction patterns
-- [**Scorer Module**](/modules/scorer) - Custom reviewers, scoring methodologies, and evaluation best practices  
-- [**Comparator Module**](/modules/comparator) - Debate structures, fight mode, and comparison strategies
-- [**Ranker Module**](/modules/ranker) - Tournament systems, ELO algorithms, and ranking configurations
-- [**Lister Module**](/modules/lister) - Survey methodologies, expert juries, and list generation techniques
+The same call works against any provider:
+
+```ruby
+%w[gpt-4o-mini claude-haiku-4-5-20251001 deepseek-chat gemini-3.5-flash-lite].each do |model|
+  ActiveGenie::Comparator.call(player_a, player_b, criteria, config: { llm: { model: model } })
+end
+```
+
+See [Configuration](/reference/config) for every available option.
+
+## Testing your code
+
+ActiveGenie calls real provider APIs. In your own test suite you almost never want that. Real calls are slow and cost money, and they return something different on every run.
+
+Stub at the provider boundary, `ActiveGenie::Providers::UnifiedProvider.function_calling`. Everything above it still runs (schema construction, response formatting, the `Result` wrapper), so you test your own integration rather than the model.
+
+Your stub returns the raw provider response, which is a hash with string keys.
+
+```ruby
+# Minitest
+ActiveGenie::Providers::UnifiedProvider.stub(
+  :function_calling,
+  { "brand" => "Nike", "brand_explanation" => "stated", "brand_accuracy" => 100 }
+) do
+  result = ActiveGenie::Extractor.call("Nike Air Max", { brand: { type: 'string' } })
+  assert_equal({ brand: "Nike" }, result.data)
+end
+```
+
+```ruby
+# RSpec
+allow(ActiveGenie::Providers::UnifiedProvider).to receive(:function_calling)
+  .and_return({ "final_score" => 85, "final_reasoning" => "Solid." })
+
+expect(ActiveGenie::Scorer.call(text, criteria).data).to eq(85)
+```
+
+Two things to keep in mind:
+
+- Match the real response shape. Each strategy pulls specific keys out of it: `Scorer` reads `final_score`, `Lister` reads `items`, and `Comparator` reads `impartial_judge_winner`. A stub that omits them produces `nil` data.
+- Silence logging in tests so provider events stay out of your test output:
+
+  ```ruby
+  ActiveGenie.configure { |c| c.log.output = ->(_log) {} }
+  ```
+
+For coverage against live providers, see how ActiveGenie tests itself in the [benchmark](/benchmark/latest).
+
+## Next steps
+
+- [Extractor](/modules/extractor): schemas, litotes, and extraction strategies
+- [Scorer](/modules/scorer): juries, thresholds, and evaluation
+- [Comparator](/modules/comparator): debates and fight mode
+- [Lister](/modules/lister): surveys and jury selection
+- [Ranker](/modules/ranker): tournaments, ELO, and cost control
+- [Configuration](/reference/config): providers, models, retries, concurrency

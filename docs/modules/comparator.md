@@ -1,22 +1,26 @@
 # Comparator
 
-The **Comparator** module conducts a verbal debate between two players, where each presents their strengths and how they meet the given criteria. The goal of a comparator is to determine a winner.
+Compares two options against a criteria and returns the winner.
 
-The debate has a structure similar to a political debate:
+> [!NOTE]
+> Outputs on this page are illustrative. LLM responses vary between runs and models, so the shape stays stable while the exact values do not.
 
-  - Player A presents its strengths and how it meets the criteria.
-  - Player B presents its strengths and how it meets the criteria.
-  - Player A presents its counter-arguments.
-  - Player B presents its counter-arguments.
-  - Player A presents its final arguments.
-  - Player B presents its final arguments.
-  - An impartial judge determines the winner.
+## How it works
 
-**Note:** This structure can be changed to better fit the latest prompt engineering techniques.
+`Comparator` stages a structured debate between the two players and has an impartial judge decide:
 
-## Basic Usage
+1. Player A presents its strengths against the criteria.
+2. Player B presents its strengths against the criteria.
+3. Player A responds with counter-arguments.
+4. Player B responds with counter-arguments.
+5. Both give closing arguments.
+6. An impartial judge picks a winner.
 
-Evaluate a comparator between two players with simple text content:
+There is no draw. The judge always returns one of the two players.
+
+The number of rounds and their structure may change between versions as prompts are tuned, so depend on the winner rather than on the debate transcript.
+
+## Basic usage
 
 ```ruby
 player_a = "Implementation uses dependency injection for better testability"
@@ -24,99 +28,101 @@ player_b = "Code has high test coverage but tightly coupled components"
 criteria = "Evaluate code quality and maintainability"
 
 result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
+
 result.data
-# => {
-#      winner: "Implementation uses dependency injection for better testability",
-#      loser: "Code has high test coverage but tightly coupled components",
-#      reasoning: "Player A's implementation demonstrates better maintainability through dependency injection,
-#                  which allows for easier testing and component replacement. While Player B has good test coverage,
-#                  the tight coupling makes the code harder to maintain and modify."
-#    }
+# => "Implementation uses dependency injection for better testability"
+
+result.reasoning
+# => "Player A's dependency injection allows components to be replaced and tested in
+#     isolation. Player B's coverage is valuable but the tight coupling makes future
+#     changes riskier."
 ```
-
-## Tips
-
-  - **The more descriptive you are about each player, the better.** However, avoid mentioning too many other characters, as this can confuse the LLM.
-  - **Describe characteristics that directly influence the criteria.** For example, if you're comparing two cellphones based on style, be descriptive about their design, colors, and materials.
-  - **Avoid depending on the raw output**, as it can change drastically without notice. However, feel free to use it for debugging. For example, try changing the criteria to see how the output is affected.
-  - **Be descriptive with the criteria.** What are the most important characteristics? Will the comparator take place in a specific location? Are there any restrictions, such as needing a cellphone that fits in one hand or can be used in the rain?
 
 ## Interface
 
-### .call(player_a, player_b, criteria, config: {})
+### `.call(player_a, player_b, criteria, config: {})`
 
-  - `player_a` [String, Hash] - The content or submission from the first player.
-  - `player_b` [String, Hash] - The content or submission from the second player.
-  - `criteria` [String] - The evaluation criteria or rules to assess against.
-  - `config` [Hash] - Additional configuration that modifies the comparator evaluation behavior.
+Runs a debate. Alias for `.by_debate`.
 
-**Returns `ActiveGenie::Result` instance containing:**
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `player_a` | String, Hash | The first option. |
+| `player_b` | String, Hash | The second option. |
+| `criteria` | String | What the judge should evaluate against. |
+| `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
 
-```ruby
-result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
+### `.by_debate(player_a, player_b, criteria, config: {})`
 
-# Access comparison results
-result.data
-# => {
-#      winner: "...",   # The winning player's content
-#      loser: "...",    # The losing player's content
-#      reasoning: "..." # Explanation of why the winner was chosen
-#    }
+Identical to `.call`. Use it when you want the strategy named explicitly at the call site.
 
-# Access overall reasoning
-result.reasoning
-# => "Debate methodology and decision process explanation"
-```
+### `.by_fight(player_a, player_b, criteria, config: {})`
 
------
-
-### Fight
-
-The **Fight** module is a specialized version of `debate` designed for combat scenarios between two fighters, such as martial artists, heroes, or other characters. The evaluation process simulates a fight using words, techniques, strategies, and reasoning.
-
-As a submodule of `Comparator`, the goal of a fight is to determine the winner, there is no draw. The input and output are the same as `Comparator`, but the evaluation process is different.
-
-The basic structure of a fight is:
-
-  - Player A makes a self-presentation and introduces its fighter.
-  - Player B makes a self-presentation and introduces its fighter.
-  - Player A takes the first turn.
-  - Player B takes the first turn.
-  - Player A takes the second turn.
-  - Player B takes the second turn.
-  - Player A takes the third turn.
-  - Player B takes the third turn.
-  - Player A takes the final turn.
-  - Player B takes the final turn.
-  - An impartial judge determines the winner.
-
-**Note:** The number of turns and the details of each turn can change without notice.
-
-#### Example Output
-
-> **Master Crane:** My Crane Kung Fu relies on lightness and precision, striking where your heavy blows simply can't reach. Your Ox Bull Charge is powerful, but too direct; I'd dance aside and tap your pressure points before you could even turn.
->
-> **Iron Ox:** While speed is impressive, strength dominates in a real fight. My Ox Bull Charge would absorb your nimble attacks, and my sheer mass would pin you before you could even flutter away\!
->
-> **Master Crane:** Adaptability ensures survival. As you lumber forward, I would use your momentum to redirect you. Your own strength becomes your undoing as you stumble into my calculated traps.
-
+A variant tuned for combat scenarios: martial artists, heroes, characters. It takes the same parameters and returns the same shape as `.call`, but the players take turns exchanging moves rather than arguing, and the judge scores the exchange.
 
 ```ruby
 player_a = "Master Crane, a graceful fighter whose Crane Kung Fu relies on lightness, precision, and redirecting an opponent's momentum."
 player_b = "Iron Ox, a powerful brawler whose Ox Bull Charge style uses immense strength and mass to overwhelm opponents."
-criteria = "Determine the winner of the fight based on skill, strategy, and adaptability in a one-on-one duel."
+criteria = "Determine the winner of a one-on-one duel based on skill, strategy, and adaptability."
 
 result = ActiveGenie::Comparator.by_fight(player_a, player_b, criteria)
 result.data
-# => {
-#      winner: "Master Crane, a graceful fighter...",
-#      loser: "Iron Ox, a powerful brawler...",
-#      reasoning: "Master Crane's Crane Kung Fu relies on lightness and precision, striking where Iron Ox's Ox Bull Charge is powerful but too direct..."
-#    }
+# => "Master Crane, a graceful fighter whose Crane Kung Fu relies on lightness, ..."
 ```
+
+The turn count and structure may change between versions.
+
+## Return value
+
+Returns an [`ActiveGenie::Result`](/introduction/quickstart#understanding-activegenie-result).
+
+| Accessor | Type | Contents |
+| :--- | :--- | :--- |
+| `data` | String or Hash | The winning player, returned exactly as you passed it in. It is not a hash of results. |
+| `reasoning` | String | The judge's explanation for the decision. |
+| `metadata` | Hash | The full debate transcript, keyed by strings. |
+
+> [!IMPORTANT]
+> `result.data` is the winner itself, not a wrapper. There is no `loser` key. The loser is whichever player you passed that `data` doesn't equal.
+
+```ruby
+result = ActiveGenie::Comparator.call(player_a, player_b, criteria)
+
+winner = result.data
+loser  = (winner == player_a ? player_b : player_a)
+```
+
+The `metadata` hash carries each stage of the debate:
+
+```ruby
+result.metadata.keys
+# => ["player_a_sell_himself", "player_b_sell_himself", "player_a_arguments",
+#     "player_b_counter", "player_a_adherence_score", ...,
+#     "impartial_judge_winner", "impartial_judge_winner_reasoning"]
+```
+
+Treat `metadata` as debugging output. Its keys track the prompt and can change between versions.
+
+## Configuration
+
+`Comparator` has no module-specific settings. It is tuned against `claude-haiku-4-5-20251001` and falls back to it when no model is configured and Anthropic has credentials.
+
+```ruby
+ActiveGenie::Comparator.call(player_a, player_b, criteria,
+  config: { llm: { model: 'gpt-4o-mini' } })
+```
+
+See [Configuration](/reference/config) for the full set of options, and [Observability & errors](/reference/observability) for failure handling.
+
+## Cost
+
+Each comparison uses one LLM call. The debate happens within a single structured response, so the cost stays around one request regardless of how many rounds the prompt runs.
+
+`Ranker` composes `Comparator` and issues many comparisons, so read the [Ranker](/modules/ranker) page before ranking large lists.
 
 ## Tips
 
-  - **Describe each fighter's movements as vividly as possible.** For example: What are their top five movements? How destructive or fast is each movement? Does any movement have a drawback?
-  - To help measure the movements, you could create an analysis. For instance, if this fighter were a **Magic: The Gathering** card, what would be the cost or rarity of each movement? Is a movement common, epic, or legendary?
-  - **Be descriptive with the criteria.** Will they fight on specific terrain? Are any weapons disallowed? Are there any hard elimination rules, like a timer or a penalty for touching the floor?
+- Describe each player in detail. The more detail tied to the criteria, the better the decision. Unrelated characters or context dilute the comparison.
+- Describe what actually drives the criteria. If you are comparing phones on style, write about design, colours, and materials instead of battery specs.
+- Be specific in the criteria. Where does the comparison take place? Are there constraints, such as fitting in one hand, working in rain, or allowing no weapons?
+- Don't parse the transcript. `metadata` is for debugging. Build on `data` and `reasoning`, which are stable.
+- For fights, describe capabilities concretely. What are each fighter's top moves, how fast and destructive are they, and what are the drawbacks? Vague fighters produce arbitrary winners.

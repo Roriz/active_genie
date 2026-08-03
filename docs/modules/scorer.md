@@ -1,225 +1,162 @@
 # Scorer
 
-The **Scorer** module provides objective evaluation of text content using AI-powered expert reviewers. It assigns numerical scores (0-100) along with detailed reasoning, making it perfect for quality assessment, content evaluation, and automated review processes.
+Scores text from 0 to 100 against a criteria, with a panel of domain experts.
 
-The evaluation process follows a structured approach:
+> [!NOTE]
+> Outputs on this page are illustrative. LLM responses vary between runs and models. The shape of the result stays the same, but the exact numbers will differ from what you see here.
 
-- Multiple expert reviewers independently evaluate the content against specified criteria
-- Each reviewer provides both a numerical score (0-100) and detailed reasoning
-- A final aggregated score is calculated based on all reviewer assessments
-- When no reviewers are specified, the system automatically recommends appropriate experts
+## How it works
 
-**Note:** The number of reviewers and scoring methodology can be customized to fit specific evaluation needs.
+`Scorer` assembles a jury and averages its verdicts:
 
-## Features
-- **Multi-reviewer evaluation** - Get scores and feedback from multiple AI-powered expert reviewers
-- **Automatic reviewer selection** - Smart recommendation of reviewers based on content and criteria
-- **Detailed feedback** - Comprehensive reasoning for each reviewer's score with specific strengths and improvement areas
-- **Standardized scoring** - Consistent 0-100 scale with defined quality tiers (Terrible, Bad, Average, Good, Great)
-- **Flexible criteria** - Score text against any specified evaluation criteria or rubric
+1. If you don't supply juries, `Scorer` asks [`Lister.with_juries`](/modules/lister#with-juries-text-criteria-config) which expert roles suit the text and criteria.
+2. Each jury scores the text independently, 0-100, with its own reasoning.
+3. `Scorer` combines those scores into a `final_score` with summary reasoning.
 
-## Basic Usage
+Picking the juries from the content is what makes the score meaningful. Medical text gets scored by a cardiologist and a medical writer instead of by a generic reviewer.
 
-Evaluate content with predefined expert reviewers:
+## Basic usage
 
 ```ruby
-content = "The implementation uses dependency injection for better testability and follows SOLID principles"
-criteria = "Evaluate code quality, maintainability, and adherence to best practices"
-reviewers = ["Senior Software Engineer", "Code Architect"]
-
-result = ActiveGenie::Scorer.call(content, criteria, reviewers)
-result.data
-# => {
-#      "senior_software_engineer_score" => 92,
-#      "senior_software_engineer_reasoning" => "Excellent use of dependency injection which enhances testability. SOLID principles are well-applied, making the code maintainable and extensible.",
-#      "code_architect_score" => 89,
-#      "code_architect_reasoning" => "Strong architectural decisions with dependency injection. Minor improvements could be made in documentation and error handling patterns.",
-#      "final_score" => 90.5,
-#      "final_reasoning" => "Both reviewers agree on the high quality of the implementation, particularly praising the dependency injection and SOLID principles application."
-#    }
-```
-
-## Automatic Reviewer Selection
-
-When no reviewers are specified, the system intelligently recommends appropriate experts based on content and criteria:
-
-```ruby
-content = "Patient shows significant improvement in cardiac function with ejection fraction increased from 45% to 62%"
-criteria = "Evaluate medical accuracy, clarity, and clinical relevance"
+content = "Added rate limiting with a sliding window algorithm, including unit tests and performance benchmarks"
+criteria = "Evaluate technical quality, completeness, and engineering best practices"
 
 result = ActiveGenie::Scorer.call(content, criteria)
+
 result.data
+# => 91
+
+result.reasoning
+# => "All three reviewers rate the implementation highly, citing the appropriate
+#     algorithm choice and the presence of both tests and benchmarks."
+```
+
+Supply your own juries when you know which perspectives matter:
+
+```ruby
+juries = ["Cardiologist", "Clinical Researcher", "Medical Writer"]
+
+result = ActiveGenie::Scorer.call(
+  "Patient shows 17% improvement in cardiac ejection fraction following a 6-week therapy protocol",
+  "Evaluate clinical accuracy and reporting quality",
+  juries
+)
+```
+
+## Interface
+
+### `.call(text, criteria, juries = [], config: {})`
+
+Scores the text. Alias for `.by_jury_bench`.
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `text` | String | The content to score. |
+| `criteria` | String | What the juries should evaluate against. |
+| `juries` | Array&lt;String&gt; | Optional. Expert roles to use. When empty, Scorer picks them from the content. |
+| `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
+
+`juries` is a **positional** parameter, not a keyword. (`Ranker` takes the same concept as a keyword. See its page.)
+
+### `.by_jury_bench(text, criteria, juries = [], config: {})`
+
+Identical to `.call`. Use it when you want the strategy named explicitly at the call site.
+
+## Return value
+
+Returns an [`ActiveGenie::Result`](/introduction/quickstart#understanding-activegenie-result).
+
+| Accessor | Type | Contents |
+| :--- | :--- | :--- |
+| `data` | Numeric | **The final score, 0-100.** A single number, not a hash. |
+| `reasoning` | String | Summary reasoning behind the final score. |
+| `metadata` | Hash | Per-jury scores and reasoning, keyed by strings. |
+
+> [!IMPORTANT]
+> `result.data` is the score itself. The per-jury breakdown lives in `metadata`, with **string** keys derived from each jury's role.
+
+```ruby
+result = ActiveGenie::Scorer.call("The sky is blue.", "Factual accuracy")
+
+result.data
+# => 100
+
+result.metadata
 # => {
-#      "cardiologist_score" => 94,
-#      "cardiologist_reasoning" => "Clinically significant improvement in ejection fraction indicates excellent therapeutic response. The measurement is within normal ranges.",
-#      "medical_writer_score" => 87,
-#      "medical_writer_reasoning" => "Clear and concise medical communication. Could benefit from additional context about treatment duration and patient demographics.",
-#      "clinical_researcher_score" => 91,
-#      "clinical_researcher_reasoning" => "Objective measurement shows substantial clinical improvement. Data presentation follows standard medical reporting practices.",
-#      "final_score" => 90.7,
-#      "final_reasoning" => "All reviewers confirm the high quality of the medical assessment, with particular strength in objective measurement reporting."
+#      "meteorologists_reasoning" => "Accurate description of Rayleigh scattering under clear conditions.",
+#      "meteorologists_score" => 100,
+#      "physicists_reasoning" => "Correct as a plain statement of observed colour.",
+#      "physicists_score" => 100,
+#      "general_public_reasoning" => "Universally understood and correct.",
+#      "general_public_score" => 100,
+#      "final_score" => 100,
+#      "final_reasoning" => "All reviewers agree the statement is factually correct."
 #    }
 ```
 
-## Scoring Scale
+Jury key names come from the roles chosen for that call. When you don't supply `juries` yourself, the roles vary between runs, and so do the metadata keys. Supply juries explicitly if you need stable keys.
 
-The Scorer uses a standardized 0-100 scale with clear quality tiers:
+## Configuration
 
-- **Terrible (0-20)**: Content does not meet the criteria and requires significant revision
-- **Bad (21-40)**: Content is substandard but meets some basic criteria
-- **Average (41-60)**: Content meets criteria adequately with room for improvement
-- **Good (61-80)**: Content exceeds criteria and demonstrates above-average quality
-- **Great (81-100)**: Content exceeds all expectations and represents exceptional quality
+`Scorer` has no module-specific settings. It is tuned against `deepseek-chat` and falls back to that model when no model is configured and DeepSeek has credentials.
 
-## Advanced Usage Examples
-
-### Content Quality Assessment
 ```ruby
-blog_post = "AI will transform healthcare by enabling personalized treatments..."
-criteria = "Evaluate accuracy of claims, writing quality, and audience engagement"
-
-result = ActiveGenie::Scorer.call(blog_post, criteria, ["Medical AI Expert", "Technical Writer"])
+ActiveGenie::Scorer.call(text, criteria, config: { llm: { model: 'gpt-4o-mini' } })
 ```
 
-### Code Review Automation
+See [Configuration](/reference/config) for the full set of options, and [Observability & errors](/reference/observability) for failure handling.
+
+## Cost
+
+- Supplying juries costs one LLM call.
+- Leaving juries empty costs two calls: one to select the jury, one to score.
+
+Passing `juries` explicitly halves the cost and makes the output keys deterministic. If you score many items against the same criteria, select the jury once and reuse it:
+
 ```ruby
-code_review = "Added rate limiting with sliding window algorithm, includes unit tests and benchmarks"
-criteria = "Evaluate completeness, technical accuracy, and review quality"
+juries = ActiveGenie::Lister.with_juries(sample_text, criteria).data
 
-result = ActiveGenie::Scorer.call(code_review, criteria, ["Senior Developer"])
-```
-
-### Marketing Effectiveness
-```ruby
-marketing_copy = "Revolutionary AI-powered smart home system that learns your preferences"
-criteria = "Evaluate marketing effectiveness and accuracy of technical claims"
-
-result = ActiveGenie::Scorer.call(marketing_copy, criteria, ["Marketing Specialist"])
-```
-
-### Educational Content
-```ruby
-tutorial = "Step 1: Click 'Forgot Password', Step 2: Enter email, Step 3: Check inbox..."
-criteria = "Evaluate clarity, completeness, and instructional effectiveness"
-
-result = ActiveGenie::Scorer.call(tutorial, criteria, ["UX Writer", "Instructional Designer"])
+documents.map { |doc| ActiveGenie::Scorer.call(doc, criteria, juries) }
 ```
 
 ## Tips
 
-- **Be specific with evaluation criteria.** The more detailed your criteria, the more accurate and actionable the scoring will be. Instead of "evaluate quality," specify what quality means in your context.
-- **Choose relevant reviewers when possible.** While automatic reviewer selection is powerful, manually specifying domain experts often yields more targeted feedback.
-- **Consider the content domain.** Technical content benefits from technical reviewers, while creative content may need different expertise.
-- **Use descriptive criteria that match your goals.** Are you evaluating for accuracy, clarity, engagement, compliance, or creative merit? Each requires different evaluation approaches.
-- **Leverage the detailed reasoning.** The individual reviewer feedback often contains more actionable insights than the numerical scores alone.
-- **Don't rely solely on the raw output** - while useful for debugging, the raw response structure may change. Use the structured fields instead.
+- **Make the criteria specific.** "Evaluate quality" produces arbitrary numbers. "Evaluate medical accuracy, clarity, and clinical relevance" produces defensible ones.
+- **Scores are comparative, not absolute.** A 78 means little on its own. Use `Scorer` to rank or threshold items evaluated under identical criteria rather than as a certificate against an absolute standard.
+- **Supply juries for consistency.** Generated juries differ between runs, which moves the score. Fixed juries make scores comparable across a batch.
+- **Don't over-trust small gaps.** An 84 and an 87 are not reliably distinguishable. Use [`Comparator`](/modules/comparator) when you need a confident head-to-head decision.
+- **Thresholding works better than exact values.** A rule like "≥ 70 passes" holds up across runs, while a rule that expects exactly 85 will break.
 
-## Interface
+## Examples
 
-### `.call(text, criteria, reviewers = [], config: {})`
-Main interface for scoring text content with expert evaluation.
-
-#### Parameters
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | String | The text content to evaluate and score |
-| `criteria` | String | The evaluation criteria, rubric, or standards to assess against |
-| `reviewers` | Array of String | Optional list of expert reviewer roles (auto-selected if empty) |
-| `config` | Hash | Additional configuration options for scoring behavior |
-
-#### Returns
-`ActiveGenie::Result` instance with:
+### Content quality
 
 ```ruby
-result = ActiveGenie::Scorer.call(text, criteria, reviewers)
-
-# Access scoring data
-result.data
-# => {
-#      "{reviewer_name}_score" => 92,          # Individual reviewer scores (0-100)
-#      "{reviewer_name}_reasoning" => "...",   # Detailed explanation from each reviewer
-#      "final_score" => 90.5,                  # Aggregated final score
-#      "final_reasoning" => "..."              # Summary reasoning
-#    }
-
-# Access overall reasoning
-result.reasoning
-# => "Scoring methodology and aggregation explanation"
+ActiveGenie::Scorer.call(
+  article_body,
+  "Evaluate clarity, factual accuracy, and usefulness to a beginner audience",
+  ["Editor", "Subject Matter Expert", "Beginner Reader"]
+)
 ```
 
------
-
-### `.by_jury_bench(text, criteria, reviewers = [], config: {})`
-Alternative interface name for scoring text content with jury-style evaluation. Functionally identical to `.call()`.
-
-### Usage Notes
-- **Best suited for objective evaluation** of text content where consistent scoring is important
-- **Automatic reviewer recommendation** works best when criteria clearly indicate the domain or expertise needed
-- **Multiple reviewers provide balanced perspective** but may increase processing time
-- **Detailed reasoning helps understand scoring decisions** and identify specific improvement areas
-- **Consistent 0-100 scale** enables easy comparison across different content and criteria
-
-**Performance Impact:** Using multiple reviewers or requesting detailed feedback may increase processing time and costs. Consider balancing thoroughness with efficiency needs.
-
-## Practical Applications
-
-### Code Quality Assessment
-Evaluate code implementations, pull requests, and technical documentation:
+### Code review
 
 ```ruby
-code_snippet = <<~CODE
-  def calculate_user_score(user_actions, weights = {})
-    return 0 if user_actions.empty?
-    
-    total_score = user_actions.sum do |action|
-      weight = weights[action[:type]] || 1.0
-      action[:value] * weight
-    end
-    
-    [total_score / user_actions.size, 100].min
-  end
-CODE
-
-criteria = "Evaluate code quality, readability, error handling, and algorithmic efficiency"
-result = ActiveGenie::Scorer.call(code_snippet, criteria, ["Senior Ruby Developer"])
+ActiveGenie::Scorer.call(
+  diff,
+  "Evaluate correctness, test coverage, and adherence to SOLID principles",
+  ["Senior Software Engineer", "Security Engineer"]
+)
 ```
 
-### Content Marketing Evaluation
-Score marketing copy, blog posts, and promotional materials:
+### Compliance
 
 ```ruby
-marketing_text = "Transform your workflow with our AI-powered automation platform that reduces manual tasks by 80%"
-criteria = "Evaluate marketing effectiveness, claim accuracy, and audience appeal"
+result = ActiveGenie::Scorer.call(
+  marketing_copy,
+  "Evaluate compliance with advertising standards and absence of unsubstantiated claims",
+  ["Compliance Officer", "Legal Counsel"]
+)
 
-result = ActiveGenie::Scorer.call(marketing_text, criteria, ["Marketing Director", "Product Manager"])
-```
-
-### Academic & Educational Content
-Assess educational materials, tutorials, and instructional content:
-
-```ruby
-tutorial_step = "To create a new branch: 1) Open terminal 2) Navigate to repository 3) Run 'git checkout -b feature-name'"
-criteria = "Evaluate instructional clarity, completeness, and beginner-friendliness"
-
-result = ActiveGenie::Scorer.call(tutorial_step, criteria, ["Technical Educator"])
-```
-
-### Customer Feedback Analysis
-Score and analyze customer reviews, support responses, and feedback:
-
-```ruby
-support_response = "I understand your frustration with the login issue. I've escalated this to our engineering team and will update you within 24 hours with a resolution."
-criteria = "Evaluate customer service quality, empathy, and solution orientation"
-
-result = ActiveGenie::Scorer.call(support_response, criteria, ["Customer Success Manager"])
-```
-
-### Compliance & Quality Assurance
-Evaluate content for regulatory compliance, brand standards, and quality guidelines:
-
-```ruby
-product_description = "FDA-approved medical device with 99.9% accuracy in clinical trials"
-criteria = "Evaluate regulatory compliance, claim substantiation, and medical accuracy"
-
-result = ActiveGenie::Scorer.call(product_description, criteria, ["Regulatory Affairs Specialist", "Medical Writer"])
+flag_for_review! if result.data < 70
 ```

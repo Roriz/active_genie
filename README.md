@@ -4,79 +4,74 @@
 [![Gem Version](https://badge.fury.io/rb/active_genie.svg?icon=si%3Arubygems)](https://badge.fury.io/rb/active_genie)
 [![Ruby](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml/badge.svg)](https://github.com/roriz/active_genie/actions/workflows/benchmark.yml)
 
-**ActiveGenie** is an **enabler for creating reliable GenAI features**, offering powerful, **model-agnostic tools** across any provider. It allows you to settle subjective comparisons with a `ActibeGenie::Comparator` module that stages a political debate, get accurate scores from an **AI jury** using `ActiveGenie::Scorer`, and **rank large datasets** using `ActiveGenie::Ranker`'s tournament-style system.
-This reliability is built on three core pillars:
-* **Custom Benchmarking:** Testing for consistency with every new version and model update.
-* **Reasoning Prompting:** Utilizing human reasoning techniques (like debate and jury review) to control a model's reasoning.
-* **Overfitting Prompts:** Highly specialized, and potentially model-specific, prompt for each module's purpose.
+**ActiveGenie** is a toolkit for building GenAI features in Ruby. Its modules are model-agnostic and work across providers. `ActiveGenie::Comparator` settles subjective comparisons by staging a structured debate between the two inputs. `ActiveGenie::Scorer` grades content with a jury of domain experts. `ActiveGenie::Ranker` orders large datasets with a tournament system.
 
-For full documentation, visit [activegenie.ai](https://activegenie.ai).
+Results stay consistent for three reasons:
 
-# Installation
+* Custom benchmarking: every version and model update is tested for consistency.
+* Reasoning prompting: prompts borrow human reasoning techniques, like debate and jury review, to shape how the model thinks.
+* Overfitted prompts: each module uses a specialized prompt built for one purpose.
 
-1. Add to your Gemfile:
+## Requirements
+
+- Ruby >= 3.4.0
+- An API key for OpenAI, Anthropic, DeepSeek, or Google
+
+## Installation
+
 ```ruby
 gem 'active_genie'
 ```
 
-2. Install the gem:
 ```shell
 bundle install
 ```
 
-3. Generate the configuration:
+Export a key for any supported provider:
+
 ```shell
-echo "ActiveGenie.load_tasks" >> Rakefile
-rails active_genie:install
+export OPENAI_API_KEY="sk-..."
 ```
 
-4. Configure your credentials in `config/initializers/active_genie.rb`:
-```ruby
-ActiveGenie.configure do |config|
-  config.providers.openai.api_key = ENV['OPENAI_API_KEY']
-end
-```
+See the [installation guide](https://activegenie.ai/introduction/installation) for Rails setup and explicit configuration.
 
-## Quick start example
-
-Extract structured data from text using AI-powered analysis, handling informal language and complex expressions.
+## Quick start
 
 ```ruby
+require 'active_genie'
+
 text = "Nike Air Max 90 - Size 42 - $199.99"
 schema = {
-  brand: {
-    type: 'string',
-    enum: ["Nike", "Adidas", "Puma"]
-  },
-  price: {
-    type: 'number',
-    minimum: 0
-  },
-  size: {
-    type: 'number',
-    minimum: 35,
-    maximum: 46
-  }
+  brand: { type: 'string', enum: %w[Nike Adidas Puma] },
+  price: { type: 'number', minimum: 0 },
+  size:  { type: 'number', minimum: 35, maximum: 46 }
 }
 
-result = ActiveGenie::Extractor.call(
-  text,
-  schema,
-  config: { provider_name: :openai, model: 'gpt-5.6-luna' } # optional
-)
-# => {
-#      brand: "Nike",
-#      brand_explanation: "Brand name found at start of text",
-#      price: 199.99,
-#      price_explanation: "Price found in USD format at end",
-#      size: 42,
-#      size_explanation: "Size explicitly stated in the middle"
-#    }
+result = ActiveGenie::Extractor.call(text, schema)
+
+result.data
+# => { brand: "Nike", price: 199.99, size: 42 }
+
+result.reasoning
+# => "Brand name appears at the start of the listing, price in USD at the end."
+```
+
+Every module returns an `ActiveGenie::Result` with `data`, `reasoning`, and `metadata`.
+
+```ruby
+ActiveGenie::Scorer.call(text, criteria).data       # => 91
+ActiveGenie::Comparator.call(a, b, criteria).data   # => the winning input
+ActiveGenie::Lister.call(theme).data                # => ["Price", "Battery life", ...]
+ActiveGenie::Ranker.call(items, criteria).data      # => items, best first
 ```
 
 ## Documentation
 
-For full documentation, visit [activegenie.ai](https://activegenie.ai).
+Full documentation is at [activegenie.ai](https://activegenie.ai):
+
+- [Quickstart](https://activegenie.ai/introduction/quickstart)
+- [Configuration](https://activegenie.ai/reference/config)
+- [Benchmark results](https://activegenie.ai/benchmark/latest)
 
 ## Contributing
 
@@ -88,4 +83,4 @@ For full documentation, visit [activegenie.ai](https://activegenie.ai).
 
 ## License
 
-This project is licensed under the Apache License 2.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
