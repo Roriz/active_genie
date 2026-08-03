@@ -125,7 +125,7 @@ Best mean pass rate per module, across three runs in August 2026:
 | `Scorer` | 100% | `gemini-3.5-flash-lite` |
 | `Ranker` | 75% | `gpt-5.6-luna`, `deepseek-v4-flash` |
 
-Across three full runs per provider, `gpt-5.6-luna` averaged 93.7%, `claude-haiku-4-5` 92.7%, `gemini-3.5-flash-lite` 91.3%, and `deepseek-v4-flash` 87.3%. The first three overlap within run-to-run noise, so treat them as a tie and choose on cost or latency. `Ranker` trails the other modules because of a known bug in `Ranker.by_scoring` rather than model quality.
+Across three full runs per provider, `gpt-5.6-luna` averaged 93.7%, `claude-haiku-4-5` 92.7%, `gemini-3.5-flash-lite` 91.3%, and `deepseek-v4-flash` 87.3%. The first three overlap within run-to-run noise, so treat them as a tie and choose on cost or latency.
 
 See the [benchmark](/benchmark/latest) for the full methodology, per-module breakdowns, and notable failures.
 
