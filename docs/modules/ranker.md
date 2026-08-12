@@ -54,12 +54,12 @@ Runs the full tournament. Alias for `.by_tournament`.
 | `juries` | Array&lt;String&gt; | Optional. Expert roles for the scoring stage. Generated per item when empty. |
 | `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
 
-> [!IMPORTANT]
-> `juries` is a **keyword** argument here. [`Scorer`](/modules/scorer) takes the same concept **positionally**. They are not interchangeable.
+> [!NOTE]
+> `juries` is passed as a keyword argument (`juries: [...]`), consistent with [`Scorer`](/modules/scorer).
 >
 > ```ruby
-> ActiveGenie::Scorer.call(text, criteria, juries)          # positional
-> ActiveGenie::Ranker.call(items, criteria, juries: juries) # keyword
+> ActiveGenie::Scorer.call(text, criteria, juries: juries)
+> ActiveGenie::Ranker.call(items, criteria, juries: juries)
 > ```
 
 ### `.by_tournament(players, criteria, juries: [], config: {})`
@@ -76,10 +76,7 @@ Every pair debates, with no scoring, elimination, or ELO stage beforehand. It gi
 
 ### `.by_scoring(players, criteria, juries: [], config: {})`
 
-Scores every item and sorts by score, without running any debates. It is the cheap approximation: good enough for a rough ordering, unreliable when items are closely matched.
-
-> [!WARNING]
-> `.by_scoring` does **not** return an `ActiveGenie::Result`. Unlike every other method in the library, it returns the internal batching structure from the concurrent scoring pass. Use `.call` or `.by_tournament` if you need the standard `Result` interface.
+Scores every item and sorts by score, returning an `ActiveGenie::Result` with `data` as the items sorted best-first. It is the cheap approximation: linear cost, good enough for a rough ordering or shortlisting.
 
 ## Return value
 

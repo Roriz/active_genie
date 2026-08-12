@@ -25,7 +25,10 @@ module ActiveGenie
         )
         criteria = 'test criteria for scoring'
 
-        Scoring.call(players, criteria, config: { providers: { openai: { api_key: 'test_key' } } })
+        result = Scoring.call(players, criteria, config: { providers: { openai: { api_key: 'test_key' } } })
+
+        assert_instance_of ActiveGenie::Result, result
+        assert_equal ['Player A content', 'Player B content', 'Player C content'], result.data
 
         player_a = players.find { |p| p.id == 'player_a' }
         player_b = players.find { |p| p.id == 'player_b' }

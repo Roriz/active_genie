@@ -80,12 +80,21 @@ module ActiveGenie
       end
 
       def response_formatted(provider_response)
-        data = provider_response.slice(*@data_to_extract.keys.map(&:to_s)).transform_keys(&:to_sym)
+        raw_data = provider_response.slice(*@data_to_extract.keys.map(&:to_s)).transform_keys(&:to_sym)
+
+        filtered_data = raw_data.select do |key, _val|
+          accuracy_key = "#{key}_accuracy"
+          if provider_response.key?(accuracy_key)
+            provider_response[accuracy_key].to_i >= min_accuracy.to_i
+          else
+            true
+          end
+        end
 
         first_reasoning_key = provider_response["#{provider_response.keys.first}_explanation"]
 
         ActiveGenie::Result.new(
-          data:,
+          data: filtered_data,
           reasoning: first_reasoning_key,
           metadata: provider_response
         )

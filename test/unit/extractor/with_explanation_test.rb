@@ -191,6 +191,26 @@ module ActiveGenie
 
         assert_equal expected_data, result.data
       end
+
+      def test_min_accuracy_filters_low_confidence_fields
+        provider_response = {
+          'name' => 'John Doe',
+          'name_accuracy' => 100,
+          'age' => 25,
+          'age_accuracy' => 50
+        }
+
+        ActiveGenie::Providers::UnifiedProvider.stub(:function_calling, provider_response) do
+          result = ActiveGenie::Extractor.with_explanation(
+            @text,
+            { name: { type: 'string' }, age: { type: 'integer' } },
+            config: { extractor: { min_accuracy: 70 } }
+          )
+
+          assert_equal({ name: 'John Doe' }, result.data)
+          assert_equal 50, result.metadata['age_accuracy']
+        end
+      end
     end
   end
 end

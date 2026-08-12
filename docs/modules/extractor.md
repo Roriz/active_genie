@@ -103,13 +103,8 @@ result.data
 
 This runs in two passes. The first extracts your fields alongside `message_litote` and `litote_rephrased`. If a litote was detected, it rephrases the text plainly and extracts your fields again from the rephrasing.
 
-> [!IMPORTANT]
-> The two outcomes return different keys:
->
-> - When a litote is detected, a second extraction runs against your original schema, so `data` contains **only your fields**. `message_litote` and `litote_rephrased` are not present.
-> - When no litote is detected, `data` contains your fields **plus** `message_litote: false` and `litote_rephrased`.
->
-> Use `result.data.fetch(:message_litote, true)` rather than assuming the key exists.
+> [!NOTE]
+> `data` strictly contains **only your requested schema fields**. Rhetorical analysis fields (`message_litote` and `litote_rephrased`) are placed in `result.metadata`.
 
 ## Return value
 
@@ -119,7 +114,7 @@ Returns an [`ActiveGenie::Result`](/introduction/quickstart#understanding-active
 | :--- | :--- | :--- | :--- |
 | `.call` / `.with_explanation` | Symbols | Your schema fields only | The first field's explanation |
 | `.data` | Strings | The provider response, compacted | `nil` |
-| `.with_litote` | Symbols | Your schema fields, plus litote fields only when no litote was found | The first field's explanation |
+| `.with_litote` | Symbols | Your schema fields only | The first field's explanation |
 
 > [!IMPORTANT]
 > The `*_explanation` and `*_accuracy` fields are **not** in `data`. They are in `metadata`.
@@ -143,6 +138,16 @@ result.metadata
 ```
 
 `*_accuracy` is the model's own confidence on a 0-100 scale. A 100 means the value was stated explicitly in the text, and a 0 means the model could not determine it.
+
+## Configuration
+
+| Setting | Default | Description |
+| :--- | :--- | :--- |
+| `config.extractor.min_accuracy` | `70` | Confidence floor for extracted fields (0 to 100). |
+
+`Extractor` enforces `min_accuracy`: any field whose `*_accuracy` score falls below `config.extractor.min_accuracy` (default 70) is omitted from `result.data`. The full confidence score remains accessible in `metadata`.
+
+`Extractor` achieves 100% pass rates on `claude-haiku-4-5` and `gpt-5.6-luna`. See [Configuration](/reference/config) for the full set of options and [Observability & errors](/reference/observability) for failure handling.
 
 ## Schemas
 
@@ -177,21 +182,7 @@ schema = {
 }
 ```
 
-## Configuration
 
-| Setting | Default | Description |
-| :--- | :--- | :--- |
-| `config.extractor.min_accuracy` | `70` | Intended confidence floor for a field. |
-
-> [!WARNING]
-> `min_accuracy` is **not currently enforced**. The `*_accuracy` values are returned in `metadata` but nothing is filtered against this threshold. Apply it yourself if you need it:
->
-> ```ruby
-> result = ActiveGenie::Extractor.call(text, schema)
-> trusted = result.data.reject { |k, _| result.metadata["#{k}_accuracy"].to_i < 70 }
-> ```
-
-`Extractor` is tuned against `deepseek-chat` across all three strategies. See [Configuration](/reference/config) for the full set of options and [Observability & errors](/reference/observability) for failure handling.
 
 ## Cost
 

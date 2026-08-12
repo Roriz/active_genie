@@ -69,7 +69,7 @@ export default defineConfig({
     ],
 
     footer: {
-      copyright: 'Copyright © 2025 - Radamés Roriz'
+      copyright: 'Copyright © 2026 - Radamés Roriz'
     },
   },
 

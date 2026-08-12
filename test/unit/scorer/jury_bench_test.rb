@@ -217,6 +217,13 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
         assert_equal [], jb3.instance_variable_get(:@param_juries)
       end
 
+      def test_keyword_juries_argument
+        players_text = 'Sample text for scoring'
+
+        jb_kw = JuryBench.new(players_text, @criteria, juries: ['Grammar Expert', 'Tone Advocate'])
+        assert_equal ['Grammar Expert', 'Tone Advocate'], jb_kw.send(:juries)
+      end
+
       # Critical Path: Schema Generation
       def test_function_schema_generation_underscores_jury_names
         jury_bench = JuryBench.new(

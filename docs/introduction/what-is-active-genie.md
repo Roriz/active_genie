@@ -109,6 +109,9 @@ Rather than asking a model for an answer, ActiveGenie makes it work through a st
 
 Each module uses a prompt built for exactly one job. That trades generality for precision: the prompts do not generalize to other tasks, but they handle their own reliably.
 
+> [!NOTE]
+> ActiveGenie guarantees stable output schemas, typed data access, and structured reasoning across models. However, numeric scoring scales and grading curves can vary between providers (for example, DeepSeek applies a consistently harsher scoring curve than OpenAI or Gemini). Always calibrate score thresholds against the specific provider you deploy.
+
 -----
 
 ## Verified against real providers

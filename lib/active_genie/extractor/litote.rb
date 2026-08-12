@@ -32,13 +32,24 @@ module ActiveGenie
 
       def call
         response = Explanation.call(@text, extract_with_litote, config:)
+        is_litote = response.data[:message_litote]
+        litote_rephrased = response.data[:litote_rephrased]
 
-        if response.data[:message_litote]
-          response = Explanation.call(response.data[:litote_rephrased], @data_to_extract,
-                                      config:)
+        if is_litote
+          response = Explanation.call(litote_rephrased, @data_to_extract, config:)
+          meta = (response.metadata || {}).merge(
+            'message_litote' => true,
+            'litote_rephrased' => litote_rephrased
+          )
+          ActiveGenie::Result.new(data: response.data, reasoning: response.reasoning, metadata: meta)
+        else
+          clean_data = response.data.except(:message_litote, :litote_rephrased)
+          meta = (response.metadata || {}).merge(
+            'message_litote' => false,
+            'litote_rephrased' => litote_rephrased
+          )
+          ActiveGenie::Result.new(data: clean_data, reasoning: response.reasoning, metadata: meta)
         end
-
-        response
       end
 
       private

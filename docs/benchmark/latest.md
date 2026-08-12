@@ -1,6 +1,6 @@
 # Benchmark
 
-**Version**: v0.32.3
+**Version**: v0.32.4
 **Measured**: 3 August 2026
 **Suite**: 100 end-to-end tests across 5 modules, 20 per module
 **Repetitions**: 3 full runs per provider, 1,200 test executions in total

@@ -105,9 +105,9 @@ Each module declares the model it was tuned against. ActiveGenie falls back to t
 
 | Module | Recommended model |
 | :--- | :--- |
-| `Extractor` (all strategies) | `deepseek-chat` |
-| `Scorer` | `deepseek-chat` |
-| `Comparator` | `claude-haiku-4-5` |
+| `Extractor` (all strategies) | `claude-haiku-4-5` / `gpt-5.6-luna` |
+| `Scorer` | `gemini-3.5-flash-lite` / `gpt-5.6-luna` |
+| `Comparator` | `claude-haiku-4-5` / `gpt-5.6-luna` |
 | `Lister.with_feud` | `claude-haiku-4-5` |
 | `Lister.with_juries` | `deepseek-chat` |
 | `Ranker` | inherits from `Scorer` and `Comparator`, which it composes |
@@ -172,7 +172,7 @@ Fibers are cooperative and run on one thread, so this is safe inside a backgroun
 
 | Setting | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `min_accuracy` | Integer | `70` | Intended confidence floor for an extracted field, on a scale of 0 to 100. |
+| `min_accuracy` | Integer | `70` | Confidence floor for an extracted field, on a scale of 0 to 100. |
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -180,13 +180,7 @@ ActiveGenie.configure do |config|
 end
 ```
 
-> [!WARNING]
-> `min_accuracy` is not currently enforced. `Extractor.with_explanation` asks the model for a per-field `*_accuracy` score and returns those values in `metadata`, but nothing filters them against this threshold. Read the accuracy values yourself if you need to act on them:
->
-> ```ruby
-> result = ActiveGenie::Extractor.with_explanation(text, schema)
-> result.metadata['price_accuracy'] # => 95
-> ```
+`Extractor.with_explanation` asks the model for a per-field `*_accuracy` confidence score (0 to 100). Any extracted field with confidence below `min_accuracy` (default `70`) is automatically omitted from `result.data`. The full confidence scores remain available in `result.metadata`.
 
 ## Lister (`config.lister`)
 

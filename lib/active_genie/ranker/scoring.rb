@@ -20,6 +20,12 @@ module ActiveGenie
         ActiveGenie::FiberByBatch.call(players_without_score, config:) do |player|
           player.score = generate_score(player)
         end
+
+        ActiveGenie::Result.new(
+          data: @players.sorted.map(&:content),
+          reasoning: nil,
+          metadata: @players.map(&:to_h)
+        )
       end
 
       private

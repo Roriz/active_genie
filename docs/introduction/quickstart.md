@@ -90,7 +90,7 @@ result.metadata
 Supply your own juries to halve the cost and get stable keys:
 
 ```ruby
-ActiveGenie::Scorer.call(medical_text, criteria, ["Cardiologist", "Medical Writer"])
+ActiveGenie::Scorer.call(medical_text, criteria, juries: ["Cardiologist", "Medical Writer"])
 ```
 
 [Full documentation →](/modules/scorer)

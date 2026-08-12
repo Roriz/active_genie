@@ -22,14 +22,15 @@ module ActiveGenie
     class JuryBench < ActiveGenie::BaseModule
       # @param text [String] The text content to be evaluated
       # @param criteria [String] The evaluation criteria or rubric to assess against
-      # @param juries [Array<String>] Optional list of specific juries. If empty,
-      #   juries will be automatically recommended based on the content and criteria
+      # @param positional_juries [Array<String>] Optional list of specific juries (positional)
+      # @param juries [Array<String>] Optional list of specific juries (keyword)
       # @param config [Hash] Additional configuration config that modify the Scorer behavior
       # @return [ActiveGenie::Result] The evaluation result containing scores and reasoning
-      def initialize(text, criteria, juries = [], config: {})
+      def initialize(text, criteria, positional_juries = [], juries: nil, config: {})
         @text = text
         @criteria = criteria
-        @param_juries = Array(juries).compact.uniq
+        chosen_juries = juries || positional_juries
+        @param_juries = Array(chosen_juries).compact.uniq
         super(config:)
       end
 

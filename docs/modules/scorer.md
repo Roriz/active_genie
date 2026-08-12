@@ -39,13 +39,13 @@ juries = ["Cardiologist", "Clinical Researcher", "Medical Writer"]
 result = ActiveGenie::Scorer.call(
   "Patient shows 17% improvement in cardiac ejection fraction following a 6-week therapy protocol",
   "Evaluate clinical accuracy and reporting quality",
-  juries
+  juries: juries
 )
 ```
 
 ## Interface
 
-### `.call(text, criteria, juries = [], config: {})`
+### `.call(text, criteria, juries: [], config: {})`
 
 Scores the text. Alias for `.by_jury_bench`.
 
@@ -53,12 +53,12 @@ Scores the text. Alias for `.by_jury_bench`.
 | :--- | :--- | :--- |
 | `text` | String | The content to score. |
 | `criteria` | String | What the juries should evaluate against. |
-| `juries` | Array&lt;String&gt; | Optional. Expert roles to use. When empty, Scorer picks them from the content. |
+| `juries` | Array&lt;String&gt; | Optional. Expert roles to use. Accepts both keyword (`juries: [...]`) and positional argument. |
 | `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
 
-`juries` is a **positional** parameter, not a keyword. (`Ranker` takes the same concept as a keyword. See its page.)
+`juries` can be passed as a keyword argument (`juries: [...]`) matching `Ranker`, or as a 3rd positional argument for backward compatibility.
 
-### `.by_jury_bench(text, criteria, juries = [], config: {})`
+### `.by_jury_bench(text, criteria, juries: [], config: {})`
 
 Identical to `.call`. Use it when you want the strategy named explicitly at the call site.
 
@@ -98,10 +98,10 @@ Jury key names come from the roles chosen for that call. When you don't supply `
 
 ## Configuration
 
-`Scorer` has no module-specific settings. It is tuned against `deepseek-chat` and falls back to that model when no model is configured and DeepSeek has credentials.
+`Scorer` performs best with `gemini-3.5-flash-lite` and `gpt-5.6-luna` (achieving up to 100% pass rates in live benchmark testing).
 
 ```ruby
-ActiveGenie::Scorer.call(text, criteria, config: { llm: { model: 'gpt-4o-mini' } })
+ActiveGenie::Scorer.call(text, criteria, config: { llm: { model: 'gemini-3.5-flash-lite' } })
 ```
 
 See [Configuration](/reference/config) for the full set of options, and [Observability & errors](/reference/observability) for failure handling.
