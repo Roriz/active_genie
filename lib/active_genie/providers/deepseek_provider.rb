@@ -11,8 +11,6 @@ module ActiveGenie
     class DeepseekProvider < BaseProvider
       USAGE_KEYS = { input: 'prompt_tokens', output: 'completion_tokens', total: 'total_tokens' }.freeze
 
-      class InvalidResponseError < StandardError; end
-
       # Thinking-mode models reject a forced tool_choice. The error text names
       # the offending parameter, so detect it and fall back to 'auto'.
       TOOL_CHOICE_CONFLICT_HINT = 'does not support this tool_choice'

@@ -2,17 +2,11 @@
 
 require 'net/http'
 require_relative '../errors/provider_server_error'
+require_relative 'errors'
 
 module ActiveGenie
   module Providers
     class BaseProvider
-      class ProviderUnknownError < StandardError; end
-
-      # Rate limits, request timeouts and server-side failures. These are retried
-      # with backoff; subclassing ProviderUnknownError keeps existing
-      # `rescue ProviderUnknownError` handlers working once retries run out.
-      class ProviderTransientError < ProviderUnknownError; end
-
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
         Accept: 'application/json',
