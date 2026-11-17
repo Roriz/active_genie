@@ -51,8 +51,6 @@ module ActiveGenie
         end
       end
 
-      # Alternates between the strongest and weakest remaining higher-tier
-      # players, so each lower-tier player faces a spread of opponents.
       def next_higher_player
         @tmp_highers = @higher_tier.dup if @tmp_highers.empty?
 
