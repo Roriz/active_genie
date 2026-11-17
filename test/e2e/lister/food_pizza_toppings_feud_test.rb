@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 class FoodPizzaToppingsFeudTest < Minitest::Test
   def test_pizza_toppings_feud
-    theme = "Most popular pizza toppings"
+    theme = 'Most popular pizza toppings'
     result = ActiveGenie::Lister.with_feud(theme)
 
     assert_kind_of ActiveGenie::Result, result

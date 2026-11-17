@@ -30,7 +30,8 @@ class SaasFeedbackLitoteTest < Minitest::Test
 
     # Feedback uses litote ("isn't terrible") and expresses clear dissatisfaction — sentiment should be negative
     negative_indicators = %w[negative frustrated dissatisfied unhappy critical mixed]
+
     assert negative_indicators.any? { |word| result.data[:sentiment].to_s.downcase.include?(word) },
-      "Expected negative sentiment indicator, got: #{result.data[:sentiment]}"
+           "Expected negative sentiment indicator, got: #{result.data[:sentiment]}"
   end
 end

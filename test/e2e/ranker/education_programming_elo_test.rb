@@ -5,16 +5,17 @@ require_relative '../test_helper'
 class EducationProgrammingEloTest < Minitest::Test
   def test_rank_programming_languages
     languages = [
-      JSON.generate(language: "Python", paradigm: "General purpose"),
-      JSON.generate(language: "Scratch", paradigm: "Visual block-based"),
-      JSON.generate(language: "COBOL", paradigm: "Legacy business")
+      JSON.generate(language: 'Python', paradigm: 'General purpose'),
+      JSON.generate(language: 'Scratch', paradigm: 'Visual block-based'),
+      JSON.generate(language: 'COBOL', paradigm: 'Legacy business')
     ]
 
-    result = ActiveGenie::Ranker.by_elo(languages, "teaching young kids how to code")
+    result = ActiveGenie::Ranker.by_elo(languages, 'teaching young kids how to code')
 
     assert_kind_of ActiveGenie::Result, result
 
     ranked = result.data
+
     assert_equal 3, ranked.length
 
     scratch = languages[1]

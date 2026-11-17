@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class TechAiHiringBiasJuriesTest < Minitest::Test
   def test_ai_hiring_bias_juries
-    text = "Evaluating a new machine learning resume screener that disproportionately rejects female candidates"
-    criteria = "Evaluate algorithmic fairness and ethical implications"
+    text = 'Evaluating a new machine learning resume screener that disproportionately rejects female candidates'
+    criteria = 'Evaluate algorithmic fairness and ethical implications'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

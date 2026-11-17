@@ -111,7 +111,8 @@ module ActiveGenie
         juries.filter_map do |jury|
           jury_key = jury_key_for(jury)
           cands = ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(logprobs_result, "#{jury_key}_score")
-          calc = ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(cands, min_score: 0.0, max_score: 100.0)
+          calc = ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(cands, min_score: 0.0,
+                                                                                          max_score: 100.0)
           calc&.expected_value
         end
       end

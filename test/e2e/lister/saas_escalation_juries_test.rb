@@ -19,12 +19,14 @@ class SaasEscalationJuriesTest < Minitest::Test
 
     # DB connection pool exhaustion — top jury should relate to database expertise
     db_keywords = %w[database dba data backend]
+
     assert db_keywords.any? { |kw| result.data.first.to_s.downcase.include?(kw) },
-      "Expected top jury to be database-related for DB pool incident, got: #{result.data.first}"
+           "Expected top jury to be database-related for DB pool incident, got: #{result.data.first}"
     # Incident recovery requires infrastructure/SRE expertise somewhere in the list
     infra_keywords = %w[sre reliability infrastructure devops operations platform]
+
     assert result.data.any? { |jury| infra_keywords.any? { |kw| jury.to_s.downcase.include?(kw) } },
-      "Expected at least one SRE/infrastructure jury for incident post-mortem, got: #{result.data}"
+           "Expected at least one SRE/infrastructure jury for incident post-mortem, got: #{result.data}"
 
     refute_nil result.reasoning
   end

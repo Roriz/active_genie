@@ -10,9 +10,9 @@ class HrCandidateQualificationLitoteTest < Minitest::Test
     }
 
     result = ActiveGenie::Extractor.with_litote(text, schema)
-    
+
     assert_kind_of ActiveGenie::Result, result
-    
+
     data = result.data
     # WHY: LLM needs to understand double negative 'would not say ... unqualified' -> they are qualified/suitable
     assert_match(/qualified|suitable|competent/i, data[:qualification_status], "Expected qualification status to be qualified/suitable, got #{data[:qualification_status]}")

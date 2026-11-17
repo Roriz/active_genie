@@ -100,7 +100,7 @@ module ActiveGenie
         criteria = 'code quality'
 
         # Mock Lister.juries to return a list
-        ActiveGenie::Lister::Juries.stub :call, ->(_text, _criteria, config:) {
+        ActiveGenie::Lister::Juries.stub :call, lambda { |_text, _criteria, **|
           ActiveGenie::Result.new(data: ['Code Reviewer', 'Senior Developer'], reasoning: 'test', metadata: {})
         } do
           Scoring.call(players, criteria, config: { providers: { openai: { api_key: 'test_key' } } })
@@ -119,7 +119,7 @@ module ActiveGenie
         criteria = 'code quality'
 
         juries_called = false
-        ActiveGenie::Lister::Juries.stub :call, ->(_text, _criteria, config:) {
+        ActiveGenie::Lister::Juries.stub :call, lambda { |_text, _criteria, **|
           juries_called = true
           ActiveGenie::Result.new(data: ['Code Reviewer'], reasoning: 'test', metadata: {})
         } do

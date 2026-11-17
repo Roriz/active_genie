@@ -200,8 +200,8 @@ module ActiveGenie
                     function: {
                       name: 'feud_items_generator',
                       arguments: JSON.generate({
-                        'why_these_items' => 'Items could not be determined for this theme'
-                      })
+                                                 'why_these_items' => 'Items could not be determined for this theme'
+                                               })
                     }
                   }
                 ]
@@ -259,4 +259,3 @@ module ActiveGenie
     end
   end
 end
-

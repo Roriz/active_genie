@@ -45,14 +45,15 @@ module ActiveGenie
 
         refute_nil res
         # Average: (4.8 + 4.2 + 4.5) / 3 = 4.5
-        assert_equal 4.5, res.raw_expected_reward
+        assert_in_delta(4.5, res.raw_expected_reward)
         # Normalized: (4.5 - 1.0) / 4.0 = 0.875
-        assert_equal 0.875, res.normalized_score
+        assert_in_delta(0.875, res.normalized_score)
         assert_equal 3, res.count
       end
 
       def test_calculate_continuous_score_returns_nil_for_empty_candidates
         result = LogprobsCalculator.calculate_continuous_score([])
+
         assert_nil result
       end
 

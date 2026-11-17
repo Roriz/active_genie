@@ -20,11 +20,11 @@ module ActiveGenie
       end
 
       def default
-        @default ||= ENV.fetch('PROVIDER_NAME', nil)&.to_s&.downcase&.strip
+        @default ||= normalize_name(ENV.fetch('PROVIDER_NAME', nil))
       end
 
       def default=(provider)
-        @default = provider&.to_s&.downcase&.strip
+        @default = normalize_name(provider)
       end
 
       def all
@@ -76,6 +76,12 @@ module ActiveGenie
         end
 
         super.merge(h)
+      end
+
+      private
+
+      def normalize_name(name)
+        name.to_s.downcase.strip unless name.nil?
       end
     end
   end

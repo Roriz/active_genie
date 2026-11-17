@@ -12,14 +12,14 @@ class ContactBusinessCardDataTest < Minitest::Test
     }
 
     result = ActiveGenie::Extractor.data(text, schema)
-    
+
     assert_kind_of ActiveGenie::Result, result
-    
+
     # Extractor.data returns string keys; normalize before symbol access.
     data = result.data.transform_keys(&:to_sym)
     # WHY: An easy extraction should pinpoint exact fields accurately
-    assert_equal "John Doe", data[:name], "Expected exact name, got #{data[:name]}"
-    assert_equal "john.doe@example.com", data[:email], "Expected exact email, got #{data[:email]}"
+    assert_equal 'John Doe', data[:name], "Expected exact name, got #{data[:name]}"
+    assert_equal 'john.doe@example.com', data[:email], "Expected exact email, got #{data[:email]}"
     assert_match(/555-019-8472/, data[:phone], "Expected phone number to match, got #{data[:phone]}")
   end
 end

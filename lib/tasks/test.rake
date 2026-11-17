@@ -43,6 +43,7 @@ namespace :test do
     reset_environment_variables
   end
 
+  desc 'Fail fast when the API key for PROVIDER_NAME is missing'
   task :check_e2e_env do
     provider = ENV.fetch('PROVIDER_NAME', 'openai').to_s.downcase.strip
     required_keys = {
@@ -53,7 +54,7 @@ namespace :test do
     }
     keys = required_keys[provider]
     if keys
-      has_key = keys.any? { |k| ENV[k] && !ENV[k].strip.empty? }
+      has_key = keys.any? { |k| ENV.fetch(k, nil) && !ENV[k].strip.empty? }
       unless has_key
         raise "E2E Test Error: Missing API key for provider '#{provider}'. Please set #{keys.join(' or ')} in environment."
       end

@@ -56,11 +56,11 @@ module ActiveGenie
 
         result = Tournament.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
-        assert result.metadata.is_a?(Array)
+        assert_kind_of Array, result.metadata
         assert_equal 3, result.metadata.size
 
         result.metadata.each do |player_data|
-          assert player_data.is_a?(Hash)
+          assert_kind_of Hash, player_data
           assert player_data.key?(:id)
           assert player_data.key?(:content)
           assert player_data.key?(:score)
@@ -82,7 +82,7 @@ module ActiveGenie
         assert_instance_of ActiveGenie::Result, result
         tournament.instance_variable_get(:@players).each do |player|
           refute_nil player.score
-          assert player.score.is_a?(Integer)
+          assert_kind_of Integer, player.score
         end
       end
 
@@ -105,9 +105,11 @@ module ActiveGenie
         assert_equal Tournament::ELIMINATION_VARIATION, eliminated_players.first.eliminated
 
         c_meta = result.metadata.find { |m| m[:id] == 'player_c' }
+
         assert_equal 'variation_too_high', c_meta[:eliminated]
 
         a_meta = result.metadata.find { |m| m[:id] == 'player_a' }
+
         assert_nil a_meta[:eliminated]
       end
 
@@ -157,8 +159,9 @@ module ActiveGenie
 
         assert_instance_of ActiveGenie::Result, result
         players_obj = tournament.instance_variable_get(:@players)
-        players_with_elo = players_obj.eligible.select { |p| p.elo > 0 }
-        assert players_with_elo.size > 0
+        players_with_elo = players_obj.eligible.select { |p| p.elo.positive? }
+
+        assert_operator players_with_elo.size, :>, 0
       end
 
       def test_eliminates_lower_tier_players_after_elo
@@ -174,7 +177,7 @@ module ActiveGenie
         relegation_eliminated = players_obj.select { |p| p.eliminated == Tournament::ELIMINATION_RELEGATION }
 
         refute_empty relegation_eliminated
-        assert relegation_eliminated.all? { |p| p.eliminated == 'relegation_tier' }
+        assert(relegation_eliminated.all? { |p| p.eliminated == 'relegation_tier' })
         assert_equal 'relegation_tier', Tournament::ELIMINATION_RELEGATION
       end
 
@@ -192,7 +195,7 @@ module ActiveGenie
           data: [],
           metadata: {
             highest_elo_diff: 25,
-            players_in_round: ['player_1', 'player_2']
+            players_in_round: %w[player_1 player_2]
           }
         )
 
@@ -245,7 +248,8 @@ module ActiveGenie
         assert_instance_of ActiveGenie::Result, result
         players_obj = tournament.instance_variable_get(:@players)
         total_ffa_battles = players_obj.sum { |p| p.ffa_win_count + p.ffa_lose_count + p.ffa_draw_count }
-        assert total_ffa_battles > 0
+
+        assert_operator total_ffa_battles, :>, 0
       end
 
       def test_runs_free_for_all_after_elo_rounds_complete
@@ -259,7 +263,8 @@ module ActiveGenie
         assert_instance_of ActiveGenie::Result, result
         players_obj = tournament.instance_variable_get(:@players)
         eligible_players = players_obj.eligible
-        assert eligible_players.all? { |p| (p.ffa_win_count + p.ffa_lose_count + p.ffa_draw_count) > 0 }
+
+        assert(eligible_players.all? { |p| (p.ffa_win_count + p.ffa_lose_count + p.ffa_draw_count).positive? })
       end
 
       # Critical Path: Edge Cases & Parameters
@@ -325,6 +330,7 @@ module ActiveGenie
           juries: ['Senior Developer', nil, 'Senior Developer', 'Code Architect'],
           config: { providers: { openai: { api_key: 'test_key' } } }
         )
+
         assert_equal ['Senior Developer', 'Code Architect'], tournament1.instance_variable_get(:@juries)
 
         # Single string jury
@@ -334,6 +340,7 @@ module ActiveGenie
           juries: 'Code Architect',
           config: { providers: { openai: { api_key: 'test_key' } } }
         )
+
         assert_equal ['Code Architect'], tournament2.instance_variable_get(:@juries)
 
         # nil jury
@@ -343,6 +350,7 @@ module ActiveGenie
           juries: nil,
           config: { providers: { openai: { api_key: 'test_key' } } }
         )
+
         assert_equal [], tournament3.instance_variable_get(:@juries)
       end
 
@@ -364,7 +372,8 @@ module ActiveGenie
           }
         )
         result_high = tournament_high.call
-        assert result_high.metadata.none? { |m| m[:eliminated] == Tournament::ELIMINATION_VARIATION }
+
+        assert(result_high.metadata.none? { |m| m[:eliminated] == Tournament::ELIMINATION_VARIATION })
 
         # Low threshold (5) forces eliminating lower performers
         tournament_low = Tournament.new(
@@ -376,7 +385,8 @@ module ActiveGenie
           }
         )
         result_low = tournament_low.call
-        assert result_low.metadata.any? { |m| m[:eliminated] == Tournament::ELIMINATION_VARIATION }
+
+        assert(result_low.metadata.any? { |m| m[:eliminated] == Tournament::ELIMINATION_VARIATION })
       end
 
       # Critical Path: Complete Tournament Flow & Observability
@@ -388,9 +398,9 @@ module ActiveGenie
         result = Tournament.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
         assert_instance_of ActiveGenie::Result, result
-        assert result.data.size <= 10
-        assert result.metadata.is_a?(Array)
-        assert result.metadata.all? { |p| p.is_a?(Hash) }
+        assert_operator result.data.size, :<=, 10
+        assert_kind_of Array, result.metadata
+        assert(result.metadata.all?(Hash))
       end
 
       def test_generates_consistent_ranker_id_and_varies_with_inputs
@@ -432,6 +442,7 @@ module ActiveGenie
         tournament.call
 
         ranker_final_log = logged_events.find { |l| l[:code] == :ranker_final }
+
         refute_nil ranker_final_log
         assert_equal tournament.send(:ranker_id), ranker_final_log[:ranker_id]
         assert_equal 2, ranker_final_log[:players].size
@@ -451,7 +462,7 @@ module ActiveGenie
         eligible_count = players_obj.eligible.size
 
         assert_equal players_obj.size, result.data.size
-        assert result.data.size >= eligible_count
+        assert_operator result.data.size, :>=, eligible_count
       end
 
       def test_metadata_contains_all_players_including_eliminated_ones
@@ -468,6 +479,7 @@ module ActiveGenie
 
         players_obj = tournament.instance_variable_get(:@players)
         eliminated_count = result.metadata.count { |m| !m[:eliminated].nil? }
+
         assert_equal 20 - players_obj.eligible.size, eliminated_count
 
         # Check metadata contains expected fields
@@ -482,4 +494,3 @@ module ActiveGenie
     end
   end
 end
-

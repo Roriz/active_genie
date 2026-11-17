@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 class CareerQuittingReasonsFeudTest < Minitest::Test
   def test_quitting_reasons_feud
-    theme = "Reasons people quit their jobs"
+    theme = 'Reasons people quit their jobs'
     result = ActiveGenie::Lister.with_feud(theme)
 
     assert_kind_of ActiveGenie::Result, result

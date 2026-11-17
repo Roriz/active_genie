@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 class TechSocialMediaFeudTest < Minitest::Test
   def test_social_media_feud
-    theme = "Most popular social media platforms"
+    theme = 'Most popular social media platforms'
     result = ActiveGenie::Lister.with_feud(theme)
 
     assert_kind_of ActiveGenie::Result, result
@@ -17,9 +17,8 @@ class TechSocialMediaFeudTest < Minitest::Test
     found_count += 1 if answers.any? { |a| a.include?('tiktok') }
     found_count += 1 if answers.any? { |a| a.include?('youtube') || a.include?('x') || a.include?('twitter') }
 
-    assert(
-      found_count >= 2,
-      "Expected at least 2 major platforms (facebook, instagram, tiktok, youtube), but got: #{result.data.inspect}"
+    assert_operator(
+      found_count, :>=, 2, "Expected at least 2 major platforms (facebook, instagram, tiktok, youtube), but got: #{result.data.inspect}"
     )
   end
 end

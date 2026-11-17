@@ -5,16 +5,17 @@ require_relative '../test_helper'
 class SportsAthleteEloTest < Minitest::Test
   def test_rank_athletes
     athletes = [
-      JSON.generate(type: "Olympic Gold Medalist Sprinter", pace: "World class"),
-      JSON.generate(type: "Weekend Jogger", pace: "Casual"),
-      JSON.generate(type: "Couch Potato", pace: "None")
+      JSON.generate(type: 'Olympic Gold Medalist Sprinter', pace: 'World class'),
+      JSON.generate(type: 'Weekend Jogger', pace: 'Casual'),
+      JSON.generate(type: 'Couch Potato', pace: 'None')
     ]
 
-    result = ActiveGenie::Ranker.by_elo(athletes, "winning a 100m race")
+    result = ActiveGenie::Ranker.by_elo(athletes, 'winning a 100m race')
 
     assert_kind_of ActiveGenie::Result, result
 
     ranked = result.data
+
     assert_equal 3, ranked.length
 
     olympian = athletes[0]

@@ -10,7 +10,7 @@ module ActiveGenie
       def test_returns_juries_and_reasoning_normally
         stub_openai_response(
           why_these_juries: 'These are the best juries because...',
-          juries: ['Writer', 'Designer', 'Editor']
+          juries: %w[Writer Designer Editor]
         )
 
         result = Juries.call(
@@ -23,22 +23,24 @@ module ActiveGenie
         )
 
         assert_instance_of ActiveGenie::Result, result
-        assert_equal ['Writer', 'Designer', 'Editor'], result.data
+        assert_equal %w[Writer Designer Editor], result.data
         assert_equal 'These are the best juries because...', result.reasoning
         assert_instance_of Hash, result.metadata
-        assert_equal ['Writer', 'Designer', 'Editor'], result.metadata['juries']
+        assert_equal %w[Writer Designer Editor], result.metadata['juries']
 
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions', times: 1) do |req|
           request_body = JSON.parse(req.body)
           messages = request_body['messages']
           tools = request_body['tools']
 
-          assert messages.any? { |m| m['role'] == 'user' && m['content'].include?('<criteria> Evaluate clarity</criteria>') }
-          assert messages.any? { |m| m['role'] == 'user' && m['content'].include?('<text-to-score>API documentation draft</text-to-score>') }
+          assert(messages.any? { |m| m['role'] == 'user' && m['content'].include?('<criteria> Evaluate clarity</criteria>') })
+          assert(messages.any? { |m| m['role'] == 'user' && m['content'].include?('<text-to-score>API documentation draft</text-to-score>') })
 
           identify_tool = tools.find { |t| t['function']['name'] == 'identify_jury' }
+
           refute_nil identify_tool
           params = identify_tool['function']['parameters']['properties']
+
           assert params.key?('why_these_juries')
           assert params.key?('juries')
         end
@@ -60,7 +62,7 @@ module ActiveGenie
           }
         )
 
-        assert_equal ['Writer', 'Designer', 'Editor'], result.data
+        assert_equal %w[Writer Designer Editor], result.data
         assert_equal 'These are selected juries.', result.reasoning
       end
 
@@ -80,7 +82,7 @@ module ActiveGenie
           }
         )
 
-        assert_equal ['Writer', 'Designer', 'Editor'], result.data
+        assert_equal %w[Writer Designer Editor], result.data
       end
 
       # Critical Path: Edge Case Parsing (Missing Keys, Non-String Elements)
@@ -132,7 +134,7 @@ module ActiveGenie
       def test_lister_with_juries_delegation
         stub_openai_response(
           why_these_juries: 'Delegation test',
-          juries: ['Architect', 'Auditor']
+          juries: %w[Architect Auditor]
         )
 
         result = ActiveGenie::Lister.with_juries(
@@ -144,7 +146,7 @@ module ActiveGenie
           }
         )
 
-        assert_equal ['Architect', 'Auditor'], result.data
+        assert_equal %w[Architect Auditor], result.data
         assert_equal 'Delegation test', result.reasoning
       end
 
@@ -183,4 +185,3 @@ module ActiveGenie
     end
   end
 end
-

@@ -16,6 +16,6 @@ class MarketplaceVendorFightTest < Minitest::Test
     assert_kind_of ActiveGenie::Result, result
     # CloudSecure (faster, better SLA) should win for enterprise cloud migration
     assert_equal @vendor_a, result.data,
-      'Expected CloudSecure (vendor_a) to win the fight for enterprise cloud migration partner'
+                 'Expected CloudSecure (vendor_a) to win the fight for enterprise cloud migration partner'
   end
 end

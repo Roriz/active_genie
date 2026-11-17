@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class MedicalMalpracticeJuriesTest < Minitest::Test
   def test_medical_malpractice_juries
-    text = "Reviewing patient records to determine if surgical protocol was followed correctly"
-    criteria = "Evaluate medical procedure and standard of care"
+    text = 'Reviewing patient records to determine if surgical protocol was followed correctly'
+    criteria = 'Evaluate medical procedure and standard of care'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

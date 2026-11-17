@@ -18,10 +18,10 @@ class LogisticsSupplierTournamentTest < Minitest::Test
     assert_equal @players.size, result.data.size
 
     # ColdChain Express has temp monitoring + fastest transit — best match for criteria priority
-    assert result.data.first.include?('ColdChain Express'),
-      "Expected ColdChain Express ranked first, got: #{result.data.first[0..50]}"
+    assert_includes result.data.first, 'ColdChain Express',
+                    "Expected ColdChain Express ranked first, got: #{result.data.first[0..50]}"
     # Speedy Haulers lacks temperature monitoring — worst match for refrigerated medical supplies
-    assert result.data.last.include?('Speedy Haulers'),
-      "Expected Speedy Haulers ranked last, got: #{result.data.last[0..50]}"
+    assert_includes result.data.last, 'Speedy Haulers',
+                    "Expected Speedy Haulers ranked last, got: #{result.data.last[0..50]}"
   end
 end

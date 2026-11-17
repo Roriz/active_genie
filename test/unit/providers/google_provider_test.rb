@@ -40,6 +40,7 @@ module ActiveGenie
 
         @provider.stub(:request, mock_response) do
           result = @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION)
+
           assert_equal({ 'score' => 8 }, result)
         end
       end
@@ -123,9 +124,11 @@ module ActiveGenie
         }
 
         candidates = @provider.extract_field_logprobs(logprobs_result, 'score')
+
         refute_nil candidates
 
         score_res = @provider.calculate_continuous_score(candidates, min_score: 1.0, max_score: 10.0)
+
         refute_nil score_res
         assert_in_delta 7.8, score_res.expected_value, 0.1
         assert_in_delta 0.7556, score_res.normalized_score, 0.02

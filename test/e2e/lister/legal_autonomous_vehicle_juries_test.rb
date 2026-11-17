@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class LegalAutonomousVehicleJuriesTest < Minitest::Test
   def test_autonomous_vehicle_juries
-    text = "Determining liability in a multi-vehicle crash caused by an autonomous taxi turning left"
-    criteria = "Evaluate technical fault and legal liability"
+    text = 'Determining liability in a multi-vehicle crash caused by an autonomous taxi turning left'
+    criteria = 'Evaluate technical fault and legal liability'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 class TechProgrammingLanguagesFeudTest < Minitest::Test
   def test_programming_languages_feud
-    theme = "Top programming languages in 2024"
+    theme = 'Top programming languages in 2024'
     result = ActiveGenie::Lister.with_feud(theme)
 
     assert_kind_of ActiveGenie::Result, result

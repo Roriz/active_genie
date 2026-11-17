@@ -18,7 +18,7 @@ class FintechCreditScoringTest < Minitest::Test
     assert_kind_of Numeric, result.data
     # Strong applicant (745 credit score, 0 late payments, stable employment) should score well
     assert_operator result.data, :>=, 50,
-      "Expected creditworthy score (>=50) for strong applicant, got: #{result.data}"
+                    "Expected creditworthy score (>=50) for strong applicant, got: #{result.data}"
 
     refute_nil result.reasoning
   end

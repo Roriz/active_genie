@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class LegalSemiconductorPatentJuriesTest < Minitest::Test
   def test_semiconductor_patent_juries
-    text = "Analyzing a new microchip architecture for potential infringement on existing US patents"
-    criteria = "Evaluate intellectual property boundaries and technical overlap"
+    text = 'Analyzing a new microchip architecture for potential infringement on existing US patents'
+    criteria = 'Evaluate intellectual property boundaries and technical overlap'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

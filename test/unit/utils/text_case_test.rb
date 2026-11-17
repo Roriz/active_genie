@@ -53,7 +53,7 @@ module ActiveGenie
       long_jury = 'Senior Cybersecurity Compliance and Risk Assessment Specialist for Banks'
       key = TextCase.underscore(long_jury, max_length: 64 - '_reasoning'.length)
 
-      ['_reasoning', '_score'].each do |suffix|
+      %w[_reasoning _score].each do |suffix|
         assert_match SCHEMA_KEY_PATTERN, "#{key}#{suffix}"
       end
     end

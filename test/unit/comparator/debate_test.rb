@@ -281,4 +281,3 @@ module ActiveGenie
     end
   end
 end
-

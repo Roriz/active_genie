@@ -5,9 +5,9 @@ require 'json'
 
 class HrBackendRoleDebateTest < Minitest::Test
   def test_debate_backend_role
-    player_a = "Senior Python Dev: 10 years experience building scalable backend APIs"
-    player_b = "Junior HTML Dev: 1 year experience writing basic markup"
-    criteria = "Who is better for a backend role?"
+    player_a = 'Senior Python Dev: 10 years experience building scalable backend APIs'
+    player_b = 'Junior HTML Dev: 1 year experience writing basic markup'
+    criteria = 'Who is better for a backend role?'
 
     result = ActiveGenie::Comparator.by_debate(player_a, player_b, criteria)
 
@@ -16,6 +16,5 @@ class HrBackendRoleDebateTest < Minitest::Test
 
     # WHY: Obvious winner based on experience and relevant skills
     assert_equal player_a, result.data, "Expected the Senior Python Dev to win. Got: #{result.data}"
-
   end
 end

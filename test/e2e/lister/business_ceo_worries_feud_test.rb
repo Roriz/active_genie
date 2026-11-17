@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 class BusinessCeoWorriesFeudTest < Minitest::Test
   def test_ceo_worries_feud
-    theme = "Things a CEO worries about at 3am"
+    theme = 'Things a CEO worries about at 3am'
     result = ActiveGenie::Lister.with_feud(theme)
 
     assert_kind_of ActiveGenie::Result, result
