@@ -1,0 +1,26 @@
+{"id":"draft_litote_02","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"positive","achievement_was_difficult":true},"at":"2026-11-17T17:45:49Z"}
+{"id":"draft_litote_01","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"positive","would_return":true},"at":"2026-11-17T17:45:49Z"}
+{"id":"draft_litote_04","labeler":"claude-code/claude-opus-5-5","values":{"decision":"pass","burn_rate_level":"high","founders_experienced":false},"at":"2026-11-17T17:45:49Z"}
+{"id":"draft_litote_03","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"negative","value_for_money":"poor","nightly_rate":340},"at":"2026-11-17T17:45:50Z"}
+{"id":"draft_litote_05","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_07","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_06","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_08","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_09","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_12","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_10","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_11","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_13","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_14","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_15","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_litote_07","labeler":"claude-code/claude-opus-5-5","values":{"has_bugs":true,"issue_count":2,"uses_regularly":true},"at":"2026-11-17T18:53:14Z"}
+{"id":"draft_litote_05","labeler":"claude-code/claude-opus-5-5","values":{"accepted_offer":true,"tempted_by_counteroffer":true},"at":"2026-11-17T18:53:15Z"}
+{"id":"draft_litote_08","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"positive","would_buy_again":true,"durability":"good"},"at":"2026-11-17T18:53:16Z"}
+{"id":"draft_litote_06","labeler":"claude-code/claude-opus-5-5","values":{"panel_convinced":true,"candidate_prepared":true},"at":"2026-11-17T18:53:16Z"}
+{"id":"draft_litote_09","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"positive","launches_on_time":2},"at":"2026-11-17T18:53:18Z"}
+{"id":"draft_litote_12","labeler":"claude-code/claude-opus-5-5","values":{"shipped":false,"blocker_type":"bug"},"at":"2026-11-17T18:53:19Z"}
+{"id":"draft_litote_11","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"negative","would_recommend":false},"at":"2026-11-17T18:53:21Z"}
+{"id":"draft_litote_10","labeler":"claude-code/claude-opus-5-5","values":{"rating":4,"sentiment":"positive"},"at":"2026-11-17T18:53:21Z"}
+{"id":"draft_litote_13","labeler":"claude-code/claude-opus-5-5","values":{"advance_to_final":false,"passed_system_design":false},"at":"2026-11-17T18:53:22Z"}
+{"id":"draft_litote_14","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"positive","rebooked":true},"at":"2026-11-17T18:53:24Z"}
+{"id":"draft_litote_15","labeler":"claude-code/claude-opus-5-5","values":{"sentiment":"negative","refund_received":true},"at":"2026-11-17T18:53:26Z"}

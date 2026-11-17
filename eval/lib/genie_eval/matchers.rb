@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
+require 'date'
+
 module GenieEval
   # Deterministic comparisons between an output value and a gold spec. Strings are compared
   # trimmed, whitespace-collapsed and case-insensitive; numbers numerically.
   module Matchers
-    CHECKS = %w[eq one_of regex contains_any contains_all gte lte between near nonempty].freeze
+    CHECKS = %w[eq one_of regex contains_any contains_all gte lte between near nonempty date].freeze
+    DATE_FORMATS = ['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y', '%B %d, %Y', '%b %d, %Y', '%B %d %Y', '%d %B %Y', '%d %b %Y',
+                    '%b. %d, %Y'].freeze
 
     module_function
 
@@ -57,8 +61,21 @@ module GenieEval
       when 'contains_all' then Array(expected).all? { |sub| texts(value).any? { |t| t.include?(sub.downcase) } }
       when 'gte', 'lte', 'between', 'near' then numeric?(spec, number(value))
       when 'nonempty' then !absent?(value)
+      when 'date' then date(value)&.iso8601 == expected
       else raise Error, "unknown check #{spec['check'].inspect}"
       end
+    end
+
+    # A calendar date in any common written form ("2014-02-10", "2/10/14", "February 10th, 2014"), else nil.
+    def date(value)
+      text = value.to_s.strip.sub(/(\d)(?:st|nd|rd|th)\b/, '\1')
+      DATE_FORMATS.each do |format|
+        parsed = Date.strptime(text, format)
+        return parsed if parsed.year >= 100 # "2/10/14" must not match %Y as year 14
+      rescue Date::Error
+        next
+      end
+      nil
     end
 
     def contains_any?(value, substrings)

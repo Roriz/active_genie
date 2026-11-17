@@ -1,0 +1,50 @@
+{"id":"draft_explanation_04","labeler":"claude-code/claude-opus-5-5","values":{"current_medication_count":2,"current_smoker":false,"blood_type":null},"at":"2026-11-17T17:45:49Z"}
+{"id":"draft_explanation_03","labeler":"claude-code/claude-opus-5-5","values":{"pto_days":4,"first_pto_date":"2026-06-08","remote_days":1},"at":"2026-11-17T17:45:49Z"}
+{"id":"draft_explanation_01","labeler":"claude-code/claude-opus-5-5","values":{"invoice_number":"INV-2207","total_amount":631,"po_number":null},"at":"2026-11-17T17:45:49Z"}
+{"id":"draft_explanation_02","labeler":"claude-code/claude-opus-5-5","values":{"delivery_date":"2026-03-06","tracking_number":"ZX-55120","signature_required":null},"at":"2026-11-17T17:45:50Z"}
+{"id":"draft_explanation_05","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_06","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_07","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_08","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_09","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_12","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_10","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_11","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_14","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_13","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_15","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_16","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_20","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_17","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_18","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_19","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_24","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_23","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_22","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_21","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
+{"id":"draft_explanation_06","labeler":"claude-code/claude-opus-5-5","values":{"total_eur":488,"total_usd":536.8},"at":"2026-11-17T18:53:35Z"}
+{"id":"draft_explanation_05","labeler":"claude-code/claude-opus-5-5","values":{"asking_price":437500,"price_per_sqft":350,"year_built":null},"at":"2026-11-17T18:53:35Z"}
+{"id":"draft_explanation_08","labeler":"claude-code/claude-opus-5-5","values":{"notice_date":"2026-01-15","termination_date":"2026-04-15","termination_fee":null},"at":"2026-11-17T18:53:35Z"}
+{"id":"draft_explanation_07","labeler":"claude-code/claude-opus-5-5","values":{"plan":"Team","seats":12,"annual_cost":2160},"at":"2026-11-17T18:53:37Z"}
+{"id":"draft_explanation_11","labeler":"claude-code/claude-opus-5-5","values":{"items_shipped":3,"items_backordered":2,"backorder_ship_date":null},"at":"2026-11-17T18:53:40Z"}
+{"id":"draft_explanation_10","labeler":"claude-code/claude-opus-5-5","values":{"winner":"Riverside Hawks","total_goals":4,"top_scorer":"Mendez","attendance":null},"at":"2026-11-17T18:53:40Z"}
+{"id":"draft_explanation_09","labeler":"claude-code/claude-opus-5-5","values":{"flour_grams":750,"eggs":5,"milk_ml":625},"at":"2026-11-17T18:53:41Z"}
+{"id":"draft_explanation_12","labeler":"claude-code/claude-opus-5-5","values":{"job_title":"Data Analyst","base_salary":78000,"start_date":"2026-06-01","signing_bonus":null},"at":"2026-11-17T18:53:42Z"}
+{"id":"draft_explanation_13","labeler":"claude-code/claude-opus-5-5","values":{"has_fever":false,"symptom_duration_days":2},"at":"2026-11-17T18:53:44Z"}
+{"id":"draft_explanation_14","labeler":"claude-code/claude-opus-5-5","values":{"discount_amount":120,"total_due":1166.4},"at":"2026-11-17T18:53:46Z"}
+{"id":"draft_explanation_15","labeler":"claude-code/claude-opus-5-5","values":{"rent_per_person":800,"lease_months":12,"pets_allowed":null},"at":"2026-11-17T18:53:46Z"}
+{"id":"draft_explanation_16","labeler":"claude-code/claude-opus-5-5","values":{"flight_number":"611","departure_date":"2026-07-09","arrival_date":"2026-07-10"},"at":"2026-11-17T18:53:46Z"}
+{"id":"draft_explanation_20","labeler":"claude-code/claude-opus-5-5","values":{"points":22,"games_remaining":8},"at":"2026-11-17T18:53:50Z"}
+{"id":"draft_explanation_17","labeler":"claude-code/claude-opus-5-5","values":{"within_limit":false,"overage_calls":3500,"overage_charge":7},"at":"2026-11-17T18:53:50Z"}
+{"id":"draft_explanation_18","labeler":"claude-code/claude-opus-5-5","values":{"settlement_amount":45000,"installment_amount":15000,"first_payment_date":null},"at":"2026-11-17T18:53:50Z"}
+{"id":"draft_explanation_19","labeler":"claude-code/claude-opus-5-5","values":{"total_minutes":80,"oven_temperature":null},"at":"2026-11-17T18:53:51Z"}
+{"id":"draft_explanation_23","labeler":"claude-code/claude-opus-5-5","values":{"reason_for_visit":"annual check-up","chest_pain":false,"current_medications":null},"at":"2026-11-17T18:53:55Z"}
+{"id":"draft_explanation_21","labeler":"claude-code/claude-opus-5-5","values":{"notice_type":"resignation","effective_date":"2026-05-18","reason":"Accepted a position closer to family"},"at":"2026-11-17T18:53:55Z"}
+{"id":"draft_explanation_22","labeler":"claude-code/claude-opus-5-5","values":{"billable_kg":5,"shipping_cost":20},"at":"2026-11-17T18:53:55Z"}
+{"id":"draft_explanation_24","labeler":"claude-code/claude-opus-5-5","values":{"billable_hours":36,"invoice_amount":3420},"at":"2026-11-17T18:53:55Z"}
+{"id":"draft_explanation_25","labeler":"claude-code/claude-opus-5-5","values":{"has_dishwasher":false,"in_unit_laundry":true,"bedrooms":null},"at":"2026-11-17T18:54:00Z"}
+{"id":"draft_explanation_26","labeler":"claude-code/claude-opus-5-5","values":{"passengers":6,"total_fare":1200},"at":"2026-11-17T18:54:00Z"}
+{"id":"draft_explanation_27","labeler":"claude-code/claude-opus-5-5","values":{"cancellation_date":"2026-08-19","access_end_date":"2026-08-31","cancellation_reason":null},"at":"2026-11-17T18:54:01Z"}
+{"id":"draft_explanation_28","labeler":"claude-code/claude-opus-5-5","values":{"bib_number":214,"official_time":"3:00:41","under_three_hours":false},"at":"2026-11-17T18:54:01Z"}
+{"id":"draft_explanation_30","labeler":"claude-code/claude-opus-5-5","values":{"sugar_grams":500,"butter_grams":226},"at":"2026-11-17T18:54:05Z"}
+{"id":"draft_explanation_29","labeler":"claude-code/claude-opus-5-5","values":{"notice_type":"non_renewal","vacate_by":"2026-09-30","reason":null},"at":"2026-11-17T18:54:05Z"}

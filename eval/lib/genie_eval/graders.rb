@@ -46,9 +46,23 @@ module GenieEval
           absent ? 'correct_abstention' : 'invention'
         elsif absent
           'omission'
+        elsif Matchers.check?(spec, value)
+          'correct'
         else
-          Matchers.check?(spec, value) ? 'correct' : 'wrong_value'
+          judged(spec, value)
         end
+      end
+
+      # A field marked `judge: true` goes to the LLM judge when the deterministic check fails.
+      def judged(spec, value)
+        return 'wrong_value' unless spec['judge']
+
+        reference = spec['reference'] || spec['value'].to_s # `reference`: the human-readable gold, when `value` is a check operand
+        verdict = Judge.current.verdict(question: spec.fetch('question'), reference:,
+                                        candidate: value.is_a?(String) ? value : JSON.generate(value))
+        return 'unjudged' if verdict.nil?
+
+        verdict.match ? 'correct' : 'wrong_value'
       end
     end
 

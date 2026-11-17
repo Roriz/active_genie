@@ -1,0 +1,15 @@
+{"id":"draft_litote_04","labeler":"codex/gpt-6.1-sol","values":{"decision":"pass","burn_rate_level":"high","founders_experienced":false},"at":"2026-11-17T17:45:51Z"}
+{"id":"draft_litote_03","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"negative","value_for_money":"poor","nightly_rate":340},"at":"2026-11-17T17:45:51Z"}
+{"id":"draft_litote_01","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"positive","would_return":true},"at":"2026-11-17T17:45:52Z"}
+{"id":"draft_litote_02","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"positive","achievement_was_difficult":true},"at":"2026-11-17T17:45:52Z"}
+{"id":"draft_litote_07","labeler":"codex/gpt-6.1-sol","values":{"has_bugs":true,"issue_count":2,"uses_regularly":true},"at":"2026-11-17T17:45:59Z"}
+{"id":"draft_litote_06","labeler":"codex/gpt-6.1-sol","values":{"panel_convinced":true,"candidate_prepared":true},"at":"2026-11-17T17:45:59Z"}
+{"id":"draft_litote_05","labeler":"codex/gpt-6.1-sol","values":{"accepted_offer":true,"tempted_by_counteroffer":true},"at":"2026-11-17T17:46:00Z"}
+{"id":"draft_litote_08","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"positive","would_buy_again":true,"durability":"good"},"at":"2026-11-17T17:46:01Z"}
+{"id":"draft_litote_10","labeler":"codex/gpt-6.1-sol","values":{"rating":4,"sentiment":"positive"},"at":"2026-11-17T17:46:08Z"}
+{"id":"draft_litote_09","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"positive","launches_on_time":2},"at":"2026-11-17T17:46:08Z"}
+{"id":"draft_litote_11","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"negative","would_recommend":false},"at":"2026-11-17T17:46:09Z"}
+{"id":"draft_litote_12","labeler":"codex/gpt-6.1-sol","values":{"shipped":false,"blocker_type":"bug"},"at":"2026-11-17T17:46:09Z"}
+{"id":"draft_litote_15","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"negative","refund_received":true},"at":"2026-11-17T18:52:15Z"}
+{"id":"draft_litote_14","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"positive","rebooked":true},"at":"2026-11-17T18:52:15Z"}
+{"id":"draft_litote_13","labeler":"codex/gpt-6.1-sol","values":{"advance_to_final":false,"passed_system_design":false},"at":"2026-11-17T18:52:18Z"}

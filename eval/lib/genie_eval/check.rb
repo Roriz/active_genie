@@ -90,7 +90,10 @@ module GenieEval
       bad = gold['fields'].reject do |_name, spec|
         spec['present'] == false || Matchers::CHECKS.include?(spec['check'])
       end
-      "unknown or missing check for #{bad.keys.join(', ')}" if bad.any?
+      return "unknown or missing check for #{bad.keys.join(', ')}" if bad.any?
+
+      unasked = gold['fields'].select { |_name, spec| spec['judge'] && spec['question'].to_s.strip.empty? }
+      "judge fields need a question: #{unasked.keys.join(', ')}" if unasked.any?
     end
 
     def lister_problem(gold)

@@ -103,6 +103,16 @@ namespace :eval do
     GenieEvalTasks.report(GenieEvalTasks.system, GenieEvalTasks.items(mode), mode)
   end
 
+  desc 'Free: merge drafted cases with their blind labeling passes and decisions. CELL=<cell>'
+  task :label do
+    cell = ENV.fetch('CELL') { abort 'CELL=<cell> is required, e.g. CELL=extractor.with_litote' }
+    result = GenieEval::Labeling.merge(cell)
+    puts "#{cell}: #{result[:promoted]} cases in the test pool, #{result[:queued]} waiting for a decision"
+    result[:queue].each do |q|
+      puts "  #{q['id']}.#{q['field']}: drafted #{JSON.generate(q['drafted'])} | A #{q['pass_a'].inspect} | B #{q['pass_b'].inspect}"
+    end
+  end
+
   desc 'Free: promote the complete full run of this lib/ to the committed baseline. BY=name'
   task :save do
     sys = GenieEvalTasks.system

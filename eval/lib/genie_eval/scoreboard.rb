@@ -146,6 +146,8 @@ module GenieEval
         lines << "MISSING #{@missing.size} of #{@items.size} cases have no output for this lib/ yet " \
                  '(left out of the rates; run with YES=1)'
       end
+      unjudged = @current.rows.sum { |r| (r.grade.detail['fields'] || {}).count { |_f, o| o == 'unjudged' } }
+      lines << "UNJUDGED #{unjudged} field(s) wait for the judge and count as wrong (run with YES=1 to judge them)" if unjudged.positive?
       lines.empty? ? [] : [*lines, '']
     end
 
