@@ -173,7 +173,7 @@ shortlist = candidates
 ActiveGenie::Ranker.call(shortlist, criteria, juries: juries)
 ```
 
-Requests run concurrently in batches of `config.llm.max_fibers`. Lower it if you hit provider rate limits. The library does not retry rate-limit responses automatically. See [Observability & errors](/reference/observability).
+Requests run concurrently in batches of `config.llm.max_fibers`. Lower it if you hit provider rate limits. Rate-limit (429) responses are retried with backoff, but a large ranking can still exhaust the retries. See [Observability & errors](/reference/observability).
 
 ## Tips
 

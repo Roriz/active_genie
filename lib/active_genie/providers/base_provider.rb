@@ -8,6 +8,11 @@ module ActiveGenie
     class BaseProvider
       class ProviderUnknownError < StandardError; end
 
+      # Rate limits, request timeouts and server-side failures. These are retried
+      # with backoff; subclassing ProviderUnknownError keeps existing
+      # `rescue ProviderUnknownError` handlers working once retries run out.
+      class ProviderTransientError < ProviderUnknownError; end
+
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -84,13 +89,20 @@ module ActiveGenie
 
         response = http_request(request, uri)
 
-        raise ProviderUnknownError, "Unexpected response: #{response.code} - #{response.body}" unless response.is_a?(Net::HTTPSuccess)
+        raise_for_status(response) unless response.is_a?(Net::HTTPSuccess)
 
         parsed_response = parse_response(response)
 
         log_request_details(uri:, request:, response:, start_time:, parsed_response:)
 
         parsed_response
+      end
+
+      def raise_for_status(response)
+        # 5xx, 408 Request Timeout, 429 Too Many Requests
+        transient = response.is_a?(Net::HTTPServerError) || [408, 429].include?(response.code.to_i)
+        raise(transient ? ProviderTransientError : ProviderUnknownError,
+              "Unexpected response: #{response.code} - #{response.body}")
       end
 
       # Create and configure an HTTP client
@@ -171,9 +183,9 @@ module ActiveGenie
 
         begin
           yield
-        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ActiveGenie::ProviderServerError,
+        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderTransientError,
                JSON::ParserError => e
-          raise if retries > max_retries
+          raise if retries >= max_retries
 
           sleep_time = retry_delay * (2**retries)
           retries += 1
