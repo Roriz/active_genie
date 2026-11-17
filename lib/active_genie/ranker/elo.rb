@@ -54,7 +54,7 @@ module ActiveGenie
       def next_higher_player
         @tmp_highers = @higher_tier.dup if @tmp_highers.empty?
 
-        @tmp_highers.count % 2 ? @tmp_highers.shift : @tmp_highers.pop
+        @tmp_highers.count.odd? ? @tmp_highers.shift : @tmp_highers.pop
       end
 
       def debate(player_a, player_b)

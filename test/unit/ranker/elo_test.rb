@@ -129,6 +129,26 @@ module ActiveGenie
         assert_instance_of String, result1.metadata[:elo_id]
       end
 
+      # Critical Path: Fair pairing. The higher tier is sorted strongest first;
+      # opponents must alternate between its top and bottom, or one lower-tier
+      # player faces only the strongest and another only the weakest.
+      def test_every_lower_tier_player_faces_both_stronger_and_weaker_opponents
+        players = ActiveGenie::Ranker::Entities::Players.new(
+          (1..20).map { |i| { id: "player_#{i}", content: "Player #{i} content", score: 101 - i } }
+        )
+        elo = Elo.new(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+
+        opponents_by_lower_player = elo.send(:matches).group_by(&:first).transform_values { |m| m.map(&:last) }
+
+        assert_equal 10, opponents_by_lower_player.size
+        opponents_by_lower_player.each do |lower, opponents|
+          strong, weak = opponents.partition { |higher| higher.score >= 96 } # higher tier scores 91..100
+
+          refute_empty strong, "#{lower.id} faced no opponent from the top half of the higher tier"
+          refute_empty weak, "#{lower.id} faced no opponent from the bottom half of the higher tier"
+        end
+      end
+
       private
 
       def create_players(count, elo_split: false)
