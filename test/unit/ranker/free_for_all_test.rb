@@ -49,6 +49,23 @@ module ActiveGenie
         assert result.metadata[:total_tokens].is_a?(Integer)
       end
 
+      # Critical Path: Observability. Every entry logged during a free-for-all,
+      # including the comparator's provider calls, carries its id.
+      def test_every_log_entry_carries_the_free_for_all_id
+        logs = []
+        players = [{ id: 'player_a', content: 'Player A content' }, { id: 'player_b', content: 'Player B content' }]
+
+        result = FreeForAll.call(players, 'test criteria', config: {
+                                   providers: { openai: { api_key: 'test_key' } },
+                                   log: { output: ->(log) { logs << log } }
+                                 })
+
+        id = result.metadata[:free_for_all_id]
+
+        assert_includes logs.map { |log| log[:code] }, :llm_usage
+        logs.each { |log| assert_equal id, log[:free_for_all_id], "#{log[:code]} entry is missing the id" }
+      end
+
       # Critical Path: Ranking Logic
       def test_ranks_players_by_ffa_score
         players = ActiveGenie::Ranker::Entities::Players.new(

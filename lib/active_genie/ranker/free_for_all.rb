@@ -111,7 +111,7 @@ module ActiveGenie
           c = ActiveGenie.new_configuration(
             ActiveGenie::DeepMerge.call(
               @initial_config.to_h,
-              { log: { context: { free_for_all_id: } } }
+              { log: { additional_context: { free_for_all_id: } } }
             )
           )
           c.log.add_observer(observers: ->(log) { log_observer(log) })
