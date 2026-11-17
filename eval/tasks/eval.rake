@@ -103,11 +103,12 @@ namespace :eval do
     GenieEvalTasks.report(GenieEvalTasks.system, GenieEvalTasks.items(mode), mode)
   end
 
-  desc 'Free: merge drafted cases with their blind labeling passes and decisions. CELL=<cell>'
+  desc 'Free: merge drafted cases with their blind labeling passes and decisions. CELL=<cell or drafts set>'
   task :label do
-    cell = ENV.fetch('CELL') { abort 'CELL=<cell> is required, e.g. CELL=extractor.with_litote' }
-    result = GenieEval::Labeling.merge(cell)
-    puts "#{cell}: #{result[:promoted]} cases in the test pool, #{result[:queued]} waiting for a decision"
+    set = ENV.fetch('CELL') { abort 'CELL=<cell> is required, e.g. CELL=extractor.with_litote or CELL=comparator' }
+    result = GenieEval::Labeling.merge(set)
+    dropped = result[:dropped].positive? ? ", #{result[:dropped]} dropped as unclear" : ''
+    puts "#{set}: #{result[:promoted]} cases in the test pool, #{result[:queued]} waiting for a decision#{dropped}"
     result[:queue].each do |q|
       puts "  #{q['id']}.#{q['field']}: drafted #{JSON.generate(q['drafted'])} | A #{q['pass_a'].inspect} | B #{q['pass_b'].inspect}"
     end

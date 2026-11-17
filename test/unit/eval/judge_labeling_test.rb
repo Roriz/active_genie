@@ -104,4 +104,36 @@ class GenieEvalJudgeLabelingTest < Minitest::Test
     assert_equal 'neutral', Store.gold(cell)['split']['gold']['fields']['sentiment']['value']
     assert_equal(%w[test test], Store.pools.map { |p| p['pool'] })
   end
+
+  def test_labeling_a_shared_set_feeds_each_cell_and_drops_unclear_pairs
+    cells = %w[comparator.by_debate comparator.by_fight]
+    Store.write_json(GenieEval.path('cells.json'), cells.map { |id| { 'id' => id, 'grader' => 'comparator', 'weight' => 1 } })
+    draft = lambda do |id, winner, extra = {}|
+      { 'id' => id, 'cells' => cells, 'source' => 'hh-rlhf', 'tags' => {}, 'why' => 'w',
+        'input' => { 'player_a' => 'x', 'player_b' => 'y', 'criteria' => 'c' },
+        'gold' => { 'winner' => winner } }.merge(extra)
+    end
+    Store.write_jsonl(GenieEval.path('labeling', 'drafts', 'comparator.jsonl'), [
+                        draft.call('clear', 'a', 'on_disagreement' => 'drop'),
+                        draft.call('noisy', 'b', 'on_disagreement' => 'drop'),
+                        draft.call('mine', 'a')
+                      ])
+    %w[a b].each do |pass|
+      Store.write_jsonl(GenieEval.path('labeling', 'comparator', "pass_#{pass}.jsonl"), [
+                          { 'id' => 'clear', 'values' => { 'winner' => 'a' } },
+                          { 'id' => 'noisy', 'values' => { 'winner' => pass == 'a' ? 'b' : 'either' } },
+                          { 'id' => 'mine', 'values' => { 'winner' => 'b' } }
+                        ])
+    end
+
+    result = GenieEval::Labeling.merge('comparator')
+
+    assert_equal [1, 1, 1], result.values_at(:promoted, :queued, :dropped)
+    assert_equal(%w[mine], result[:queue].map { |q| q['id'] }, 'drafts without the flag still go to a human')
+    cells.each do |cell|
+      assert_equal(%w[clear], Store.cases(cell).map { |c| c['id'] })
+      assert_equal cell, Store.cases(cell).first['cell']
+      assert_equal({ 'winner' => 'a' }, Store.gold(cell)['clear']['gold'])
+    end
+  end
 end
