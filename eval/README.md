@@ -119,3 +119,21 @@ test with a paired run, not a decided change.
   the wording to try.
 - **`webmock` pulls in `addressable` (Apache-2.0).** It is a test-only dependency of the library's
   unit tests. Replacing it means our own minimal HTTP stub in `test/`; decide separately.
+
+## Data for the next phases (license check, 2026-11-17)
+
+The datasets first planned for the comparator, scorer and lister cells were chosen before the
+MIT-only rule. Checked on Hugging Face and GitHub:
+
+| Planned or candidate source | License | Usable? |
+|---|---|---|
+| `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: comparator candidate (use the helpful splits; labels are noisy, so keep only clear pairs) |
+| `openbmb/UltraFeedback` and its binarized forks | MIT | No: GPT-4 labels, not human taste |
+| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k, ProtoQA | CC BY 4.0 | No |
+| Arena human preference 55k | Apache-2.0 | No |
+| SWOW, Anthropic global opinions / persuasion | NC licenses | No |
+| SHP (Reddit), OpenAI summarize-from-feedback / WebGPT comparisons | no license stated | No |
+
+No MIT-licensed source exists for the scorer (multi-rater ratings) or the lister (how many people
+give each answer), so those cells need drafted cases. The lister's goal, emulating what a crowd
+would say, is the hardest to draft: a small survey we run ourselves may be worth considering.
