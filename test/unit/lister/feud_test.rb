@@ -28,6 +28,7 @@ module ActiveGenie
           messages = request_body['messages']
 
           assert_includes request_body['system'], 'Emulate the game "Family Feud"'
+          assert_includes request_body['system'], 'List 5 top items.'
           assert_includes messages, { 'role' => 'user', 'content' => "theme: #{theme}" }
 
           tool = request_body['tools'].first

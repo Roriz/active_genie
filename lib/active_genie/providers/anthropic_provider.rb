@@ -41,8 +41,10 @@ module ActiveGenie
 
       private
 
+      # Anthropic takes a single top-level system prompt, so every system message
+      # is joined in order rather than keeping only the first.
       def split_messages(messages)
-        system_message = messages.find { |m| m[:role] == 'system' }&.dig(:content) || ''
+        system_message = messages.select { |m| m[:role] == 'system' }.map { |m| m[:content] }.join("\n\n")
         user_messages = messages.select { |m| %w[user assistant].include?(m[:role]) }
                                 .map { |m| m.slice(:role, :content) }
 
