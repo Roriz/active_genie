@@ -23,7 +23,7 @@ module ActiveGenie
         end
 
         def default_model
-          @default_model || 'deepseek-chat'
+          @default_model || 'deepseek-flash'
         end
 
         def valid_model?(model)

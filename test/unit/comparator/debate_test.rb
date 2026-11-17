@@ -195,7 +195,7 @@ module ActiveGenie
         debate_instance = Debate.new(@player_a, @player_b, @criteria)
         config = debate_instance.send(:module_config)
 
-        assert_equal({ llm: { recommended_model: 'claude-haiku-4-5' } }, config)
+        assert_equal({ llm: { recommended_model: 'claude-haiku-5-5' } }, config)
       end
 
       def test_comparator_module_delegation_methods

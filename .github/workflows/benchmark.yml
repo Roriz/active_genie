@@ -22,13 +22,13 @@ jobs:
           - provider: openai
             name: gpt-5-nano
           - provider: google
-            name: gemini-2.5-flash
+            name: gemini-3.8-flash
           - provider: google
-            name: gemini-2.5-flash-lite
+            name: gemini-3.5-flash-lite
           - provider: anthropic
-            name: claude-4-5-haiku
+            name: claude-haiku-5-5
           - provider: deepseek
-            name: deepseek-chat
+            name: deepseek-flash
         module: [extractor, scorer, comparator, ranker, lister]
     env:
       MODEL: ${{ matrix.model.name }}

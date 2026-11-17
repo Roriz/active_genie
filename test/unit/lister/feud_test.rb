@@ -231,7 +231,7 @@ module ActiveGenie
         feud_instance = Feud.new('Theme')
         config = feud_instance.send(:module_config)
 
-        assert_equal({ llm: { recommended_model: 'claude-haiku-4-5' } }, config)
+        assert_equal({ llm: { recommended_model: 'claude-haiku-5-5' } }, config)
       end
 
       def test_lister_module_delegation_methods

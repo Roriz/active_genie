@@ -126,7 +126,7 @@ module ActiveGenie
         juries_instance = Juries.new('text', 'criteria')
         config = juries_instance.send(:module_config)
 
-        assert_equal({ llm: { recommended_model: 'deepseek-chat' } }, config)
+        assert_equal({ llm: { recommended_model: 'deepseek-flash' } }, config)
       end
 
       def test_lister_with_juries_delegation

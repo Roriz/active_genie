@@ -104,7 +104,7 @@ Treat `metadata` as debugging output. Its keys track the prompt and can change b
 
 ## Configuration
 
-`Comparator` has no module-specific settings. It is tuned against `claude-haiku-4-5` and falls back to it when no model is configured and Anthropic has credentials.
+`Comparator` has no module-specific settings. It falls back to `claude-haiku-5-5` when no model is configured and Anthropic has credentials.
 
 ```ruby
 ActiveGenie::Comparator.call(player_a, player_b, criteria,

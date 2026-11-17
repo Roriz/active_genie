@@ -109,7 +109,7 @@ module ActiveGenie
       end
 
       def module_config
-        { llm: { recommended_model: 'deepseek-chat' } }
+        { llm: { recommended_model: 'deepseek-flash' } }
       end
     end
   end

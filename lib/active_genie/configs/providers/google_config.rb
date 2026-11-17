@@ -25,7 +25,7 @@ module ActiveGenie
         end
 
         def default_model
-          @default_model || 'gemini-3.5-flash-lite'
+          @default_model || 'gemini-3.8-flash'
         end
 
         def valid_model?(model)
