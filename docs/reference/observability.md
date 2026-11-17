@@ -22,8 +22,8 @@ ActiveGenie writes each entry to `config.log.file_path`, passes it to `config.lo
 | `:free_for_all` | `Ranker` runs a free-for-all match. |
 | `:free_for_all_report` | `Ranker` finishes the free-for-all stage. |
 | `:ranker_final` | `Ranker` produces its final ordering. |
-| `:output_error` | `config.log.output` raised while handling an entry. |
-| `:observer_error` | An observer raised while handling an entry. |
+| `:output_error` | `config.log.output` raised while handling an entry. Carries `error` (the message) and `failed_code` (the code of the entry being handled). |
+| `:observer_error` | An observer raised while handling an entry. Carries `error` and `failed_code`. |
 
 ### Observers
 
@@ -45,7 +45,7 @@ ActiveGenie.configure do |config|
 end
 ```
 
-If an observer raises, ActiveGenie catches the error, logs it as `:observer_error`, and lets the call continue.
+If an observer raises, ActiveGenie catches the error, logs it as `:observer_error`, and lets the call continue. The other observers still run. A failure while delivering an `:observer_error` or `:output_error` entry is dropped, so an observer that always raises can't loop.
 
 Use `remove_observer(observers)` to drop specific ones, or `clear_observers` to drop all.
 
