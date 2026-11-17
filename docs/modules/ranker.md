@@ -51,7 +51,7 @@ Runs the full tournament. Alias for `.by_tournament`.
 | :--- | :--- | :--- |
 | `players` | Array&lt;String, Hash&gt; | The items to rank. |
 | `criteria` | String | What to rank against. |
-| `juries` | Array&lt;String&gt; | Optional. Expert roles for the scoring stage. Generated per item when empty. |
+| `juries` | Array&lt;String&gt; | Optional. Expert roles for the scoring stage. When empty, one jury is generated and shared by every item. |
 | `config` | Hash | Per-call configuration overrides. See [Configuration](/reference/config). |
 
 > [!NOTE]
@@ -140,7 +140,7 @@ Almost all of the cost comes from the number of debates, so estimate it before p
 
 | Stage | LLM calls |
 | :--- | :--- |
-| Scoring | 1 per item with `juries:` supplied, 2 per item without |
+| Scoring | 1 per unscored item, plus 1 to choose a shared jury when `juries:` isn't supplied |
 | ELO rounds | 3 debates per lower-tier item, per round, only while more than 15 items remain |
 | Free-for-all | `n × (n - 1) / 2` debates across surviving items |
 
@@ -154,11 +154,11 @@ The free-for-all stage is quadratic, and it dominates everything else:
 | 30 | 435 |
 | 50 | 1,225 |
 
-A 4-item ranking without supplied juries costs roughly 14 calls. A 30-item ranking can exceed 500, and every one of those is a billed request.
+A 4-item ranking without supplied juries costs roughly 11 calls. A 30-item ranking can exceed 500, and every one of those is a billed request.
 
 To keep it manageable:
 
-- Supply `juries:`. That halves the scoring stage and makes scores comparable across items.
+- Supply `juries:`. That saves the jury-selection call and keeps the jury identical from run to run.
 - Lower `score_variation_threshold` so more items are eliminated before the quadratic stage.
 - Use `.by_scoring` for large lists. Its cost is linear, and it is adequate when you only need a rough ordering or a shortlist.
 - Run two passes on large inputs: shortlist with `.by_scoring`, then run `.call` on the top handful.

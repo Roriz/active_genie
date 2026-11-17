@@ -17,8 +17,12 @@ module ActiveGenie
       end
 
       def call
-        ActiveGenie::FiberByBatch.call(players_without_score, config:) do |player|
-          player.score = generate_score(player)
+        unless players_without_score.empty?
+          # Resolved once, before scoring fans out concurrently.
+          juries = shared_juries
+          ActiveGenie::FiberByBatch.call(players_without_score, config:) do |player|
+            player.score = generate_score(player, juries)
+          end
         end
 
         ActiveGenie::Result.new(
@@ -34,11 +38,11 @@ module ActiveGenie
         @players_without_score ||= @players.select { |player| player.score.nil? }
       end
 
-      def generate_score(player)
+      def generate_score(player, juries)
         result = ActiveGenie::Scorer.by_jury_bench(
           player.content,
           @criteria,
-          @juries,
+          juries,
           config:
         )
         score = result.data.to_i
@@ -49,16 +53,16 @@ module ActiveGenie
         score
       end
 
-      def juries
-        @juries ||= begin
-          response = ActiveGenie::Lister.juries(
-            [@players.sample.content, @players.sample.content].join("\n\n"),
-            @criteria,
-            config:
-          )
-          ActiveGenie.logger.call({ code: :new_juries, juries: response }, config:)
-          response
-        end
+      # Scores are only comparable if every player faces the same jury. When none
+      # are given, list them once from the first players to be scored, rather
+      # than letting the Scorer pick a different jury for each player.
+      def shared_juries
+        return @juries if @juries.any?
+
+        sample = players_without_score.first(2).join("\n\n")
+        juries = ActiveGenie::Lister::Juries.call(sample, @criteria, config:).data
+        ActiveGenie.logger.call({ code: :new_juries, juries: }, config:)
+        juries
       end
 
       def ranker_scoring_id
