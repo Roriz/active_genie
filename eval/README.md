@@ -51,39 +51,11 @@ subset, `YES=1` to spend money, `BY=name` for `eval:save`, `FORCE=1` to save fro
 
 ## Models
 
-`config.json` pins the models. Moving to a newer model is a deliberate change: update `config.json`
-and save a new baseline.
-
-| Role | Provider | Model | Runs on |
-|---|---|---|---|
-| Dev loop | `codex` | `gpt-6.1-terra` | your local Codex login (`codex exec`) |
-| Judge | `claude-code` | `claude-sonnet-5-5` | your local Claude login, `eval-judge` subagent |
-| Release | `codex`, `claude-code`, `google`, `deepseek` | see `config.json` | local logins for the first two, APIs for the rest |
-
-### Local CLIs instead of the OpenAI and Anthropic APIs
-
-OpenAI and Claude models run through local CLIs logged in with your own subscriptions, not the
-provider APIs. `eval/lib/genie_eval/transports.rb` swaps only the transport behind ActiveGenie's
-`UnifiedProvider.function_calling`. The library still builds its own prompts and function schemas,
-so the eval still tests your working tree.
-
-- **`codex`** runs `codex exec --output-schema` in a read-only sandbox in an empty directory.
-- **`claude-code`** runs `claude -p` with a subagent from [`.claude/agents/`](../.claude/agents/):
-  `eval-model` answers ActiveGenie's function call; `eval-judge` grades free text (cached under
-  `eval/runs/_judge/`). Tools that act are disallowed.
-- `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are removed from the CLI's environment, so a CLI can
-  never fall back to API billing. Log in once with `codex login` and `claude /login`.
-- The CLIs expose no logprobs, so modules take their non-logprob path (the debate judge's own
-  winner field, the jury's own final score). Codex also adds its agent instructions to every call
-  (about 17k input tokens), so token counts are not comparable with API runs.
-- Results are kept apart by system name (`codex-…`, `claude-code-…`): a CLI baseline is never
-  compared with an API run of the same model.
-
-`PROVIDER=openai` or `PROVIDER=anthropic` still use the APIs if you need them. Add a model's price
-under `usd_per_million_tokens` to get dollar estimates for API runs.
-
-The `Eval` GitHub workflow (triggered manually) runs only the API-billed release models, because CI
-has no CLI logins.
+`config.json` pins the models. The dev model (`gpt-6.1-terra`) runs in the loop; the four release
+models run before a release (the `Eval` GitHub workflow, triggered manually). The judge
+(`claude-sonnet-5-5`) is reserved for free-text grading in later phases. Moving to a newer model is a
+deliberate change: update `config.json` and save a new baseline. Add a model's price under
+`usd_per_million_tokens` to get dollar estimates instead of token counts.
 
 ## Cells, pools and roles
 

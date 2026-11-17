@@ -1,38 +1,16 @@
 {
-  "dev": {
-    "provider": "codex",
-    "model": "gpt-6.1-terra"
-  },
-  "judge": {
-    "provider": "claude-code",
-    "model": "claude-sonnet-5-5"
-  },
+  "dev": { "provider": "openai", "model": "gpt-6.1-terra" },
+  "judge": { "provider": "anthropic", "model": "claude-sonnet-5-5" },
   "release": [
-    {
-      "provider": "codex",
-      "model": "gpt-6.1-terra"
-    },
-    {
-      "provider": "claude-code",
-      "model": "claude-haiku-4-5"
-    },
-    {
-      "provider": "google",
-      "model": "gemini-3.5-flash-lite"
-    },
-    {
-      "provider": "deepseek",
-      "model": "deepseek-v4-flash"
-    }
+    { "provider": "openai", "model": "gpt-6.1-terra" },
+    { "provider": "anthropic", "model": "claude-haiku-4-5" },
+    { "provider": "google", "model": "gemini-3.5-flash-lite" },
+    { "provider": "deepseek", "model": "deepseek-v4-flash" }
   ],
-  "usd_per_million_tokens": {},
-  "default_tokens_per_case": {
-    "input": 3000,
-    "output": 1000
+  "usd_per_million_tokens": {
+    "gpt-6.1-terra": { "input": 1.0, "output": 5.0 }
   },
-  "quick": {
-    "hard_per_cell": 3,
-    "canary_per_cell": 2
-  },
+  "default_tokens_per_case": { "input": 3000, "output": 1000 },
+  "quick": { "hard_per_cell": 3, "canary_per_cell": 2 },
   "concurrency": 4
 }

@@ -17,7 +17,9 @@ on:
         default: '1'
 
 env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
 jobs:
@@ -37,10 +39,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The API-billed release models from eval/config.json. The codex (gpt-6.1-terra) and
-        # claude-code (claude-haiku-4-5) release models run on local CLI logins, so they run on a
-        # developer machine: PROVIDER=codex MODEL=gpt-6.1-terra YES=1 bundle exec rake eval:full
+        # Keep in sync with "release" in eval/config.json.
         model:
+          - { provider: openai, name: gpt-6.1-terra }
+          - { provider: anthropic, name: claude-haiku-4-5 }
           - { provider: google, name: gemini-3.5-flash-lite }
           - { provider: deepseek, name: deepseek-v4-flash }
     env:
