@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'bundler' # the tests call Bundler.with_unbundled_env; plain `rake` doesn't load it
 require 'debug'
 require 'minitest/autorun'
 
