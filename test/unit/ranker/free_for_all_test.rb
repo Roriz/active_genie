@@ -163,6 +163,46 @@ module ActiveGenie
         assert_equal 2, result.data.size
       end
 
+      # Critical Path: Winner attribution
+      # The judge stub decides by content, so these hold whatever order matches are paired in.
+      def test_credits_the_judged_winner_when_players_are_hashes
+        stub_judge { |a, b| winner_by_content(a, b) }
+        players = ActiveGenie::Ranker::Entities::Players.new(
+          [{ id: 'weak', content: { name: 'Weak' } }, { id: 'strong', content: { name: 'Strong' } }]
+        )
+
+        result = FreeForAll.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+
+        assert_equal [{ name: 'Strong' }, { name: 'Weak' }], result.data
+        assert_equal [1, 0, 0], ffa_counts(players, 'strong')
+        assert_equal [0, 1, 0], ffa_counts(players, 'weak')
+      end
+
+      def test_credits_the_judged_winner_when_players_are_strings
+        stub_judge { |a, b| winner_by_content(a, b) }
+        players = ActiveGenie::Ranker::Entities::Players.new(
+          [{ id: 'weak', content: 'Weak' }, { id: 'strong', content: 'Strong' }]
+        )
+
+        result = FreeForAll.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+
+        assert_equal %w[Strong Weak], result.data
+        assert_equal [1, 0, 0], ffa_counts(players, 'strong')
+        assert_equal [0, 1, 0], ffa_counts(players, 'weak')
+      end
+
+      def test_records_a_draw_when_the_judge_picks_no_winner
+        stub_judge { nil }
+        players = ActiveGenie::Ranker::Entities::Players.new(
+          [{ id: 'player_a', content: 'Player A content' }, { id: 'player_b', content: 'Player B content' }]
+        )
+
+        FreeForAll.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+
+        assert_equal [0, 0, 1], ffa_counts(players, 'player_a')
+        assert_equal [0, 0, 1], ffa_counts(players, 'player_b')
+      end
+
       def test_accepts_players_instance
         players = ActiveGenie::Ranker::Entities::Players.new(
           [
@@ -175,6 +215,29 @@ module ActiveGenie
 
         assert_instance_of ActiveGenie::Result, result
         assert_equal 2, result.data.size
+      end
+
+      private
+
+      # Stubs the comparator's LLM call. The block receives the player_a and
+      # player_b message contents and returns 'player_a', 'player_b' or nil.
+      def stub_judge
+        stub_request(:post, %r{api\.openai\.com/v1/chat/completions}).to_return do |req|
+          messages = JSON.parse(req.body)['messages']
+          winner = yield(messages[1]['content'], messages[2]['content'])
+          arguments = { impartial_judge_winner: winner, impartial_judge_winner_reasoning: 'stubbed' }.to_json
+          { body: { choices: [{ message: { tool_calls: [{ function: { arguments: } }] } }],
+                    usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } }.to_json }
+        end
+      end
+
+      def winner_by_content(player_a_message, _player_b_message)
+        player_a_message.include?('Strong') ? 'player_a' : 'player_b'
+      end
+
+      def ffa_counts(players, id)
+        player = players.find { |p| p.id == id }
+        [player.ffa_win_count, player.ffa_lose_count, player.ffa_draw_count]
       end
     end
   end

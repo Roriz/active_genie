@@ -19,7 +19,7 @@ module ActiveGenie
         ActiveGenie::FiberByBatch.call(matches, config:) do |player_a, player_b|
           winner, loser = debate(player_a, player_b)
 
-          update_players_score(winner, loser)
+          update_players_score(player_a, player_b, winner, loser)
         end
 
         build_result
@@ -46,10 +46,7 @@ module ActiveGenie
           config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner, loser = case result.data
-                        when player_a.to_s then [player_a, player_b]
-                        else [player_b, player_a]
-                        end
+        winner, loser = winner_and_loser(result.data, player_a, player_b)
 
         ActiveGenie.logger.call(
           {
@@ -65,15 +62,22 @@ module ActiveGenie
         [winner, loser]
       end
 
-      def update_players_score(winner, loser)
-        return if winner.nil? || loser.nil?
+      # Comparator returns the winning content itself, which may be a String or
+      # a Hash. Anything else, including nil when the judge picked no one, is a draw.
+      def winner_and_loser(winning_content, player_a, player_b)
+        if winning_content == player_a.content then [player_a, player_b]
+        elsif winning_content == player_b.content then [player_b, player_a]
+        else [nil, nil]
+        end
+      end
 
-        if winner.nil? || loser.nil?
-          player_a.draw!
-          player_b.draw!
-        else
+      def update_players_score(player_a, player_b, winner, loser)
+        if winner
           winner.win!
           loser.lose!
+        else
+          player_a.draw!
+          player_b.draw!
         end
       end
 
