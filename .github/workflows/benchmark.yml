@@ -1,7 +1,20 @@
-name: Benchmark
+name: Eval
 
+# Manual only: every run calls paid provider APIs. Runs the golden-set eval in eval/ against
+# each release model and uploads the cached outputs and reports. See eval/README.md.
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'quick (dev pool) or full (every case)'
+        required: true
+        default: quick
+        type: choice
+        options: [quick, full]
+      repeat:
+        description: 'Replicates per model for full runs (3 measures the noise floor)'
+        required: true
+        default: '1'
 
 env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -10,95 +23,52 @@ env:
   DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
 jobs:
-  benchmark:
+  check:
     runs-on: ubuntu-latest
-    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+      - run: bundle exec rake eval:check
+
+  eval:
+    needs: check
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        # Keep in sync with "release" in eval/config.json.
         model:
-          - provider: openai
-            name: gpt-5-mini
-          - provider: openai
-            name: gpt-5-nano
-          - provider: google
-            name: gemini-3.8-flash
-          - provider: google
-            name: gemini-3.5-flash-lite
-          - provider: anthropic
-            name: claude-haiku-5-5
-          - provider: deepseek
-            name: deepseek-flash
-        module: [extractor, scorer, comparator, ranker, lister]
+          - { provider: openai, name: gpt-6.1-terra }
+          - { provider: anthropic, name: claude-haiku-4-5 }
+          - { provider: google, name: gemini-3.5-flash-lite }
+          - { provider: deepseek, name: deepseek-v4-flash }
     env:
+      PROVIDER: ${{ matrix.model.provider }}
       MODEL: ${{ matrix.model.name }}
-      PROVIDER_NAME: ${{ matrix.model.provider }}
-      MODULE: ${{ matrix.module }}
-
+      YES: '1'
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
 
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.4'
-        bundler-cache: true
+      - name: Run ${{ inputs.mode }}
+        run: |
+          if [ "${{ inputs.mode }}" = "full" ]; then
+            REPEAT=${{ inputs.repeat }} bundle exec rake eval:full | tee report.txt
+          else
+            bundle exec rake eval:quick | tee report.txt
+          fi
+          cat report.txt >> "$GITHUB_STEP_SUMMARY"
 
-    - name: Run ${{ matrix.module }}
-      env:
-        MODEL: ${{ matrix.model.name }}
-        PROVIDER_NAME: ${{ matrix.model.provider }}
-        MODULE: ${{ matrix.module }}
-      run: bin/benchmark_and_report
-
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      with:
-        name: latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}-benchmark
-        path: benchmark/latest-${{ matrix.module }}-${{ matrix.model.provider }}-${{ matrix.model.name }}.csv
-        retention-days: 1
-        overwrite: true
-        if-no-files-found: ignore
-
-  build_report:
-    runs-on: ubuntu-latest
-    needs: [benchmark]
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: benchmark/artifacts
-
-    - name: Build consolidated report
-      run: |
-        mkdir -p benchmark/reports
-
-        # Create header for the consolidated CSV report
-        echo "Module,Provider,Model,Tests,Precision,Duration,Requests,Tokens,Avg_Duration" > benchmark/benchmark.csv
-
-        # Create header for the markdown report
-        echo "# Benchmark Results" > benchmark/benchmark.md
-        echo "" >> benchmark/benchmark.md
-        echo "| Module | Provider | Model | Tests | Precision | Duration (s) | Requests | Tokens | Avg. Duration (s) |" >> benchmark/benchmark.md
-        echo "|--------|----------|-------|-------|-----------|--------------|----------|--------|-------------------|" >> benchmark/benchmark.md
-
-        # Process all CSV files and build the consolidated reports
-        find benchmark/artifacts -name "*.csv" -type f | while read -r file; do
-          tail "$file" >> benchmark/benchmark.csv
-
-          line=$(cat "$file")
-          IFS=',' read -r module provider model tests precision duration requests tokens avg_duration <<< "$line"
-          echo "| $module | $provider | $model | $tests | $precision | $duration | $requests | $tokens | $avg_duration |" >> benchmark/benchmark.md
-        done
-
-        cat benchmark/benchmark.md
-        echo "$(cat benchmark/benchmark.md)" >> $GITHUB_STEP_SUMMARY
-
-    - name: Upload consolidated report
-      uses: actions/upload-artifact@v4
-      with:
-        name: benchmark
-        path: benchmark/benchmark.*
-        retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-${{ inputs.mode }}-${{ matrix.model.provider }}-${{ matrix.model.name }}
+          path: eval/runs/
+          retention-days: 14
+          if-no-files-found: ignore

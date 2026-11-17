@@ -1,0 +1,10 @@
+{"id":"best_ev_debate","gold":{"winner":"a"},"why":"The Civic is not an EV, so the Tesla is the clear winner for the best EV category.","labeled_by":"e2e-migration"}
+{"id":"ecommerce_infrastructure_debate","gold":{"winner":"either"},"why":"Both have valid arguments for handling traffic (K8s scaling vs serverless auto-scale), so either choice is acceptable.","labeled_by":"e2e-migration"}
+{"id":"engagement_ring_debate","gold":{"winner":"a"},"why":"The diamond ring is obviously the appropriate choice for an engagement ring.","labeled_by":"e2e-migration"}
+{"id":"financial_db_debate","gold":{"winner":"a"},"why":"PostgreSQL is the obvious choice for structured financial data with strict ACID requirements.","labeled_by":"e2e-migration"}
+{"id":"heart_consult_debate","gold":{"winner":"b"},"why":"The cardiologist specialist is the obvious choice for heart surgery over a general practitioner, despite fewer years.","labeled_by":"e2e-migration"}
+{"id":"hr_backend_role_debate","gold":{"winner":"a"},"why":"The senior Python dev is the obvious winner on experience and relevant skills.","labeled_by":"e2e-migration"}
+{"id":"hr_candidate_debate","gold":{"winner":"a"},"why":"Jordan Lee (9 yrs, Terraform/K8s/AWS, 500+ node clusters) is the obvious winner for the Lead DevOps & Reliability Engineer role.","labeled_by":"e2e-migration"}
+{"id":"ml_startup_cloud_debate","gold":{"winner":"either"},"why":"Ambiguous: either cloud provider can be justified for an ML startup.","labeled_by":"e2e-migration"}
+{"id":"prototype_framework_debate","gold":{"winner":"b"},"why":"Svelte's speed of development and simplicity make it better for a 2-week MVP.","labeled_by":"e2e-migration"}
+{"id":"subtle_menu_debate","gold":{"winner":"either"},"why":"A subtle difference with no clear objective winner, so either menu is acceptable.","labeled_by":"e2e-migration"}

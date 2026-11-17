@@ -1,0 +1,10 @@
+{"id":"business_ceo_worries_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"business","difficulty":"easy"},"input":{"theme":"Things a CEO worries about at 3am"}}
+{"id":"career_quitting_reasons_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"career","difficulty":"easy"},"input":{"theme":"Reasons people quit their jobs"}}
+{"id":"food_pizza_toppings_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"food","difficulty":"easy"},"input":{"theme":"Most popular pizza toppings"}}
+{"id":"lifestyle_morning_routine_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"lifestyle","difficulty":"easy"},"input":{"theme":"Things people do first thing in the morning"}}
+{"id":"lifestyle_new_years_resolutions_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"lifestyle","difficulty":"easy"},"input":{"theme":"Most common New Year's resolutions"}}
+{"id":"marketplace_search_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"marketplace","difficulty":"easy"},"input":{"theme":"Most common search filters used by online shoppers when purchasing electronics on an e-commerce marketplace"}}
+{"id":"tech_friday_deploys_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"tech","difficulty":"easy"},"input":{"theme":"Reasons a software deploy fails on Friday"}}
+{"id":"tech_programming_languages_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"tech","difficulty":"easy"},"input":{"theme":"Top programming languages in 2024"}}
+{"id":"tech_social_media_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"tech","difficulty":"easy"},"input":{"theme":"Most popular social media platforms"}}
+{"id":"transportation_traffic_jams_feud","cell":"lister.with_feud","source":"e2e-migration","tags":{"domain":"transportation","difficulty":"easy"},"input":{"theme":"Things that cause traffic jams"}}
