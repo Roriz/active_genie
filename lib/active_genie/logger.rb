@@ -5,6 +5,8 @@ require 'fileutils'
 
 module ActiveGenie
   class Logger
+    SINK_ERROR_CODES = %i[output_error observer_error].freeze
+
     def call(data, config:)
       log = data.merge(config.log.additional_context || {})
                 .merge(
@@ -27,7 +29,7 @@ module ActiveGenie
 
         observer[:observer]&.call(log)
       rescue StandardError => e
-        call(code: :observer_error, **observer, error: e.message)
+        report_sink_error(:observer_error, e, log, config:)
       end
     end
 
@@ -38,7 +40,16 @@ module ActiveGenie
         $stdout.puts log
       end
     rescue StandardError => e
-      call(code: :output_error, error: e.message)
+      report_sink_error(:output_error, e, log, config:)
+    end
+
+    # A failing output or observer must never break the caller's LLM call. The
+    # failure is logged as its own entry, but a failure while delivering that
+    # entry is dropped, so a sink that always raises cannot recurse.
+    def report_sink_error(code, error, failed_log, config:)
+      return if SINK_ERROR_CODES.include?(failed_log[:code])
+
+      call({ code:, error: error.message, failed_code: failed_log[:code] }, config:)
     end
 
     def persist!(log, config:)
