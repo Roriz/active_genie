@@ -120,8 +120,8 @@ These are defaults, not restrictions. Any model from any configured provider wor
 | :--- | :--- | :--- | :--- |
 | `model` | String | `nil` | Model to use. When `nil`, resolution falls through the chain below. |
 | `recommended_model` | String | set per module | The model a module was tuned against. Rarely set by hand. |
-| `temperature` | Numeric | `0` | Sampling randomness. ActiveGenie defaults to `0` for reproducibility. |
-| `max_tokens` | Integer | `4096` | Maximum tokens in the response. |
+| `temperature` | Numeric | `0` | Sampling randomness. ActiveGenie defaults to `0` for reproducibility. Not sent to Anthropic: current Claude models reject any value other than the default. |
+| `max_tokens` | Integer | `16000` | Maximum tokens in the response (used by Anthropic). |
 | `max_fibers` | Integer | `10` | Maximum concurrent in-flight requests. See [Concurrency](#concurrency). |
 | `max_retries` | Integer | `nil` | Retry attempts for a failed request. |
 | `retry_delay` | Numeric | `nil` | Seconds between retries. |
