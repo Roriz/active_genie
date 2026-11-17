@@ -36,7 +36,7 @@ module ActiveGenie
         ]
 
         function = JSON.parse(File.read(File.join(__dir__, 'data.json')), symbolize_names: true)
-        function[:parameters][:properties] = @data_to_extract
+        function[:parameters][:properties] = @data_to_extract.transform_values { |field| nullable(field) }
         function[:parameters][:required] = @data_to_extract.keys
 
         provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
@@ -49,6 +49,20 @@ module ActiveGenie
       end
 
       private
+
+      # Every field is required, so each one also accepts null: that is how the model says the text
+      # does not state it. Without it, strict schemas (OpenAI) force a value and the model invents one.
+      # Booleans stay as given: "whether X" is false when the text has no X, and a null there would
+      # turn a clear "no" into "unknown". Fields without a `type` (e.g. `anyOf`) are left as given.
+      def nullable(field)
+        type_key = field.key?('type') ? 'type' : :type
+        return field if field[type_key].nil? || field[type_key].to_s == 'boolean'
+
+        enum_key = field.key?('enum') ? 'enum' : :enum
+        nullable = field.merge(type_key => Array(field[type_key]) | ['null'])
+        nullable[enum_key] = field[enum_key] | [nil] if field[enum_key]
+        nullable
+      end
 
       def response_formatted(provider_response)
         data = provider_response.compact
