@@ -23,24 +23,29 @@ module ActiveGenie
         system_message, user_messages = split_messages(messages)
         tool = function_to_tool(function)
 
+        # No temperature: Claude 4.7+ models (claude-haiku-5-5 included) reject
+        # any non-default sampling value with a 400. The forced tool call is what
+        # keeps the output structured.
         payload = {
           model:,
           system: system_message,
           messages: user_messages,
           tools: [tool],
           tool_choice: { name: tool[:name], type: 'tool' },
-          max_tokens: @config.llm.max_tokens,
-          temperature: @config.llm.temperature || 0
+          max_tokens: @config.llm.max_tokens
         }
 
         response = retry_with_backoff do
           request(payload)
         end
 
-        response.dig('content', 0, 'input')
+        tool_input(response)
       end
 
       ANTHROPIC_ENDPOINT = '/v1/messages'
+
+      class RefusalError < StandardError; end
+      class InvalidResponseError < StandardError; end
 
       private
 
@@ -70,7 +75,7 @@ module ActiveGenie
             code: :function_calling,
             fine_tune: true,
             payload:,
-            parsed_response: response.dig('content', 0, 'input')
+            parsed_response: tool_use_block(response)&.dig('input')
           },
           config: @config
         )
@@ -84,6 +89,27 @@ module ActiveGenie
 
       def model
         @config.llm.model
+      end
+
+      # Current models may put thinking blocks before the tool call, so find the
+      # tool_use block by type. A refusal or a cut-off answer has no usable input.
+      def tool_input(response)
+        stop_reason = response['stop_reason']
+        if stop_reason == 'refusal'
+          details = response['stop_details'] || {}
+          raise RefusalError, "Anthropic declined the request (category: #{details['category'].inspect}). " \
+                              "#{details['explanation']}".strip
+        end
+        if stop_reason == 'max_tokens'
+          raise InvalidResponseError, 'Answer cut off at max_tokens; raise config.llm.max_tokens.'
+        end
+
+        tool_use_block(response)&.dig('input') ||
+          raise(InvalidResponseError, "No tool_use block in response (stop_reason: #{stop_reason.inspect}).")
+      end
+
+      def tool_use_block(response)
+        Array(response['content']).find { |block| block['type'] == 'tool_use' }
       end
 
       def headers

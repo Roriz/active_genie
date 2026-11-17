@@ -158,7 +158,7 @@ module ActiveGenie
         data_instance = Data.new(@text, @schema)
         config = data_instance.send(:module_config)
 
-        assert_equal({ llm: { recommended_model: 'deepseek-chat' } }, config)
+        assert_equal({ llm: { recommended_model: 'deepseek-flash' } }, config)
       end
 
       def test_extractor_data_module_delegation

@@ -16,9 +16,9 @@ REQUIRED_ENV_KEYS = {
 
 DEFAULT_E2E_MODELS = {
   'openai' => 'gpt-5.6-luna',
-  'anthropic' => 'claude-haiku-4-5',
-  'google' => 'gemini-3.5-flash-lite',
-  'deepseek' => 'deepseek-v4-flash'
+  'anthropic' => 'claude-haiku-5-5',
+  'google' => 'gemini-3.8-flash',
+  'deepseek' => 'deepseek-flash'
 }.freeze
 
 keys = REQUIRED_ENV_KEYS[provider_name]

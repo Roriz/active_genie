@@ -20,7 +20,7 @@ end
 Every module method accepts a `config:` keyword. ActiveGenie deep-merges it over the global configuration for that call only, and the global settings stay untouched:
 
 ```ruby
-ActiveGenie::Extractor.call(text, schema, config: { llm: { model: 'deepseek-chat' } })
+ActiveGenie::Extractor.call(text, schema, config: { llm: { model: 'deepseek-flash' } })
 ```
 
 > [!WARNING]
@@ -28,12 +28,12 @@ ActiveGenie::Extractor.call(text, schema, config: { llm: { model: 'deepseek-chat
 >
 > ```ruby
 > # Ignored. Does nothing.
-> config: { model: 'deepseek-chat' }
+> config: { model: 'deepseek-flash' }
 > config: { provider_name: :deepseek }
 > config: { number_of_items: 10 }
 >
 > # Correct.
-> config: { llm: { model: 'deepseek-chat' } }
+> config: { llm: { model: 'deepseek-flash' } }
 > config: { providers: { default: 'deepseek' } }
 > config: { lister: { number_of_items: 10 } }
 > ```
@@ -47,9 +47,9 @@ ActiveGenie ships with four providers: OpenAI, Anthropic, DeepSeek, and Google. 
 | Provider | Key | Environment variable | Default model | Default API URL |
 | :--- | :--- | :--- | :--- | :--- |
 | OpenAI | `:openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | `https://api.openai.com/v1` |
-| Anthropic | `:anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-4-5` | `https://api.anthropic.com` |
-| DeepSeek | `:deepseek` | `DEEPSEEK_API_KEY` | `deepseek-chat` | `https://api.deepseek.com/v1` |
-| Google | `:google` | `GENERATIVE_LANGUAGE_GOOGLE_API_KEY`, falling back to `GEMINI_API_KEY` | `gemini-3.5-flash-lite` | `https://generativelanguage.googleapis.com` |
+| Anthropic | `:anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-5-5` | `https://api.anthropic.com` |
+| DeepSeek | `:deepseek` | `DEEPSEEK_API_KEY` | `deepseek-flash` | `https://api.deepseek.com/v1` |
+| Google | `:google` | `GENERATIVE_LANGUAGE_GOOGLE_API_KEY`, falling back to `GEMINI_API_KEY` | `gemini-3.8-flash` | `https://generativelanguage.googleapis.com` |
 
 ### Choosing a provider
 
@@ -65,7 +65,7 @@ You usually don't need to set it. ActiveGenie resolves the provider from the mod
 
 ```ruby
 # Resolves to DeepSeek automatically.
-ActiveGenie::Scorer.call(text, criteria, config: { llm: { model: 'deepseek-chat' } })
+ActiveGenie::Scorer.call(text, criteria, config: { llm: { model: 'deepseek-flash' } })
 ```
 
 ### Per-provider settings
@@ -87,8 +87,8 @@ Anthropic adds one more:
 ActiveGenie.configure do |config|
   config.providers.openai.api_key = ENV['OPENAI_API_KEY']
   config.providers.anthropic.api_key = ENV['ANTHROPIC_API_KEY']
-  config.providers.anthropic.anthropic_version = '2024-02-15'
-  config.providers.deepseek.default_model = 'deepseek-reasoner'
+  config.providers.anthropic.anthropic_version = '2023-06-01'
+  config.providers.deepseek.default_model = 'deepseek-v4-pro'
 end
 ```
 
@@ -101,18 +101,18 @@ end
 
 ## Recommended models
 
-Each module declares the model it was tuned against. ActiveGenie falls back to this when no model is configured and the module's preferred provider has credentials available.
+Each module declares a fallback model. ActiveGenie uses it when no model and no default provider are configured, and that model's provider has credentials available.
 
-| Module | Recommended model |
+| Module | Fallback model |
 | :--- | :--- |
-| `Extractor` (all strategies) | `claude-haiku-4-5` / `gpt-5.6-luna` |
-| `Scorer` | `gemini-3.5-flash-lite` / `gpt-5.6-luna` |
-| `Comparator` | `claude-haiku-4-5` / `gpt-5.6-luna` |
-| `Lister.with_feud` | `claude-haiku-4-5` |
-| `Lister.with_juries` | `deepseek-chat` |
+| `Extractor` (all strategies) | `deepseek-flash` |
+| `Scorer` | `deepseek-flash` |
+| `Comparator` | `claude-haiku-5-5` |
+| `Lister.with_feud` | `claude-haiku-5-5` |
+| `Lister.with_juries` | `deepseek-flash` |
 | `Ranker` | inherits from `Scorer` and `Comparator`, which it composes |
 
-These are defaults, not restrictions. Any model from any configured provider works. See the [benchmark](/benchmark/latest) for measured pass rates per provider.
+These are defaults, not restrictions. Any model from any configured provider works. The [benchmark](/benchmark/latest) has measured pass rates per model. It was last run against the previous generation (`claude-haiku-4-5`, `gemini-3.5-flash-lite`, `deepseek-v4-flash`, `gpt-5.6-luna`).
 
 ## LLM (`config.llm`)
 
@@ -120,8 +120,8 @@ These are defaults, not restrictions. Any model from any configured provider wor
 | :--- | :--- | :--- | :--- |
 | `model` | String | `nil` | Model to use. When `nil`, resolution falls through the chain below. |
 | `recommended_model` | String | set per module | The model a module was tuned against. Rarely set by hand. |
-| `temperature` | Numeric | `0` | Sampling randomness. ActiveGenie defaults to `0` for reproducibility. |
-| `max_tokens` | Integer | `4096` | Maximum tokens in the response. |
+| `temperature` | Numeric | `0` | Sampling randomness. ActiveGenie defaults to `0` for reproducibility. Not sent to Anthropic: current Claude models reject any value other than the default. |
+| `max_tokens` | Integer | `16000` | Maximum tokens in the response (used by Anthropic). |
 | `max_fibers` | Integer | `10` | Maximum concurrent in-flight requests. See [Concurrency](#concurrency). |
 | `max_retries` | Integer | `nil` | Retry attempts for a failed request. |
 | `retry_delay` | Numeric | `nil` | Seconds between retries. |
@@ -144,7 +144,7 @@ If none of these produce a credentialed provider, ActiveGenie raises `WithoutAva
 
 ```ruby
 ActiveGenie.configure do |config|
-  config.llm.model = 'deepseek-chat'
+  config.llm.model = 'deepseek-flash'
   config.llm.temperature = 0.1
   config.llm.max_tokens = 8000
   config.llm.max_retries = 3

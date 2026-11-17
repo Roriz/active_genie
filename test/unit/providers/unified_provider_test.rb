@@ -137,7 +137,7 @@ module ActiveGenie
 
         mock_provider_instance.verify
 
-        assert_equal 'gemini-3.5-flash-lite', received_config.llm.model
+        assert_equal 'gemini-3.8-flash', received_config.llm.model
       end
 
       def test_google_function_calling
@@ -172,7 +172,7 @@ module ActiveGenie
 
         mock_provider_instance.verify
 
-        assert_equal 'gemini-3.5-flash-lite', received_config.llm.model
+        assert_equal 'gemini-3.8-flash', received_config.llm.model
       end
 
       def test_choose_google_by_available_provider
@@ -192,7 +192,7 @@ module ActiveGenie
 
         mock_provider_instance.verify
 
-        assert_equal 'gemini-3.5-flash-lite', received_config.llm.model
+        assert_equal 'gemini-3.8-flash', received_config.llm.model
       end
 
       def test_deepseek_function_calling

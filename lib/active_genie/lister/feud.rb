@@ -49,7 +49,7 @@ module ActiveGenie
       end
 
       def module_config
-        { llm: { recommended_model: 'claude-haiku-4-5' } }
+        { llm: { recommended_model: 'claude-haiku-5-5' } }
       end
     end
   end

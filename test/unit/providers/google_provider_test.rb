@@ -21,7 +21,7 @@ module ActiveGenie
 
       def setup
         @config = Configuration.new({
-                                      llm: { model: 'gemini-2.5-flash' },
+                                      llm: { model: 'gemini-3.8-flash' },
                                       providers: { google: { api_key: 'test_key' } }
                                     })
         @provider = GoogleProvider.new(@config)

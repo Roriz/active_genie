@@ -19,7 +19,7 @@ module ActiveGenie
       end
 
       def max_tokens
-        @max_tokens ||= 4096
+        @max_tokens ||= 16_000
       end
     end
   end

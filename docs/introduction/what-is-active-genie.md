@@ -147,7 +147,7 @@ end
 
 # Override for one call. The provider is inferred from the model name.
 ActiveGenie::Lister.call("Topics for a tech blog",
-  config: { llm: { model: 'claude-haiku-4-5' } })
+  config: { llm: { model: 'claude-haiku-5-5' } })
 ```
 
 ActiveGenie handles provider-specific request formats, schema quirks, and response shapes internally, so your call site stays the same when you switch.

@@ -297,7 +297,7 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
         jb = JuryBench.new(@text_to_score, @criteria)
         config = jb.send(:module_config)
 
-        assert_equal({ llm: { recommended_model: 'deepseek-chat' } }, config)
+        assert_equal({ llm: { recommended_model: 'deepseek-flash' } }, config)
       end
 
       def test_scorer_module_delegation_methods

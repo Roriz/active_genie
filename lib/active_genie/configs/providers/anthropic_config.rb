@@ -35,7 +35,7 @@ module ActiveGenie
         end
 
         def default_model
-          @default_model || 'claude-haiku-4-5'
+          @default_model || 'claude-haiku-5-5'
         end
 
         def valid_model?(model)

@@ -224,7 +224,7 @@ The `config:` keyword overrides configuration for a single call. Its keys are ne
 
 ```ruby
 # Pick a model. The provider is inferred from the model name.
-ActiveGenie::Extractor.call(text, schema, config: { llm: { model: 'deepseek-chat' } })
+ActiveGenie::Extractor.call(text, schema, config: { llm: { model: 'deepseek-flash' } })
 
 # Or name the provider and take its default model.
 ActiveGenie::Scorer.call(text, criteria, config: { providers: { default: 'anthropic' } })
@@ -234,14 +234,14 @@ ActiveGenie::Scorer.call(text, criteria, config: { providers: { default: 'anthro
 > ActiveGenie silently ignores top-level keys. It raises no error, and the setting simply never applies.
 >
 > ```ruby
-> config: { model: 'deepseek-chat' }          # ignored
-> config: { llm: { model: 'deepseek-chat' } } # correct
+> config: { model: 'deepseek-flash' }          # ignored
+> config: { llm: { model: 'deepseek-flash' } } # correct
 > ```
 
 The same call works against any provider:
 
 ```ruby
-%w[gpt-4o-mini claude-haiku-4-5 deepseek-chat gemini-3.5-flash-lite].each do |model|
+%w[gpt-4o-mini claude-haiku-5-5 deepseek-flash gemini-3.8-flash].each do |model|
   ActiveGenie::Comparator.call(player_a, player_b, criteria, config: { llm: { model: model } })
 end
 ```
