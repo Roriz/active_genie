@@ -26,9 +26,9 @@ module ActiveGenie
         config.log.additional_context = { elo_id: }
 
         ActiveGenie::FiberByBatch.call(matches, config:) do |player_a, player_b|
-          winner, loser = debate(player_a, player_b)
+          score = debate(player_a, player_b)
 
-          update_players_elo(winner, loser)
+          update_players_elo(player_a, player_b, score)
         end
 
         elo_result
@@ -70,16 +70,26 @@ module ActiveGenie
           config: ActiveGenie.new_configuration(debate_config)
         )
 
-        winner, loser = result.data == player_a.content ? [player_a, player_b] : [player_b, player_a]
-
-        [winner, loser]
+        player_a_score(result.data, player_a, player_b)
       end
 
-      def update_players_elo(winner, loser)
-        return if winner.nil? || loser.nil?
+      # Comparator returns the winning content itself. Anything that matches
+      # neither player, including nil when the judge picked no one, is a draw.
+      def player_a_score(winning_content, player_a, player_b)
+        if winning_content == player_a.content then 1.0
+        elsif winning_content == player_b.content then 0.0
+        else 0.5
+        end
+      end
 
-        winner.elo = calculate_new_elo(winner.elo, loser.elo, 1)
-        loser.elo = calculate_new_elo(loser.elo, winner.elo, 0)
+      # Both new ratings come from the pre-match ratings, so a match only moves
+      # points between the two players.
+      def update_players_elo(player_a, player_b, player_a_score)
+        rating_a = player_a.elo
+        rating_b = player_b.elo
+
+        player_a.elo = calculate_new_elo(rating_a, rating_b, player_a_score)
+        player_b.elo = calculate_new_elo(rating_b, rating_a, 1.0 - player_a_score)
       end
 
       # INFO: Read more about the Elo rating system on https://en.wikipedia.org/wiki/Elo_rating_system
