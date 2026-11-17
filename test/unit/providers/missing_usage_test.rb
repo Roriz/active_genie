@@ -24,6 +24,7 @@ module ActiveGenie
       end
 
       def teardown
+        super # webmock/minitest resets its request registry here
         FileUtils.remove_entry(@dir)
       end
 
