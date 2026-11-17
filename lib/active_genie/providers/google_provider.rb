@@ -4,11 +4,14 @@ require 'json'
 require 'net/http'
 require 'uri'
 require_relative 'base_provider'
+require_relative 'usage_logger'
 
 module ActiveGenie
   module Providers
     # Provider for interacting with the Google Generative Language API.
     class GoogleProvider < BaseProvider
+      USAGE_KEYS = { input: 'promptTokenCount', output: 'candidatesTokenCount', total: 'totalTokenCount' }.freeze
+
       # Requests structured JSON output from the Google Generative Language model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
@@ -97,17 +100,7 @@ module ActiveGenie
       def request(payload)
         response = post(url, payload, headers:)
 
-        ActiveGenie.logger.call(
-          {
-            code: :llm_usage,
-            input_tokens: response['usageMetadata']['promptTokenCount'] || 0,
-            output_tokens: response['usageMetadata']['candidatesTokenCount'] || 0,
-            total_tokens: response['usageMetadata']['totalTokenCount'] || (prompt_tokens + candidates_tokens),
-            model:,
-            usage: response['usageMetadata'] || {}
-          },
-          config: @config
-        )
+        UsageLogger.call(response['usageMetadata'], keys: USAGE_KEYS, model:, config: @config)
 
         response
       end

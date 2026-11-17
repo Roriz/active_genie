@@ -4,11 +4,14 @@ require 'json'
 require 'net/http'
 require 'uri'
 require_relative 'base_provider'
+require_relative 'usage_logger'
 
 module ActiveGenie
   module Providers
     # Provider for interacting with the Anthropic (Claude) API with json response
     class AnthropicProvider < BaseProvider
+      USAGE_KEYS = { input: 'input_tokens', output: 'output_tokens' }.freeze
+
       # Requests structured JSON output from the Anthropic Claude model based on a schema.
       #
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
@@ -61,19 +64,7 @@ module ActiveGenie
       def request(payload)
         response = post(url, payload, headers:)
 
-        ActiveGenie.logger.call(
-          {
-            code: :llm_usage,
-            input_tokens: response.dig('usage', 'input_tokens'),
-            output_tokens: response.dig('usage', 'output_tokens'),
-            total_tokens: response.dig('usage',
-                                       'input_tokens') + response.dig('usage',
-                                                                      'output_tokens'),
-            model: payload[:model],
-            usage: response['usage']
-          },
-          config: @config
-        )
+        UsageLogger.call(response['usage'], keys: USAGE_KEYS, model:, config: @config)
         ActiveGenie.logger.call(
           {
             code: :function_calling,
