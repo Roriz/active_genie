@@ -32,9 +32,8 @@ module ActiveGenie
         end
 
         payload = { contents:, generationConfig: generation_config }
-        params = { key: provider_config.api_key }
 
-        response = execute_function_calling_request(payload, params, generation_config, logprobs)
+        response = execute_function_calling_request(payload, generation_config, logprobs)
         return nil if response.nil?
 
         json_string = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
@@ -79,9 +78,9 @@ module ActiveGenie
 
       private
 
-      def execute_function_calling_request(payload, params, generation_config, logprobs_requested)
+      def execute_function_calling_request(payload, generation_config, logprobs_requested)
         retry_with_backoff do
-          request(payload, params)
+          request(payload)
         end
       rescue ActiveGenie::Providers::BaseProvider::ProviderUnknownError => e
         raise unless logprobs_requested && e.message.include?('Logprobs is not enabled')
@@ -89,12 +88,14 @@ module ActiveGenie
         generation_config.delete(:responseLogprobs)
         generation_config.delete(:logprobs)
         retry_with_backoff do
-          request(payload, params)
+          request(payload)
         end
       end
 
-      def request(payload, params)
-        response = post(url, payload, headers: DEFAULT_HEADERS, params:)
+      # The API key travels in a header, never the query string, so it cannot
+      # leak through logged URLs, proxies, or error messages.
+      def request(payload)
+        response = post(url, payload, headers:)
 
         ActiveGenie.logger.call(
           {
@@ -160,6 +161,10 @@ module ActiveGenie
 
       def url
         "#{provider_config.api_url}/#{API_VERSION_PATH}/#{model}:generateContent"
+      end
+
+      def headers
+        { 'x-goog-api-key': provider_config.api_key }.compact
       end
 
       def provider_config

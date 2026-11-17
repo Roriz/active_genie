@@ -148,14 +148,15 @@ module ActiveGenie
         end
       end
 
-      # Log request details if logging is enabled
+      # Log request details if logging is enabled.
+      # The query string is dropped because providers may carry credentials there.
       #
       # @param details [Hash] Request and response details
       def log_request_details(uri:, request:, response:, start_time:, parsed_response:)
         ActiveGenie.logger.call(
           {
             code: :http_request,
-            uri: uri.to_s,
+            uri: uri.dup.tap { |u| u.query = nil }.to_s,
             method: request.method,
             status: response.code,
             duration: Time.now - start_time,
