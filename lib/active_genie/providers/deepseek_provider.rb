@@ -75,18 +75,26 @@ module ActiveGenie
         parsed_response['message'] || parsed_response
       end
 
+      # Parses tool arguments, repairing unquoted string values once. A second
+      # `rescue` clause would never see errors raised inside the first one, so
+      # the repaired parse gets its own.
       def parse_json_safely(body_str)
         JSON.parse(body_str)
       rescue JSON::ParserError
-        repaired = body_str.gsub(/"(\w+)":\s*([A-Za-z][^,\}\n]+)/) do
+        begin
+          JSON.parse(quote_bare_values(body_str))
+        rescue JSON::ParserError
+          raise InvalidResponseError, "Invalid response: #{body_str}"
+        end
+      end
+
+      def quote_bare_values(body_str)
+        body_str.gsub(/"(\w+)":\s*([A-Za-z][^,}\n]+)/) do
           key = Regexp.last_match(1)
           val = Regexp.last_match(2).strip
           val_quoted = val.start_with?('"') ? val : "\"#{val.gsub('"', '\"')}\""
           "\"#{key}\": #{val_quoted}"
         end
-        JSON.parse(repaired)
-      rescue JSON::ParserError
-        raise InvalidResponseError, "Invalid response: #{body_str}"
       end
 
       def get_response_body(response)
