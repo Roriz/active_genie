@@ -40,14 +40,21 @@ module GenieEvalTasks
     cases = estimates.sum { |e| e['cases'] }
     return true if cases.zero?
 
-    usd = estimates.map { |e| e['usd'] }
-    cost = usd.all? ? format('about $%.2f', usd.sum) : 'cost unknown (no price for this model in eval/config.json)'
     tokens = estimates.sum { |e| e['input_tokens'] + e['output_tokens'] }
-    puts "#{sys.describe}: #{cases} case runs to call, ~#{tokens} tokens, #{cost}."
+    puts "#{sys.describe}: #{cases} case runs to call, ~#{tokens} tokens, #{cost_text(sys, estimates)}."
     return true if ENV['YES'] == '1'
 
-    puts 'Nothing was called. Re-run with YES=1 to spend it.'
+    puts 'Nothing was called. Re-run with YES=1 to run it.'
     false
+  end
+
+  def cost_text(sys, estimates)
+    if GenieEval::Transports.transport?(sys.provider)
+      return "no API billing (runs on your local #{sys.provider} login and uses its quota)"
+    end
+
+    usd = estimates.map { |e| e['usd'] }
+    usd.all? ? format('about $%.2f', usd.sum) : 'cost unknown (no price for this model in eval/config.json)'
   end
 
   def report(sys, selected, mode)

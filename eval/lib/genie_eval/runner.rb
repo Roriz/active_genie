@@ -51,13 +51,21 @@ module GenieEval
 
     def self.configure!(system)
       require File.join(REPO, 'lib', 'active_genie')
+      require File.join(REPO, 'lib', 'active_genie', 'providers', 'unified_provider')
+      route!(system)
       ActiveGenie.configure do |config|
-        config.providers.default = system.provider
+        config.providers.default = Transports::API_PROVIDER.fetch(system.provider, system.provider)
         config.llm.model = system.model
         config.log.output = ->(_log) {}
         config.log.clear_observers
         config.log.add_observer { |log| record_usage(log) }
       end
+    end
+
+    # Local CLI systems (codex, claude-code) answer ActiveGenie's provider calls; others use the APIs.
+    def self.route!(system)
+      Transports.install!
+      Transports.current = Transports.for(system.provider, model: system.model)
     end
 
     # Usage is collected per worker thread; fibers inside ActiveGenie share the thread variable.
