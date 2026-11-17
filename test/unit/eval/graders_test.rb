@@ -37,6 +37,14 @@ class GenieEvalGradersTest < Minitest::Test
     assert Graders::Extractor.grade(gold, output({ 'ok' => true })).pass
   end
 
+  def test_extractor_optional_field_accepts_absent_or_a_matching_value
+    spec = { 'present' => 'optional', 'check' => 'contains_any', 'value' => ['perpetual'] }
+
+    assert_equal 'correct_abstention', Graders::Extractor.outcome(spec, nil)
+    assert_equal 'correct', Graders::Extractor.outcome(spec, 'Perpetual')
+    assert_equal 'wrong_value', Graders::Extractor.outcome(spec, '2027-01-01')
+  end
+
   def test_comparator_requires_the_gold_winner_in_both_orders
     record = { 'orders' => { 'ab' => { 'winner' => 'a' }, 'ba' => { 'winner' => 'b' } } }
     grade = Graders::Comparator.grade({ 'winner' => 'a' }, record)

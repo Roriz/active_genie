@@ -44,6 +44,8 @@ module GenieEval
         absent = Matchers.absent?(value)
         if spec['present'] == false
           absent ? 'correct_abstention' : 'invention'
+        elsif absent && spec['present'] == 'optional' # a human accepted both "not stated" and the value
+          'correct_abstention'
         elsif absent
           'omission'
         elsif Matchers.check?(spec, value)

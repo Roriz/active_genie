@@ -84,8 +84,15 @@ replicate, `hard` if it didn't.
 
 ## Data
 
-See [FORMAT.md](FORMAT.md) for the case, gold and pool formats. Datasets are committed only when their
-license allows it; otherwise a fetch script with a pinned checksum is committed instead.
+See [FORMAT.md](FORMAT.md) for the case, gold and pool formats.
+
+External data (datasets, fetched files) and gems must be MIT-licensed; never Apache. When no MIT
+source exists, the cases are written here instead: drafted with their intended gold in
+`eval/labeling/drafts/`, labeled by two blind passes, and merged with `rake eval:label CELL=<cell>`.
+A field enters the gold only when both passes agree with the draft, or a human decision in
+`eval/labeling/<cell>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
+started from CUAD (CC BY 4.0) and CondaQA (Apache-2.0); both were replaced with drafted cases for
+this reason.
 
 ## Tests
 
@@ -97,23 +104,18 @@ offline run -> baseline -> regression cycle with a stubbed model.
 Found while building the extractor cells (2026-11-17, gpt-6.1-terra). Each one is a hypothesis to
 test with a paired run, not a decided change.
 
-- **CondaQA wording makes the model abstain on inference questions.** The `extractor.with_litote`
-  CondaQA cases ask yes/no questions that need inference ("Is it likely…", "Would X find it
-  difficult…"), but the field description ends with "Null if the passage does not say". In 7 of the
-  15 cases the model answered null where the crowd answered yes or no. Try "Null only if the passage
-  gives no basis to answer" in `eval/sources/condaqa/build.rb`, and compare the result with treating
-  these nulls as honest abstentions. Changing the wording changes the case inputs, so cached
-  outputs are rerun.
-- **Year-only CUAD dates.** CUAD records some dates as a year only ("in 2020, day and month not
-  stated"). Once `Extractor::Data` allows null (fix/extractor-nullable-fields), the model leaves
-  these empty, which the field description ("Null if not stated") arguably permits. Decide whether
-  such gold should be `present: false`, accept null, or stay as it is.
 - **`Extractor::Explanation` and litote use the same strict, non-nullable schema.** They avoid
   invented values today only because the accuracy filter (`min_accuracy`) drops low-confidence
   fields. Measure nullable non-boolean fields there too.
 - **`UnifiedProvider` string-to-nil workaround** (`lib/active_genie/providers/unified_provider.rb`,
   around line 100) turns strings like "null" and "unknown" into nil. It predates nullable extractor
   fields and misses variants such as `":null"`. Re-check whether it is still needed after the fix.
-- **CUAD case pass rate is harsh.** A CUAD case passes only when all 10 fields are right, so the
-  case rate (about 35%) moves much more than the field rate (about 87%). Consider weighting by field
-  or reporting both in the gate.
+- **Contract case pass rate is harsh.** An `extractor.data` contract passes only when all 10 fields
+  are right, so the case rate moved much more than the field rate on CUAD (about 35% vs 87%).
+  Consider weighting by field or reporting both in the gate.
+- **Inference questions vs "Null if the text does not say".** On CondaQA (since removed), the model
+  answered null on 7 of 15 yes/no questions that needed inference, because the description invited
+  abstaining. Watch for this in drafted cases; "Null only if the text gives no basis to answer" is
+  the wording to try.
+- **`webmock` pulls in `addressable` (Apache-2.0).** It is a test-only dependency of the library's
+  unit tests. Replacing it means our own minimal HTTP stub in `test/`; decide separately.

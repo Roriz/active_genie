@@ -1,0 +1,7 @@
+{"id":"draft_litote_28","field":"unbeaten_season","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":["a"]}
+{"id":"draft_litote_28","field":"lost_a_home_game","drafted":{"present":true,"check":"eq","value":true},"pass_a":null,"pass_b":true,"unlabeled":["a"]}
+{"id":"draft_litote_29","field":"breakfast_free","drafted":{"present":true,"check":"eq","value":true},"pass_a":null,"pass_b":true,"unlabeled":["a"]}
+{"id":"draft_litote_29","field":"pool_heated_in_winter","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":["a"]}
+{"id":"draft_litote_29","field":"parking_available","drafted":{"present":false},"pass_a":null,"pass_b":null,"unlabeled":["a"]}
+{"id":"draft_litote_30","field":"missed_march_window","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":["a"]}
+{"id":"draft_litote_30","field":"april_on_time","drafted":{"present":false},"pass_a":null,"pass_b":null,"unlabeled":["a"]}

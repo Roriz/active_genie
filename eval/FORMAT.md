@@ -58,7 +58,11 @@ Any cell may also carry `input.config`, a hash passed as `config:` to the method
 ```
 
 Only the fields listed are graded. `present: false` means the right answer is "absent"
-(nil, empty string or empty array). Checks, all case-insensitive for strings:
+(nil, empty string or empty array). `present: "optional"` accepts either: absent counts as a
+correct abstention, and a value must pass the check (used when a human decides both readings
+are right). `check: "date"` compares a written date with an ISO `value` (`2014-02-10`). A field
+with `judge: true` and a `question` goes to the LLM judge when its check fails. Checks, all
+case-insensitive for strings:
 
 | `check` | Passes when the extracted value... |
 |---|---|

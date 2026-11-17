@@ -13,3 +13,15 @@
 {"id":"draft_litote_15","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"negative","refund_received":true},"at":"2026-11-17T18:52:15Z"}
 {"id":"draft_litote_14","labeler":"codex/gpt-6.1-sol","values":{"sentiment":"positive","rebooked":true},"at":"2026-11-17T18:52:15Z"}
 {"id":"draft_litote_13","labeler":"codex/gpt-6.1-sol","values":{"advance_to_final":false,"passed_system_design":false},"at":"2026-11-17T18:52:18Z"}
+{"id":"draft_litote_17","labeler":"codex/gpt-6.1-sol","values":{"works_night_shift":false,"pay_changed":false},"at":"2026-11-17T20:24:49Z"}
+{"id":"draft_litote_19","labeler":"codex/gpt-6.1-sol","values":{"students_on_time":2,"priya_late":false},"at":"2026-11-17T20:24:49Z"}
+{"id":"draft_litote_18","labeler":"codex/gpt-6.1-sol","values":{"missed_scheduled_day":false,"years_of_service":11},"at":"2026-11-17T20:24:50Z"}
+{"id":"draft_litote_16","labeler":"codex/gpt-6.1-sol","values":{"all_pallets_damaged":"no","pallets_returned":6},"at":"2026-11-17T20:24:50Z"}
+{"id":"draft_litote_21","labeler":"codex/gpt-6.1-sol","values":{"boarded_before_crew_arrived":false,"pushback_time":"10:15"},"at":"2026-11-17T20:24:54Z"}
+{"id":"draft_litote_20","labeler":"codex/gpt-6.1-sol","values":{"cats_allowed":false,"dogs_allowed":false,"aquarium_allowed":true},"at":"2026-11-17T20:24:54Z"}
+{"id":"draft_litote_22","labeler":"codex/gpt-6.1-sol","values":{"met_investor_minimum":true,"minimum_investors":25},"at":"2026-11-17T20:24:54Z"}
+{"id":"draft_litote_23","labeler":"codex/gpt-6.1-sol","values":{"stable_on_old_routers":false,"crashed_on_new_model":false},"at":"2026-11-17T20:24:55Z"}
+{"id":"draft_litote_24","labeler":"codex/gpt-6.1-sol","values":{"took_prescription":false,"took_exercise_sheet":true},"at":"2026-11-17T20:24:58Z"}
+{"id":"draft_litote_25","labeler":"codex/gpt-6.1-sol","values":{"vote_delayed":"yes","delayed_due_to_protest":"no"},"at":"2026-11-17T20:24:59Z"}
+{"id":"draft_litote_26","labeler":"codex/gpt-6.1-sol","values":{"board_will_act":"yes","hearing_scheduled":true},"at":"2026-11-17T20:24:59Z"}
+{"id":"draft_litote_27","labeler":"codex/gpt-6.1-sol","values":{"drug_faster_recovery":"no","serious_side_effects_reported":false},"at":"2026-11-17T20:24:59Z"}

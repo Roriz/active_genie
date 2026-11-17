@@ -1,0 +1,11 @@
+{"id":"draft_contract_02","field":"has_cap_on_liability","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_02","field":"has_audit_rights","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_25","field":"has_non_compete","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_25","field":"has_audit_rights","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_26","field":"has_non_compete","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_26","field":"has_exclusivity","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_26","field":"has_anti_assignment","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_27","field":"has_non_compete","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_27","field":"has_exclusivity","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_27","field":"has_cap_on_liability","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}
+{"id":"draft_contract_27","field":"has_audit_rights","drafted":{"present":true,"check":"eq","value":false},"pass_a":null,"pass_b":false,"unlabeled":[]}

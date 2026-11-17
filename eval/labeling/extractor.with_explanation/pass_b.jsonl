@@ -2,26 +2,6 @@
 {"id":"draft_explanation_03","labeler":"claude-code/claude-opus-5-5","values":{"pto_days":4,"first_pto_date":"2026-06-08","remote_days":1},"at":"2026-11-17T17:45:49Z"}
 {"id":"draft_explanation_01","labeler":"claude-code/claude-opus-5-5","values":{"invoice_number":"INV-2207","total_amount":631,"po_number":null},"at":"2026-11-17T17:45:49Z"}
 {"id":"draft_explanation_02","labeler":"claude-code/claude-opus-5-5","values":{"delivery_date":"2026-03-06","tracking_number":"ZX-55120","signature_required":null},"at":"2026-11-17T17:45:50Z"}
-{"id":"draft_explanation_05","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_06","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_07","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_08","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_09","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_12","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_10","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_11","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_14","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_13","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_15","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_16","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_20","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_17","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_18","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_19","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_24","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_23","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_22","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
-{"id":"draft_explanation_21","labeler":"claude-code/claude-opus-5-5","error":"GenieEval::Error: claude exited 1: "}
 {"id":"draft_explanation_06","labeler":"claude-code/claude-opus-5-5","values":{"total_eur":488,"total_usd":536.8},"at":"2026-11-17T18:53:35Z"}
 {"id":"draft_explanation_05","labeler":"claude-code/claude-opus-5-5","values":{"asking_price":437500,"price_per_sqft":350,"year_built":null},"at":"2026-11-17T18:53:35Z"}
 {"id":"draft_explanation_08","labeler":"claude-code/claude-opus-5-5","values":{"notice_date":"2026-01-15","termination_date":"2026-04-15","termination_fee":null},"at":"2026-11-17T18:53:35Z"}
