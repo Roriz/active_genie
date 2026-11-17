@@ -4,10 +4,13 @@ require 'json'
 require 'net/http'
 
 require_relative 'base_provider'
+require_relative 'usage_logger'
 
 module ActiveGenie
   module Providers
     class DeepseekProvider < BaseProvider
+      USAGE_KEYS = { input: 'prompt_tokens', output: 'completion_tokens', total: 'total_tokens' }.freeze
+
       class InvalidResponseError < StandardError; end
 
       # Thinking-mode models reject a forced tool_choice. The error text names
@@ -59,16 +62,7 @@ module ActiveGenie
 
         return nil if response.nil?
 
-        ActiveGenie.logger.call(
-          {
-            code: :llm_usage,
-            input_tokens: response.dig('usage', 'prompt_tokens'),
-            output_tokens: response.dig('usage', 'completion_tokens'),
-            total_tokens: response.dig('usage', 'total_tokens'),
-            model:,
-            usage: response['usage']
-          }, config: @config
-        )
+        UsageLogger.call(response['usage'], keys: USAGE_KEYS, model:, config: @config)
 
         body_str = get_response_body(response)
         parsed_response = parse_json_safely(body_str)
