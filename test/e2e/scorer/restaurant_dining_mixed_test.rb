@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class RestaurantDiningMixedTest < Minitest::Test
   def test_mixed_review_is_numeric
-    text = "The steak was cooked to absolute perfection and the flavors were out of this world. However, the waiter was incredibly rude, spilled wine on my shirt, and the music was way too loud."
-    criteria = "overall dining experience"
+    text = 'The steak was cooked to absolute perfection and the flavors were out of this world. However, the waiter was incredibly rude, spilled wine on my shirt, and the music was way too loud.'
+    criteria = 'overall dining experience'
 
     result = ActiveGenie::Scorer.by_jury_bench(text, criteria)
 

@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class FinanceCryptoFraudJuriesTest < Minitest::Test
   def test_crypto_fraud_juries
-    text = "Investigating an international syndicate laundering money through decentralized finance protocols"
-    criteria = "Evaluate regulatory violations and blockchain transaction traceability"
+    text = 'Investigating an international syndicate laundering money through decentralized finance protocols'
+    criteria = 'Evaluate regulatory violations and blockchain transaction traceability'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

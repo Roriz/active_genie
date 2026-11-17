@@ -98,18 +98,20 @@ module ActiveGenie
           res&.expected_value
         end
 
-        ActiveGenie::Utils::LogprobsCalculator.aggregate_expected_rewards(expected_values, min_score: 1.0, max_score: 5.0)
+        ActiveGenie::Utils::LogprobsCalculator.aggregate_expected_rewards(expected_values, min_score: 1.0,
+                                                                                           max_score: 5.0)
       end
 
       def decide_winner_key(player_a_reward, player_b_reward, judge_candidates, data)
-        if player_a_reward && player_b_reward && player_a_reward.raw_expected_reward != player_b_reward.raw_expected_reward
+        if player_a_reward && player_b_reward &&
+           player_a_reward.raw_expected_reward != player_b_reward.raw_expected_reward
           return player_a_reward.raw_expected_reward > player_b_reward.raw_expected_reward ? 'player_a' : 'player_b'
         end
 
         if judge_candidates && !judge_candidates.empty?
           prob_a = extract_token_probability(judge_candidates, 'player_a')
           prob_b = extract_token_probability(judge_candidates, 'player_b')
-          return prob_a >= prob_b ? 'player_a' : 'player_b' if prob_a > 0 || prob_b > 0
+          return prob_a >= prob_b ? 'player_a' : 'player_b' if prob_a.positive? || prob_b.positive?
         end
 
         data&.dig('impartial_judge_winner')

@@ -18,10 +18,10 @@ class MarketplaceEloRankingTest < Minitest::Test
     assert_equal @players.size, result.data.size
 
     # AcousticPro ANC 500 has ANC, wireless, long battery, dual mic — best match for remote SWE
-    assert result.data.first.include?('AcousticPro ANC 500'),
-      "Expected AcousticPro ANC 500 ranked first, got: #{result.data.first[0..50]}"
+    assert_includes result.data.first, 'AcousticPro ANC 500',
+                    "Expected AcousticPro ANC 500 ranked first, got: #{result.data.first[0..50]}"
     # BasicBuds Lite has passive isolation, short battery — worst match for noise-canceling needs
-    assert result.data.last.include?('BasicBuds Lite'),
-      "Expected BasicBuds Lite ranked last, got: #{result.data.last[0..50]}"
+    assert_includes result.data.last, 'BasicBuds Lite',
+                    "Expected BasicBuds Lite ranked last, got: #{result.data.last[0..50]}"
   end
 end

@@ -5,16 +5,17 @@ require_relative '../test_helper'
 class DiningRestaurantFreeForAllTest < Minitest::Test
   def test_rank_restaurants
     restaurants = [
-      JSON.generate(type: "Michelin Star French", atmosphere: "Elegant, formal", price: "$$$$"),
-      JSON.generate(type: "Fast Food Chain", atmosphere: "Casual, quick", price: "$"),
-      JSON.generate(type: "Food Truck", atmosphere: "Outdoor, street", price: "$$")
+      JSON.generate(type: 'Michelin Star French', atmosphere: 'Elegant, formal', price: '$$$$'),
+      JSON.generate(type: 'Fast Food Chain', atmosphere: 'Casual, quick', price: '$'),
+      JSON.generate(type: 'Food Truck', atmosphere: 'Outdoor, street', price: '$$')
     ]
 
-    result = ActiveGenie::Ranker.by_free_for_all(restaurants, "fine dining for a 10th wedding anniversary")
+    result = ActiveGenie::Ranker.by_free_for_all(restaurants, 'fine dining for a 10th wedding anniversary')
 
     assert_kind_of ActiveGenie::Result, result
 
     ranked = result.data
+
     assert_equal 3, ranked.length
 
     michelin = restaurants[0]

@@ -15,12 +15,15 @@ module ActiveGenie
       )
 
       # AggregatedRewardResult contains the aggregated expected reward across criteria and repetitions.
+      # `count` shadows Struct#count on purpose: it is part of the public result.
+      # rubocop:disable Lint/StructNewOverride
       AggregatedRewardResult = Struct.new(
         :raw_expected_reward,
         :normalized_score,
         :count,
         keyword_init: true
       )
+      # rubocop:enable Lint/StructNewOverride
 
       DEFAULT_LETTER_MAP = {
         'A' => 5.0,
@@ -173,7 +176,7 @@ module ActiveGenie
             next unless token.include?(field_key)
 
             # Look ahead for the value token after ':'
-            (idx + 1...[idx + 4, tokens.size].min).each do |value_idx|
+            ((idx + 1)...[idx + 4, tokens.size].min).each do |value_idx|
               val_token = tokens[value_idx].tr('",:{}[] ', '')
               valid_value = if token_map
                               token_map.keys.any? { |k| k.to_s.casecmp(val_token).zero? }

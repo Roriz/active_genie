@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class EnvironmentalOilSpillJuriesTest < Minitest::Test
   def test_oil_spill_juries
-    text = "Assessing the ecological damage and cleanup efforts following a coastal crude oil spill"
-    criteria = "Evaluate environmental impact and remediation effectiveness"
+    text = 'Assessing the ecological damage and cleanup efforts following a coastal crude oil spill'
+    criteria = 'Evaluate environmental impact and remediation effectiveness'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

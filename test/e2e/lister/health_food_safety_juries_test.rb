@@ -5,7 +5,7 @@ require_relative '../test_helper'
 class HealthFoodSafetyJuriesTest < Minitest::Test
   def test_food_safety_juries
     text = "Investigating an outbreak of E. coli linked to a local restaurant chain's produce supplier"
-    criteria = "Evaluate health code compliance and contamination source"
+    criteria = 'Evaluate health code compliance and contamination source'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

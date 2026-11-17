@@ -16,7 +16,7 @@ module ActiveGenie
 
       def test_returns_result_object_with_correct_structure
         players = create_players(2)
-        
+
         result = Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
         assert_instance_of ActiveGenie::Result, result
@@ -41,7 +41,7 @@ module ActiveGenie
 
       def test_metadata_contains_required_fields
         players = create_players(2)
-        
+
         result = Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
         assert result.metadata.key?(:elo_id)
@@ -72,7 +72,7 @@ module ActiveGenie
 
       def test_correct_number_of_debates_calculated
         players = create_players(40)
-        
+
         result = Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
         # lower_tier size * DEBATE_PER_PLAYER (3)
@@ -81,7 +81,7 @@ module ActiveGenie
 
       def test_players_in_round_includes_all_tiers
         players = create_players(20, elo_split: true)
-        
+
         result = Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
         assert_equal 20, result.metadata[:players_in_round].size
@@ -120,9 +120,9 @@ module ActiveGenie
 
       def test_elo_id_generation_is_consistent
         players = create_players(2)
-        
+
         result1 = Elo.call(players, 'criteria', config: { providers: { openai: { api_key: 'test_key' } } })
-        result2 = Elo.call(players, 'criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+        Elo.call(players, 'criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
         # Same players and criteria should generate same elo_id initially
         assert_equal 32, result1.metadata[:elo_id].length # MD5 hash length
@@ -134,9 +134,9 @@ module ActiveGenie
       def create_players(count, elo_split: false)
         ActiveGenie::Ranker::Entities::Players.new(
           (1..count).map do |i|
-            { 
-              id: "player_#{i}", 
-              content: "Player #{i} content", 
+            {
+              id: "player_#{i}",
+              content: "Player #{i} content",
               elo: elo_split && i <= (count / 2) ? 1200 : 1000
             }
           end

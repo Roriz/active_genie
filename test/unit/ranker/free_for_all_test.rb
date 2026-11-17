@@ -42,11 +42,11 @@ module ActiveGenie
 
         result = FreeForAll.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
-        assert result.metadata[:free_for_all_id].is_a?(String)
-        assert result.metadata[:players].is_a?(ActiveGenie::Ranker::Entities::Players)
+        assert_kind_of String, result.metadata[:free_for_all_id]
+        assert_kind_of ActiveGenie::Ranker::Entities::Players, result.metadata[:players]
         assert_equal 1, result.metadata[:debates_count]
-        assert result.metadata[:duration_seconds].is_a?(Float)
-        assert result.metadata[:total_tokens].is_a?(Integer)
+        assert_kind_of Float, result.metadata[:duration_seconds]
+        assert_kind_of Integer, result.metadata[:total_tokens]
       end
 
       # Critical Path: Ranking Logic
@@ -147,7 +147,8 @@ module ActiveGenie
 
         players.each do |player|
           total_battles = player.ffa_win_count + player.ffa_lose_count + player.ffa_draw_count
-          assert total_battles > 0, "Player #{player.id} should have participated in battles"
+
+          assert_operator total_battles, :>, 0, "Player #{player.id} should have participated in battles"
         end
       end
 

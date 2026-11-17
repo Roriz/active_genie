@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 class TechFridayDeploysFeudTest < Minitest::Test
   def test_friday_deploys_feud
-    theme = "Reasons a software deploy fails on Friday"
+    theme = 'Reasons a software deploy fails on Friday'
     result = ActiveGenie::Lister.with_feud(theme)
 
     assert_kind_of ActiveGenie::Result, result

@@ -12,9 +12,9 @@ class MeteorologyWeatherReportDataTest < Minitest::Test
     }
 
     result = ActiveGenie::Extractor.data(text, schema)
-    
+
     assert_kind_of ActiveGenie::Result, result
-    
+
     # Extractor.data returns string keys; normalize before symbol access.
     data = result.data.transform_keys(&:to_sym)
     # WHY: The LLM needs to convert worded numbers ('ninety-five', 'thirty') into numerical values

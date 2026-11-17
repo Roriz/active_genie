@@ -23,7 +23,7 @@ DEFAULT_E2E_MODELS = {
 
 keys = REQUIRED_ENV_KEYS[provider_name]
 if keys
-  has_key = keys.any? { |key| ENV[key] && !ENV[key].strip.empty? }
+  has_key = keys.any? { |key| ENV.fetch(key, nil) && !ENV[key].strip.empty? }
   unless has_key
     raise "E2E Test Failure: Missing API key for provider '#{provider_name}'. " \
           "Please set #{keys.join(' or ')} in your environment."
@@ -44,9 +44,7 @@ end
 module E2EFixtureHelper
   def load_fixture(relative_path)
     fixture_path = File.join(__dir__, 'fixtures', relative_path)
-    unless File.exist?(fixture_path)
-      raise "Fixture file not found: #{fixture_path}"
-    end
+    raise "Fixture file not found: #{fixture_path}" unless File.exist?(fixture_path)
 
     content = File.read(fixture_path)
     if relative_path.end_with?('.json')
@@ -57,6 +55,8 @@ module E2EFixtureHelper
   end
 end
 
-class Minitest::Test
-  include E2EFixtureHelper
+module Minitest
+  class Test
+    include E2EFixtureHelper
+  end
 end

@@ -4,8 +4,8 @@ require_relative '../test_helper'
 
 class EducationStudentPlagiarismJuriesTest < Minitest::Test
   def test_student_plagiarism_juries
-    text = "Reviewing a final year thesis that allegedly contains uncredited passages from published papers"
-    criteria = "Evaluate academic integrity and originality"
+    text = 'Reviewing a final year thesis that allegedly contains uncredited passages from published papers'
+    criteria = 'Evaluate academic integrity and originality'
     result = ActiveGenie::Lister.with_juries(text, criteria)
 
     assert_kind_of ActiveGenie::Result, result

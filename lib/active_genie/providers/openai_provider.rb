@@ -45,7 +45,8 @@ module ActiveGenie
         raise InvalidResponseError, "Invalid response: #{raw_response}" if raw_response.nil? || raw_response.keys.empty?
 
         parsed_data = parse_arguments(raw_response)
-        ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: raw_response }, config: @config)
+        ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: raw_response },
+                                config: @config)
 
         return parsed_data unless logprobs
 
@@ -108,14 +109,22 @@ module ActiveGenie
       def parse_arguments(response)
         content_str = response.dig('choices', 0, 'message', 'content')
         if content_str && !content_str.empty?
-          parsed = JSON.parse(content_str) rescue nil
+          parsed = begin
+            JSON.parse(content_str)
+          rescue StandardError
+            nil
+          end
           return parsed['message'] || parsed if parsed.is_a?(Hash)
         end
 
         json_args = response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')
         return {} if json_args.nil? || json_args.empty?
 
-        parsed_response = JSON.parse(json_args) rescue {}
+        parsed_response = begin
+          JSON.parse(json_args)
+        rescue StandardError
+          {}
+        end
         parsed_response['message'] || parsed_response
       end
 

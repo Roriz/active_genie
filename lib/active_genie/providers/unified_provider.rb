@@ -98,7 +98,7 @@ module ActiveGenie
 
           target_hash.each do |key, value|
             target_hash[key] = nil if ['null', 'none', 'undefined', '', 'unknown',
-                                    '<unknown>'].include?(value.to_s.strip.downcase)
+                                       '<unknown>'].include?(value.to_s.strip.downcase)
           end
 
           response

@@ -1,3 +1,10 @@
+inherit_from: .rubocop_todo.yml
+
+# Combine Exclude lists with the todo file instead of replacing them.
+inherit_mode:
+  merge:
+    - Exclude
+
 # The behavior of RuboCop can be controlled via the .rubocop.yml
 # configuration file. It makes it possible to enable/disable
 # certain cops (checks) and to alter their behavior if they accept
@@ -49,4 +56,22 @@ Metrics/AbcSize:
     - 'benchmark/**/*'
 
 Minitest/MultipleAssertions:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'test/**/*'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'test/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'lib/tasks/**/*'
+    - '*.gemspec'
+
+# `assert_equal true, x` checks for exactly `true`; the suggested `assert x`
+# accepts any truthy value, which would weaken those assertions.
+Minitest/AssertTruthy:
   Enabled: false

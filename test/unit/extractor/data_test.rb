@@ -44,12 +44,14 @@ module ActiveGenie
           assert_includes messages, { 'role' => 'user', 'content' => @text }
 
           props = tool.dig('parameters', 'properties')
+
           assert props.key?('name')
           assert props.key?('age')
           assert props.key?('profession')
           refute props.key?('name_explanation')
 
           required = tool.dig('parameters', 'required')
+
           assert_equal %w[name age profession], required
         end
       end
@@ -80,6 +82,7 @@ module ActiveGenie
 
           assert_equal 'data_extractor', tool['name']
           props = tool.dig('input_schema', 'properties')
+
           assert props.key?('name')
           assert props.key?('age')
           assert props.key?('profession')
@@ -131,10 +134,10 @@ module ActiveGenie
       # Critical Path: Response Formatting & Nil Compacting
       def test_compacts_nil_values_in_extracted_data
         stub_openai_response({
-          'name' => 'John Doe',
-          'age' => nil,
-          'profession' => 'Software Engineer'
-        })
+                               'name' => 'John Doe',
+                               'age' => nil,
+                               'profession' => 'Software Engineer'
+                             })
 
         result = Data.call(
           @text,
@@ -211,4 +214,3 @@ module ActiveGenie
     end
   end
 end
-

@@ -17,7 +17,7 @@ class HealthtechTriageScoringTest < Minitest::Test
     assert_kind_of Numeric, result.data
     # Textbook acute MI presentation should triage as high urgency
     assert_operator result.data, :>=, 60,
-      "Expected high urgency score (>=60) for acute MI presentation, got: #{result.data}"
+                    "Expected high urgency score (>=60) for acute MI presentation, got: #{result.data}"
 
     refute_nil result.reasoning
   end

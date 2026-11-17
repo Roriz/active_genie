@@ -208,12 +208,15 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
         players_text = 'Sample text for scoring'
 
         jb1 = JuryBench.new(players_text, @criteria, ['Grammar Expert', nil, 'Grammar Expert', 'Tone Advocate'])
+
         assert_equal ['Grammar Expert', 'Tone Advocate'], jb1.send(:juries)
 
         jb2 = JuryBench.new(players_text, @criteria, 'Grammar Expert')
+
         assert_equal ['Grammar Expert'], jb2.send(:juries)
 
         jb3 = JuryBench.new(players_text, @criteria, nil)
+
         assert_equal [], jb3.instance_variable_get(:@param_juries)
       end
 
@@ -221,6 +224,7 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
         players_text = 'Sample text for scoring'
 
         jb_kw = JuryBench.new(players_text, @criteria, juries: ['Grammar Expert', 'Tone Advocate'])
+
         assert_equal ['Grammar Expert', 'Tone Advocate'], jb_kw.send(:juries)
       end
 
@@ -263,8 +267,8 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
                     function: {
                       name: 'scorer',
                       arguments: JSON.generate({
-                        'final_reasoning' => 'Scoring completed but score was omitted'
-                      })
+                                                 'final_reasoning' => 'Scoring completed but score was omitted'
+                                               })
                     }
                   }
                 ]
@@ -353,4 +357,3 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
     end
   end
 end
-

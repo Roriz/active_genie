@@ -11,9 +11,9 @@ class BusinessQuarterlyEmailLitoteTest < Minitest::Test
     }
 
     result = ActiveGenie::Extractor.with_litote(text, schema)
-    
+
     assert_kind_of ActiveGenie::Result, result
-    
+
     data = result.data
     # WHY: LLM needs to resolve multiple litotes in one sentence into positive affirmations
     assert_match(/significant|good|strong|positive/i, data[:performance], "Expected performance to be significant/good, got #{data[:performance]}")

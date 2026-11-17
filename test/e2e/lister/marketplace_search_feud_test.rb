@@ -16,11 +16,11 @@ class MarketplaceSearchFeudTest < Minitest::Test
     refute_empty result.data
 
     # "Price" is overwhelmingly the #1 search filter for electronics e-commerce
-    assert result.data.first.to_s.downcase.include?('price'),
-      "Expected top feud answer to be price-related, got: #{result.data.first}"
+    assert_includes result.data.first.to_s.downcase, 'price',
+                    "Expected top feud answer to be price-related, got: #{result.data.first}"
     # The least common filter should not be price — model must differentiate popularity
-    refute result.data.last.to_s.downcase.include?('price'),
-      "Expected last feud answer to NOT be price-related, got: #{result.data.last}"
+    refute_includes result.data.last.to_s.downcase, 'price',
+                    "Expected last feud answer to NOT be price-related, got: #{result.data.last}"
 
     refute_nil result.reasoning
   end

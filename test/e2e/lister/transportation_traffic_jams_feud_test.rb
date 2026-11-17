@@ -4,7 +4,7 @@ require_relative '../test_helper'
 
 class TransportationTrafficJamsFeudTest < Minitest::Test
   def test_traffic_jams_feud
-    theme = "Things that cause traffic jams"
+    theme = 'Things that cause traffic jams'
     result = ActiveGenie::Lister.with_feud(theme)
 
     assert_kind_of ActiveGenie::Result, result
