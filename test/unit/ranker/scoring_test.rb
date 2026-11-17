@@ -131,6 +131,31 @@ module ActiveGenie
         assert_equal 62, players.first.score
       end
 
+      # Critical Path: Consistency. Players ranked against each other must be
+      # scored by the same jury, or their scores are not comparable.
+      def test_auto_generated_juries_are_listed_once_and_shared_by_every_player
+        jury_requests = 0
+        juries_seen_by_scorer = []
+        stub_request(:post, %r{api\.openai\.com/v1/chat/completions}).to_return do |req|
+          function = JSON.parse(req.body).dig('tools', 0, 'function')
+          if function['name'] == 'identify_jury'
+            jury_requests += 1
+            openai_tool_response(juries: ["Expert #{jury_requests}"], why_these_juries: 'stubbed')
+          else
+            juries_seen_by_scorer << function.dig('parameters', 'properties').keys.grep(/_score\z/)
+            openai_tool_response(final_score: 50, final_reasoning: 'stubbed')
+          end
+        end
+        players = ActiveGenie::Ranker::Entities::Players.new(
+          (1..3).map { |i| { id: "player_#{i}", content: "Player #{i} content" } }
+        )
+
+        Scoring.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+
+        assert_equal 1, jury_requests
+        assert_equal [%w[expert_1_score final_score]] * 3, juries_seen_by_scorer
+      end
+
       def test_scoring_with_mixed_scored_and_unscored_players
         players = ActiveGenie::Ranker::Entities::Players.new(
           [
@@ -148,6 +173,13 @@ module ActiveGenie
         assert_equal 62, players.find { |p| p.id == 'player_b' }.score
         assert_equal 70, players.find { |p| p.id == 'player_c' }.score
         assert_equal 62, players.find { |p| p.id == 'player_d' }.score
+      end
+
+      private
+
+      def openai_tool_response(arguments)
+        { body: { choices: [{ message: { tool_calls: [{ function: { arguments: arguments.to_json } }] } }],
+                  usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } }.to_json }
       end
     end
   end
