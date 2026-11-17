@@ -63,6 +63,7 @@ Use `remove_observer(observers)` to drop specific ones, or `clear_observers` to 
 | Error | Raised when |
 | :--- | :--- |
 | `ActiveGenie::Providers::BaseProvider::ProviderUnknownError` | Any non-2xx response from a provider, or a response body that isn't valid JSON. This is the error you will see most: bad API key, exhausted credits, rate limiting, model not found, provider outage. |
+| `ActiveGenie::Providers::BaseProvider::ProviderTransientError` | A subclass of `ProviderUnknownError` for rate limits (429), request timeouts (408) and server errors (5xx) that were still failing after all retries. Rescue it to treat these differently from permanent failures. |
 | `ActiveGenie::WithoutAvailableProviderError` | No configured provider has a usable API key. |
 | `ActiveGenie::InvalidLogOutputError` | `config.log.output` was set to something that doesn't respond to `call`. |
 | `Net::OpenTimeout`, `Net::ReadTimeout`, `Errno::ECONNREFUSED` | Network-level failure that survived all retries. |
@@ -83,7 +84,7 @@ end
 
 ### Retries
 
-ActiveGenie retries with exponential backoff: `retry_delay * (2 ** attempt)`, up to `max_retries`.
+ActiveGenie retries transient failures with exponential backoff: `retry_delay * (2 ** attempt)`, up to `max_retries` retries after the first attempt. Transient failures are network errors (connection timeouts, refused connections) and HTTP 408, 429 and 5xx responses. Other 4xx responses, such as a bad API key or an invalid request, fail immediately.
 
 | Setting | Effective default | Description |
 | :--- | :--- | :--- |
@@ -94,21 +95,8 @@ ActiveGenie retries with exponential backoff: `retry_delay * (2 ** attempt)`, up
 
 These read `nil` from the configuration object until you set them. The values above are the defaults applied at request time.
 
-> [!WARNING]
-> **Retries only cover network-level failures.** The retry path catches connection timeouts and refused connections. It does **not** catch `ProviderUnknownError`, which is what every non-2xx HTTP response becomes, so **rate limits (429) and provider outages (500, 503) are not retried.**
->
-> If you need those retried, wrap the call yourself:
->
-> ```ruby
-> retries = 0
-> begin
->   ActiveGenie::Extractor.call(text, schema)
-> rescue ActiveGenie::Providers::BaseProvider::ProviderUnknownError => e
->   raise if (retries += 1) > 3
->   sleep(2**retries)
->   retry
-> end
-> ```
+> [!NOTE]
+> The backoff does not read the `Retry-After` header. With the defaults, a rate-limited call gives up after about 7 seconds of waiting. If your provider's limits reset per minute, raise `retry_delay` or `max_retries`, or let a background job retry `ProviderTransientError` later.
 
 ### Where to handle failures
 
