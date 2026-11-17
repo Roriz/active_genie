@@ -65,8 +65,8 @@ module ActiveGenie
 
         result = Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
-        # Winner (player_b) should gain ELO, loser (player_a) should lose ELO
-        assert_equal 985, result.metadata[:players].first.elo
+        # Equal ratings: the winner (player_b) gains K/2 and the loser (player_a) loses the same
+        assert_equal 984, result.metadata[:players].first.elo
         assert_equal 1016, result.metadata[:players].last.elo
       end
 
@@ -99,8 +99,32 @@ module ActiveGenie
 
         # Check that elo_diff is calculated
         assert_instance_of Hash, result.metadata[:players_elo_diff]
-        assert_equal(-15, result.metadata[:players_elo_diff]['player_a'])
+        assert_equal(-16, result.metadata[:players_elo_diff]['player_a'])
         assert_equal 16, result.metadata[:players_elo_diff]['player_b']
+      end
+
+      # Critical Path: Rating math.
+      def test_a_match_the_judge_does_not_decide_is_a_draw
+        stub_judge(nil)
+        players = create_players(20) # everyone at 1000
+
+        Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+
+        # Between equal ratings a draw moves nothing; a phantom win for player_b would.
+        assert_equal [1000], players.map(&:elo).uniq
+      end
+
+      def test_every_match_conserves_the_total_rating
+        stub_judge('player_a')
+        players = ActiveGenie::Ranker::Entities::Players.new(
+          (1..20).map { |i| { id: "player_#{i}", content: "Player #{i} content", elo: 900 + (i * 10) } }
+        )
+        total_before = players.sum(&:elo)
+
+        Elo.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
+
+        # Both new ratings must come from the pre-match ratings, so points only move between the two players.
+        assert_equal total_before, players.sum(&:elo)
       end
 
       def test_highest_elo_tracking
@@ -130,6 +154,14 @@ module ActiveGenie
       end
 
       private
+
+      def stub_judge(winner)
+        arguments = { impartial_judge_winner: winner, impartial_judge_winner_reasoning: 'stubbed' }.to_json
+        stub_request(:post, %r{api\.openai\.com/v1/chat/completions}).to_return(
+          body: { choices: [{ message: { tool_calls: [{ function: { arguments: } }] } }],
+                  usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } }.to_json
+        )
+      end
 
       def create_players(count, elo_split: false)
         ActiveGenie::Ranker::Entities::Players.new(
