@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'tmpdir'
 require_relative '../test_helper'
 require_relative '../../../lib/active_genie/providers/google_provider'
 
@@ -63,7 +64,7 @@ module ActiveGenie
         }
 
         captured_payload = nil
-        @provider.stub(:request, lambda { |payload, _params|
+        @provider.stub(:request, lambda { |payload|
           captured_payload = payload
           mock_response
         }) do
@@ -73,6 +74,36 @@ module ActiveGenie
           assert_equal 10, captured_payload[:generationConfig][:logprobs]
           assert_equal({ 'score' => 8 }, result[:data])
           assert_equal mock_logprobs, result[:logprobs]
+        end
+      end
+
+      def test_api_key_is_sent_as_header_and_never_logged
+        secret = 'SECRET-GOOGLE-KEY-123'
+        logs = []
+        Dir.mktmpdir do |dir|
+          config = Configuration.new({
+                                       llm: { model: 'gemini-2.5-flash' },
+                                       providers: { google: { api_key: secret } },
+                                       log: {
+                                         output: ->(log) { logs << log },
+                                         file_path: File.join(dir, 'active_genie.log'),
+                                         fine_tune_file_path: File.join(dir, 'fine_tune.log')
+                                       }
+                                     })
+          stub_request(:post, %r{generativelanguage\.googleapis\.com/v1beta/models/gemini-2\.5-flash:generateContent})
+            .to_return(body: {
+              candidates: [{ content: { parts: [{ text: '{"score": 8}' }] } }],
+              usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1, totalTokenCount: 2 }
+            }.to_json)
+
+          GoogleProvider.new(config).function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION)
+
+          assert_requested(:post, /generateContent/) do |req|
+            req.uri.query.nil? && req.headers['X-Goog-Api-Key'] == secret
+          end
+          refute_empty logs
+          logs.each { |log| refute_includes log.to_s, secret }
+          Dir.glob(File.join(dir, '*.log')).each { |file| refute_includes File.read(file), secret }
         end
       end
 
