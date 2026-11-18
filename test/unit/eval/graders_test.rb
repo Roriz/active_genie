@@ -76,6 +76,28 @@ class GenieEvalGradersTest < Minitest::Test
     refute Graders::Lister.grade(bottom, output(items)).pass
   end
 
+  def test_lister_terms_match_where_a_word_starts
+    rain = { 'checks' => [{ 'type' => 'any_item', 'any_of' => ['rain'] }] }
+
+    assert Graders::Lister.pass?(rain, ['Rainy weather'])
+    refute Graders::Lister.pass?(rain, ['Missed the train'])
+    refute Graders::Lister.pass?({ 'checks' => [{ 'type' => 'top_k_any', 'k' => 1, 'any_of' => ['apple'] }] },
+                                 ['Pineapple'])
+  end
+
+  def test_lister_min_groups_fills_each_group_with_a_different_item
+    gold = { 'checks' => [{ 'type' => 'min_groups', 'min' => 2, 'groups' => [['ice'], ['ice cream']] }] }
+
+    refute Graders::Lister.pass?(gold, ['Ice cream']), 'one answer fills one group'
+    assert Graders::Lister.pass?(gold, ['Ice cream', 'Ice cubes'])
+
+    # "Ice cream" first takes the ice group; it must move to ice cream so "Ice cubes" can fill ice.
+    three = { 'checks' => [{ 'type' => 'min_groups', 'min' => 3, 'groups' => [['ice'], ['cream'], ['cube']] }] }
+
+    assert Graders::Lister.pass?(three, ['Ice cream', 'Ice cubes', 'Cream soda'])
+    refute Graders::Lister.pass?(three, ['Ice cream', 'Ice cubes'])
+  end
+
   def test_scorer_band_is_inclusive
     assert Graders::Scorer.grade({ 'band' => [60, 100] }, output(60)).pass
     refute Graders::Scorer.grade({ 'band' => [60, 100] }, output(59.9)).pass

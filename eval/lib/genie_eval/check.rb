@@ -8,7 +8,9 @@ module GenieEval
       'extractor' => %w[text schema], 'comparator' => %w[player_a player_b criteria],
       'lister.with_feud' => %w[theme], 'lister.with_juries' => %w[text criteria], 'scorer' => %w[text criteria]
     }.freeze
-    LISTER_CHECKS = %w[top_k_any bottom_k_none min_groups any_item no_item min_items].freeze
+    # Each lister check type with the settings it takes, all required.
+    LISTER_CHECKS = { 'top_k_any' => %w[k any_of], 'bottom_k_none' => %w[k any_of], 'min_groups' => %w[min groups],
+                      'any_item' => %w[any_of], 'no_item' => %w[any_of], 'min_items' => %w[n] }.freeze
     MOJIBAKE = /Ã.|â€|ï»¿|�/
     ISO_DATE = /\A\d{4}-\d{2}-\d{2}\z/
 
@@ -114,8 +116,36 @@ module GenieEval
       checks = gold['checks']
       return 'lister gold needs a non-empty checks array' unless checks.is_a?(Array) && checks.any?
 
-      unknown = checks.map { |c| c['type'] } - LISTER_CHECKS
-      "unknown lister checks #{unknown.join(', ')}" if unknown.any?
+      unknown = checks.map { |c| c['type'] } - LISTER_CHECKS.keys
+      return "unknown lister checks #{unknown.join(', ')}" if unknown.any?
+
+      checks.filter_map { |c| lister_check_problem(c) }.first
+    end
+
+    # A check takes exactly its settings: a misspelled key would otherwise be ignored by the grader.
+    def lister_check_problem(check)
+      type = check['type']
+      settings = LISTER_CHECKS.fetch(type)
+      odd = check.keys - ['type'] - settings
+      return "#{type} takes #{settings.join(' and ')}, not #{odd.join(', ')}" if odd.any?
+
+      bad = settings.reject do |key|
+        value = check[key]
+        case key
+        when 'k', 'min', 'n' then value.is_a?(Integer) && value.positive?
+        when 'any_of' then terms?(value)
+        when 'groups' then value.is_a?(Array) && value.any? && value.all? { |g| terms?(g) }
+        end
+      end
+      return "#{type} needs a well-formed #{bad.join(' and ')}" if bad.any?
+
+      return unless type == 'min_groups' && check['min'] > check['groups'].size
+
+      "min_groups min #{check['min']} is more than its #{check['groups'].size} groups"
+    end
+
+    def terms?(value)
+      value.is_a?(Array) && value.any? && value.all? { |t| t.is_a?(String) && !t.strip.empty? }
     end
 
     def scorer_problem(gold, input)

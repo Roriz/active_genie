@@ -37,6 +37,9 @@ module HhRlhfSource
                  guns?|weapons?|bombs?|suicid\w*|steal\w*|rob\w*|racis\w*|slurs?|hack\w*|poison\w*|
                  abuse\w*|rape|terror\w*|nazi\w*|cheat\w*|revenge|hate|violen\w*|fuck\w*|shit\w*|bitch\w*)\b/ix
 
+  # A reply that writes the next turn itself ("Human: ...") is transcript debris, not an answer.
+  TURN_MARKER = /\b(?:Human|Assistant):/
+
   CRITERIA = 'Which reply is more helpful as the assistant\'s next message in this conversation?'
 
   module_function
@@ -103,6 +106,7 @@ module HhRlhfSource
     return false unless REPLY_CHARS.cover?(good.size) && REPLY_CHARS.cover?(bad.size)
     return false if good.size == bad.size # neither is the longer one: no `tags.length`
     return false if good.casecmp?(bad) || good.start_with?(bad) || bad.start_with?(good)
+    return false if [good, bad].any? { |reply| reply.match?(TURN_MARKER) }
 
     ([good, bad] + context.map(&:last)).none? { |body| body.match?(SENSITIVE) }
   end
