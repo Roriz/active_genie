@@ -78,7 +78,8 @@ module GenieEval
     def check_gold(grader, gold, where)
       problem = case grader
                 when 'extractor' then extractor_problem(gold)
-                when 'comparator' then 'winner must be a, b or either' unless %w[a b either].include?(gold['winner'])
+                when 'comparator'
+                  'winner must be a, b or either' unless Graders::Comparator::WINNERS.include?(gold['winner'])
                 when 'lister' then lister_problem(gold)
                 when 'scorer' then scorer_problem(gold)
                 end

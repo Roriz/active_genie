@@ -91,9 +91,10 @@ See [FORMAT.md](FORMAT.md) for the case, gold and pool formats.
 
 External data (datasets, fetched files) and gems must be MIT-licensed; never Apache. When no MIT
 source exists, the cases are written here instead: drafted with their intended gold in
-`eval/labeling/drafts/`, labeled by two blind passes, and merged with `rake eval:label CELL=<cell>`.
-A field enters the gold only when both passes agree with the draft, or a human decision in
-`eval/labeling/<cell>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
+`eval/labeling/drafts/<set>.jsonl`, labeled by two blind passes, and merged with `rake eval:label
+CELL=<set>`. A set is usually one cell; the comparator cells share the `comparator` set. A field
+enters the gold only when both passes agree with the draft, or a human decision in
+`eval/labeling/<set>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
 started from CUAD (CC BY 4.0) and CondaQA (Apache-2.0); both were replaced with drafted cases for
 this reason.
 

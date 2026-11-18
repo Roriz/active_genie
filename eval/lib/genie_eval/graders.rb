@@ -73,6 +73,8 @@ module GenieEval
     end
 
     module Comparator
+      WINNERS = %w[a b either].freeze
+
       module_function
 
       def grade(gold, record)
