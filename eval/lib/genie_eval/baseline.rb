@@ -24,6 +24,10 @@ module GenieEval
         results = Results.load(system.run_root, items, replicate: r)
         bad = results.missing + results.errors
         raise Error, "replicate r#{r} is incomplete (#{bad.size} missing or errored, e.g. #{bad.first.key})" if bad.any?
+        next if force
+
+        unjudged = results.rows.count { |row| row.grade.detail.fetch('fields', {}).value?('unjudged') }
+        raise Error, "replicate r#{r} has #{unjudged} case(s) waiting for the judge; run with YES=1 (FORCE=1 overrides)" if unjudged.positive?
       end
       return if force || !system.git['lib_dirty']
 

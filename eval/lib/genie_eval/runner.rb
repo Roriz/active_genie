@@ -39,7 +39,8 @@ module GenieEval
       { 'cases' => todo.size, 'input_tokens' => tokens['input'], 'output_tokens' => tokens['output'], 'usd' => usd }
     end
 
-    def run!
+    # `judge`: whether to call the (paid) judge model too; the rake tasks pass it only with YES=1.
+    def run!(judge: true)
       todo = pending
       self.class.configure!(system)
       if todo.empty?
@@ -49,7 +50,7 @@ module GenieEval
         run_pool(todo)
         @io.puts
       end
-      judge!
+      judge! if judge
     end
 
     # Grades every cached case once with the judge online, so the free report never has to call it.
@@ -66,7 +67,7 @@ module GenieEval
       rescue StandardError => e
         "#{item.key}: #{e.class}: #{e.message.lines.first&.strip}"
       end
-      @io.puts("Judge failed on #{failures.size} case(s), e.g. #{failures.first}") if failures.any?
+      @io.puts("Grading with the judge failed on #{failures.size} case(s), e.g. #{failures.first}") if failures.any?
     ensure
       Judge.online = false
     end

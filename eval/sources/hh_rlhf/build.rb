@@ -43,20 +43,35 @@ module HhRlhfSource
 
   def run
     download unless File.exist?(FILE)
-    raise "#{FILE}: SHA-256 mismatch, refusing to use it" unless Digest::SHA256.file(FILE).hexdigest == SHA256
+    verify!(FILE)
 
-    candidates = Zlib::GzipReader.open(FILE) { |gz| gz.each_line.filter_map { |line| candidate(JSON.parse(line)) } }
+    candidates = Zlib::GzipReader.open(FILE, external_encoding: Encoding::UTF_8) do |gz|
+      gz.each_line.filter_map { |line| candidate(JSON.parse(line)) }
+    end
     picked = candidates.group_by { |c| c[:length] }.values.flat_map do |group|
       group.sort_by { |c| c[:id] }.first(PER_LENGTH_SIDE)
     end
+    # Fewer on one side would let a length preference pay.
+    raise "only #{picked.size} drafts, want #{PER_LENGTH_SIDE} per length side" unless picked.size == 2 * PER_LENGTH_SIDE
+
     drafts = picked.sort_by { |c| c[:id] }.map { |c| draft(c) }
     GenieEval::Store.write_jsonl(GenieEval.path('labeling', 'drafts', "#{SET}.jsonl"), drafts)
     puts "#{SET}: #{picked.size} drafts from #{candidates.size} candidates; label them, then rake eval:label CELL=#{SET}"
   end
 
+  # Into a .part file first, so a failed, cut or unexpected download never sits at FILE.
   def download
     FileUtils.mkdir_p(File.dirname(FILE))
-    system('curl', '-sSL', '-o', FILE, URL, exception: true)
+    part = "#{FILE}.part"
+    system('curl', '--fail', '-sSL', '-o', part, URL, exception: true)
+    verify!(part)
+    File.rename(part, FILE)
+  end
+
+  def verify!(file)
+    return if Digest::SHA256.file(file).hexdigest == SHA256
+
+    raise "#{file}: SHA-256 mismatch, refusing to use it (delete it to download again)"
   end
 
   # Both texts are the same conversation up to the last reply.
@@ -86,6 +101,7 @@ module HhRlhfSource
     return false if context.count { |role, _| role == 'Human' } > MAX_USER_TURNS
     return false if context.sum { |_, body| body.size } > MAX_CONTEXT_CHARS
     return false unless REPLY_CHARS.cover?(good.size) && REPLY_CHARS.cover?(bad.size)
+    return false if good.size == bad.size # neither is the longer one: no `tags.length`
     return false if good.casecmp?(bad) || good.start_with?(bad) || bad.start_with?(good)
 
     ([good, bad] + context.map(&:last)).none? { |body| body.match?(SENSITIVE) }
@@ -100,9 +116,8 @@ module HhRlhfSource
       'input' => { 'player_a' => player_a, 'player_b' => player_b,
                    'criteria' => "#{CRITERIA}\n\nConversation:\n#{transcript(cand[:context])}" },
       'gold' => { 'winner' => good_is_a ? 'a' : 'b' },
-      'on_disagreement' => 'drop', 'labeled_by' => 'hh-rlhf crowdworker, confirmed by 2 blind passes',
-      'why' => 'hh-rlhf helpful-base test: the crowdworker picked this reply as more helpful, and both ' \
-               'blind labelers agreed.' }
+      'on_disagreement' => 'drop', 'labeled_by' => 'hh-rlhf crowdworker',
+      'why' => 'hh-rlhf helpful-base test: the crowdworker picked this reply as more helpful.' }
   end
 
   def transcript(context)

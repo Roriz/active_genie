@@ -53,7 +53,9 @@ subset, `YES=1` to spend money, `BY=name` for `eval:save`, `FORCE=1` to save fro
 
 `config.json` pins the models. The dev model (`gpt-6.1-terra`) runs in the loop; the four release
 models run before a release (the `Eval` GitHub workflow, triggered manually). The judge
-(`claude-sonnet-5-5`) is reserved for free-text grading in later phases. Moving to a newer model is a
+(`claude-sonnet-5-5`) grades gold fields marked `judge: true` when their deterministic check fails. It
+is only called by a paid run with `YES=1`; its verdicts are cached in `eval/judge/<model>.jsonl`
+(committed), so reports stay free. Moving to a newer model is a
 deliberate change: update `config.json` and save a new baseline. Add a model's price under
 `usd_per_million_tokens` to get dollar estimates instead of token counts.
 
@@ -78,7 +80,8 @@ replicate, `hard` if it didn't.
   about 22 points per cell and 8 overall; a smaller delta is not evidence of anything.
 - `delta`, `broke`, `fixed`, `p`: the paired comparison with the baseline on the same cases.
 - Extractor fields get one of five outcomes: correct, wrong value, omission, correct abstention or
-  invention. The field CI resamples whole cases, because fields of one document move together.
+  invention (or `unjudged`, counted as wrong, while a judge verdict is missing). The field CI
+  resamples whole cases, because fields of one document move together.
 - Comparator cases run in both orders; a case passes only if both orders pick the gold winner, and
   the report shows how often the winner is the same in both orders.
 - Scorer bias pairs: the mean |gap| between a text and its twin, and the mean signed gap per bias
@@ -90,9 +93,10 @@ See [FORMAT.md](FORMAT.md) for the case, gold and pool formats.
 
 External data (datasets, fetched files) and gems must be MIT-licensed; never Apache. When no MIT
 source exists, the cases are written here instead: drafted with their intended gold in
-`eval/labeling/drafts/`, labeled by two blind passes, and merged with `rake eval:label CELL=<cell>`.
-A field enters the gold only when both passes agree with the draft, or a human decision in
-`eval/labeling/<cell>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
+`eval/labeling/drafts/<set>.jsonl`, labeled by two blind passes, and merged with `rake eval:label
+CELL=<set>`. A set is usually one cell; the comparator cells share the `comparator` set. A field
+enters the gold only when both passes agree with the draft, or a human decision in
+`eval/labeling/<set>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
 started from CUAD (CC BY 4.0) and CondaQA (Apache-2.0); both were replaced with drafted cases for
 this reason.
 
