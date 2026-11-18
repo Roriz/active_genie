@@ -46,20 +46,22 @@ module ActiveGenie
         end
       end
 
-      # Critical Path: Stringified JSON Array Parsing
+      # Regression: juries.prompt.md was a copy of the Family Feud prompt
       def test_system_prompt_asks_for_juries_not_a_feud_survey
         stub_openai_response(why_these_juries: 'w', juries: %w[Editor])
 
         Juries.call('text', 'criteria', config: { llm: { provider: 'openai' }, providers: { openai: { api_key: 'k' } } })
 
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
-          system = JSON.parse(req.body)['messages'].find { |m| m['role'] == 'system' }['content']
+          system_prompt = JSON.parse(req.body)['messages'].find { |m| m['role'] == 'system' }&.dig('content')
 
-          assert_includes system, 'juries'
-          refute_includes system, 'Family Feud'
+          refute_nil system_prompt, 'expected a system message'
+          assert_includes system_prompt, 'juries'
+          refute_includes system_prompt, 'Family Feud'
         end
       end
 
+      # Critical Path: Stringified JSON Array Parsing
       def test_handles_stringified_array_response
         stub_openai_response(
           why_these_juries: 'These are selected juries.',
