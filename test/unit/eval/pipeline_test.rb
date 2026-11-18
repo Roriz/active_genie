@@ -137,6 +137,7 @@ class GenieEvalPipelineTest < Minitest::Test
     lister.call('typo', { 'type' => 'no_item', 'anyof' => ['a'] })
     lister.call('too_many', { 'type' => 'min_groups', 'min' => 3, 'groups' => [['a'], ['b']] })
     lister.call('no_k', { 'type' => 'top_k_any', 'any_of' => ['a'] })
+    lister.call('not_object', 3)
 
     errors = GenieEval::Check.new.run.errors.join("\n")
 
@@ -145,8 +146,7 @@ class GenieEvalPipelineTest < Minitest::Test
     assert_match %r{/typo: no_item takes any_of, not anyof}, errors
     assert_match %r{/too_many: min_groups min 3 is more than its 2 groups}, errors
     assert_match %r{/no_k: top_k_any needs a well-formed k}, errors
-  ensure
-    Store.reset!
+    assert_match %r{/not_object: each lister check must be an object with a type}, errors
   end
 
   private

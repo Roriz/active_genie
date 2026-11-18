@@ -94,7 +94,7 @@ module GenieEval
       def grade(gold, record)
         items = items(record.dig('output', 'data'))
         results = results(gold, items)
-        Grade.new(pass: results.all?(&:last), detail: { 'checks' => results.to_h, 'items' => items.size })
+        Grade.new(pass: results.all?(&:last), detail: { 'checks' => named(results), 'items' => items.size })
       end
 
       # Whether a list (as a labeler or the module gave it) passes every check of the gold.
@@ -106,14 +106,22 @@ module GenieEval
         gold.fetch('checks').map { |check| [check['type'], passes?(check, items)] }
       end
 
-      # A term matches where a word starts and may run on: "bee" matches "bees" and "rain" matches
-      # "rainy", but "rain" does not match "train" nor "apple" "pineapple".
-      def hit?(item, terms)
-        Array(terms).any? { |term| item.match?(/(?<![[:alnum:]])#{Regexp.escape(term.downcase)}/) }
+      # { type => pass }, a repeated type numbered ("any_item#2") so one result cannot hide another.
+      def named(results)
+        count = Hash.new(0)
+        results.to_h { |type, pass| [(count[type] += 1) > 1 ? "#{type}##{count[type]}" : type, pass] }
+      end
+
+      # Matches a term where a word starts and may run on: "bee" matches "bees" and "rain" matches
+      # "rainy", but "rain" does not match "train" nor "apple" "pineapple". Terms are normalized
+      # like items, so " ice" or "Ice  Cream" still match.
+      def pattern(terms)
+        /(?<![[:alnum:]])(?:#{Regexp.union(Array(terms).map { |term| Matchers.normalize(term) }).source})/
       end
 
       def passes?(check, items)
-        hit = ->(item) { hit?(item, check['any_of']) }
+        pattern = pattern(check['any_of'])
+        hit = ->(item) { item.match?(pattern) }
         case check['type']
         when 'top_k_any' then items.first(check.fetch('k')).any?(&hit)
         when 'bottom_k_none' then items.last(check.fetch('k')).none?(&hit)
@@ -128,7 +136,10 @@ module GenieEval
       # At least `min` of the `groups` (each a list of synonyms) are filled, each by a different item:
       # one answer such as "ice cream" fills either the ice group or the ice cream group, not both.
       def min_groups?(check, items)
-        fits = check.fetch('groups').map { |group| items.each_index.select { |i| hit?(items[i], group) } }
+        fits = check.fetch('groups').map do |group|
+          pattern = pattern(group)
+          items.each_index.select { |i| items[i].match?(pattern) }
+        end
         owner = {} # item index => the group it fills
         filled = fits.each_index.count { |group| fill(group, fits, owner, Set.new) }
         filled >= check.fetch('min')

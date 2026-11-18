@@ -83,6 +83,15 @@ class GenieEvalGradersTest < Minitest::Test
     refute Graders::Lister.pass?(rain, ['Missed the train'])
     refute Graders::Lister.pass?({ 'checks' => [{ 'type' => 'top_k_any', 'k' => 1, 'any_of' => ['apple'] }] },
                                  ['Pineapple'])
+    assert Graders::Lister.pass?({ 'checks' => [{ 'type' => 'any_item', 'any_of' => [' Ice  Cream'] }] },
+                                 ['Vanilla ice cream']), 'terms are normalized like items'
+  end
+
+  def test_lister_detail_keeps_every_check_of_a_type
+    gold = { 'checks' => [{ 'type' => 'any_item', 'any_of' => ['legal'] }, { 'type' => 'any_item', 'any_of' => ['crypto'] }] }
+
+    assert_equal({ 'any_item' => false, 'any_item#2' => true },
+                 Graders::Lister.grade(gold, output(['Crypto analyst'])).detail['checks'])
   end
 
   def test_lister_min_groups_fills_each_group_with_a_different_item
@@ -91,7 +100,7 @@ class GenieEvalGradersTest < Minitest::Test
     refute Graders::Lister.pass?(gold, ['Ice cream']), 'one answer fills one group'
     assert Graders::Lister.pass?(gold, ['Ice cream', 'Ice cubes'])
 
-    # "Ice cream" first takes the ice group; it must move to ice cream so "Ice cubes" can fill ice.
+    # "Ice cream" first takes the ice group; it must move to cream so "Ice cubes" can fill ice.
     three = { 'checks' => [{ 'type' => 'min_groups', 'min' => 3, 'groups' => [['ice'], ['cream'], ['cube']] }] }
 
     assert Graders::Lister.pass?(three, ['Ice cream', 'Ice cubes', 'Cream soda'])

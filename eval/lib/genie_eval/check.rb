@@ -115,6 +115,7 @@ module GenieEval
     def lister_problem(gold)
       checks = gold['checks']
       return 'lister gold needs a non-empty checks array' unless checks.is_a?(Array) && checks.any?
+      return 'each lister check must be an object with a type' unless checks.all? { |c| c.is_a?(Hash) && c['type'] }
 
       unknown = checks.map { |c| c['type'] } - LISTER_CHECKS.keys
       return "unknown lister checks #{unknown.join(', ')}" if unknown.any?

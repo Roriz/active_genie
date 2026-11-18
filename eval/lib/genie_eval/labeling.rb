@@ -73,6 +73,7 @@ module GenieEval
         if !d['field'] && !CASE_ACTIONS.include?(d['action'])
           raise Error, "#{set} decision #{d['id']}: action #{d['action'].inspect} (a case takes exclude or include)"
         end
+        raise Error, "#{set} decision #{d['id']}.#{d['field']}: a set needs its spec" if d['action'] == 'set' && !d.key?('spec')
 
         (out[d['id']] ||= {})[d['field']] = d
       end
@@ -160,16 +161,16 @@ module GenieEval
 
     # Rewrites every cell the set has rows in: the cells its drafts name, and any cell whose gold still
     # tags rows with the set. A row whose draft was removed, or whose draft no longer names that cell,
-    # is dropped there with its case and pool entry.
+    # is dropped there with its case and pool entry. Other sources' rows in a cell are kept.
     def write(set, targets, drafts, promoted, queue)
       Store.write_jsonl(GenieEval.path('labeling', set, 'queue.jsonl'), queue)
-      drafted = drafts.to_set { |d| d['id'] }
       tagged = tagged_ids(set)
       (targets | tagged.keys).each do |cell|
         mine = promoted.select { |d| cells(d).include?(cell) }
         cases = mine.map { |d| { 'id' => d['id'], 'cell' => cell }.merge(d.slice('source', 'tags', 'input')) }
         gold = mine.map { |d| d.slice('id', 'gold', 'why', 'labeled_by').merge('set' => set) }
-        owned = drafted | tagged.fetch(cell, Set.new)
+        named = drafts.select { |d| cells(d).include?(cell) }.to_set { |d| d['id'] }
+        owned = named | tagged.fetch(cell, Set.new)
         Store.replace_cases(cell, cases, gold) { |id| owned.include?(id) }
       end
     end
