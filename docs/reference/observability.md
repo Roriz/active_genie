@@ -64,6 +64,8 @@ Use `remove_observer(observers)` to drop specific ones, or `clear_observers` to 
 | :--- | :--- |
 | `ActiveGenie::Providers::BaseProvider::ProviderUnknownError` | Any non-2xx response from a provider, or a response body that isn't valid JSON. This is the error you will see most: bad API key, exhausted credits, rate limiting, model not found, provider outage. |
 | `ActiveGenie::Providers::BaseProvider::ProviderTransientError` | A subclass of `ProviderUnknownError` for rate limits (429), request timeouts (408) and server errors (5xx) that were still failing after all retries. Rescue it to treat these differently from permanent failures. |
+| `ActiveGenie::Providers::BaseProvider::RefusalError` | The provider declined the request: an Anthropic `refusal` stop reason, or a Google prompt or answer blocked by its safety filters. The message names the category or block reason. Not retried. |
+| `ActiveGenie::Providers::BaseProvider::InvalidResponseError` | The provider answered, but not with a usable result: no tool call or text, an answer cut off by the token limit, or malformed JSON. Not retried. |
 | `ActiveGenie::WithoutAvailableProviderError` | No configured provider has a usable API key. |
 | `ActiveGenie::InvalidLogOutputError` | `config.log.output` was set to something that doesn't respond to `call`. |
 | `Net::OpenTimeout`, `Net::ReadTimeout`, `Errno::ECONNREFUSED` | Network-level failure that survived all retries. |

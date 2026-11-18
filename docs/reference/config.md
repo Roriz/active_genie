@@ -94,10 +94,28 @@ end
 
 ### Methods
 
-- `config.providers.add(name, provider_configs)` registers a custom provider configuration class.
-- `config.providers.remove(provider_configs)` removes registered providers.
+- `config.providers.add(name, provider_config)` replaces a built-in provider's configuration with your own class or instance. `name` must be one of `:openai`, `:google`, `:anthropic` or `:deepseek`; any other name raises `ArgumentError`, because ActiveGenie can only call those four APIs.
+- `config.providers.remove(names)` removes providers by name (a symbol, a string, or a list), so they are never chosen for a call.
 - `config.providers.valid` returns the providers that currently have a usable API key.
 - `config.providers.provider_name_by_model(model)` returns the provider a given model name resolves to.
+
+For example, to send OpenAI calls through an OpenAI-compatible gateway and never use DeepSeek:
+
+```ruby
+class GatewayConfig < ActiveGenie::Config::Providers::OpenaiConfig
+  def api_url
+    @api_url || 'https://gateway.example.com/v1'
+  end
+end
+
+ActiveGenie.configure do |config|
+  config.providers.add(:openai, GatewayConfig)
+  config.providers.openai.api_key = ENV['GATEWAY_API_KEY']
+  config.providers.remove(:deepseek)
+end
+```
+
+Both changes carry over to every module call. A per-call `config:` can still pass settings for a removed provider, which brings it back for that call only.
 
 ## Recommended models
 

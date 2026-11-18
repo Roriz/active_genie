@@ -5,13 +5,12 @@ require 'net/http'
 
 require_relative 'base_provider'
 require_relative 'usage_logger'
+require_relative 'tool_arguments'
 
 module ActiveGenie
   module Providers
     class DeepseekProvider < BaseProvider
       USAGE_KEYS = { input: 'prompt_tokens', output: 'completion_tokens', total: 'total_tokens' }.freeze
-
-      class InvalidResponseError < StandardError; end
 
       # Thinking-mode models reject a forced tool_choice. The error text names
       # the offending parameter, so detect it and fall back to 'auto'.
@@ -66,7 +65,7 @@ module ActiveGenie
 
         body_str = get_response_body(response)
         parsed_response = parse_json_safely(body_str)
-        parsed_response['message'] || parsed_response
+        ToolArguments.unwrap(parsed_response, payload.dig(:tools, 0, :function))
       end
 
       # Parses tool arguments, repairing unquoted string values once. A second
