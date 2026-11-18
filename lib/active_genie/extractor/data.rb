@@ -53,15 +53,22 @@ module ActiveGenie
       # Every field is required, so each one also accepts null: that is how the model says the text
       # does not state it. Without it, strict schemas (OpenAI) force a value and the model invents one.
       # Booleans stay as given: "whether X" is false when the text has no X, and a null there would
-      # turn a clear "no" into "unknown". Fields without a `type` (e.g. `anyOf`) are left as given.
+      # turn a clear "no" into "unknown". Fields with neither a `type` nor an `enum` (e.g. `anyOf`)
+      # are left as given.
       def nullable(field)
-        type_key = field.key?('type') ? 'type' : :type
-        return field if field[type_key].nil? || field[type_key].to_s == 'boolean'
+        return field unless field.is_a?(Hash)
 
-        enum_key = field.key?('enum') ? 'enum' : :enum
-        nullable = field.merge(type_key => Array(field[type_key]) | ['null'])
-        nullable[enum_key] = field[enum_key] | [nil] if field[enum_key]
-        nullable
+        field = field.transform_keys(&:to_s)
+        types = Array(field['type']).map(&:to_s)
+        return field unless accepts_null?(types, field['enum'])
+
+        field = field.merge('type' => types | ['null']) unless types.empty?
+        field = field.merge('enum' => Array(field['enum']) | [nil]) if field['enum']
+        field
+      end
+
+      def accepts_null?(types, enum)
+        types.empty? ? !enum.nil? : types != ['boolean']
       end
 
       def response_formatted(provider_response)

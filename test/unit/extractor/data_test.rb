@@ -137,8 +137,11 @@ module ActiveGenie
         schema = @schema.merge(
           level: { type: 'string', enum: %w[junior senior] },
           remote: { type: 'boolean' },
+          onsite: { type: %w[boolean] },
+          seniority: { enum: %w[junior senior] },
           'tags' => { 'type' => %w[array], 'items' => { 'type' => 'string' } },
-          'any' => { 'anyOf' => [{ 'type' => 'string' }] }
+          'any' => { 'anyOf' => [{ 'type' => 'string' }] },
+          'shorthand' => 'string'
         )
 
         Data.call(@text, schema, config: { llm: { provider: 'openai' }, providers: { openai: { api_key: 'test_key' } } })
@@ -151,7 +154,11 @@ module ActiveGenie
           assert_equal ['junior', 'senior', nil], props['level']['enum']
           assert_equal %w[array null], props['tags']['type']
           assert_equal 'boolean', props['remote']['type'], 'a missing "whether X" is false, not null'
+          assert_equal %w[boolean], props['onsite']['type'], 'array-form booleans stay non-nullable too'
+          assert_equal ['junior', 'senior', nil], props['seniority']['enum']
+          refute props['seniority'].key?('type'), 'a type-less enum gets no type added'
           assert_equal({ 'anyOf' => [{ 'type' => 'string' }] }, props['any'])
+          assert_equal 'string', props['shorthand'], 'non-hash field descriptors pass through'
         end
         assert_equal 'string', @schema[:name][:type], 'the caller schema is not mutated'
       end
