@@ -108,6 +108,52 @@ module ActiveGenie
         end
       end
 
+      # Critical Path: answers without usable text must raise a clear error,
+      # not return nil for every module to crash on.
+      def test_blocked_prompt_raises_a_refusal_error
+        stub_google(promptFeedback: { blockReason: 'SAFETY' })
+
+        error = assert_raises(BaseProvider::RefusalError) { call_google }
+
+        assert_includes error.message, 'SAFETY'
+      end
+
+      def test_blocked_candidate_raises_a_refusal_error
+        stub_google(candidates: [{ finishReason: 'PROHIBITED_CONTENT' }])
+
+        error = assert_raises(BaseProvider::RefusalError) { call_google }
+
+        assert_includes error.message, 'PROHIBITED_CONTENT'
+      end
+
+      def test_answer_cut_off_by_the_token_limit_raises_invalid_response
+        stub_google(candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ text: '{"score": ' }] } }])
+
+        error = assert_raises(BaseProvider::InvalidResponseError) { call_google }
+
+        assert_includes error.message, 'MAX_TOKENS'
+      end
+
+      def test_answer_without_text_raises_invalid_response
+        stub_google(candidates: [{ finishReason: 'OTHER' }])
+
+        assert_raises(BaseProvider::InvalidResponseError) { call_google }
+      end
+
+      def test_answer_that_is_not_json_raises_invalid_response
+        stub_google(candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'Sure! The score is 8.' }] } }])
+
+        assert_raises(BaseProvider::InvalidResponseError) { call_google }
+      end
+
+      def test_modules_surface_the_refusal_instead_of_crashing
+        stub_google(promptFeedback: { blockReason: 'SAFETY' })
+
+        assert_raises(BaseProvider::RefusalError) do
+          ActiveGenie::Lister.call('theme', config: { providers: { google: { api_key: 'test_key' } } })
+        end
+      end
+
       def test_calculate_continuous_score_helpers
         logprobs_result = {
           'chosenCandidates' => [{ 'token' => 'score' }, { 'token' => '": ' }, { 'token' => '8' }],
@@ -132,6 +178,17 @@ module ActiveGenie
         refute_nil score_res
         assert_in_delta 7.8, score_res.expected_value, 0.1
         assert_in_delta 0.7556, score_res.normalized_score, 0.02
+      end
+
+      private
+
+      def stub_google(body)
+        stub_request(:post, /generativelanguage\.googleapis\.com/)
+          .to_return(body: { usageMetadata: { promptTokenCount: 1 }, **body }.to_json)
+      end
+
+      def call_google
+        @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION)
       end
     end
   end

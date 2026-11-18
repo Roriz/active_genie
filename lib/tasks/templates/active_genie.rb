@@ -1,19 +1,20 @@
 # frozen_string_literal: true
 
 ActiveGenie.configure do |config|
-  # example with openai and the current default for each config
+  # Providers: set a key for each one you use (defaults shown)
   # config.providers.openai.api_key = ENV['OPENAI_API_KEY']
   # config.providers.openai.organization = ENV['OPENAI_ORGANIZATION']
   # config.providers.openai.api_url = 'https://api.openai.com/v1'
-  # config.providers.openai.client = ActiveGenie::Providers::Openai::Client.new(config)
+  # config.providers.default = 'openai' # skip it to let each module pick
 
-  # example how add a new provider
-  # config.providers.add(InternalCompanyApi::Configuration)
+  # Replace a built-in provider's config (e.g. an OpenAI-compatible gateway), or drop one
+  # config.providers.add(:openai, MyGatewayConfig)
+  # config.providers.remove(:deepseek)
 
-  # Logs configuration
-  # config.log.log_level = :debug # default is :info
-  # config.log.add_observer(GlobalLogObserver.new)
-  # config.log.add_observer(PersistUsageObserver.new, scope: { code: 'llm_usage' })
+  # Logs
+  # config.log.output = ->(log) { Rails.logger.info(log) } # default prints to stdout
+  # config.log.add_observer(observers: [GlobalLogObserver.new])
+  # config.log.add_observer(observers: [PersistUsageObserver.new], scope: { code: :llm_usage })
   # config.log.remove_observer(PersistUsageObserver.new)
   # config.log.clear_observers
 end

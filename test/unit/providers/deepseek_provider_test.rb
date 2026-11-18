@@ -38,6 +38,13 @@ module ActiveGenie
         assert_includes error.message, '{"score": [8,'
       end
 
+      def test_schema_field_named_message_is_returned_intact
+        function = { name: 'extract', parameters: { type: 'object', properties: { message: { type: 'string' } } } }
+        stub_arguments('{"message": "Order arrived late"}')
+
+        assert_equal({ 'message' => 'Order arrived late' }, provider.function_calling(MESSAGES, function))
+      end
+
       private
 
       def stub_arguments(arguments)
