@@ -15,7 +15,7 @@ module GenieEval
 
       # Identifies the exact input, so an output cached for an older version of the case is never reused.
       def input_sha
-        Digest::SHA256.hexdigest(JSON.generate(self.case['input']))[0, 16]
+        @input_sha ||= Digest::SHA256.hexdigest(JSON.generate(self.case['input']))[0, 16]
       end
 
       # The cached record at `path` if it was produced from this input, else nil.

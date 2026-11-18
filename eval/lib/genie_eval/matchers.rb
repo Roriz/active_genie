@@ -9,6 +9,7 @@ module GenieEval
     CHECKS = %w[eq one_of regex contains_any contains_all gte lte between near nonempty date].freeze
     DATE_FORMATS = ['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y', '%B %d, %Y', '%b %d, %Y', '%B %d %Y', '%d %B %Y', '%d %b %Y',
                     '%b. %d, %Y'].freeze
+    ISO_TIME = /[T ]\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?\z/
 
     module_function
 
@@ -67,11 +68,16 @@ module GenieEval
     end
 
     # A calendar date in any common written form ("2014-02-10", "2/10/14", "February 10th, 2014"), else nil.
+    # Trailing words pass ("2014-02-10 (signed)"); a second number does not ("2014-02-10 or 2014-03-10"),
+    # because Date.strptime itself ignores whatever follows the date.
     def date(value)
-      text = value.to_s.strip.sub(/(\d)(?:st|nd|rd|th)\b/, '\1')
+      text = value.to_s.strip.sub(/(\d)(?:st|nd|rd|th)\b/, '\1').sub(ISO_TIME, '')
       DATE_FORMATS.each do |format|
-        parsed = Date.strptime(text, format)
-        return parsed if parsed.year >= 100 # "2/10/14" must not match %Y as year 14
+        parts = Date._strptime(text, format)
+        # year < 100: "2/10/14" must not match %Y as year 14
+        next if parts.nil? || parts[:year].to_i < 100 || parts[:leftover].to_s.match?(/\d/)
+
+        return Date.new(parts[:year], parts[:mon], parts[:mday])
       rescue Date::Error
         next
       end

@@ -45,6 +45,13 @@ Metrics/ClassLength:
     - 'test/**/*'
     - 'eval/**/*'
 
+Metrics/ModuleLength:
+  CountComments: false
+  CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
+  Exclude:
+    - 'test/**/*'
+    - 'eval/**/*'
+
 Layout/LineLength:
   AllowedPatterns: ['\s#']
   Exclude:

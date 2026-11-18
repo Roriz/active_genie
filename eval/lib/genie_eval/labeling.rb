@@ -9,6 +9,9 @@ module GenieEval
   #   eval/labeling/<set>/decisions.jsonl  human decisions, append-only; the latest per (id, field) wins
   #   eval/labeling/<set>/queue.jsonl      what still needs a decision (rewritten on every merge)
   #
+  # A pass row's values are always in the draft's terms: a comparator `winner` names the draft's
+  # player_a or player_b, whatever `order` the labeler saw the players in.
+  #
   # A set is usually one cell. A draft may name several `cells` instead, so the same cases are
   # labeled once and feed each of them (comparator.by_debate and by_fight share theirs).
   #
@@ -16,28 +19,36 @@ module GenieEval
   # scorer's `score` (a number, or { "text", "twin" } numbers for a bias pair).
   # A field is agreed when the drafted gold accepts both passes' values, using the same matchers as
   # grading. A case enters the test pool when every field is agreed or decided, and is not excluded.
-  # A draft whose gold came from a noisy source (`on_disagreement: drop`) is dropped on any
-  # disagreement instead of queued: only its clear cases are kept.
+  # A draft whose gold came from a noisy source (`on_disagreement: drop`) is dropped as soon as a
+  # pass disagrees, instead of queued: only its clear cases are kept. Such a draft names that source in
+  # `labeled_by`; the gold then says whether the passes confirmed it or a human settled it.
   module Labeling
+    FIELD_ACTIONS = %w[set accept].freeze
+
     module_function
 
     def merge(set)
+      drafted = drafts(set)
+      raise Error, "no drafted cases for #{set} in eval/labeling/drafts/" if drafted.empty?
+
+      targets = drafted.flat_map { |d| cells(d) }.uniq
+      targets.each { |cell| Store.cell(cell) } # an unknown cell raises before any write
       decisions = latest_decisions(set)
       passes = %w[a b].to_h { |p| [p, pass(set, p)] }
       promoted = []
       queue = []
       dropped = 0
-      drafts(set).each do |draft|
+      drafted.each do |draft|
         decided = decisions[draft['id']] || {}
-        next if decided.dig(nil, 'action') == 'exclude'
+        next if decided[nil]&.fetch('action') == 'exclude'
 
         open = open_fields(draft, passes, decided)
         if open.empty? then promoted << resolve(draft, decided)
-        elsif draft['on_disagreement'] == 'drop' && open.none? { |q| q['unlabeled'].any? } then dropped += 1
+        elsif draft['on_disagreement'] == 'drop' && open.any? { |q| disagreed?(q) } then dropped += 1
         else queue.concat(open)
         end
       end
-      write(set, promoted, queue)
+      write(set, targets, drafted, promoted, queue)
       { promoted: promoted.size, queued: queue.map { |q| q['id'] }.uniq.size, dropped:, queue: }
     end
 
@@ -54,32 +65,52 @@ module GenieEval
     # { id => { field_or_nil => decision } }, latest wins.
     def latest_decisions(set)
       Store.read_jsonl(GenieEval.path('labeling', set, 'decisions.jsonl')).each_with_object({}) do |d, out|
+        if d['field'] && !FIELD_ACTIONS.include?(d['action'])
+          raise Error, "#{set} decision #{d['id']}.#{d['field']}: action #{d['action'].inspect} (a field takes set or accept)"
+        end
+
         (out[d['id']] ||= {})[d['field']] = d
       end
     end
 
+    # A pass row with no value for a field has not labeled it: it is `unlabeled`, so a drop draft
+    # waits for a relabel unless the other pass already disagrees.
     def open_fields(draft, passes, decided)
+      values = passes.transform_values { |rows| rows[draft['id']] }
       fields(draft['gold']).filter_map do |field, spec|
         next if decided.key?(field)
-
-        values = passes.transform_values { |rows| rows[draft['id']] }
-        next if values.values.all? { |row| row && accepts?(spec, row['values'][field]) }
+        next if values.values.all? { |row| row && accepts?(spec, row.dig('values', field)) }
 
         { 'id' => draft['id'], 'field' => field, 'drafted' => spec,
           'pass_a' => values['a']&.dig('values', field), 'pass_b' => values['b']&.dig('values', field),
-          'unlabeled' => values.select { |_k, row| row.nil? }.keys }
+          'unlabeled' => values.select { |_k, row| row.nil? || !row['values']&.key?(field) }.keys }
       end
     end
 
-    # The labeled fields of a gold: { name => spec }.
-    def fields(gold)
-      return gold['fields'] if gold.key?('fields')
-
-      gold.key?('band') ? { 'score' => gold } : { 'winner' => gold }
+    # A pass that labeled this open field gave a value the drafted gold does not accept.
+    def disagreed?(open_field)
+      (%w[a b] - open_field['unlabeled']).any? { |p| !accepts?(open_field['drafted'], open_field["pass_#{p}"]) }
     end
 
+    # The labeled fields of a gold: { name => spec }. Other graders' gold has no labeling yet.
+    def fields(gold)
+      return gold['fields'] if gold.key?('fields')
+      return { 'winner' => gold } if gold.key?('winner')
+      return { 'score' => gold } if gold.key?('band')
+
+      raise Error, 'labeling takes extractor fields, a comparator winner or a scorer band, ' \
+                   "not a gold with #{gold.keys.join(', ')}"
+    end
+
+    # A comparator pass value outside a, b and either is a broken label, not a disagreement.
     def accepts?(spec, value)
-      return value == spec['winner'] if spec.key?('winner')
+      if spec.key?('winner')
+        unless value.nil? || Graders::Comparator::WINNERS.include?(value)
+          raise Error, "a pass gave winner #{value.inspect}; it takes #{Graders::Comparator::WINNERS.join(', ')}"
+        end
+
+        return value == spec['winner']
+      end
       return scored_within?(spec, value) if spec.key?('band')
 
       Graders::Extractor::RIGHT.include?(Graders::Extractor.outcome(spec, value))
@@ -90,33 +121,44 @@ module GenieEval
       Graders::Scorer.within?(spec, Matchers.number(scores['text']), Matchers.number(scores['twin']))
     end
 
-    # Decided fields replace the drafted spec ("set") or keep it ("accept").
+    # Decided fields replace the drafted spec ("set") or keep it ("accept"). A comparator's winner or
+    # a scorer's score spec is its whole gold, so a "set" decision gives e.g. {"winner": "b"}.
     def resolve(draft, decided)
       chosen = fields(draft['gold']).to_h do |field, spec|
         decision = decided[field]
         [field, decision && decision['action'] == 'set' ? decision.fetch('spec') : spec]
       end
       gold = draft['gold'].key?('fields') ? draft['gold'].merge('fields' => chosen) : chosen.values.first
-      draft.merge('gold' => gold)
+      unless gold.is_a?(Hash) && %w[fields winner band].any? { |k| gold.key?(k) }
+        raise Error, "#{draft['id']}: a winner or score decision's spec is the whole gold, e.g. {\"winner\": \"b\"}"
+      end
+
+      draft.merge('gold' => gold, 'labeled_by' => labeled_by(draft, decided))
     end
 
-    def write(set, promoted, queue)
+    def labeled_by(draft, decided)
+      return 'drafted, 2 blind passes, human decisions' unless draft['labeled_by']
+
+      settled = decided.except(nil).any? # the nil key is a case-level decision, not a field
+      "#{draft['labeled_by']}, #{settled ? 'settled by a human decision' : 'confirmed by 2 blind passes'}"
+    end
+
+    def write(set, targets, drafts, promoted, queue)
       Store.write_jsonl(GenieEval.path('labeling', set, 'queue.jsonl'), queue)
-      all = drafts(set)
-      drafted = all.to_set { |d| d['id'] }
-      all.flat_map { |d| cells(d) }.uniq.each do |cell|
+      drafted = drafts.to_set { |d| d['id'] }
+      targets.each do |cell|
         mine = promoted.select { |d| cells(d).include?(cell) }
         cases = mine.map { |d| { 'id' => d['id'], 'cell' => cell }.merge(d.slice('source', 'tags', 'input')) }
-        gold = mine.map do |d|
-          { 'id' => d['id'], 'gold' => d['gold'], 'why' => d['why'],
-            'labeled_by' => d['labeled_by'] || 'drafted, 2 blind passes, human decisions' }
-        end
+        gold = mine.map { |d| d.slice('id', 'gold', 'why', 'labeled_by') }
         Store.replace_cases(cell, cases, gold) { |id| drafted.include?(id) }
       end
     end
 
     def cells(draft)
-      draft['cells'] || [draft.fetch('cell')]
+      names = draft['cells'] || [draft['cell']].compact
+      return names if names.is_a?(Array) && names.any?
+
+      raise Error, "draft #{draft['id']} names no cell or cells"
     end
   end
 end
