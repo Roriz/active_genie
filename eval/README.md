@@ -110,7 +110,7 @@ offline run -> baseline -> regression cycle with a stubbed model.
 
 ## Known issues and future improvements
 
-Found while building the extractor cells (2026-11-17, gpt-6.1-terra). Each one is a hypothesis to
+Found while building the extractor and comparator cells (2026-11-17, gpt-6.1-terra). Each one is a hypothesis to
 test with a paired run, not a decided change.
 
 - **`Extractor::Explanation` and litote use the same strict, non-nullable schema.** They avoid
@@ -128,6 +128,18 @@ test with a paired run, not a decided change.
   the wording to try.
 - **`webmock` pulls in `addressable` (Apache-2.0).** It is a test-only dependency of the library's
   unit tests. Replacing it means our own minimal HTTP stub in `test/`; decide separately.
+
+- **Comparator test pool is near the ceiling.** First run (2026-11-17, gpt-6.1-terra, 41 hh-rlhf
+  test cases + 10 dev cases per cell): `by_debate` 50/51, `by_fight` 47/51; same winner in both
+  orders 98.0% and 96.1%. On the 41 paired test cases `by_debate` fixes 3 cases `by_fight` misses and
+  loses none (exact McNemar p = 0.25): the direction supports "a longer debate makes the decision
+  easier", but the sample cannot show it. Keeping only pairs both labelers agree on made the set
+  easy. To test the theory, adjudicate the 17 dropped pairs where one labeler agreed with the
+  crowdworker and the other said "either" (the labeling desk, phase 5), and draft harder pairs.
+  Three of the four failures have the shorter reply as the winner (`tags.length`).
+- **No "either" cases in the comparator test pool.** hh-rlhf always has a pick, so ties and
+  taste-dependent pairs are only in the dev pool (from `test/e2e`). Draft some if consistency on
+  ties matters.
 
 ## Data for the next phases (license check, 2026-11-17)
 
