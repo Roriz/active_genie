@@ -103,7 +103,7 @@ agreement and only count towards consistency.
 ```
 
 An item matches when it contains any of the substrings, case-insensitive. A case passes when
-every check passes. (Phase 4 adds human answer counts for the Family Feud score.)
+every check passes. (Human answer counts for a Family Feud score need a survey of our own; see the README.)
 
 ### Scorer gold
 

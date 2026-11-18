@@ -158,4 +158,25 @@ class GenieEvalJudgeLabelingTest < Minitest::Test
     assert_equal [1, 1], result.values_at(:promoted, :queued)
     assert_equal({ 'band' => [40, 80], 'max_gap' => 10 }, Store.gold(cell)['close']['gold'])
   end
+
+  def test_labeling_a_lister_case_checks_each_labelers_list
+    cell = 'lister.with_feud'
+    Store.write_json(GenieEval.path('cells.json'), [{ 'id' => cell, 'grader' => 'lister', 'weight' => 1 }])
+    gold = { 'checks' => [{ 'type' => 'top_k_any', 'k' => 1, 'any_of' => ['apple'] },
+                          { 'type' => 'no_item', 'any_of' => ['lychee'] }] }
+    Store.write_jsonl(GenieEval.path('labeling', 'drafts', "#{cell}.jsonl"), %w[agreed split].map do |id|
+      { 'id' => id, 'cell' => cell, 'source' => 'drafted', 'tags' => {}, 'why' => 'w', 'input' => { 'theme' => 't' }, 'gold' => gold }
+    end)
+    %w[a b].each do |pass|
+      Store.write_jsonl(GenieEval.path('labeling', cell, "pass_#{pass}.jsonl"), [
+                          { 'id' => 'agreed', 'values' => { 'list' => %w[Apples Cherry] } },
+                          { 'id' => 'split', 'values' => { 'list' => pass == 'a' ? %w[Apple] : %w[Apple Lychee] } }
+                        ])
+    end
+
+    result = GenieEval::Labeling.merge(cell)
+
+    assert_equal [1, 1], result.values_at(:promoted, :queued)
+    assert_equal gold, Store.gold(cell)['agreed']['gold']
+  end
 end

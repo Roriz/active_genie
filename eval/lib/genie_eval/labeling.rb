@@ -12,8 +12,8 @@ module GenieEval
   # A set is usually one cell. A draft may name several `cells` instead, so the same cases are
   # labeled once and feed each of them (comparator.by_debate and by_fight share theirs).
   #
-  # Each graded field of the gold is labeled: the extractor's `fields`, a comparator's `winner`, or a
-  # scorer's `score` (a number, or { "text", "twin" } numbers for a bias pair).
+  # Each graded field of the gold is labeled: the extractor's `fields`, a comparator's `winner`, a
+  # scorer's `score` (a number, or { "text", "twin" } numbers for a bias pair), or a lister's `list`.
   # A field is agreed when the drafted gold accepts both passes' values, using the same matchers as
   # grading. A case enters the test pool when every field is agreed or decided, and is not excluded.
   # A draft whose gold came from a noisy source (`on_disagreement: drop`) is dropped on any
@@ -74,6 +74,7 @@ module GenieEval
     # The labeled fields of a gold: { name => spec }.
     def fields(gold)
       return gold['fields'] if gold.key?('fields')
+      return { 'list' => gold } if gold.key?('checks')
 
       gold.key?('band') ? { 'score' => gold } : { 'winner' => gold }
     end
@@ -81,6 +82,7 @@ module GenieEval
     def accepts?(spec, value)
       return value == spec['winner'] if spec.key?('winner')
       return scored_within?(spec, value) if spec.key?('band')
+      return Graders::Lister.grade(spec, { 'output' => { 'data' => value } }).pass if spec.key?('checks')
 
       Graders::Extractor::RIGHT.include?(Graders::Extractor.outcome(spec, value))
     end
