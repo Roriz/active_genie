@@ -30,11 +30,20 @@ module GenieEval
       config = input['config'] || {}
       return comparator(cell_id, input, config) if cell_id.start_with?('comparator.')
 
-      call = CALLS.fetch(cell_id)
-      record = { 'output' => serialize(call.call(input, config)) }
-      # A scorer bias pair also scores its twin text, with everything else the same.
-      record['twin'] = serialize(call.call(input.merge('text' => input['twin']), config)) if input['twin']
-      record
+      return scorer_pair(input, config) if input['twin']
+
+      { 'output' => serialize(CALLS.fetch(cell_id).call(input, config)) }
+    end
+
+    # A scorer bias pair scores the text and its twin with the same juries: the case's own, or juries
+    # picked once from the text. Picking them per text would mix jury choice into the gap.
+    def scorer_pair(input, config)
+      juries = input['juries'] || ActiveGenie::Lister.with_juries(input['text'], input['criteria'], config:).data
+      shared = input.merge('juries' => juries)
+      call = CALLS.fetch('scorer.by_jury_bench')
+      { 'output' => serialize(call.call(shared, config)),
+        'twin' => serialize(call.call(shared.merge('text' => input['twin']), config)),
+        'juries' => juries }
     end
 
     # Comparators run in both orders; winners are mapped back to the case's own a/b labels.

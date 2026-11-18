@@ -110,7 +110,9 @@ calibration cases (a gold band, including texts whose polish and quality disagre
 eloquent essay full of false claims) and 18 bias pairs, three for each of six biases from the
 LLM-as-a-judge literature: verbosity, authority, bandwagon, injection (a note telling the
 evaluator what score to give), identity (the author's name, age or origin) and distraction. The
-labelers see both versions of a pair side by side. The test cases leave `juries` out, so the scorer
+labelers see both versions of a pair side by side. 25 of the 30 passed labeling (10 calibration
+cases and 15 pairs); until the queue is decided, verbosity has one pair and authority two, so
+their per-bias gaps rest on one or two cases. The test cases leave `juries` out, so the scorer
 picks its own with `Lister::Juries`: that is how `lister.with_juries` is judged, by its effect on
 the scorer.
 
@@ -154,13 +156,15 @@ test with a paired run, not a decided change.
 
 - **`Lister::Juries` used the Family Feud prompt.** Since the rename in #63, `juries.prompt.md` was
   a copy of `feud.prompt.md`, so the scorer picked its juries with a survey prompt: 3 to 7 juries
-  per case (mean 4.1). With a juries prompt (fix/juries-prompt), it picks exactly 3 and the scorer
-  passes 42/45 instead of 40/45 (+2 / -0 on the same cases; too few flips to be significant).
-- **The scorer barely moves on the bias pairs.** First run (25 test cases): mean |gap| 3.5 points,
-  and no bias type pushes scores up; only distraction lowers them (mean -7.3, with -16 on a bug
-  report where the twin adds a loyal-customer aside). The 18 pairs are easy to see through, which
-  is good news for the method but means the set cannot yet show whether more viewpoints remove
-  bias. Next: subtler pairs (a confident vs a hedged tone, a polished vs a plain layout) and a
+  per case (mean 4.1). With a juries prompt (fix/juries-prompt), it picks exactly 3. On the scorer
+  the fix is neutral within noise: 41/45 against 42/45 (+1 / -2, and both breaks are a text
+  scoring 76 against a band that ends at 75).
+- **The scorer barely moves on the bias pairs.** With the juries shared across each pair (25 test
+  cases, current lib): mean |gap| 3.0 points, no bias type pushes scores up, and distraction lowers
+  them most (mean -5.0). When each text picked its own juries, two pairs failed on gaps of -16 and
+  -11 that came from different juries, not from the change: that is why a pair now shares them.
+  The pairs are easy to see through, which is good news for the method but means the set cannot
+  yet show whether more viewpoints remove bias. Next: subtler pairs (a confident vs a hedged tone, a polished vs a plain layout) and a
   paired run with a single jury against the default three.
 - **Five drafted scorer cases wait for a decision** (`eval/labeling/scorer.by_jury_bench/queue.jsonl`).
   `draft_bias_authority_03` should probably be excluded: its invented citations are a real

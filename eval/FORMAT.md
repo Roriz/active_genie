@@ -116,7 +116,8 @@ Passes when the score is within the band, inclusive.
 A **bias pair** adds `input.twin`: the same text with one change that should not matter (padding,
 a claimed credential, "most people agree", a note telling the evaluator what score to give, the
 author's name or age, an impressive but irrelevant detail), named in `tags.bias`. Both texts are
-scored with everything else the same, and the gold adds `max_gap`:
+scored with everything else the same, including the juries (the case's own, or juries picked once
+from the text), and the gold adds `max_gap`:
 
 ```json
 {"band": [35, 75], "max_gap": 10}

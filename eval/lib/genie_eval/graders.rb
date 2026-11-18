@@ -25,6 +25,7 @@ module GenieEval
 
     def missing_reasoning?(record)
       outputs = record['orders'] ? record['orders'].values : [record['output']]
+      outputs << record['twin'] if record.key?('twin') # a scorer bias pair's second text
       outputs.any? { |output| Matchers.absent?(output&.dig('reasoning')) }
     end
 
@@ -123,7 +124,7 @@ module GenieEval
           twin = Matchers.number(record.dig('twin', 'data'))
           detail.merge!('twin_score' => twin, 'gap' => score && twin && (twin - score).round(1))
         end
-        Grade.new(pass: within?(gold, score, detail['twin_score']), detail:)
+        Grade.new(pass: within?(gold, score, twin), detail:)
       end
 
       def within?(gold, score, twin = nil)

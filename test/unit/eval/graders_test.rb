@@ -104,4 +104,14 @@ class GenieEvalGradersTest < Minitest::Test
       assert GenieEval::Graders.grade('scorer.by_jury_bench', gold, output(50)).pass
     end
   end
+
+  def test_a_bias_pair_needs_reasoning_for_both_texts
+    GenieEval::Store.stub(:cell, { 'grader' => 'scorer' }) do
+      gold = { 'band' => [0, 100], 'max_gap' => 10, 'require_reasoning' => true }
+      pair = ->(reasoning) { output(50).merge('twin' => { 'data' => 52, 'reasoning' => reasoning }) }
+
+      assert GenieEval::Graders.grade('scorer.by_jury_bench', gold, pair.call('because')).pass
+      refute GenieEval::Graders.grade('scorer.by_jury_bench', gold, pair.call('')).pass
+    end
+  end
 end

@@ -71,9 +71,11 @@ module GenieEval
       required = REQUIRED_INPUT[cell_id] || REQUIRED_INPUT[cell_id.split('.').first] || []
       missing = required.reject { |k| input.key?(k) }
       @errors << "#{where}: input missing #{missing.join(', ')}" if missing.any?
+      # The executor scores any `twin` it is given, but only the scorer grades one.
+      @errors << "#{where}: only scorer cases take a twin" if input.key?('twin') && !cell_id.start_with?('scorer.')
     end
 
-    def check_gold(grader, gold, where, input = {})
+    def check_gold(grader, gold, where, input)
       problem = case grader
                 when 'extractor' then extractor_problem(gold)
                 when 'comparator' then 'winner must be a, b or either' unless %w[a b either].include?(gold['winner'])
@@ -107,9 +109,15 @@ module GenieEval
       lo, hi = gold['band']
       return 'band must be [lo, hi] within 0..100' unless [lo, hi].all?(Numeric) && lo <= hi && lo >= 0 && hi <= 100
       return 'a case has a twin exactly when its gold has a max_gap' if input.key?('twin') != gold.key?('max_gap')
+      return unless input.key?('twin')
+
+      twin = input['twin']
+      unless twin.is_a?(String) && !twin.strip.empty? && twin != input['text']
+        return 'twin must be a non-empty text that differs from text'
+      end
 
       gap = gold['max_gap']
-      'max_gap must be a number >= 0' unless gap.nil? || (gap.is_a?(Numeric) && gap >= 0)
+      'max_gap must be a number >= 0' unless gap.is_a?(Numeric) && gap >= 0
     end
 
     def check_pool_row(row)
