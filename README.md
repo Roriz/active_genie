@@ -72,6 +72,7 @@ Full documentation is at [activegenie.ai](https://activegenie.ai):
 - [Quickstart](https://activegenie.ai/introduction/quickstart)
 - [Configuration](https://activegenie.ai/reference/config)
 - [Benchmark results](https://activegenie.ai/benchmark/latest)
+- [Eval: how changes are measured](eval/README.md)
 
 ## Contributing
 

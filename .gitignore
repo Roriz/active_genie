@@ -9,3 +9,6 @@ node_modules/
 cache/
 
 docs/.vitepress/dist
+
+# eval outputs (baselines in eval/baselines are committed)
+eval/runs/

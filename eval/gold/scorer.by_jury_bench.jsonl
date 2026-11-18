@@ -1,0 +1,20 @@
+{"id":"academia_scientific_rigor_high","gold":{"band":[70,100]},"why":"A paper with strong methodology, a huge sample, and peer review indicates high scientific rigor.","labeled_by":"e2e-migration"}
+{"id":"academia_scientific_rigor_low","gold":{"band":[0,40]},"why":"A tiny sample size with no methodology or peer review lacks any scientific rigor.","labeled_by":"e2e-migration"}
+{"id":"business_project_success_high","gold":{"band":[70,100]},"why":"A launch delivered under budget and over sales targets is extremely successful.","labeled_by":"e2e-migration"}
+{"id":"business_project_success_low","gold":{"band":[0,40]},"why":"Massive delays, budget overruns, and abysmal adoption signify a comprehensively failed project.","labeled_by":"e2e-migration"}
+{"id":"engineering_code_quality","gold":{"band":[60,100]},"why":"Clean, secure, and highly tested code should satisfy both a staff engineer and a security architect.","labeled_by":"e2e-migration"}
+{"id":"finance_investment_mixed","gold":{"band":[0,100]},"why":"A startup with a huge market but no traction is a highly ambiguous investment, so any valid numeric score is accepted.","labeled_by":"e2e-migration"}
+{"id":"fintech_credit_scoring","gold":{"band":[50,100],"require_reasoning":true},"why":"A strong applicant (745 credit score, 0 late payments, stable employment) should score as creditworthy.","labeled_by":"e2e-migration"}
+{"id":"healthtech_triage_scoring","gold":{"band":[60,100],"require_reasoning":true},"why":"A textbook acute MI presentation should triage as high urgency.","labeled_by":"e2e-migration"}
+{"id":"hr_leadership_mixed","gold":{"band":[0,100]},"why":"A technically brilliant but socially abrasive employee has ambiguous leadership potential, so any valid numeric score is accepted.","labeled_by":"e2e-migration"}
+{"id":"hr_promotion_high","gold":{"band":[70,100]},"why":"An employee exceeding KPIs and showing leadership is highly ready for promotion.","labeled_by":"e2e-migration"}
+{"id":"hr_promotion_low","gold":{"band":[0,40]},"why":"Missing deadlines and having HR complaints indicates extreme unreadiness for promotion.","labeled_by":"e2e-migration"}
+{"id":"legal_brief_quality","gold":{"band":[50,100]},"why":"A heavily researched, well-argued brief should pass the threshold of expert juries.","labeled_by":"e2e-migration"}
+{"id":"marketing_campaign_effectiveness","gold":{"band":[60,100]},"why":"A viral campaign yielding massive traffic and ROI is highly effective and should satisfy top marketing experts.","labeled_by":"e2e-migration"}
+{"id":"recruiting_job_fit_high","gold":{"band":[70,100]},"why":"A cover letter perfectly aligning with a senior Ruby role's requirements should score highly on fit.","labeled_by":"e2e-migration"}
+{"id":"recruiting_job_fit_low","gold":{"band":[0,40]},"why":"A candidate with zero relevant skills for a senior engineering role should score very low on fit.","labeled_by":"e2e-migration"}
+{"id":"restaurant_dining_mixed","gold":{"band":[0,100]},"why":"A mixed review with both great and terrible elements should yield a numeric score representing that balance; any valid score is accepted.","labeled_by":"e2e-migration"}
+{"id":"restaurant_satisfaction_high","gold":{"band":[70,100]},"why":"A perfect review with high praise should definitely score highly on customer satisfaction.","labeled_by":"e2e-migration"}
+{"id":"restaurant_satisfaction_low","gold":{"band":[0,40]},"why":"A review outlining severe service failures and hygiene issues should score very low on satisfaction.","labeled_by":"e2e-migration"}
+{"id":"security_system_posture_high","gold":{"band":[70,100]},"why":"Zero vulnerabilities and strict policies should yield a high security posture score.","labeled_by":"e2e-migration"}
+{"id":"security_system_posture_low","gold":{"band":[0,40]},"why":"Multiple critical vulnerabilities including exposed credentials mean a terrible security posture.","labeled_by":"e2e-migration"}

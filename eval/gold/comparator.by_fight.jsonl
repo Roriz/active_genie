@@ -1,0 +1,10 @@
+{"id":"arizona_energy_fight","gold":{"winner":"a"},"why":"Arizona has abundant sunlight and is desert, making solar the obvious choice over wind for residential energy.","labeled_by":"e2e-migration"}
+{"id":"enterprise_collab_fight","gold":{"winner":"either"},"why":"A subjective choice depending on enterprise needs (video focus vs suite integration), so either is acceptable.","labeled_by":"e2e-migration"}
+{"id":"marketing_campaign_fight","gold":{"winner":"either"},"why":"Effectiveness is ambiguous and depends on the target audience, so either campaign is acceptable.","labeled_by":"e2e-migration"}
+{"id":"marketplace_vendor_fight","gold":{"winner":"a"},"why":"Vendor A (faster timeline, better SLA) should win as the enterprise cloud migration partner despite the higher bid.","labeled_by":"e2e-migration"}
+{"id":"medical_device_process_fight","gold":{"winner":"b"},"why":"Medical devices require strict regulatory compliance, extensive docs and verification, making Waterfall much better suited.","labeled_by":"e2e-migration"}
+{"id":"mobile_dev_platform_fight","gold":{"winner":"either"},"why":"A genuinely debatable choice with strong arguments on both sides, so either platform is acceptable.","labeled_by":"e2e-migration"}
+{"id":"space_survival_suit_fight","gold":{"winner":"a"},"why":"A spacesuit is the only way to survive in space.","labeled_by":"e2e-migration"}
+{"id":"track_day_car_fight","gold":{"winner":"a"},"why":"The Ferrari F40 is objectively better for track performance.","labeled_by":"e2e-migration"}
+{"id":"trading_system_lang_fight","gold":{"winner":"b"},"why":"Rust's low latency and high performance make it the clear winner for a low-latency trading system.","labeled_by":"e2e-migration"}
+{"id":"wedding_catering_fight","gold":{"winner":"a"},"why":"A professional chef is obviously better suited for catering a large wedding.","labeled_by":"e2e-migration"}

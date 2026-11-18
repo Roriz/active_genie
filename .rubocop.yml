@@ -35,7 +35,7 @@ Metrics/MethodLength:
   AllowedMethods: ['call']
   Exclude:
     - 'test/**/*'
-    - 'benchmark/**/*'
+    - 'eval/**/*'
     - 'lib/tasks/**/*'
 
 Metrics/ClassLength:
@@ -43,7 +43,7 @@ Metrics/ClassLength:
   CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
   Exclude:
     - 'test/**/*'
-    - 'benchmark/**/*'
+    - 'eval/**/*'
 
 Layout/LineLength:
   AllowedPatterns: ['\s#']
@@ -53,7 +53,7 @@ Layout/LineLength:
 Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
-    - 'benchmark/**/*'
+    - 'eval/**/*'
 
 Minitest/MultipleAssertions:
   Enabled: false
@@ -61,13 +61,16 @@ Minitest/MultipleAssertions:
 Metrics/CyclomaticComplexity:
   Exclude:
     - 'test/**/*'
+    - 'eval/**/*'
 
 Metrics/PerceivedComplexity:
   Exclude:
     - 'test/**/*'
+    - 'eval/**/*'
 
 Metrics/BlockLength:
   Exclude:
+    - 'eval/tasks/**/*'
     - 'lib/tasks/**/*'
     - '*.gemspec'
 
@@ -75,3 +78,13 @@ Metrics/BlockLength:
 # accepts any truthy value, which would weaken those assertions.
 Minitest/AssertTruthy:
   Enabled: false
+
+# Statistics code uses the textbook names (n, k, p, z).
+Naming/MethodParameterName:
+  Exclude:
+    - 'eval/lib/genie_eval/stats.rb'
+
+# Report tables use positional width specifiers (%-28s), clearer than named tokens there.
+Style/FormatStringToken:
+  Exclude:
+    - 'eval/**/*'

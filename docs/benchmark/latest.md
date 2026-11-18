@@ -182,19 +182,12 @@ What each module has to get right:
 
 ## Running it yourself
 
-Set the API key for the provider you want to test, then:
+These results came from the `test/e2e` suite, which has since been replaced by the golden-set eval in [`eval/`](https://github.com/roriz/active_genie/tree/main/eval). The same 80 Comparator, Extractor, Lister and Scorer cases now live there as data, with gold answers, baselines and paired statistics. Set the API key for the provider you want to test, then:
 
 ```shell
-# One provider, using that provider's default benchmark model
-PROVIDER_NAME=anthropic bundle exec rake test:e2e
-
-# Override the model
-PROVIDER_NAME=openai MODEL=gpt-4o-mini bundle exec rake test:e2e
-
-# A single module
-PROVIDER_NAME=deepseek bundle exec ruby -Itest -e 'Dir.glob("test/e2e/scorer/*_test.rb").each { |f| require File.expand_path(f) }'
+bundle exec rake eval:check                       # free: data integrity and prompt lint
+PROVIDER=anthropic MODEL=claude-haiku-4-5 bundle exec rake eval:quick   # prints the cost
+PROVIDER=anthropic MODEL=claude-haiku-4-5 YES=1 bundle exec rake eval:quick
 ```
 
-`PROVIDER_NAME` accepts `openai`, `anthropic`, `google`, or `deepseek`, and defaults to `openai`. Each provider's benchmark model is the one listed in the results table above. Those are separate from the library's own defaults, which are documented in [Configuration](/reference/config#providers-config-providers).
-
-This suite runs against every supported provider before a release.
+See [`eval/README.md`](https://github.com/roriz/active_genie/blob/main/eval/README.md) for the full workflow.
