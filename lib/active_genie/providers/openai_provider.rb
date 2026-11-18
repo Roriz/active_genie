@@ -5,6 +5,7 @@ require 'net/http'
 
 require_relative 'base_provider'
 require_relative 'usage_logger'
+require_relative 'tool_arguments'
 require_relative '../utils/logprobs_calculator'
 
 module ActiveGenie
@@ -45,7 +46,7 @@ module ActiveGenie
 
         raise InvalidResponseError, "Invalid response: #{raw_response}" if raw_response.nil? || raw_response.keys.empty?
 
-        parsed_data = parse_arguments(raw_response)
+        parsed_data = parse_arguments(raw_response, function)
         ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: raw_response },
                                 config: @config)
 
@@ -98,26 +99,37 @@ module ActiveGenie
         response
       end
 
-      def parse_arguments(response)
-        content_str = response.dig('choices', 0, 'message', 'content')
-        if content_str && !content_str.empty?
-          parsed = begin
-            JSON.parse(content_str)
-          rescue StandardError
-            nil
-          end
-          return parsed['message'] || parsed if parsed.is_a?(Hash)
-        end
+      # The answer is JSON in `content` or in the first tool call's arguments.
+      # Anything else is an error, not an empty extraction.
+      def parse_arguments(response, function)
+        choice = response.dig('choices', 0) || {}
+        message = choice['message'] || {}
+        raise_if_unusable(choice, message)
 
-        json_args = response.dig('choices', 0, 'message', 'tool_calls', 0, 'function', 'arguments')
-        return {} if json_args.nil? || json_args.empty?
+        arguments = message.dig('tool_calls', 0, 'function', 'arguments')
+        parsed = json_object(message['content']) || json_object(arguments)
+        return ToolArguments.unwrap(parsed, function) if parsed
 
-        parsed_response = begin
-          JSON.parse(json_args)
-        rescue StandardError
-          {}
-        end
-        parsed_response['message'] || parsed_response
+        detail = arguments.to_s.empty? ? 'no tool call' : "tool arguments that are not a JSON object: #{arguments[0, 200]}"
+        raise InvalidResponseError, "OpenAI returned #{detail} (finish_reason: #{choice['finish_reason'].inspect})."
+      end
+
+      def raise_if_unusable(choice, message)
+        refusal = message['refusal']
+        raise RefusalError, "OpenAI declined the request: #{refusal}" unless refusal.to_s.empty?
+        raise RefusalError, 'OpenAI content filter blocked the answer.' if choice['finish_reason'] == 'content_filter'
+        return unless choice['finish_reason'] == 'length'
+
+        raise InvalidResponseError, 'Answer cut off at the token limit (finish_reason: length).'
+      end
+
+      def json_object(text)
+        return nil if text.to_s.empty?
+
+        parsed = JSON.parse(text)
+        parsed if parsed.is_a?(Hash)
+      rescue JSON::ParserError
+        nil
       end
 
       def normalize_openai_logprobs(openai_logprobs)
