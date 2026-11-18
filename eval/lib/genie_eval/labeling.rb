@@ -12,20 +12,27 @@ module GenieEval
   # A field is agreed when the drafted gold accepts both passes' values, using the same matchers as
   # grading. A case enters the test pool when every field is agreed or decided, and is not excluded.
   module Labeling
+    FIELD_ACTIONS = %w[set accept].freeze
+
     module_function
 
     def merge(cell)
+      Store.cell(cell) # an unknown cell raises here, before any file is written
+      drafted = drafts(cell)
+      raise Error, "no drafted cases for #{cell} in eval/labeling/drafts/" if drafted.empty?
+
       decisions = latest_decisions(cell)
       passes = %w[a b].to_h { |p| [p, pass(cell, p)] }
       promoted = []
       queue = []
-      drafts(cell).each do |draft|
-        next if decisions.dig(draft['id'], nil)&.fetch('action') == 'exclude'
+      drafted.each do |draft|
+        decided = decisions[draft['id']] || {}
+        next if decided[nil]&.fetch('action') == 'exclude'
 
-        open = open_fields(draft, passes, decisions[draft['id']] || {})
-        open.empty? ? promoted << resolve(draft, decisions[draft['id']] || {}) : queue.concat(open)
+        open = open_fields(draft, passes, decided)
+        open.empty? ? promoted << resolve(draft, decided) : queue.concat(open)
       end
-      write(cell, promoted, queue)
+      write(cell, drafted, promoted, queue)
       { promoted: promoted.size, queued: queue.map { |q| q['id'] }.uniq.size, queue: }
     end
 
@@ -42,15 +49,18 @@ module GenieEval
     # { id => { field_or_nil => decision } }, latest wins.
     def latest_decisions(cell)
       Store.read_jsonl(GenieEval.path('labeling', cell, 'decisions.jsonl')).each_with_object({}) do |d, out|
+        if d['field'] && !FIELD_ACTIONS.include?(d['action'])
+          raise Error, "#{cell} decision #{d['id']}.#{d['field']}: action #{d['action'].inspect} (a field takes set or accept)"
+        end
+
         (out[d['id']] ||= {})[d['field']] = d
       end
     end
 
     def open_fields(draft, passes, decided)
+      values = passes.transform_values { |rows| rows[draft['id']] }
       draft['gold']['fields'].filter_map do |field, spec|
         next if decided.key?(field)
-
-        values = passes.transform_values { |rows| rows[draft['id']] }
         next if values.values.all? { |row| row && accepts?(spec, row['values'][field]) }
 
         { 'id' => draft['id'], 'field' => field, 'drafted' => spec,
@@ -72,14 +82,14 @@ module GenieEval
       draft.merge('gold' => draft['gold'].merge('fields' => fields))
     end
 
-    def write(cell, promoted, queue)
+    def write(cell, drafts, promoted, queue)
       Store.write_jsonl(GenieEval.path('labeling', cell, 'queue.jsonl'), queue)
       cases = promoted.map { |d| d.slice('id', 'cell', 'source', 'tags', 'input') }
       gold = promoted.map do |d|
         { 'id' => d['id'], 'gold' => d['gold'], 'why' => d['why'],
           'labeled_by' => 'drafted, 2 blind passes, human decisions' }
       end
-      drafted = drafts(cell).to_set { |d| d['id'] }
+      drafted = drafts.to_set { |d| d['id'] }
       Store.replace_cases(cell, cases, gold) { |id| drafted.include?(id) }
     end
   end

@@ -59,12 +59,16 @@ module GenieEval
       def judged(spec, value)
         return 'wrong_value' unless spec['judge']
 
-        reference = spec['reference'] || spec['value'].to_s # `reference`: the human-readable gold, when `value` is a check operand
-        verdict = Judge.current.verdict(question: spec.fetch('question'), reference:,
-                                        candidate: value.is_a?(String) ? value : JSON.generate(value))
+        reference = spec['reference'] || text(spec['value']) # `reference`: the human-readable gold, when `value` is a check operand
+        verdict = Judge.current.verdict(question: spec.fetch('question'), reference:, candidate: text(value))
         return 'unjudged' if verdict.nil?
 
         verdict.match ? 'correct' : 'wrong_value'
+      end
+
+      # JSON for non-strings, so the judge (and its cache key) never sees Ruby's inspect format.
+      def text(value)
+        value.is_a?(String) ? value : JSON.generate(value)
       end
     end
 

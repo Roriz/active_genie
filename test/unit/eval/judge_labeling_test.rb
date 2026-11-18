@@ -48,6 +48,30 @@ class GenieEvalJudgeLabelingTest < Minitest::Test
       assert GenieEval::Matchers.check?(spec, written), "#{written} should match"
     end
     refute GenieEval::Matchers.check?(spec, '2/11/14')
+    assert GenieEval::Matchers.check?(spec, '2014-02-10T00:00:00Z')
+    assert GenieEval::Matchers.check?(spec, 'February 10, 2014.')
+    refute GenieEval::Matchers.check?(spec, '2014-02-10 or 2014-03-10'), 'a hedged second date is not the date'
+  end
+
+  def test_a_malformed_judge_answer_is_not_cached_as_a_verdict
+    GenieEval::Judge.current = GenieEval::Judge.new(model: 'fake-judge', answerer: ->(_i, _p) { { 'match' => 'true' } })
+    GenieEval::Judge.online = true
+
+    assert_raises(GenieEval::Error) do
+      GenieEval::Graders::Extractor.outcome(renewal, 'renews automatically for one-year periods')
+    end
+    assert_empty Store.read_jsonl(GenieEval.path('judge', 'fake-judge.jsonl'))
+  end
+
+  def test_labeling_refuses_an_unknown_cell_or_field_action
+    Store.write_json(GenieEval.path('cells.json'), [{ 'id' => 'extractor.data', 'grader' => 'extractor' }])
+
+    assert_raises(GenieEval::Error) { GenieEval::Labeling.merge('extractor.dta') }
+    refute_path_exists GenieEval.path('cases', 'extractor.dta.jsonl')
+
+    Store.write_jsonl(GenieEval.path('labeling', 'extractor.data', 'decisions.jsonl'),
+                      [{ 'id' => 'x', 'field' => 'f', 'action' => 'exclude' }])
+    assert_raises(GenieEval::Error) { GenieEval::Labeling.latest_decisions('extractor.data') }
   end
 
   def test_judge_is_offline_in_reports_and_cached_after_a_run
