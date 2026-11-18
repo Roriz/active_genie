@@ -44,9 +44,6 @@ module ActiveGenie
 
       ANTHROPIC_ENDPOINT = '/v1/messages'
 
-      class RefusalError < StandardError; end
-      class InvalidResponseError < StandardError; end
-
       private
 
       # Anthropic takes a single top-level system prompt, so every system message
