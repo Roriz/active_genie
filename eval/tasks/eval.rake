@@ -31,7 +31,8 @@ module GenieEvalTasks
     runners = (1..replicates).map { |r| GenieEval::Runner.new(system: sys, items: selected, replicate: r) }
     return unless pay?(sys, runners)
 
-    runners.each(&:run!)
+    # The judge is paid too: without YES=1 it stays off, even when every case is already cached.
+    runners.each { |runner| runner.run!(judge: ENV['YES'] == '1') }
     report(sys, selected, mode)
   end
 
@@ -112,6 +113,8 @@ namespace :eval do
     result[:queue].each do |q|
       puts "  #{q['id']}.#{q['field']}: drafted #{JSON.generate(q['drafted'])} | A #{q['pass_a'].inspect} | B #{q['pass_b'].inspect}"
     end
+  rescue GenieEval::Error => e
+    abort e.message
   end
 
   desc 'Free: promote the complete full run of this lib/ to the committed baseline. BY=name'

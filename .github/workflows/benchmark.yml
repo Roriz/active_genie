@@ -69,6 +69,8 @@ jobs:
         if: always()
         with:
           name: eval-${{ inputs.mode }}-${{ matrix.model.provider }}-${{ matrix.model.name }}
-          path: eval/runs/
+          path: |
+            eval/runs/
+            eval/judge/
           retention-days: 14
           if-no-files-found: ignore

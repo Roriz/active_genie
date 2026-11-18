@@ -61,8 +61,12 @@ module GenieEval
 
       payload = JSON.pretty_generate({ question:, reference:, candidate: })
       answer = @answerer.call(instructions, payload)
+      match = answer['match'] if answer.is_a?(Hash)
+      # A malformed answer must not become a permanent "not equivalent": raise, so the field stays unjudged.
+      raise Error, "judge #{model} answered without a boolean match: #{answer.inspect[0, 200]}" unless [true, false].include?(match)
+
       row = { 'key' => key, 'question' => question, 'reference' => reference, 'candidate' => candidate,
-              'match' => answer['match'] == true, 'reason' => answer['reason'].to_s, 'at' => Time.now.utc.iso8601 }
+              'match' => match, 'reason' => answer['reason'].to_s, 'at' => Time.now.utc.iso8601 }
       record(row)
       Verdict.new(match: row['match'], reason: row['reason'])
     end

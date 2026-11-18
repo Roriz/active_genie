@@ -10,6 +10,7 @@ module GenieEval
     }.freeze
     LISTER_CHECKS = %w[top_k_any bottom_k_none min_groups any_item no_item min_items].freeze
     MOJIBAKE = /Ã.|â€|ï»¿|�/
+    ISO_DATE = /\A\d{4}-\d{2}-\d{2}\z/
 
     attr_reader :errors, :warnings, :infos
 
@@ -92,7 +93,18 @@ module GenieEval
       end
       return "unknown or missing check for #{bad.keys.join(', ')}" if bad.any?
 
-      unasked = gold['fields'].select { |_name, spec| spec['judge'] && spec['question'].to_s.strip.empty? }
+      field_problem(gold['fields'])
+    end
+
+    # A typo here would not fail loudly: it would silently grade every output wrong.
+    def field_problem(fields)
+      odd = fields.reject { |_name, spec| [true, false, 'optional'].include?(spec['present']) }
+      return "present must be true, false or \"optional\" for #{odd.keys.join(', ')}" if odd.any?
+
+      dates = fields.select { |_name, spec| spec['check'] == 'date' && !spec['value'].to_s.match?(ISO_DATE) }
+      return "date checks need an ISO value (YYYY-MM-DD) for #{dates.keys.join(', ')}" if dates.any?
+
+      unasked = fields.select { |_name, spec| spec['judge'] && spec['question'].to_s.strip.empty? }
       "judge fields need a question: #{unasked.keys.join(', ')}" if unasked.any?
     end
 
