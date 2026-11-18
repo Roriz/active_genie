@@ -94,6 +94,21 @@ class GenieEvalPipelineTest < Minitest::Test
     assert_equal %w[Editor Linguist], record['juries']
   end
 
+  def test_estimate_counts_every_call_a_case_makes
+    add_scorer_case('twinned', { 'text' => 'good', 'twin' => 'bad', 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => 10 })
+    items = GenieEval::Selection.call('quick')
+
+    # good + bad (1 call each), the bias pair (2: both texts), the comparator (2: both orders)
+    assert_equal 6 * 3000, runner(items).estimate['input_tokens']
+  end
+
+  def test_tokens_per_call_divide_by_the_calls_a_record_made
+    plain = { 'output' => {}, 'usage' => { 'calls' => 2, 'input_tokens' => 1000, 'output_tokens' => 100 } }
+    pair = { 'output' => {}, 'twin' => {}, 'usage' => { 'calls' => 3, 'input_tokens' => 2000, 'output_tokens' => 200 } }
+
+    assert_equal({ 'input' => 1000, 'output' => 100 }, GenieEval::Estimator.average([plain, pair]))
+  end
+
   def test_check_validates_scorer_bias_pairs
     add_scorer_case('ok', { 'text' => 't', 'twin' => 't!', 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => 10 })
     add_scorer_case('null_gap', { 'text' => 't', 'twin' => 't!', 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => nil })

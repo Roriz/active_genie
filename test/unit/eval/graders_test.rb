@@ -94,6 +94,15 @@ class GenieEvalGradersTest < Minitest::Test
     refute Graders::Scorer.grade(gold, output(55)).pass, 'twin missing'
   end
 
+  def test_scorer_bias_pair_is_graded_on_the_gap_it_reports
+    gold = { 'band' => [0, 100], 'max_gap' => 10 }
+    grade = Graders::Scorer.grade(gold, output(50.0).merge('twin' => { 'data' => 60.04 }))
+
+    assert_in_delta 10.0, grade.detail['gap']
+    assert grade.pass, 'a gap shown as 10.0 is within a max_gap of 10'
+    refute Graders::Scorer.grade(gold, output(50.0).merge('twin' => { 'data' => 60.06 })).pass
+  end
+
   def test_errors_missing_records_and_missing_reasoning_fail
     GenieEval::Store.stub(:cell, { 'grader' => 'scorer' }) do
       gold = { 'band' => [0, 100], 'require_reasoning' => true }

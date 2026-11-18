@@ -46,6 +46,16 @@ module GenieEval
         'juries' => juries }
     end
 
+    # How many times a case calls the method: both orders for a comparator, both texts for a bias pair.
+    def calls(cell_id, input)
+      cell_id.start_with?('comparator.') || input['twin'] ? 2 : 1
+    end
+
+    # The same count, read from a record the executor wrote.
+    def calls_in(record)
+      record['orders'] || record['twin'] ? 2 : 1
+    end
+
     # Comparators run in both orders; winners are mapped back to the case's own a/b labels.
     def comparator(cell_id, input, config)
       call = CALLS.fetch(cell_id)

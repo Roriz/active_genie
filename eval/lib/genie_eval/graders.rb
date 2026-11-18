@@ -122,7 +122,7 @@ module GenieEval
         detail = { 'score' => score, 'band' => gold.fetch('band') }
         if gold.key?('max_gap')
           twin = Matchers.number(record.dig('twin', 'data'))
-          detail.merge!('twin_score' => twin, 'gap' => score && twin && (twin - score).round(1))
+          detail.merge!('twin_score' => twin, 'gap' => gap(score, twin))
         end
         Grade.new(pass: within?(gold, score, twin), detail:)
       end
@@ -132,7 +132,12 @@ module GenieEval
         in_band = ->(value) { !value.nil? && value.between?(lo, hi) }
         return in_band.call(score) unless gold.key?('max_gap')
 
-        in_band.call(score) && in_band.call(twin) && (twin - score).abs <= gold['max_gap']
+        in_band.call(score) && in_band.call(twin) && gap(score, twin).abs <= gold['max_gap']
+      end
+
+      # Rounded as the report shows it, so a gap shown as 10.0 passes a max_gap of 10.
+      def gap(score, twin)
+        score && twin && (twin - score).round(1)
       end
     end
   end
