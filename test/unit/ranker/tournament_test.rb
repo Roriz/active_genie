@@ -25,7 +25,7 @@ module ActiveGenie
 
         # Stub lister requests (used by Lister)
         stub_request(:post, /#{ActiveGenie.configuration.providers.openai.api_url}.*$/)
-          .with(body: /Family Feud/)
+          .with(body: /identify_jury/)
           .to_return(
             status: 200,
             body: File.read("#{__dir__}/../fixtures/lister-openai.json")
