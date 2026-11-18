@@ -20,7 +20,9 @@ module ActiveGenie
       # @param function [Hash] A JSON schema definition describing the desired output format.
       # @param logprobs [Boolean] Whether to request and return token log probabilities.
       # @param top_logprobs [Integer] Number of top candidate log probabilities per token step.
-      # @return [Hash, nil] The parsed JSON object, or { data: Hash, logprobs: Hash } if logprobs requested.
+      # @return [Hash] The parsed JSON object, or { data: Hash, logprobs: Hash } if logprobs requested.
+      # @raise [RefusalError] when Gemini blocks the prompt or the answer.
+      # @raise [InvalidResponseError] when the answer is missing, cut off, or not a JSON object.
       def function_calling(messages, function, logprobs: false, top_logprobs: 5)
         contents = convert_messages_to_contents(messages, function)
         contents << output_as_json_schema(function)
@@ -37,10 +39,7 @@ module ActiveGenie
         payload = { contents:, generationConfig: generation_config }
 
         response = execute_function_calling_request(payload, generation_config, logprobs)
-        return nil if response.nil?
-
-        json_string = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
-        return nil if json_string.nil? || json_string.empty?
+        json_string = answer_text(response)
 
         ActiveGenie.logger.call(
           { code: :function_calling, fine_tune: true, payload:, parsed_response: json_string },
@@ -74,6 +73,8 @@ module ActiveGenie
       end
 
       API_VERSION_PATH = 'v1beta/models'
+      # finishReason values that mean Gemini blocked the answer.
+      BLOCKED_FINISH_REASONS = %w[SAFETY RECITATION BLOCKLIST PROHIBITED_CONTENT SPII IMAGE_SAFETY].freeze
       ROLE_TO_GOOGLE_ROLE = {
         user: 'user',
         assistant: 'model'
@@ -105,14 +106,42 @@ module ActiveGenie
         response
       end
 
+      def answer_text(response)
+        candidate = response&.dig('candidates', 0) || {}
+        raise_if_unusable(response, candidate['finishReason'])
+
+        text = candidate.dig('content', 'parts', 0, 'text')
+        return text unless text.nil? || text.empty?
+
+        raise InvalidResponseError, "Google returned no answer text (finishReason: #{candidate['finishReason'].inspect})."
+      end
+
+      # Gemini reports blocks and truncation in the body of a 200 response
+      # (promptFeedback, finishReason), so check them before reading the text.
+      def raise_if_unusable(response, finish_reason)
+        block_reason = response&.dig('promptFeedback', 'blockReason')
+        raise RefusalError, "Google blocked the prompt (blockReason: #{block_reason})." if block_reason
+
+        if BLOCKED_FINISH_REASONS.include?(finish_reason)
+          raise RefusalError, "Google blocked the answer (finishReason: #{finish_reason})."
+        end
+        raise InvalidResponseError, 'Answer cut off (finishReason: MAX_TOKENS).' if finish_reason == 'MAX_TOKENS'
+      end
+
       def normalize_response(json_string)
-        parsed_response = JSON.parse(json_string)
+        parsed_response = begin
+          JSON.parse(json_string)
+        rescue JSON::ParserError
+          raise InvalidResponseError, "Google answer is not valid JSON: #{json_string[0, 200]}"
+        end
 
         output = if parsed_response.is_a?(Array)
                    parsed_response.dig(0, 'properties') || parsed_response[0]
                  else
                    parsed_response
                  end
+
+        raise InvalidResponseError, "Google answer is not a JSON object: #{json_string[0, 200]}" unless output.is_a?(Hash)
 
         output.dig('input_schema', 'properties') || output
       end

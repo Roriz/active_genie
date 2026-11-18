@@ -102,6 +102,73 @@ module ActiveGenie
           assert_in_delta 7.8, score_res.expected_value, 0.1
         end
       end
+
+      # Critical Path: answers without a usable tool call must raise, not
+      # return {} as if the model had extracted nothing.
+      def test_answer_without_a_tool_call_raises_invalid_response
+        stub_openai(message: { content: nil }, finish_reason: 'stop')
+
+        error = assert_raises(BaseProvider::InvalidResponseError) { call_openai }
+
+        assert_includes error.message, 'no tool call'
+      end
+
+      def test_tool_arguments_that_are_not_json_raise_invalid_response
+        stub_openai(message: { tool_calls: [tool_call('{"score": ')] }, finish_reason: 'stop')
+
+        assert_raises(BaseProvider::InvalidResponseError) { call_openai }
+      end
+
+      def test_answer_cut_off_by_the_token_limit_raises_invalid_response
+        stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'length')
+
+        error = assert_raises(BaseProvider::InvalidResponseError) { call_openai }
+
+        assert_includes error.message, 'length'
+      end
+
+      def test_model_refusal_raises_a_refusal_error
+        stub_openai(message: { content: nil, refusal: 'I cannot help with that.' }, finish_reason: 'stop')
+
+        error = assert_raises(BaseProvider::RefusalError) { call_openai }
+
+        assert_includes error.message, 'I cannot help with that.'
+      end
+
+      def test_content_filter_raises_a_refusal_error
+        stub_openai(message: { content: nil }, finish_reason: 'content_filter')
+
+        assert_raises(BaseProvider::RefusalError) { call_openai }
+      end
+
+      # A schema field named `message` must come back as a field, not be unwrapped.
+      def test_schema_field_named_message_is_returned_intact
+        function = { name: 'extract', parameters: { type: 'object', properties: { message: { type: 'string' } } } }
+        stub_openai(message: { tool_calls: [tool_call('{"message": "Order arrived late"}')] }, finish_reason: 'stop')
+
+        assert_equal({ 'message' => 'Order arrived late' }, @provider.function_calling(EXAMPLE_MESSAGES, function))
+      end
+
+      def test_arguments_wrapped_in_message_are_still_unwrapped
+        stub_openai(message: { tool_calls: [tool_call('{"message": {"score": 8}}')] }, finish_reason: 'stop')
+
+        assert_equal({ 'score' => 8 }, call_openai)
+      end
+
+      private
+
+      def stub_openai(choice)
+        body = { choices: [choice], usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } }
+        stub_request(:post, 'https://api.openai.com/v1/chat/completions').to_return(body: body.to_json)
+      end
+
+      def tool_call(arguments)
+        { function: { name: 'score_function', arguments: } }
+      end
+
+      def call_openai
+        @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION)
+      end
     end
   end
 end

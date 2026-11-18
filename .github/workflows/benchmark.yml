@@ -41,7 +41,7 @@ jobs:
       matrix:
         # Keep in sync with "release" in eval/config.json.
         model:
-          - { provider: openai, name: gpt-6.1-terra }
+          - { provider: openai, name: gpt-6.1-luna }
           - { provider: anthropic, name: claude-haiku-4-5 }
           - { provider: google, name: gemini-3.5-flash-lite }
           - { provider: deepseek, name: deepseek-v4-flash }
