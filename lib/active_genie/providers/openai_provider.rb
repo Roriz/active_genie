@@ -13,8 +13,6 @@ module ActiveGenie
     class OpenaiProvider < BaseProvider
       USAGE_KEYS = { input: 'prompt_tokens', output: 'completion_tokens', total: 'total_tokens' }.freeze
 
-      class InvalidResponseError < StandardError; end
-
       # Reasoning models reject function tools on /v1/chat/completions unless
       # reasoning is switched off. The error names the offending parameter, so
       # detect it and retry with reasoning disabled rather than maintaining a
