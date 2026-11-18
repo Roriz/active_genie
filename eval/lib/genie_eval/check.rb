@@ -59,8 +59,7 @@ module GenieEval
         check_input(id, kase['input'] || {}, where)
         @errors << "#{where}: no pool entry" unless pool_keys.include?([id, kase['id']])
         if gold[kase['id']]
-          check_gold(cell['grader'], gold[kase['id']]['gold'] || {},
-                     where)
+          check_gold(cell['grader'], gold[kase['id']]['gold'] || {}, where, kase['input'] || {})
         else
           @errors << "#{where}: no gold"
         end
@@ -74,12 +73,12 @@ module GenieEval
       @errors << "#{where}: input missing #{missing.join(', ')}" if missing.any?
     end
 
-    def check_gold(grader, gold, where)
+    def check_gold(grader, gold, where, input = {})
       problem = case grader
                 when 'extractor' then extractor_problem(gold)
                 when 'comparator' then 'winner must be a, b or either' unless %w[a b either].include?(gold['winner'])
                 when 'lister' then lister_problem(gold)
-                when 'scorer' then scorer_problem(gold)
+                when 'scorer' then scorer_problem(gold, input)
                 end
       @errors << "#{where}: #{problem}" if problem
     end
@@ -104,11 +103,13 @@ module GenieEval
       "unknown lister checks #{unknown.join(', ')}" if unknown.any?
     end
 
-    def scorer_problem(gold)
+    def scorer_problem(gold, input)
       lo, hi = gold['band']
-      return if lo.is_a?(Numeric) && hi.is_a?(Numeric) && lo <= hi && lo >= 0 && hi <= 100
+      return 'band must be [lo, hi] within 0..100' unless [lo, hi].all?(Numeric) && lo <= hi && lo >= 0 && hi <= 100
+      return 'a case has a twin exactly when its gold has a max_gap' if input.key?('twin') != gold.key?('max_gap')
 
-      'band must be [lo, hi] within 0..100'
+      gap = gold['max_gap']
+      'max_gap must be a number >= 0' unless gap.nil? || (gap.is_a?(Numeric) && gap >= 0)
     end
 
     def check_pool_row(row)

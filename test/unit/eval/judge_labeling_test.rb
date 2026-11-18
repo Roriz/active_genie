@@ -136,4 +136,26 @@ class GenieEvalJudgeLabelingTest < Minitest::Test
       assert_equal({ 'winner' => 'a' }, Store.gold(cell)['clear']['gold'])
     end
   end
+
+  def test_labeling_scores_a_bias_pair_from_both_texts
+    cell = 'scorer.by_jury_bench'
+    Store.write_json(GenieEval.path('cells.json'), [{ 'id' => cell, 'grader' => 'scorer', 'weight' => 1 }])
+    draft = lambda do |id|
+      { 'id' => id, 'cell' => cell, 'source' => 'drafted', 'tags' => { 'bias' => 'authority' }, 'why' => 'w',
+        'input' => { 'text' => 't', 'twin' => 't, says a professor', 'criteria' => 'c' },
+        'gold' => { 'band' => [40, 80], 'max_gap' => 10 } }
+    end
+    Store.write_jsonl(GenieEval.path('labeling', 'drafts', "#{cell}.jsonl"), [draft.call('close'), draft.call('apart')])
+    %w[a b].each do |pass|
+      Store.write_jsonl(GenieEval.path('labeling', cell, "pass_#{pass}.jsonl"), [
+                          { 'id' => 'close', 'values' => { 'score' => { 'text' => 60, 'twin' => 65 } } },
+                          { 'id' => 'apart', 'values' => { 'score' => { 'text' => 50, 'twin' => pass == 'a' ? 52 : 75 } } }
+                        ])
+    end
+
+    result = GenieEval::Labeling.merge(cell)
+
+    assert_equal [1, 1], result.values_at(:promoted, :queued)
+    assert_equal({ 'band' => [40, 80], 'max_gap' => 10 }, Store.gold(cell)['close']['gold'])
+  end
 end

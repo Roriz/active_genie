@@ -81,6 +81,8 @@ replicate, `hard` if it didn't.
   invention. The field CI resamples whole cases, because fields of one document move together.
 - Comparator cases run in both orders; a case passes only if both orders pick the gold winner, and
   the report shows how often the winner is the same in both orders.
+- Scorer bias pairs: the mean |gap| between a text and its twin, and the mean signed gap per bias
+  type (twin minus text: positive means the change that should not matter raised the score).
 
 ## Data
 
@@ -103,6 +105,15 @@ to pass A, so a labeler's position bias cannot keep a case. The same cases feed 
 `by_fight`, so the two methods are compared on paired cases. Half the drafts have the picked reply
 as the longer one and half as the shorter one (`tags.length`), so preferring length does not pay.
 
+No MIT source has multi-rater scores, so the `scorer.by_jury_bench` test cases are drafted: 12
+calibration cases (a gold band, including texts whose polish and quality disagree, such as an
+eloquent essay full of false claims) and 18 bias pairs, three for each of six biases from the
+LLM-as-a-judge literature: verbosity, authority, bandwagon, injection (a note telling the
+evaluator what score to give), identity (the author's name, age or origin) and distraction. The
+labelers see both versions of a pair side by side. The test cases leave `juries` out, so the scorer
+picks its own with `Lister::Juries`: that is how `lister.with_juries` is judged, by its effect on
+the scorer.
+
 ## Tests
 
 The eval's own code is covered by `test/unit/eval/` (part of `rake test:unit`), including an
@@ -110,7 +121,7 @@ offline run -> baseline -> regression cycle with a stubbed model.
 
 ## Known issues and future improvements
 
-Found while building the extractor and comparator cells (2026-11-17, gpt-6.1-terra). Each one is a hypothesis to
+Found while building the extractor, comparator and scorer cells (2026-11-17/18, gpt-6.1-terra). Each one is a hypothesis to
 test with a paired run, not a decided change.
 
 - **`Extractor::Explanation` and litote use the same strict, non-nullable schema.** They avoid
@@ -140,6 +151,25 @@ test with a paired run, not a decided change.
 - **No "either" cases in the comparator test pool.** hh-rlhf always has a pick, so ties and
   taste-dependent pairs are only in the dev pool (from `test/e2e`). Draft some if consistency on
   ties matters.
+
+- **`Lister::Juries` used the Family Feud prompt.** Since the rename in #63, `juries.prompt.md` was
+  a copy of `feud.prompt.md`, so the scorer picked its juries with a survey prompt: 3 to 7 juries
+  per case (mean 4.1). With a juries prompt (fix/juries-prompt), it picks exactly 3 and the scorer
+  passes 42/45 instead of 40/45 (+2 / -0 on the same cases; too few flips to be significant).
+- **The scorer barely moves on the bias pairs.** First run (25 test cases): mean |gap| 3.5 points,
+  and no bias type pushes scores up; only distraction lowers them (mean -7.3, with -16 on a bug
+  report where the twin adds a loyal-customer aside). The 18 pairs are easy to see through, which
+  is good news for the method but means the set cannot yet show whether more viewpoints remove
+  bias. Next: subtler pairs (a confident vs a hedged tone, a polished vs a plain layout) and a
+  paired run with a single jury against the default three.
+- **Five drafted scorer cases wait for a decision** (`eval/labeling/scorer.by_jury_bench/queue.jsonl`).
+  `draft_bias_authority_03` should probably be excluded: its invented citations are a real
+  defect, so the pair does not isolate authority bias.
+- **Some migrated scorer cases score claims, not work.** `engineering_code_quality`,
+  `academia_scientific_rigor_high` and `legal_brief_quality` describe a pull request, a study or
+  a brief ("refactors the module perfectly, 100% test coverage") instead of showing it. The model
+  scores them 30-47 because the claims cannot be checked, against bands that start at 50-70.
+  Rewrite them to contain the work itself, or lower the bands.
 
 ## Data for the next phases (license check, 2026-11-17)
 

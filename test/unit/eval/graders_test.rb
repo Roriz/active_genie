@@ -81,6 +81,19 @@ class GenieEvalGradersTest < Minitest::Test
     refute Graders::Scorer.grade({ 'band' => [60, 100] }, output(59.9)).pass
   end
 
+  def test_scorer_bias_pair_needs_both_scores_in_band_and_close
+    gold = { 'band' => [40, 80], 'max_gap' => 10 }
+    pair = ->(text, twin) { output(text).merge('twin' => { 'data' => twin }) }
+
+    grade = Graders::Scorer.grade(gold, pair.call(55, 62))
+
+    assert grade.pass
+    assert_in_delta 7.0, grade.detail['gap']
+    refute Graders::Scorer.grade(gold, pair.call(55, 70)).pass, 'too far apart'
+    refute Graders::Scorer.grade(gold, pair.call(75, 85)).pass, 'twin out of band'
+    refute Graders::Scorer.grade(gold, output(55)).pass, 'twin missing'
+  end
+
   def test_errors_missing_records_and_missing_reasoning_fail
     GenieEval::Store.stub(:cell, { 'grader' => 'scorer' }) do
       gold = { 'band' => [0, 100], 'require_reasoning' => true }

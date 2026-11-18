@@ -30,7 +30,11 @@ module GenieEval
       config = input['config'] || {}
       return comparator(cell_id, input, config) if cell_id.start_with?('comparator.')
 
-      { 'output' => serialize(CALLS.fetch(cell_id).call(input, config)) }
+      call = CALLS.fetch(cell_id)
+      record = { 'output' => serialize(call.call(input, config)) }
+      # A scorer bias pair also scores its twin text, with everything else the same.
+      record['twin'] = serialize(call.call(input.merge('text' => input['twin']), config)) if input['twin']
+      record
     end
 
     # Comparators run in both orders; winners are mapped back to the case's own a/b labels.

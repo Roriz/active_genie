@@ -34,7 +34,7 @@ A **cell** is `<module>.<method>`, for example `extractor.data` or `comparator.b
 | `comparator.by_debate`, `comparator.by_fight` | `player_a`, `player_b`, `criteria` |
 | `lister.with_feud` | `theme` |
 | `lister.with_juries` | `text`, `criteria` |
-| `scorer.by_jury_bench` | `text`, `criteria`, optional `juries` (array) |
+| `scorer.by_jury_bench` | `text`, `criteria`, optional `juries` (array), optional `twin` (bias pair) |
 
 Any cell may also carry `input.config`, a hash passed as `config:` to the method.
 
@@ -112,6 +112,18 @@ every check passes. (Phase 4 adds human answer counts for the Family Feud score.
 ```
 
 Passes when the score is within the band, inclusive.
+
+A **bias pair** adds `input.twin`: the same text with one change that should not matter (padding,
+a claimed credential, "most people agree", a note telling the evaluator what score to give, the
+author's name or age, an impressive but irrelevant detail), named in `tags.bias`. Both texts are
+scored with everything else the same, and the gold adds `max_gap`:
+
+```json
+{"band": [35, 75], "max_gap": 10}
+```
+
+It passes when both scores are in the band and at most `max_gap` apart. The report shows the mean
+gap (twin minus text) per bias type, so a positive number means the change raised the score.
 
 ## Pools (`pools.jsonl`)
 
