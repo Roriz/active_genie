@@ -122,11 +122,11 @@ the scorer.
 
 No MIT source has real crowd answer counts either, so the `lister.with_feud` test cases are drafted
 Family Feud questions whose top answers are near-certain common knowledge ("Name a fruit that is
-red"). Each gold asks for the crowd's #1 answer in the first two items (`top_k_any`), at least three
-of the usual answers (`min_groups`) and, in 18 of the 30, none of a few correct but unusual answers
-(`no_item`: "theremin" for an instrument, "katydid" for an insect), which catches listing like an
-expert instead of like the crowd. The blind labelers each play the survey (the top 5 answers of 100
-average adults), and a case is kept when both lists pass its checks.
+red"). Each gold asks for one of the crowd's top answers in the first two items (`top_k_any`), at
+least three groups of the usual answers (`min_groups`) and, in 18 of the 30, none of a few correct
+but unusual answers (`no_item`: "theremin" for an instrument, "katydid" for an insect), which
+catches listing like an expert instead of like the crowd. The blind labelers each play the survey
+(the top 5 answers of 100 average adults), and a case is kept when both lists pass its checks.
 
 ## Tests
 
@@ -204,7 +204,7 @@ MIT-only rule. Checked on Hugging Face and GitHub:
 |---|---|---|
 | `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: used for the comparator test pool (helpful-base test; only clear pairs kept, see Data) |
 | `openbmb/UltraFeedback` and its binarized forks | MIT | No: GPT-4 labels, not human taste |
-| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k, ProtoQA | CC BY 4.0 | No |
+| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k | CC BY 4.0 | No |
 | Arena human preference 55k | Apache-2.0 | No |
 | SWOW, Anthropic global opinions / persuasion | NC licenses | No |
 | SHP (Reddit), OpenAI summarize-from-feedback / WebGPT comparisons | no license stated | No |

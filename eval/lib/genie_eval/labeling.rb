@@ -113,9 +113,18 @@ module GenieEval
         return value == spec['winner']
       end
       return scored_within?(spec, value) if spec.key?('band')
-      return Graders::Lister.grade(spec, { 'output' => { 'data' => value } }).pass if spec.key?('checks')
+      return listed?(spec, value) if spec.key?('checks')
 
       Graders::Extractor::RIGHT.include?(Graders::Extractor.outcome(spec, value))
+    end
+
+    # No answers are not agreement, even with a gold of only `no_item` checks. A value that is not a
+    # list is a broken label: as a single item, a string would contain every answer it names.
+    def listed?(spec, value)
+      return false if Matchers.absent?(value)
+      raise Error, "a pass gave list #{value.inspect}; it takes an array of answers" unless value.is_a?(Array)
+
+      Graders::Lister.grade(spec, { 'output' => { 'data' => value } }).pass
     end
 
     def scored_within?(spec, value)
