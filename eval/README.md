@@ -120,6 +120,14 @@ their per-bias gaps rest on one or two cases. The test cases leave `juries` out,
 picks its own with `Lister::Juries`: that is how `lister.with_juries` is judged, by its effect on
 the scorer.
 
+No MIT source has real crowd answer counts either, so the `lister.with_feud` test cases are drafted
+Family Feud questions whose top answers are near-certain common knowledge ("Name a fruit that is
+red"). Each gold asks for one of the crowd's top answers in the first two items (`top_k_any`), at
+least three groups of the usual answers (`min_groups`) and, in 18 of the 30, none of a few correct
+but unusual answers (`no_item`: "theremin" for an instrument, "katydid" for an insect), which
+catches listing like an expert instead of like the crowd. The blind labelers each play the survey
+(the top 5 answers of 100 average adults), and a case is kept when both lists pass its checks.
+
 ## Tests
 
 The eval's own code is covered by `test/unit/eval/` (part of `rake test:unit`), including an
@@ -179,6 +187,14 @@ test with a paired run, not a decided change.
   scores them 30-47 because the claims cannot be checked, against bands that start at 50-70.
   Rewrite them to contain the work itself, or lower the bands.
 
+- **The lister test pool is at the ceiling.** First run (2026-11-18, gpt-6.1-terra): 40/40 (30
+  drafted + 10 dev). It works as a regression gate for obvious crowd answers, but it cannot rank
+  methods on how well they emulate a crowd, and its gold is partly circular (models guessing what
+  a crowd says). The real measure is a Family Feud score against counted answers: a survey of our
+  own (about 30 questions, 30 to 100 people), whose counts would extend the lister gold.
+- **`lister.with_juries` has no test pool of its own.** It is judged through the scorer, whose
+  test cases let it pick the juries.
+
 ## Data for the next phases (license check, 2026-11-17)
 
 The datasets first planned for the comparator, scorer and lister cells were chosen before the
@@ -188,10 +204,12 @@ MIT-only rule. Checked on Hugging Face and GitHub:
 |---|---|---|
 | `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: used for the comparator test pool (helpful-base test; only clear pairs kept, see Data) |
 | `openbmb/UltraFeedback` and its binarized forks | MIT | No: GPT-4 labels, not human taste |
-| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k, ProtoQA | CC BY 4.0 | No |
+| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k | CC BY 4.0 | No |
 | Arena human preference 55k | Apache-2.0 | No |
 | SWOW, Anthropic global opinions / persuasion | NC licenses | No |
 | SHP (Reddit), OpenAI summarize-from-feedback / WebGPT comparisons | no license stated | No |
+| ProtoQA (Family Feud questions with survey answers, scraped from fan sites) | CC BY 4.0 | No |
+| Cold-Family-Feud `games/` (570 Feud games, checked 2026-11-18) | MIT repo, but the games have no stated source and the repo ships a script that generates "realistic" point values | No: unknown origin, and the counts may be made up |
 
 No MIT-licensed source exists for the scorer (multi-rater ratings) or the lister (how many people
 give each answer), so those cells need drafted cases. The lister's goal, emulating what a crowd

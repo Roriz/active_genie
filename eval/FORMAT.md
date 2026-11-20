@@ -106,7 +106,11 @@ agreement and only count towards consistency.
 ```
 
 An item matches when it contains any of the substrings, case-insensitive. A case passes when
-every check passes. (Phase 4 adds human answer counts for the Family Feud score.)
+every check passes. `min_groups` (`{"min": 3, "groups": [["dog"], ["cat"], ["bird", "parrot"]]}`)
+needs at least `min` of the groups, each a list of synonyms, somewhere in the list: a group counts
+once however many items match it, and one item can match several groups, so keep a group's
+substrings out of the others ("rain" is in "train"). `bottom_k_none` needs none of `any_of` in the
+last `k` items. (Human answer counts for a Family Feud score need a survey of our own; see the README.)
 
 ### Scorer gold
 

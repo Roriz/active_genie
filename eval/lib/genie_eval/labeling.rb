@@ -15,8 +15,8 @@ module GenieEval
   # A set is usually one cell. A draft may name several `cells` instead, so the same cases are
   # labeled once and feed each of them (comparator.by_debate and by_fight share theirs).
   #
-  # Each graded field of the gold is labeled: the extractor's `fields`, a comparator's `winner`, or a
-  # scorer's `score` (a number, or { "text", "twin" } numbers for a bias pair).
+  # Each graded field of the gold is labeled: the extractor's `fields`, a comparator's `winner`, a
+  # scorer's `score` (a number, or { "text", "twin" } numbers for a bias pair), or a lister's `list`.
   # A field is agreed when the drafted gold accepts both passes' values, using the same matchers as
   # grading. A case enters the test pool when every field is agreed or decided, and is not excluded.
   # A draft whose gold came from a noisy source (`on_disagreement: drop`) is dropped as soon as a
@@ -97,8 +97,9 @@ module GenieEval
       return gold['fields'] if gold.key?('fields')
       return { 'winner' => gold } if gold.key?('winner')
       return { 'score' => gold } if gold.key?('band')
+      return { 'list' => gold } if gold.key?('checks')
 
-      raise Error, 'labeling takes extractor fields, a comparator winner or a scorer band, ' \
+      raise Error, 'labeling takes extractor fields, a comparator winner, a scorer band or lister checks, ' \
                    "not a gold with #{gold.keys.join(', ')}"
     end
 
@@ -112,8 +113,18 @@ module GenieEval
         return value == spec['winner']
       end
       return scored_within?(spec, value) if spec.key?('band')
+      return listed?(spec, value) if spec.key?('checks')
 
       Graders::Extractor::RIGHT.include?(Graders::Extractor.outcome(spec, value))
+    end
+
+    # No answers are not agreement, even with a gold of only `no_item` checks. A value that is not a
+    # list is a broken label: as a single item, a string would contain every answer it names.
+    def listed?(spec, value)
+      return false if Matchers.absent?(value)
+      raise Error, "a pass gave list #{value.inspect}; it takes an array of answers" unless value.is_a?(Array)
+
+      Graders::Lister.grade(spec, { 'output' => { 'data' => value } }).pass
     end
 
     def scored_within?(spec, value)
@@ -121,16 +132,16 @@ module GenieEval
       Graders::Scorer.within?(spec, Matchers.number(scores['text']), Matchers.number(scores['twin']))
     end
 
-    # Decided fields replace the drafted spec ("set") or keep it ("accept"). A comparator's winner or
-    # a scorer's score spec is its whole gold, so a "set" decision gives e.g. {"winner": "b"}.
+    # Decided fields replace the drafted spec ("set") or keep it ("accept"). A comparator's winner, a
+    # scorer's score or a lister's list spec is its whole gold, so a "set" decision gives e.g. {"winner": "b"}.
     def resolve(draft, decided)
       chosen = fields(draft['gold']).to_h do |field, spec|
         decision = decided[field]
         [field, decision && decision['action'] == 'set' ? decision.fetch('spec') : spec]
       end
       gold = draft['gold'].key?('fields') ? draft['gold'].merge('fields' => chosen) : chosen.values.first
-      unless gold.is_a?(Hash) && %w[fields winner band].any? { |k| gold.key?(k) }
-        raise Error, "#{draft['id']}: a winner or score decision's spec is the whole gold, e.g. {\"winner\": \"b\"}"
+      unless gold.is_a?(Hash) && %w[fields winner band checks].any? { |k| gold.key?(k) }
+        raise Error, "#{draft['id']}: a winner, score or list decision's spec is all the gold, e.g. {\"winner\": \"b\"}"
       end
 
       draft.merge('gold' => gold, 'labeled_by' => labeled_by(draft, decided))
