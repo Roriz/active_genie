@@ -67,8 +67,8 @@ others.
 
 Each case is in one **pool**: `dev` (what you iterate against) or `test` (only for `eval:full`, so
 prompts are not tuned to it). The 80 cases migrated from `test/e2e` are dev-only, because the prompts
-were written alongside them. Test-pool cases come from public datasets and generated cases in later
-phases.
+were written alongside them. Test-pool cases come from MIT-licensed datasets and drafted cases (see
+Data).
 
 `eval:save` gives each dev case a **role** from the baseline: `canary` if it passed in every
 replicate, `hard` if it didn't.
@@ -91,11 +91,21 @@ See [FORMAT.md](FORMAT.md) for the case, gold and pool formats.
 
 External data (datasets, fetched files) and gems must be MIT-licensed; never Apache. When no MIT
 source exists, the cases are written here instead: drafted with their intended gold in
-`eval/labeling/drafts/`, labeled by two blind passes, and merged with `rake eval:label CELL=<cell>`.
-A field enters the gold only when both passes agree with the draft, or a human decision in
-`eval/labeling/<cell>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
+`eval/labeling/drafts/<set>.jsonl`, labeled by two blind passes, and merged with `rake eval:label
+CELL=<set>`. A set is usually one cell; the comparator cells share the `comparator` set. A field
+enters the gold only when both passes agree with the draft, or a human decision in
+`eval/labeling/<set>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
 started from CUAD (CC BY 4.0) and CondaQA (Apache-2.0); both were replaced with drafted cases for
 this reason.
+
+The comparator test cases come from [hh-rlhf](sources/hh_rlhf/NOTICE.md) (MIT): one conversation,
+two possible next replies, and a crowdworker's pick of the more helpful one. Those picks are noisy,
+so `sources/hh_rlhf/build.rb` writes them as drafts of the `comparator` set (`rake eval:label
+CELL=comparator`), and a case is kept only when both blind passes pick the same reply as the
+crowdworker; any other case is dropped, not queued. Pass B sees the replies in the opposite order
+to pass A, so a labeler's position bias cannot keep a case. The same cases feed `by_debate` and
+`by_fight`, so the two methods are compared on paired cases. Half the drafts have the picked reply
+as the longer one and half as the shorter one (`tags.length`), so preferring length does not pay.
 
 ## Tests
 
@@ -104,7 +114,7 @@ offline run -> baseline -> regression cycle with a stubbed model.
 
 ## Known issues and future improvements
 
-Found while building the extractor cells (2026-11-17, gpt-6.1-terra). Each one is a hypothesis to
+Found while building the extractor and comparator cells (2026-11-17, gpt-6.1-terra). Each one is a hypothesis to
 test with a paired run, not a decided change.
 
 - **`Extractor::Explanation` and litote use the same strict, non-nullable schema.** They avoid
@@ -123,6 +133,18 @@ test with a paired run, not a decided change.
 - **`webmock` pulls in `addressable` (Apache-2.0).** It is a test-only dependency of the library's
   unit tests. Replacing it means our own minimal HTTP stub in `test/`; decide separately.
 
+- **Comparator test pool is near the ceiling.** First run (2026-11-17, gpt-6.1-terra, 41 hh-rlhf
+  test cases + 10 dev cases per cell): `by_debate` 50/51, `by_fight` 47/51; same winner in both
+  orders 98.0% and 96.1%. On the 41 paired test cases `by_debate` fixes 3 cases `by_fight` misses and
+  loses none (exact McNemar p = 0.25): the direction supports "a longer debate makes the decision
+  easier", but the sample cannot show it. Keeping only pairs both labelers agree on made the set
+  easy. To test the theory, adjudicate the 17 dropped pairs where one labeler agreed with the
+  crowdworker and the other said "either" (the labeling desk, phase 5), and draft harder pairs.
+  Three of the four failures have the shorter reply as the winner (`tags.length`).
+- **No "either" cases in the comparator test pool.** hh-rlhf always has a pick, so ties and
+  taste-dependent pairs are only in the dev pool (from `test/e2e`). Draft some if consistency on
+  ties matters.
+
 ## Data for the next phases (license check, 2026-11-17)
 
 The datasets first planned for the comparator, scorer and lister cells were chosen before the
@@ -130,7 +152,7 @@ MIT-only rule. Checked on Hugging Face and GitHub:
 
 | Planned or candidate source | License | Usable? |
 |---|---|---|
-| `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: comparator candidate (use the helpful splits; labels are noisy, so keep only clear pairs) |
+| `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: used for the comparator test pool (helpful-base test; only clear pairs kept, see Data) |
 | `openbmb/UltraFeedback` and its binarized forks | MIT | No: GPT-4 labels, not human taste |
 | MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k, ProtoQA | CC BY 4.0 | No |
 | Arena human preference 55k | Apache-2.0 | No |
