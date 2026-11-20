@@ -15,7 +15,7 @@ module GenieEval
       gold = Hash.new { |h, cell| h[cell] = Store.gold(cell) }
       rows = items.map do |item|
         file = File.join(root, "r#{replicate}", item.cell, "#{item.case['id']}.json")
-        record = File.exist?(file) ? JSON.parse(File.read(file)) : nil
+        record = item.cached_record(file)
         gold_row = gold[item.cell][item.case['id']] || raise(Error, "no gold for #{item.key}")
         Row.new(item:, record:, grade: Graders.grade(item.cell, gold_row['gold'], record))
       end

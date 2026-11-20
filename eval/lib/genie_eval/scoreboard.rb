@@ -12,7 +12,11 @@ module GenieEval
       loaded = Results.load(system.run_root, items)
       @missing = loaded.missing # not run yet for this lib/: left out of every rate, never a failure
       @current = Results.new(loaded.rows - @missing)
-      @baseline = Results.load(system.baseline_dir, items) if Dir.exist?(File.join(system.baseline_dir, 'r1'))
+      if Dir.exist?(File.join(system.baseline_dir, 'r1'))
+        base = Results.load(system.baseline_dir, items)
+        # A case the baseline never ran (new, or its input changed since) is unpaired, not a baseline failure.
+        @baseline = Results.new(base.rows - base.missing)
+      end
       @weights = Store.cells.to_h { |c| [c['id'], c.fetch('weight', 1)] }
     end
 
@@ -146,6 +150,8 @@ module GenieEval
         lines << "MISSING #{@missing.size} of #{@items.size} cases have no output for this lib/ yet " \
                  '(left out of the rates; run with YES=1)'
       end
+      unjudged = @current.rows.sum { |r| (r.grade.detail['fields'] || {}).count { |_f, o| o == 'unjudged' } }
+      lines << "UNJUDGED #{unjudged} field(s) wait for the judge and count as wrong (run with YES=1 to judge them)" if unjudged.positive?
       lines.empty? ? [] : [*lines, '']
     end
 

@@ -61,5 +61,17 @@ module GenieEval
     def write_pools(rows)
       write_jsonl(pools_file, rows.sort_by { |r| [r['cell'], r['id']] })
     end
+
+    # Swaps one source's rows in a cell: drops every case, gold and pool row whose id `owned` accepts,
+    # then writes `cases` and `gold` with each case in the test pool. Other sources' rows are kept.
+    def replace_cases(cell_id, cases, gold, &owned)
+      { 'cases' => cases, 'gold' => gold }.each do |dir, rows|
+        file = GenieEval.path(dir, "#{cell_id}.jsonl")
+        kept = read_jsonl(file).reject { |r| owned.call(r['id']) }
+        write_jsonl(file, (kept + rows).sort_by { |r| r['id'] })
+      end
+      kept = pools.reject { |p| p['cell'] == cell_id && owned.call(p['id']) }
+      write_pools(kept + cases.map { |c| { 'cell' => cell_id, 'id' => c['id'], 'pool' => 'test', 'role' => nil } })
+    end
   end
 end

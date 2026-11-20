@@ -58,7 +58,12 @@ Any cell may also carry `input.config`, a hash passed as `config:` to the method
 ```
 
 Only the fields listed are graded. `present: false` means the right answer is "absent"
-(nil, empty string or empty array). Checks, all case-insensitive for strings:
+(nil, empty string or empty array). `present: "optional"` accepts either: absent counts as a
+correct abstention, and a value must pass the check (used when a human decides both readings
+are right). `check: "date"` compares a written date with an ISO `value` (`2014-02-10`). A field
+with `judge: true` and a `question` goes to the LLM judge when its check fails; the judge compares
+it with `reference` (a human-readable gold, for when `value` is a check operand such as a list of
+substrings). Checks, all case-insensitive for strings:
 
 | `check` | Passes when the extracted value... |
 |---|---|
@@ -71,11 +76,13 @@ Only the fields listed are graded. `present: false` means the right answer is "a
 | `between` | is a number within `value` = `[lo, hi]`, inclusive |
 | `near` | is a number within `delta` of `value` |
 | `nonempty` | is present and not empty |
+| `date` | is a written date (ISO, `2/10/14`, `February 10th, 2014`, ...) equal to the ISO `value` |
 
 Each field gets one of five outcomes: `correct`, `wrong_value`, `omission` (gold present,
 nothing extracted), `correct_abstention` (gold absent, nothing extracted) or `invention`
-(gold absent, something extracted). A case passes when every field is `correct` or
-`correct_abstention`.
+(gold absent, something extracted), plus `unjudged` for a judge field whose verdict is not cached
+yet (it counts as wrong until a run with `YES=1` judges it). A case passes when every field is
+`correct` or `correct_abstention`.
 
 ### Comparator gold
 

@@ -23,8 +23,8 @@ module GenieEval
 
     def pending
       items.reject do |item|
-        path = record_path(item)
-        File.exist?(path) && !JSON.parse(File.read(path))['error']
+        record = item.cached_record(record_path(item))
+        record && !record['error']
       end
     end
 
@@ -39,14 +39,37 @@ module GenieEval
       { 'cases' => todo.size, 'input_tokens' => tokens['input'], 'output_tokens' => tokens['output'], 'usd' => usd }
     end
 
-    def run!
+    # `judge`: whether to call the (paid) judge model too; the rake tasks pass it only with YES=1.
+    def run!(judge: true)
       todo = pending
-      return @io.puts('Nothing to run: every selected case is cached.') if todo.empty?
-
       self.class.configure!(system)
-      write_manifest(todo.size)
-      run_pool(todo)
-      @io.puts
+      if todo.empty?
+        @io.puts('Nothing to run: every selected case is cached.')
+      else
+        write_manifest(todo.size)
+        run_pool(todo)
+        @io.puts
+      end
+      judge! if judge
+    end
+
+    # Grades every cached case once with the judge online, so the free report never has to call it.
+    # A judge failure leaves the field `unjudged` and is retried on the next run.
+    def judge!
+      Judge.online = true
+      gold = Hash.new { |h, cell| h[cell] = Store.gold(cell) }
+      failures = items.filter_map do |item|
+        record = item.cached_record(record_path(item))
+        next unless record
+
+        Graders.grade(item.cell, gold[item.cell].fetch(item.case['id'])['gold'], record)
+        nil
+      rescue StandardError => e
+        "#{item.key}: #{e.class}: #{e.message.lines.first&.strip}"
+      end
+      @io.puts("Grading with the judge failed on #{failures.size} case(s), e.g. #{failures.first}") if failures.any?
+    ensure
+      Judge.online = false
     end
 
     def self.configure!(system)
@@ -103,7 +126,7 @@ module GenieEval
         { 'error' => "#{e.class}: #{e.message}"[0, 1000] }
       end
       latency = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
-      record = { 'id' => item.case['id'], 'cell' => item.cell, 'replicate' => replicate }
+      record = { 'id' => item.case['id'], 'cell' => item.cell, 'replicate' => replicate, 'input_sha' => item.input_sha }
                .merge(body, 'usage' => usage, 'latency_s' => latency.round(2), 'at' => Time.now.utc.iso8601)
       Store.write_json(record_path(item), record)
       record

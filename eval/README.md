@@ -53,7 +53,9 @@ subset, `YES=1` to spend money, `BY=name` for `eval:save`, `FORCE=1` to save fro
 
 `config.json` pins the models. The dev model (`gpt-6.1-terra`) runs in the loop; the four release
 models run before a release (the `Eval` GitHub workflow, triggered manually). The judge
-(`claude-sonnet-5-5`) is reserved for free-text grading in later phases. Moving to a newer model is a
+(`claude-sonnet-5-5`) grades gold fields marked `judge: true` when their deterministic check fails. It
+is only called by a paid run with `YES=1`; its verdicts are cached in `eval/judge/<model>.jsonl`
+(committed), so reports stay free. Moving to a newer model is a
 deliberate change: update `config.json` and save a new baseline. Add a model's price under
 `usd_per_million_tokens` to get dollar estimates instead of token counts.
 
@@ -78,16 +80,63 @@ replicate, `hard` if it didn't.
   about 22 points per cell and 8 overall; a smaller delta is not evidence of anything.
 - `delta`, `broke`, `fixed`, `p`: the paired comparison with the baseline on the same cases.
 - Extractor fields get one of five outcomes: correct, wrong value, omission, correct abstention or
-  invention. The field CI resamples whole cases, because fields of one document move together.
+  invention (or `unjudged`, counted as wrong, while a judge verdict is missing). The field CI
+  resamples whole cases, because fields of one document move together.
 - Comparator cases run in both orders; a case passes only if both orders pick the gold winner, and
   the report shows how often the winner is the same in both orders.
 
 ## Data
 
-See [FORMAT.md](FORMAT.md) for the case, gold and pool formats. Datasets are committed only when their
-license allows it; otherwise a fetch script with a pinned checksum is committed instead.
+See [FORMAT.md](FORMAT.md) for the case, gold and pool formats.
+
+External data (datasets, fetched files) and gems must be MIT-licensed; never Apache. When no MIT
+source exists, the cases are written here instead: drafted with their intended gold in
+`eval/labeling/drafts/`, labeled by two blind passes, and merged with `rake eval:label CELL=<cell>`.
+A field enters the gold only when both passes agree with the draft, or a human decision in
+`eval/labeling/<cell>/decisions.jsonl` (append-only, latest wins) settles it. The extractor cells
+started from CUAD (CC BY 4.0) and CondaQA (Apache-2.0); both were replaced with drafted cases for
+this reason.
 
 ## Tests
 
 The eval's own code is covered by `test/unit/eval/` (part of `rake test:unit`), including an
 offline run -> baseline -> regression cycle with a stubbed model.
+
+## Known issues and future improvements
+
+Found while building the extractor cells (2026-11-17, gpt-6.1-terra). Each one is a hypothesis to
+test with a paired run, not a decided change.
+
+- **`Extractor::Explanation` and litote use the same strict, non-nullable schema.** They avoid
+  invented values today only because the accuracy filter (`min_accuracy`) drops low-confidence
+  fields. Measure nullable non-boolean fields there too.
+- **`UnifiedProvider` string-to-nil workaround** (`lib/active_genie/providers/unified_provider.rb`,
+  around line 100) turns strings like "null" and "unknown" into nil. It predates nullable extractor
+  fields and misses variants such as `":null"`. Re-check whether it is still needed after the fix.
+- **Contract case pass rate is harsh.** An `extractor.data` contract passes only when all 10 fields
+  are right, so the case rate moved much more than the field rate on CUAD (about 35% vs 87%).
+  Consider weighting by field or reporting both in the gate.
+- **Inference questions vs "Null if the text does not say".** On CondaQA (since removed), the model
+  answered null on 7 of 15 yes/no questions that needed inference, because the description invited
+  abstaining. Watch for this in drafted cases; "Null only if the text gives no basis to answer" is
+  the wording to try.
+- **`webmock` pulls in `addressable` (Apache-2.0).** It is a test-only dependency of the library's
+  unit tests. Replacing it means our own minimal HTTP stub in `test/`; decide separately.
+
+## Data for the next phases (license check, 2026-11-17)
+
+The datasets first planned for the comparator, scorer and lister cells were chosen before the
+MIT-only rule. Checked on Hugging Face and GitHub:
+
+| Planned or candidate source | License | Usable? |
+|---|---|---|
+| `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: comparator candidate (use the helpful splits; labels are noisy, so keep only clear pairs) |
+| `openbmb/UltraFeedback` and its binarized forks | MIT | No: GPT-4 labels, not human taste |
+| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k, ProtoQA | CC BY 4.0 | No |
+| Arena human preference 55k | Apache-2.0 | No |
+| SWOW, Anthropic global opinions / persuasion | NC licenses | No |
+| SHP (Reddit), OpenAI summarize-from-feedback / WebGPT comparisons | no license stated | No |
+
+No MIT-licensed source exists for the scorer (multi-rater ratings) or the lister (how many people
+give each answer), so those cells need drafted cases. The lister's goal, emulating what a crowd
+would say, is the hardest to draft: a small survey we run ourselves may be worth considering.

@@ -12,6 +12,19 @@ module GenieEval
       def key
         "#{cell}/#{self.case['id']}"
       end
+
+      # Identifies the exact input, so an output cached for an older version of the case is never reused.
+      def input_sha
+        @input_sha ||= Digest::SHA256.hexdigest(JSON.generate(self.case['input']))[0, 16]
+      end
+
+      # The cached record at `path` if it was produced from this input, else nil.
+      def cached_record(path)
+        return unless File.exist?(path)
+
+        record = JSON.parse(File.read(path))
+        record if record['input_sha'] == input_sha
+      end
     end
 
     module_function
