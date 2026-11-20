@@ -63,6 +63,8 @@ result.reasoning
 # => nil
 ```
 
+Every non-boolean field, `enum` fields included, may come back `null` when the text doesn't state it, and nulls are dropped from `data`. Check for a missing key instead of assuming every schema field is present. `boolean` fields never come back `null`: a "whether X" field is `false` when the text has no X.
+
 > [!WARNING]
 > `.data` returns **string** keys and a `nil` reasoning; `.call` returns **symbol** keys and populated reasoning. Swapping one for the other will silently break key access:
 >
