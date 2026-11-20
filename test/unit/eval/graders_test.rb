@@ -81,6 +81,28 @@ class GenieEvalGradersTest < Minitest::Test
     refute Graders::Scorer.grade({ 'band' => [60, 100] }, output(59.9)).pass
   end
 
+  def test_scorer_bias_pair_needs_both_scores_in_band_and_close
+    gold = { 'band' => [40, 80], 'max_gap' => 10 }
+    pair = ->(text, twin) { output(text).merge('twin' => { 'data' => twin }) }
+
+    grade = Graders::Scorer.grade(gold, pair.call(55, 62))
+
+    assert grade.pass
+    assert_in_delta 7.0, grade.detail['gap']
+    refute Graders::Scorer.grade(gold, pair.call(55, 70)).pass, 'too far apart'
+    refute Graders::Scorer.grade(gold, pair.call(75, 85)).pass, 'twin out of band'
+    refute Graders::Scorer.grade(gold, output(55)).pass, 'twin missing'
+  end
+
+  def test_scorer_bias_pair_is_graded_on_the_gap_it_reports
+    gold = { 'band' => [0, 100], 'max_gap' => 10 }
+    grade = Graders::Scorer.grade(gold, output(50.0).merge('twin' => { 'data' => 60.04 }))
+
+    assert_in_delta 10.0, grade.detail['gap']
+    assert grade.pass, 'a gap shown as 10.0 is within a max_gap of 10'
+    refute Graders::Scorer.grade(gold, output(50.0).merge('twin' => { 'data' => 60.06 })).pass
+  end
+
   def test_errors_missing_records_and_missing_reasoning_fail
     GenieEval::Store.stub(:cell, { 'grader' => 'scorer' }) do
       gold = { 'band' => [0, 100], 'require_reasoning' => true }
@@ -89,6 +111,16 @@ class GenieEvalGradersTest < Minitest::Test
       refute GenieEval::Graders.grade('scorer.by_jury_bench', gold, { 'error' => 'boom' }).pass
       refute GenieEval::Graders.grade('scorer.by_jury_bench', gold, output(50, reasoning: '')).pass
       assert GenieEval::Graders.grade('scorer.by_jury_bench', gold, output(50)).pass
+    end
+  end
+
+  def test_a_bias_pair_needs_reasoning_for_both_texts
+    GenieEval::Store.stub(:cell, { 'grader' => 'scorer' }) do
+      gold = { 'band' => [0, 100], 'max_gap' => 10, 'require_reasoning' => true }
+      pair = ->(reasoning) { output(50).merge('twin' => { 'data' => 52, 'reasoning' => reasoning }) }
+
+      assert GenieEval::Graders.grade('scorer.by_jury_bench', gold, pair.call('because')).pass
+      refute GenieEval::Graders.grade('scorer.by_jury_bench', gold, pair.call('')).pass
     end
   end
 end

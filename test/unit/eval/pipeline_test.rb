@@ -60,7 +60,80 @@ class GenieEvalPipelineTest < Minitest::Test
     assert_match(/ERROR\s+.*provider down/, scoreboard(items).report)
   end
 
+  def test_report_shows_the_gap_of_scorer_bias_pairs
+    add_scorer_case('paired', { 'text' => 'plain', 'twin' => 'by a professor', 'criteria' => 'c' },
+                    { 'band' => [50, 100], 'max_gap' => 10 }, tags: { 'bias' => 'authority' })
+    @answers.merge!('plain' => 60, 'by a professor' => 66)
+    items = GenieEval::Selection.call('quick')
+    run_cases(items)
+
+    assert_match(/scorer bias pairs: mean \|gap\| 6\.0 points; mean gap by bias \(twin - text\): authority \+6\.0 \(1\)/,
+                 scoreboard(items).report)
+  end
+
+  def test_executor_scores_the_twin_with_the_same_criteria_and_juries
+    seen = []
+    fake = lambda do |text, criteria, juries:, **|
+      seen << [text, criteria, juries]
+      ActiveGenie::Result.new(data: text.size, reasoning: 'r', metadata: {})
+    end
+    picked = []
+    pick = lambda do |text, _criteria, **|
+      picked << text
+      ActiveGenie::Result.new(data: %w[Editor Linguist], reasoning: 'r', metadata: {})
+    end
+    record = ActiveGenie::Lister.stub(:with_juries, pick) do
+      ActiveGenie::Scorer.stub(:by_jury_bench, fake) do
+        GenieEval::Executor.call('scorer.by_jury_bench', { 'text' => 'abc', 'twin' => 'abcde', 'criteria' => 'c' })
+      end
+    end
+
+    assert_equal %w[abc], picked, 'juries are picked once, from the text'
+    assert_equal [['abc', 'c', %w[Editor Linguist]], ['abcde', 'c', %w[Editor Linguist]]], seen
+    assert_equal([3, 5], record.values_at('output', 'twin').map { |r| r['data'] })
+    assert_equal %w[Editor Linguist], record['juries']
+  end
+
+  def test_estimate_counts_every_call_a_case_makes
+    add_scorer_case('twinned', { 'text' => 'good', 'twin' => 'bad', 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => 10 })
+    items = GenieEval::Selection.call('quick')
+
+    # good + bad (1 call each), the bias pair (2: both texts), the comparator (2: both orders)
+    assert_equal 6 * 3000, runner(items).estimate['input_tokens']
+  end
+
+  def test_tokens_per_call_divide_by_the_calls_a_record_made
+    plain = { 'output' => {}, 'usage' => { 'calls' => 2, 'input_tokens' => 1000, 'output_tokens' => 100 } }
+    pair = { 'output' => {}, 'twin' => {}, 'usage' => { 'calls' => 3, 'input_tokens' => 2000, 'output_tokens' => 200 } }
+
+    assert_equal({ 'input' => 1000, 'output' => 100 }, GenieEval::Estimator.average([plain, pair]))
+  end
+
+  def test_check_validates_scorer_bias_pairs
+    add_scorer_case('ok', { 'text' => 't', 'twin' => 't!', 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => 10 })
+    add_scorer_case('null_gap', { 'text' => 't', 'twin' => 't!', 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => nil })
+    add_scorer_case('no_gap', { 'text' => 't', 'twin' => 't!', 'criteria' => 'c' }, { 'band' => [0, 100] })
+    add_scorer_case('same', { 'text' => 't', 'twin' => 't', 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => 10 })
+    add_scorer_case('nil_twin', { 'text' => 't', 'twin' => nil, 'criteria' => 'c' }, { 'band' => [0, 100], 'max_gap' => 10 })
+
+    errors = GenieEval::Check.new.run.errors.join("\n")
+
+    refute_match %r{/ok:}, errors
+    assert_match %r{/null_gap: max_gap must be a number}, errors
+    assert_match %r{/no_gap: a case has a twin exactly when}, errors
+    assert_match %r{/same: twin must be a non-empty text}, errors
+    assert_match %r{/nil_twin: twin must be a non-empty text}, errors
+  end
+
   private
+
+  def add_scorer_case(id, input, gold, tags: {})
+    cell = 'scorer.by_jury_bench'
+    Store.write_jsonl(GenieEval.path('cases', "#{cell}.jsonl"),
+                      Store.cases(cell) + [{ 'id' => id, 'cell' => cell, 'tags' => tags, 'input' => input }])
+    Store.write_jsonl(GenieEval.path('gold', "#{cell}.jsonl"), Store.gold(cell).values + [{ 'id' => id, 'gold' => gold }])
+    Store.write_pools(Store.pools + [{ 'cell' => cell, 'id' => id, 'pool' => 'dev', 'role' => nil }])
+  end
 
   def runner(items)
     GenieEval::Runner.new(system: @system, items:, concurrency: 2, io: StringIO.new)
@@ -72,7 +145,9 @@ class GenieEvalPipelineTest < Minitest::Test
         next { 'orders' => { 'ab' => { 'winner' => 'a' }, 'ba' => { 'winner' => 'a' } } }
       end
 
-      { 'output' => { 'data' => @answers.fetch(input['text']), 'reasoning' => 'r' } }
+      record = { 'output' => { 'data' => @answers.fetch(input['text']), 'reasoning' => 'r' } }
+      record['twin'] = { 'data' => @answers.fetch(input['twin']), 'reasoning' => 'r' } if input['twin']
+      record
     end
     GenieEval::Runner.stub(:configure!, nil) do
       GenieEval::Executor.stub(:call, fake) { runner(items).run! }

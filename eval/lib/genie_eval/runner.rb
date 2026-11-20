@@ -32,7 +32,7 @@ module GenieEval
     def estimate
       todo = pending
       tokens = todo.each_with_object(Hash.new(0)) do |item, sum|
-        Estimator.tokens_per_case(item.cell).each { |k, v| sum[k] += v }
+        Estimator.tokens_for(item).each { |k, v| sum[k] += v }
       end
       price = GenieEval.config.fetch('usd_per_million_tokens')[system.model]
       usd = price && (((tokens['input'] * price['input']) + (tokens['output'] * price['output'])) / 1_000_000)
@@ -142,27 +142,29 @@ module GenieEval
   end
 
   # Average tokens per case, learned from every cached record (runs and baselines).
+  # Estimates tokens per method call, learned from cached records of the cell, then multiplies by the
+  # calls a case makes: a comparator runs both orders and a scorer bias pair scores two texts.
   module Estimator
     module_function
 
-    def tokens_per_case(cell)
+    def tokens_for(item)
+      calls = Executor.calls(item.cell, item.case['input'] || {})
+      tokens_per_call(item.cell).transform_values { |v| v * calls }
+    end
+
+    def tokens_per_call(cell)
       @cache ||= {}
-      @cache[cell] ||= begin
+      @cache[[GenieEval.path('runs'), cell]] ||= begin
         records = Dir.glob(GenieEval.path('{runs,baselines}', '*', 'r*', cell, '*.json'))
                      .map { |f| JSON.parse(File.read(f)) }
                      .select { |r| r.dig('usage', 'calls').to_i.positive? }
-        records.empty? ? default(cell) : average(records)
+        records.empty? ? GenieEval.config.fetch('default_tokens_per_call') : average(records)
       end
     end
 
     def average(records)
-      %w[input output].to_h { |k| [k, records.sum { |r| r.dig('usage', "#{k}_tokens") } / records.size] }
-    end
-
-    def default(cell)
-      base = GenieEval.config.fetch('default_tokens_per_case')
-      factor = cell.start_with?('comparator.') ? 2 : 1 # both orders
-      base.transform_values { |v| v * factor }
+      calls = records.sum { |r| Executor.calls_in(r) }
+      %w[input output].to_h { |k| [k, records.sum { |r| r.dig('usage', "#{k}_tokens") } / calls] }
     end
   end
 end

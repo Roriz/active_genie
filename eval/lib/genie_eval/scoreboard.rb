@@ -21,7 +21,7 @@ module GenieEval
     end
 
     def report
-      lines = header + cell_table + overall + extractor_outcomes + comparator_consistency +
+      lines = header + cell_table + overall + extractor_outcomes + comparator_consistency + scorer_bias +
               noise_floor + problems + flips
       lines += verdict_lines if @mode.to_s == 'quick'
       lines.join("\n")
@@ -132,6 +132,21 @@ module GenieEval
         "#{cell} #{pct(cell_rows.count { |r| r.grade.detail['consistent'] }.to_f / cell_rows.size).strip}"
       end
       ["comparator order consistency (same winner in both orders): #{by_cell.join(', ')}", '']
+    end
+
+    # Mean signed gap (twin minus text) per bias type: a positive gap means the change that should
+    # not matter raised the score.
+    def scorer_bias
+      rows = @current.rows.select { |r| r.grade.detail['gap'] }
+      return [] if rows.empty?
+
+      by_bias = rows.group_by { |r| r.item.case.dig('tags', 'bias') || 'other' }.sort.map do |bias, bias_rows|
+        gaps = bias_rows.map { |r| r.grade.detail['gap'] }
+        format('%<bias>s %<gap>+.1f (%<n>d)', bias:, gap: Stats.mean(gaps), n: gaps.size)
+      end
+      mean_abs = Stats.mean(rows.map { |r| r.grade.detail['gap'].abs })
+      [format('scorer bias pairs: mean |gap| %.1f points; mean gap by bias (twin - text): %s',
+              mean_abs, by_bias.join(', ')), '']
     end
 
     # Share of cases whose pass/fail differs between replicates of the same system.

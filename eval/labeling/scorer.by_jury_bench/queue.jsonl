@@ -1,0 +1,5 @@
+{"id":"draft_score_06","field":"score","drafted":{"band":[0,45]},"pass_a":50,"pass_b":22,"unlabeled":[]}
+{"id":"draft_score_09","field":"score","drafted":{"band":[30,65]},"pass_a":30,"pass_b":15,"unlabeled":[]}
+{"id":"draft_bias_verbosity_02","field":"score","drafted":{"band":[35,75],"max_gap":10},"pass_a":{"text":78,"twin":78},"pass_b":{"twin":55,"text":55},"unlabeled":[]}
+{"id":"draft_bias_verbosity_03","field":"score","drafted":{"band":[75,100],"max_gap":10},"pass_a":{"text":100,"twin":100},"pass_b":{"twin":85,"text":97},"unlabeled":[]}
+{"id":"draft_bias_authority_03","field":"score","drafted":{"band":[70,100],"max_gap":10},"pass_a":{"text":98,"twin":95},"pass_b":{"twin":52,"text":85},"unlabeled":[]}

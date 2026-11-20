@@ -25,6 +25,7 @@ module GenieEval
 
     def missing_reasoning?(record)
       outputs = record['orders'] ? record['orders'].values : [record['output']]
+      outputs << record['twin'] if record.key?('twin') # a scorer bias pair's second text
       outputs.any? { |output| Matchers.absent?(output&.dig('reasoning')) }
     end
 
@@ -116,13 +117,33 @@ module GenieEval
       end
     end
 
+    # A plain case passes when the score is in the band. A bias pair (a case with a `twin`: the same
+    # text with one change that should not matter) also needs the twin's score in the band and the
+    # two scores at most `max_gap` apart. `gap` is twin minus text, so its sign shows the bias.
     module Scorer
       module_function
 
       def grade(gold, record)
         score = Matchers.number(record.dig('output', 'data'))
+        detail = { 'score' => score, 'band' => gold.fetch('band') }
+        if gold.key?('max_gap')
+          twin = Matchers.number(record.dig('twin', 'data'))
+          detail.merge!('twin_score' => twin, 'gap' => gap(score, twin))
+        end
+        Grade.new(pass: within?(gold, score, twin), detail:)
+      end
+
+      def within?(gold, score, twin = nil)
         lo, hi = gold.fetch('band')
-        Grade.new(pass: !score.nil? && score.between?(lo, hi), detail: { 'score' => score, 'band' => [lo, hi] })
+        in_band = ->(value) { !value.nil? && value.between?(lo, hi) }
+        return in_band.call(score) unless gold.key?('max_gap')
+
+        in_band.call(score) && in_band.call(twin) && gap(score, twin).abs <= gold['max_gap']
+      end
+
+      # Rounded as the report shows it, so a gap shown as 10.0 passes a max_gap of 10.
+      def gap(score, twin)
+        score && twin && (twin - score).round(1)
       end
     end
   end
