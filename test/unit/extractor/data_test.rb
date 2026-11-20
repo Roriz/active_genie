@@ -131,6 +131,38 @@ module ActiveGenie
         assert_equal 25, result.data['age']
       end
 
+      # Strict schemas must let the model answer null, or it invents values for absent fields.
+      def test_non_boolean_fields_accept_null
+        stub_openai_response({ 'name' => 'John Doe', 'age' => nil, 'profession' => nil, 'level' => nil })
+        schema = @schema.merge(
+          level: { type: 'string', enum: %w[junior senior] },
+          remote: { type: 'boolean' },
+          onsite: { type: %w[boolean] },
+          seniority: { enum: %w[junior senior] },
+          'tags' => { 'type' => %w[array], 'items' => { 'type' => 'string' } },
+          'any' => { 'anyOf' => [{ 'type' => 'string' }] },
+          'shorthand' => 'string'
+        )
+
+        Data.call(@text, schema, config: { llm: { provider: 'openai' }, providers: { openai: { api_key: 'test_key' } } })
+
+        assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
+          props = JSON.parse(req.body).dig('tools', 0, 'function', 'parameters', 'properties')
+
+          assert_equal %w[string null], props['name']['type']
+          assert_equal %w[integer null], props['age']['type']
+          assert_equal ['junior', 'senior', nil], props['level']['enum']
+          assert_equal %w[array null], props['tags']['type']
+          assert_equal 'boolean', props['remote']['type'], 'a missing "whether X" is false, not null'
+          assert_equal %w[boolean], props['onsite']['type'], 'array-form booleans stay non-nullable too'
+          assert_equal ['junior', 'senior', nil], props['seniority']['enum']
+          refute props['seniority'].key?('type'), 'a type-less enum gets no type added'
+          assert_equal({ 'anyOf' => [{ 'type' => 'string' }] }, props['any'])
+          assert_equal 'string', props['shorthand'], 'non-hash field descriptors pass through'
+        end
+        assert_equal 'string', @schema[:name][:type], 'the caller schema is not mutated'
+      end
+
       # Critical Path: Response Formatting & Nil Compacting
       def test_compacts_nil_values_in_extracted_data
         stub_openai_response({
