@@ -44,7 +44,9 @@ Any cell may also carry `input.config`, a hash passed as `config:` to the method
 {"id": "hr_resume_data", "gold": { ... }, "why": "...", "labeled_by": "e2e-migration"}
 ```
 
-`why` explains what the case checks and why that answer is correct.
+`why` explains what the case checks and why that answer is correct. Gold written by `rake eval:label`
+also names its labeling `set`. A later merge of that set removes its rows whose draft is gone or no
+longer names the cell, together with their case and pool entry.
 
 ### Extractor gold
 
@@ -105,12 +107,14 @@ agreement and only count towards consistency.
 ]}
 ```
 
-An item matches when it contains any of the substrings, case-insensitive. A case passes when
-every check passes. `min_groups` (`{"min": 3, "groups": [["dog"], ["cat"], ["bird", "parrot"]]}`)
-needs at least `min` of the groups, each a list of synonyms, somewhere in the list: a group counts
-once however many items match it, and one item can match several groups, so keep a group's
-substrings out of the others ("rain" is in "train"). `bottom_k_none` needs none of `any_of` in the
-last `k` items. (Human answer counts for a Family Feud score need a survey of our own; see the README.)
+An item matches a term when the term starts one of its words, case-insensitive: "rain" matches
+"Rainy day" and "bee" matches "Bees", but "rain" does not match "train" nor "apple" "Pineapple". A
+term may be a stem ("hanuk" for Hanukkah and Hanukah) or several words ("ice cream"). A case passes
+when every check passes. `min_groups` (`{"min": 3, "groups": [["dog"], ["cat"], ["bird", "parrot"]]}`)
+needs at least `min` of the groups, each a list of synonyms, filled by different items: "Ice cream"
+fills the ice group or the ice cream group, not both, and the grader picks whichever assignment
+fills the most groups. `bottom_k_none` needs none of `any_of` in the last `k` items. `eval:check`
+requires each check's settings (`k`, `min`, `n`, `any_of`, `groups`) and rejects any other key. (Human answer counts for a Family Feud score need a survey of our own; see the README.)
 
 ### Scorer gold
 

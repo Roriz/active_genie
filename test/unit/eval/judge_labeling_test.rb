@@ -127,6 +127,62 @@ class GenieEvalJudgeLabelingTest < Minitest::Test
     assert_equal 2, GenieEval::Labeling.merge(cell)[:promoted]
     assert_equal 'neutral', Store.gold(cell)['split']['gold']['fields']['sentiment']['value']
     assert_equal(%w[test test], Store.pools.map { |p| p['pool'] })
+    assert_equal(['drafted, confirmed by 2 blind passes', 'drafted, settled by a human decision'],
+                 %w[agreed split].map { |id| Store.gold(cell)[id]['labeled_by'] })
+    assert_equal([cell, cell], Store.gold(cell).values.map { |g| g['set'] })
+  end
+
+  def test_labeling_case_decisions_exclude_and_include
+    cell = 'extractor.data'
+    Store.write_json(GenieEval.path('cells.json'), [{ 'id' => cell, 'grader' => 'extractor', 'weight' => 1 }])
+    gold = { 'fields' => { 'name' => { 'present' => true, 'check' => 'eq', 'value' => 'Ann' } } }
+    Store.write_jsonl(GenieEval.path('labeling', 'drafts', "#{cell}.jsonl"),
+                      [{ 'id' => 'x', 'cell' => cell, 'input' => { 'text' => 't' }, 'gold' => gold }])
+    %w[a b].each do |pass|
+      Store.write_jsonl(GenieEval.path('labeling', cell, "pass_#{pass}.jsonl"), [{ 'id' => 'x', 'values' => { 'name' => 'Ann' } }])
+    end
+    decide = ->(*actions) { Store.write_jsonl(GenieEval.path('labeling', cell, 'decisions.jsonl'), actions.map { |a| { 'id' => 'x', 'action' => a } }) }
+
+    decide.call('exclude')
+
+    assert_equal 0, GenieEval::Labeling.merge(cell)[:promoted]
+
+    decide.call('exclude', 'include')
+
+    assert_equal 1, GenieEval::Labeling.merge(cell)[:promoted], 'a later include undoes the exclude'
+
+    decide.call('exlude')
+
+    assert_raises(GenieEval::Error, 'a typo is not silently ignored') { GenieEval::Labeling.merge(cell) }
+  end
+
+  def test_labeling_removes_rows_its_drafts_no_longer_name
+    cells = %w[comparator.by_debate comparator.by_fight]
+    Store.write_json(GenieEval.path('cells.json'), cells.map { |id| { 'id' => id, 'grader' => 'comparator', 'weight' => 1 } })
+    draft = lambda do |id, on|
+      { 'id' => id, 'cells' => on, 'input' => { 'player_a' => 'x', 'player_b' => 'y', 'criteria' => 'c' },
+        'gold' => { 'winner' => 'a' } }
+    end
+    write = ->(*drafts) { Store.write_jsonl(GenieEval.path('labeling', 'drafts', 'comparator.jsonl'), drafts) }
+    %w[a b].each do |pass|
+      Store.write_jsonl(GenieEval.path('labeling', 'comparator', "pass_#{pass}.jsonl"),
+                        %w[kept moved gone].map { |id| { 'id' => id, 'values' => { 'winner' => 'a' } } })
+    end
+    write.call(draft.call('kept', cells), draft.call('moved', cells), draft.call('gone', cells))
+    GenieEval::Labeling.merge('comparator')
+
+    write.call(draft.call('kept', cells), draft.call('moved', cells.first(1)))
+    GenieEval::Labeling.merge('comparator')
+
+    assert_equal(%w[kept moved], Store.cases(cells[0]).map { |c| c['id'] })
+    assert_equal %w[kept], Store.cases(cells[1]).map { |c| c['id'] }, 'moved left this cell and gone left the set'
+    assert_equal %w[kept], Store.gold(cells[1]).keys
+    assert_equal([[cells[0], 'kept'], [cells[0], 'moved'], [cells[1], 'kept']], Store.pools.map { |p| [p['cell'], p['id']] })
+
+    write.call(draft.call('kept', cells.first(1)))
+    GenieEval::Labeling.merge('comparator')
+
+    assert_empty Store.cases(cells[1]), 'a cell no draft names any more is still cleared'
   end
 
   def test_labeling_a_shared_set_feeds_each_cell_and_drops_unclear_pairs

@@ -125,10 +125,37 @@ class GenieEvalPipelineTest < Minitest::Test
     assert_match %r{/nil_twin: twin must be a non-empty text}, errors
   end
 
+  def test_check_validates_lister_check_settings
+    Store.write_json(GenieEval.path('cells.json'),
+                     Store.cells + [{ 'id' => 'lister.with_feud', 'grader' => 'lister', 'weight' => 1 }])
+    Store.reset!
+    lister = lambda do |id, check|
+      add_case('lister.with_feud', id, { 'theme' => 't' }, { 'checks' => [check] })
+    end
+    lister.call('ok', { 'type' => 'min_groups', 'min' => 2, 'groups' => [['a'], ['b']] })
+    lister.call('no_min', { 'type' => 'min_groups', 'groups' => [['a'], ['b']] })
+    lister.call('typo', { 'type' => 'no_item', 'anyof' => ['a'] })
+    lister.call('too_many', { 'type' => 'min_groups', 'min' => 3, 'groups' => [['a'], ['b']] })
+    lister.call('no_k', { 'type' => 'top_k_any', 'any_of' => ['a'] })
+    lister.call('not_object', 3)
+
+    errors = GenieEval::Check.new.run.errors.join("\n")
+
+    refute_match %r{/ok:}, errors
+    assert_match %r{/no_min: min_groups needs a well-formed min}, errors
+    assert_match %r{/typo: no_item takes any_of, not anyof}, errors
+    assert_match %r{/too_many: min_groups min 3 is more than its 2 groups}, errors
+    assert_match %r{/no_k: top_k_any needs a well-formed k}, errors
+    assert_match %r{/not_object: each lister check must be an object with a type}, errors
+  end
+
   private
 
   def add_scorer_case(id, input, gold, tags: {})
-    cell = 'scorer.by_jury_bench'
+    add_case('scorer.by_jury_bench', id, input, gold, tags:)
+  end
+
+  def add_case(cell, id, input, gold, tags: {})
     Store.write_jsonl(GenieEval.path('cases', "#{cell}.jsonl"),
                       Store.cases(cell) + [{ 'id' => id, 'cell' => cell, 'tags' => tags, 'input' => input }])
     Store.write_jsonl(GenieEval.path('gold', "#{cell}.jsonl"), Store.gold(cell).values + [{ 'id' => id, 'gold' => gold }])

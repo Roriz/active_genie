@@ -19,11 +19,13 @@ module GenieEval
   # scorer's `score` (a number, or { "text", "twin" } numbers for a bias pair), or a lister's `list`.
   # A field is agreed when the drafted gold accepts both passes' values, using the same matchers as
   # grading. A case enters the test pool when every field is agreed or decided, and is not excluded.
+  # A decision with no `field` is about the whole case: `exclude` keeps it out, `include` undoes that.
   # A draft whose gold came from a noisy source (`on_disagreement: drop`) is dropped as soon as a
-  # pass disagrees, instead of queued: only its clear cases are kept. Such a draft names that source in
-  # `labeled_by`; the gold then says whether the passes confirmed it or a human settled it.
+  # pass disagrees, instead of queued: only its clear cases are kept. A draft may name its source in
+  # `labeled_by` (default "drafted"); the gold adds whether the passes confirmed it or a human settled it.
   module Labeling
     FIELD_ACTIONS = %w[set accept].freeze
+    CASE_ACTIONS = %w[exclude include].freeze
 
     module_function
 
@@ -68,6 +70,10 @@ module GenieEval
         if d['field'] && !FIELD_ACTIONS.include?(d['action'])
           raise Error, "#{set} decision #{d['id']}.#{d['field']}: action #{d['action'].inspect} (a field takes set or accept)"
         end
+        if !d['field'] && !CASE_ACTIONS.include?(d['action'])
+          raise Error, "#{set} decision #{d['id']}: action #{d['action'].inspect} (a case takes exclude or include)"
+        end
+        raise Error, "#{set} decision #{d['id']}.#{d['field']}: a set needs its spec" if d['action'] == 'set' && !d.key?('spec')
 
         (out[d['id']] ||= {})[d['field']] = d
       end
@@ -124,7 +130,7 @@ module GenieEval
       return false if Matchers.absent?(value)
       raise Error, "a pass gave list #{value.inspect}; it takes an array of answers" unless value.is_a?(Array)
 
-      Graders::Lister.grade(spec, { 'output' => { 'data' => value } }).pass
+      Graders::Lister.pass?(spec, value)
     end
 
     def scored_within?(spec, value)
@@ -147,22 +153,34 @@ module GenieEval
       draft.merge('gold' => gold, 'labeled_by' => labeled_by(draft, decided))
     end
 
+    # Where the gold came from: the draft's source ("drafted" by default), then who settled it.
     def labeled_by(draft, decided)
-      return 'drafted, 2 blind passes, human decisions' unless draft['labeled_by']
-
       settled = decided.except(nil).any? # the nil key is a case-level decision, not a field
-      "#{draft['labeled_by']}, #{settled ? 'settled by a human decision' : 'confirmed by 2 blind passes'}"
+      "#{draft['labeled_by'] || 'drafted'}, #{settled ? 'settled by a human decision' : 'confirmed by 2 blind passes'}"
     end
 
+    # Rewrites every cell the set has rows in: the cells its drafts name, and any cell whose gold still
+    # tags rows with the set. A row whose draft was removed, or whose draft no longer names that cell,
+    # is dropped there with its case and pool entry. Other sources' rows in a cell are kept.
     def write(set, targets, drafts, promoted, queue)
       Store.write_jsonl(GenieEval.path('labeling', set, 'queue.jsonl'), queue)
-      drafted = drafts.to_set { |d| d['id'] }
-      targets.each do |cell|
+      tagged = tagged_ids(set)
+      (targets | tagged.keys).each do |cell|
         mine = promoted.select { |d| cells(d).include?(cell) }
         cases = mine.map { |d| { 'id' => d['id'], 'cell' => cell }.merge(d.slice('source', 'tags', 'input')) }
-        gold = mine.map { |d| d.slice('id', 'gold', 'why', 'labeled_by') }
-        Store.replace_cases(cell, cases, gold) { |id| drafted.include?(id) }
+        gold = mine.map { |d| d.slice('id', 'gold', 'why', 'labeled_by').merge('set' => set) }
+        named = drafts.select { |d| cells(d).include?(cell) }.to_set { |d| d['id'] }
+        owned = named | tagged.fetch(cell, Set.new)
+        Store.replace_cases(cell, cases, gold) { |id| owned.include?(id) }
       end
+    end
+
+    # { cell => ids of its gold rows tagged with the set }, for each cell that has any.
+    def tagged_ids(set)
+      ids = Store.cells.to_h do |c|
+        [c['id'], Store.gold(c['id']).values.select { |g| g['set'] == set }.to_set { |g| g['id'] }]
+      end
+      ids.reject { |_cell, owned| owned.empty? }
     end
 
     def cells(draft)

@@ -92,13 +92,36 @@ module GenieEval
       module_function
 
       def grade(gold, record)
-        items = Array(record.dig('output', 'data')).map { |item| Matchers.normalize(item) }
-        results = gold.fetch('checks').map { |check| [check['type'], passes?(check, items)] }
-        Grade.new(pass: results.all?(&:last), detail: { 'checks' => results.to_h, 'items' => items.size })
+        items = items(record.dig('output', 'data'))
+        results = results(gold, items)
+        Grade.new(pass: results.all?(&:last), detail: { 'checks' => named(results), 'items' => items.size })
+      end
+
+      # Whether a list (as a labeler or the module gave it) passes every check of the gold.
+      def pass?(gold, list) = results(gold, items(list)).all?(&:last)
+
+      def items(list) = Array(list).map { |item| Matchers.normalize(item) }
+
+      def results(gold, items)
+        gold.fetch('checks').map { |check| [check['type'], passes?(check, items)] }
+      end
+
+      # { type => pass }, a repeated type numbered ("any_item#2") so one result cannot hide another.
+      def named(results)
+        count = Hash.new(0)
+        results.to_h { |type, pass| [(count[type] += 1) > 1 ? "#{type}##{count[type]}" : type, pass] }
+      end
+
+      # Matches a term where a word starts and may run on: "bee" matches "bees" and "rain" matches
+      # "rainy", but "rain" does not match "train" nor "apple" "pineapple". Terms are normalized
+      # like items, so " ice" or "Ice  Cream" still match.
+      def pattern(terms)
+        /(?<![[:alnum:]])(?:#{Regexp.union(Array(terms).map { |term| Matchers.normalize(term) }).source})/
       end
 
       def passes?(check, items)
-        hit = ->(item) { Matchers.contains_any?(item, check['any_of']) }
+        pattern = pattern(check['any_of'])
+        hit = ->(item) { item.match?(pattern) }
         case check['type']
         when 'top_k_any' then items.first(check.fetch('k')).any?(&hit)
         when 'bottom_k_none' then items.last(check.fetch('k')).none?(&hit)
@@ -110,10 +133,28 @@ module GenieEval
         end
       end
 
-      # At least `min` of the `groups` (each a list of synonyms) appear somewhere in the list.
+      # At least `min` of the `groups` (each a list of synonyms) are filled, each by a different item:
+      # one answer such as "ice cream" fills either the ice group or the ice cream group, not both.
       def min_groups?(check, items)
-        hits = check.fetch('groups').count { |group| items.any? { |item| Matchers.contains_any?(item, group) } }
-        hits >= check.fetch('min')
+        fits = check.fetch('groups').map do |group|
+          pattern = pattern(group)
+          items.each_index.select { |i| items[i].match?(pattern) }
+        end
+        owner = {} # item index => the group it fills
+        filled = fits.each_index.count { |group| fill(group, fits, owner, Set.new) }
+        filled >= check.fetch('min')
+      end
+
+      # Gives `group` an item, moving an item's current group to another of its items when that frees
+      # one up (an augmenting path), so the count is the most groups any one-to-one pick can fill.
+      def fill(group, fits, owner, seen)
+        fits[group].any? do |item|
+          next false unless seen.add?(item)
+          next false if owner.key?(item) && !fill(owner[item], fits, owner, seen)
+
+          owner[item] = group
+          true
+        end
       end
     end
 
