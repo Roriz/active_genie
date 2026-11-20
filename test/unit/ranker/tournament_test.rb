@@ -23,13 +23,11 @@ module ActiveGenie
             body: File.read("#{__dir__}/../fixtures/scorer-openai.json")
           )
 
-        # Stub lister requests (used by Lister)
+        # Stub jury requests (used by Lister::Juries). The body must carry `juries`:
+        # an empty list makes every Scorer call list its own juries again.
         stub_request(:post, /#{ActiveGenie.configuration.providers.openai.api_url}.*$/)
-          .with(body: /Family Feud/)
-          .to_return(
-            status: 200,
-            body: File.read("#{__dir__}/../fixtures/lister-openai.json")
-          )
+          .with(body: /identify_jury/)
+          .to_return(status: 200, body: juries_response_body)
       end
 
       # Critical Path: Result Interface
@@ -490,6 +488,15 @@ module ActiveGenie
           assert meta.key?(:elo)
           assert meta.key?(:eliminated)
         end
+      end
+
+      private
+
+      def juries_response_body
+        arguments = { why_these_juries: 'stubbed', juries: ['Senior Software Engineer'] }.to_json
+        tool_call = { id: 'call_juries', type: 'function', function: { name: 'identify_jury', arguments: } }
+
+        { choices: [{ message: { role: 'assistant', content: nil, tool_calls: [tool_call] } }] }.to_json
       end
     end
   end
