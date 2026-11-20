@@ -70,7 +70,7 @@ result.data
 # => ["Software Architect", "DevOps Engineer", "Business Analyst"]
 ```
 
-`number_of_items` does not apply here. The model picks however many juries the content calls for.
+`number_of_items` does not apply here. The prompt asks for three complementary roles. ActiveGenie does not enforce that count, so check `data.size` before you index into fixed positions.
 
 ## Return value
 
