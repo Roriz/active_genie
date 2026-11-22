@@ -136,7 +136,8 @@ offline run -> baseline -> regression cycle with a stubbed model.
 ## Known issues and future improvements
 
 Found while building the extractor, comparator and scorer cells (2026-11-17/18, gpt-6.1-terra). Each one is a hypothesis to
-test with a paired run, not a decided change.
+test with a paired run, not a decided change. [NEXT_FOCUS.md](NEXT_FOCUS.md) sorts them by the Three
+Gulfs (comprehension, specification, generalization) and proposes what to work on next.
 
 - **`Extractor::Explanation` and litote use the same strict, non-nullable schema.** They avoid
   invented values today only because the accuracy filter (`min_accuracy`) drops low-confidence
