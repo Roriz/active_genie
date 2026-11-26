@@ -12,12 +12,10 @@ module GenieEval
 
     # `root` holds r1/, r2/, ... ; `replicate` picks one of them.
     def self.load(root, items, replicate: 1)
-      gold = Hash.new { |h, cell| h[cell] = Store.gold(cell) }
       rows = items.map do |item|
-        file = File.join(root, "r#{replicate}", item.cell, "#{item.case['id']}.json")
-        record = item.cached_record(file)
-        gold_row = gold[item.cell][item.case['id']] || raise(Error, "no gold for #{item.key}")
-        Row.new(item:, record:, grade: Graders.grade(item.cell, gold_row['gold'], record))
+        record = item.cached_record(File.join(root, "r#{replicate}", item.cell, "#{item.case['id']}.json"))
+        gold = item.gold || raise(Error, "no gold for #{item.key}")
+        Row.new(item:, record:, grade: Graders.grade(item.cell, gold, record))
       end
       new(rows)
     end

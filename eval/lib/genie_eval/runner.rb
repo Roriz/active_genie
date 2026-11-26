@@ -57,12 +57,11 @@ module GenieEval
     # A judge failure leaves the field `unjudged` and is retried on the next run.
     def judge!
       Judge.online = true
-      gold = Hash.new { |h, cell| h[cell] = Store.gold(cell) }
       failures = items.filter_map do |item|
         record = item.cached_record(record_path(item))
         next unless record
 
-        Graders.grade(item.cell, gold[item.cell].fetch(item.case['id'])['gold'], record)
+        Graders.grade(item.cell, item.gold, record)
         nil
       rescue StandardError => e
         "#{item.key}: #{e.class}: #{e.message.lines.first&.strip}"

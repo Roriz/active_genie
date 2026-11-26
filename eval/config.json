@@ -11,6 +11,5 @@
     "gpt-6.1-terra": { "input": 1.0, "output": 5.0 }
   },
   "default_tokens_per_call": { "input": 3000, "output": 1000 },
-  "quick": { "hard_per_cell": 3, "canary_per_cell": 2 },
   "concurrency": 4
 }

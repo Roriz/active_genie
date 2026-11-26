@@ -1,8 +1,19 @@
 # frozen_string_literal: true
 
 module GenieEval
-  # Reads and writes the committed eval data: cells, cases, gold and pools.
+  # Reads and writes the committed eval data: cells, sets and labels.
+  #
+  #   eval/sets/<set>.jsonl    one row per case: its cells, pool, status, input, gold and why
+  #   eval/labels/<set>.jsonl  the blind labeling passes of the set's drafted rows
   module Store
+    # A row with no status has no labeling at all. `decided` and `excluded` are set by a person.
+    STATUSES = %w[draft confirmed queued dropped decided excluded].freeze
+    # Written and re-computed by eval:label from the passes; it never touches the others.
+    LABELED = %w[draft queued confirmed dropped].freeze
+    # A row runs with no status, or once labeling confirmed it or a person decided it. Any other
+    # status, a typo included, keeps it out (eval:check reports the typo).
+    RUNNING = %w[confirmed decided].freeze
+
     module_function
 
     def read_jsonl(file)
@@ -17,9 +28,12 @@ module GenieEval
       end
     end
 
+    # Through a .tmp file, so an interrupted write never truncates a committed set.
     def write_jsonl(file, rows)
       FileUtils.mkdir_p(File.dirname(file))
-      File.write(file, rows.map { |row| "#{JSON.generate(row)}\n" }.join)
+      tmp = "#{file}.tmp"
+      File.write(tmp, rows.map { |row| "#{JSON.generate(row)}\n" }.join)
+      File.rename(tmp, file)
     end
 
     def write_json(file, data)
@@ -42,36 +56,29 @@ module GenieEval
       cells.find { |c| c['id'] == id } || raise(Error, "unknown cell #{id}")
     end
 
+    def sets
+      Dir.glob(GenieEval.path('sets', '*.jsonl')).map { |f| File.basename(f, '.jsonl') }.sort
+    end
+
+    def rows(set)
+      read_jsonl(GenieEval.path('sets', "#{set}.jsonl"))
+    end
+
+    def write_rows(set, rows)
+      write_jsonl(GenieEval.path('sets', "#{set}.jsonl"), rows)
+    end
+
+    def labels(set)
+      read_jsonl(GenieEval.path('labels', "#{set}.jsonl"))
+    end
+
+    # The rows that run in a cell, from every set.
     def cases(cell_id)
-      read_jsonl(GenieEval.path('cases', "#{cell_id}.jsonl"))
+      sets.flat_map { |set| rows(set) }.select { |row| Array(row['cells']).include?(cell_id) && runs?(row) }
     end
 
-    def gold(cell_id)
-      read_jsonl(GenieEval.path('gold', "#{cell_id}.jsonl")).to_h { |row| [row['id'], row] }
-    end
-
-    def pools_file
-      GenieEval.path('pools.jsonl')
-    end
-
-    def pools
-      read_jsonl(pools_file)
-    end
-
-    def write_pools(rows)
-      write_jsonl(pools_file, rows.sort_by { |r| [r['cell'], r['id']] })
-    end
-
-    # Swaps one source's rows in a cell: drops every case, gold and pool row whose id `owned` accepts,
-    # then writes `cases` and `gold` with each case in the test pool. Other sources' rows are kept.
-    def replace_cases(cell_id, cases, gold, &owned)
-      { 'cases' => cases, 'gold' => gold }.each do |dir, rows|
-        file = GenieEval.path(dir, "#{cell_id}.jsonl")
-        kept = read_jsonl(file).reject { |r| owned.call(r['id']) }
-        write_jsonl(file, (kept + rows).sort_by { |r| r['id'] })
-      end
-      kept = pools.reject { |p| p['cell'] == cell_id && owned.call(p['id']) }
-      write_pools(kept + cases.map { |c| { 'cell' => cell_id, 'id' => c['id'], 'pool' => 'test', 'role' => nil } })
+    def runs?(row)
+      row['status'].nil? || RUNNING.include?(row['status'])
     end
   end
 end

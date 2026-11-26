@@ -31,7 +31,7 @@ remains, it's a generalization failure: measure how often it happens, then inter
 
 ## The known issues, sorted by gulf
 
-My classification of the items in [README › Known issues](README.md#known-issues-and-future-improvements)
+My classification of the items in [Known issues](#known-issues-and-future-improvements) below
 and of the Airbnb integration feedback. Each one is a hypothesis.
 
 - **Specification**
@@ -76,3 +76,85 @@ More techniques won't fix those.
 
 Recommended order: 1 → 2 → 3. Steps 1 and 2 are mostly process and need little code. Step 3 is the first
 new feature, and it also backs the Tropical on Rails 2027 eval talk (draft 6, parts 1 and 5).
+
+## Known issues and future improvements
+
+Found while building the extractor, comparator and scorer cells (2026-11-17/18, gpt-6.1-terra). Each
+one is a hypothesis to test with a paired run, not a decided change.
+
+- **`Extractor::Explanation` and litote use the same strict, non-nullable schema.** They avoid
+  invented values today only because the accuracy filter (`min_accuracy`) drops low-confidence
+  fields. Measure nullable non-boolean fields there too.
+- **`UnifiedProvider` string-to-nil workaround** (`lib/active_genie/providers/unified_provider.rb`,
+  around line 100) turns strings like "null" and "unknown" into nil. It predates nullable extractor
+  fields and misses variants such as `":null"`. Re-check whether it is still needed after the fix.
+- **Contract case pass rate is harsh.** An `extractor.data` contract passes only when all 10 fields
+  are right, so the case rate moved much more than the field rate on CUAD (about 35% vs 87%).
+  Consider weighting by field or reporting both in the gate.
+- **Inference questions vs "Null if the text does not say".** On CondaQA (since removed), the model
+  answered null on 7 of 15 yes/no questions that needed inference, because the description invited
+  abstaining. Watch for this in drafted cases; "Null only if the text gives no basis to answer" is
+  the wording to try.
+- **`webmock` pulls in `addressable` (Apache-2.0).** It is a test-only dependency of the library's
+  unit tests. Replacing it means our own minimal HTTP stub in `test/`; decide separately.
+
+- **Comparator test pool is near the ceiling.** First run (2026-11-17, gpt-6.1-terra, 41 hh-rlhf
+  test cases + 10 dev cases per cell): `by_debate` 50/51, `by_fight` 47/51; same winner in both
+  orders 98.0% and 96.1%. On the 41 paired test cases `by_debate` fixes 3 cases `by_fight` misses and
+  loses none (exact McNemar p = 0.25): the direction supports "a longer debate makes the decision
+  easier", but the sample cannot show it. Keeping only pairs both labelers agree on made the set
+  easy. To test the theory, adjudicate the 17 dropped pairs where one labeler agreed with the
+  crowdworker and the other said "either" (the labeling desk, phase 5), and draft harder pairs.
+  Three of the four failures have the shorter reply as the winner (`tags.length`).
+- **No "either" cases in the comparator test pool.** hh-rlhf always has a pick, so ties and
+  taste-dependent pairs are only in the dev pool (from `test/e2e`). Draft some if consistency on
+  ties matters.
+
+- **`Lister::Juries` used the Family Feud prompt.** Since the rename in #63, `juries.prompt.md` was
+  a copy of `feud.prompt.md`, so the scorer picked its juries with a survey prompt: 3 to 7 juries
+  per case (mean 4.1). With a juries prompt (fix/juries-prompt), it picks exactly 3. On the scorer
+  the fix is neutral within noise: 41/45 against 42/45 (+1 / -2, and both breaks are a text
+  scoring 76 against a band that ends at 75).
+- **The scorer barely moves on the bias pairs.** With the juries shared across each pair (25 test
+  cases, current lib): mean |gap| 3.0 points, no bias type pushes scores up, and distraction lowers
+  them most (mean -5.0). When each text picked its own juries, two pairs failed on gaps of -16 and
+  -11 that came from different juries, not from the change: that is why a pair now shares them.
+  The pairs are easy to see through, which is good news for the method but means the set cannot
+  yet show whether more viewpoints remove bias. Next: subtler pairs (a confident vs a hedged tone, a polished vs a plain layout) and a
+  paired run with a single jury against the default three.
+- **Five drafted scorer cases wait for a decision** (`"status": "queued"` in `eval/sets/scorer.by_jury_bench.jsonl`).
+  `draft_bias_authority_03` should probably be excluded: its invented citations are a real
+  defect, so the pair does not isolate authority bias.
+- **Some migrated scorer cases score claims, not work.** `engineering_code_quality`,
+  `academia_scientific_rigor_high` and `legal_brief_quality` describe a pull request, a study or
+  a brief ("refactors the module perfectly, 100% test coverage") instead of showing it. The model
+  scores them 30-47 because the claims cannot be checked, against bands that start at 50-70.
+  Rewrite them to contain the work itself, or lower the bands.
+
+- **The lister test pool is at the ceiling.** First run (2026-11-18, gpt-6.1-terra): 40/40 (30
+  drafted + 10 dev). It works as a regression gate for obvious crowd answers, but it cannot rank
+  methods on how well they emulate a crowd, and its gold is partly circular (models guessing what
+  a crowd says). The real measure is a Family Feud score against counted answers: a survey of our
+  own (about 30 questions, 30 to 100 people), whose counts would extend the lister gold.
+- **`lister.with_juries` has no test pool of its own.** It is judged through the scorer, whose
+  test cases let it pick the juries.
+
+## Data for the next phases (license check, 2026-11-17)
+
+The datasets first planned for the comparator, scorer and lister cells were chosen before the
+MIT-only rule. Checked on Hugging Face and GitHub:
+
+| Planned or candidate source | License | Usable? |
+|---|---|---|
+| `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: used for the comparator test pool (helpful-base test; only clear pairs kept, see [Where the cases come from](README.md#where-the-cases-come-from)) |
+| `openbmb/UltraFeedback` and its binarized forks | MIT | No: GPT-4 labels, not human taste |
+| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k | CC BY 4.0 | No |
+| Arena human preference 55k | Apache-2.0 | No |
+| SWOW, Anthropic global opinions / persuasion | NC licenses | No |
+| SHP (Reddit), OpenAI summarize-from-feedback / WebGPT comparisons | no license stated | No |
+| ProtoQA (Family Feud questions with survey answers, scraped from fan sites) | CC BY 4.0 | No |
+| Cold-Family-Feud `games/` (570 Feud games, checked 2026-11-18) | MIT repo, but the games have no stated source and the repo ships a script that generates "realistic" point values | No: unknown origin, and the counts may be made up |
+
+No MIT-licensed source exists for the scorer (multi-rater ratings) or the lister (how many people
+give each answer), so those cells need drafted cases. The lister's goal, emulating what a crowd
+would say, is the hardest to draft: a small survey we run ourselves may be worth considering.

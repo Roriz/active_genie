@@ -12,10 +12,13 @@ module GenieEval
       loaded = Results.load(system.run_root, items)
       @missing = loaded.missing # not run yet for this lib/: left out of every rate, never a failure
       @current = Results.new(loaded.rows - @missing)
-      if Dir.exist?(File.join(system.baseline_dir, 'r1'))
-        base = Results.load(system.baseline_dir, items)
+      replicates = system.baseline_replicates
+      if replicates.any?
+        base = replicates.map { |r| Results.load(system.baseline_dir, items, replicate: r) }
         # A case the baseline never ran (new, or its input changed since) is unpaired, not a baseline failure.
-        @baseline = Results.new(base.rows - base.missing)
+        @baseline = Results.new(base.first.rows - base.first.missing)
+        always = ->(key) { base.all? { |b| b.by_key[key].then { |row| row.record && row.pass? } } }
+        @canaries = items.map(&:key).select(&always).to_set
       end
       @weights = Store.cells.to_h { |c| [c['id'], c.fetch('weight', 1)] }
     end
@@ -29,13 +32,18 @@ module GenieEval
 
     def verdict
       return 'NO BASELINE' unless @baseline
-      return 'STOP' if broke.any? { |row| row.item.role == 'canary' }
+      return 'STOP' if broke.any? { |row| canary?(row) }
       return 'LOOK' if broke.any? || @current.errors.any? || @missing.any?
 
       'GO'
     end
 
     private
+
+    # A canary is a case the baseline passed in every replicate: breaking one is a STOP.
+    def canary?(row)
+      @canaries&.include?(row.key)
+    end
 
     def pct(value)
       value.nil? ? '   -  ' : format('%5.1f%%', value * 100)
@@ -173,7 +181,7 @@ module GenieEval
     # With a baseline: what broke or got fixed. Without one: every failing case.
     def flips
       lines = if @baseline
-                broke.map { |r| "BROKE   #{r.key}#{" (#{r.item.role})" if r.item.role} #{brief(r)}" } +
+                broke.map { |r| "BROKE   #{r.key}#{' (canary)' if canary?(r)} #{brief(r)}" } +
                   fixed.map { |r| "FIXED   #{r.key}" }
               else
                 @current.rows.reject { |r| r.pass? || r.record['error'] }.map { |r| "FAIL    #{r.key} #{brief(r)}" }
