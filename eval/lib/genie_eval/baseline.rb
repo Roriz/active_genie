@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module GenieEval
-  # Promotes a complete run to the committed baseline of its provider/model, and (for the dev
-  # model) assigns dev-pool roles: canary = the baseline passes in every replicate, hard = it fails.
+  # Promotes a complete run to the committed baseline of its provider/model.
   module Baseline
     module_function
 
@@ -14,7 +13,6 @@ module GenieEval
         FileUtils.cp_r(system.run_dir(r), File.join(system.baseline_dir, "r#{r}"))
       end
       Store.write_json(File.join(system.baseline_dir, 'BASE.json'), meta(system, items, saved_by))
-      assign_roles!(system, items) if system.dev?
     end
 
     def validate!(system, items, force:)
@@ -40,20 +38,6 @@ module GenieEval
         'replicates' => system.replicates, 'cases' => items.size,
         'saved_by' => saved_by, 'saved_at' => Time.now.utc.iso8601
       )
-    end
-
-    def assign_roles!(system, items)
-      runs = system.replicates.map { |r| Results.load(system.run_root, items, replicate: r).by_key }
-      pools = Store.pools.map do |row|
-        next row unless row['pool'] == 'dev'
-
-        key = "#{row['cell']}/#{row['id']}"
-        passes = runs.map { |run| run[key]&.pass? }
-        next row if passes.include?(nil)
-
-        row.merge('role' => passes.all? ? 'canary' : 'hard')
-      end
-      Store.write_pools(pools)
     end
   end
 end

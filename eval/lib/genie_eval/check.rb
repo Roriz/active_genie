@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module GenieEval
-  # Free checks, no model calls: data integrity of cases/gold/pools, and a lint of the prompt
+  # Free checks, no model calls: data integrity of the sets and labels, and a lint of the prompt
   # and function-schema files in lib/ (empty files, mojibake, broken JSON, what changed vs main).
   class Check
     REQUIRED_INPUT = {
@@ -40,34 +40,56 @@ module GenieEval
     private
 
     def check_data
-      pools = Store.pools
-      pool_keys = pools.map { |p| [p['cell'], p['id']] }
-      @errors << 'pools.jsonl has duplicate entries' if pool_keys.uniq.size != pool_keys.size
-      known = Store.cells.flat_map { |cell| check_cell(cell, pool_keys) }
-      (pool_keys - known).each { |cell, id| @errors << "pools.jsonl: #{cell}/#{id} has no case" }
-      pools.each { |p| check_pool_row(p) }
+      @errors << 'eval/sets/ has no set files' if Store.sets.empty?
+      Store.cells.each { |cell| @errors << "#{cell['id']}: no executor" unless Executor::CALLS.key?(cell['id']) }
+      seen = {}
+      Store.sets.each do |set|
+        rows = Store.rows(set)
+        ids = rows.map { |r| r['id'] }
+        ids.tally.select { |_id, n| n > 1 }.each_key { |id| @errors << "#{set}/#{id}: duplicate id" }
+        rows.each { |row| check_row(set, row, seen) }
+        check_labels(set, ids)
+      end
+      labeled = Dir.glob(GenieEval.path('labels', '*.jsonl')).map { |f| File.basename(f, '.jsonl') }
+      (labeled - Store.sets).each { |set| @errors << "labels/#{set}.jsonl has no set in eval/sets/: it labels nothing" }
+      Store.cells.each do |cell|
+        @warnings << "#{cell['id']}: no case runs in this cell" if Store.cases(cell['id']).empty?
+      end
     end
 
-    def check_cell(cell, pool_keys)
-      id = cell['id']
-      @errors << "#{id}: no executor" unless Executor::CALLS.key?(id)
-      cases = Store.cases(id)
-      gold = Store.gold(id)
-      ids = cases.map { |c| c['id'] }
-      @errors << "#{id}: duplicate case ids" if ids.uniq.size != ids.size
-      (gold.keys - ids).each { |orphan| @errors << "#{id}/#{orphan}: gold without a case" }
-      cases.each do |kase|
-        where = "#{id}/#{kase['id']}"
-        @errors << "#{where}: case says cell #{kase['cell']}" if kase['cell'] != id
-        check_input(id, kase['input'] || {}, where)
-        @errors << "#{where}: no pool entry" unless pool_keys.include?([id, kase['id']])
-        if gold[kase['id']]
-          check_gold(cell['grader'], gold[kase['id']]['gold'] || {}, where, kase['input'] || {})
-        else
-          @errors << "#{where}: no gold"
-        end
+    def check_row(set, row, seen)
+      where = "#{set}/#{row['id']}"
+      @errors << "#{where}: id must be snake_case" unless row['id'].to_s.match?(/\A[a-z0-9_]+\z/)
+      @errors << "#{where}: pool must be dev or test" unless %w[dev test].include?(row['pool'])
+      unless row['status'].nil? || Store::STATUSES.include?(row['status'])
+        @errors << "#{where}: status must be one of #{Store::STATUSES.join(', ')} (or absent)"
       end
-      ids.map { |case_id| [id, case_id] }
+      if row.key?('on_disagreement') && row['on_disagreement'] != 'drop'
+        @errors << "#{where}: on_disagreement takes only \"drop\""
+      end
+      cells = row['cells']
+      return @errors << "#{where}: cells must be a non-empty array" unless cells.is_a?(Array) && cells.any?
+
+      cells.each do |cell_id|
+        cell = Store.cells.find { |c| c['id'] == cell_id }
+        next @errors << "#{where}: unknown cell #{cell_id}" unless cell
+
+        # A repeat within the set is already reported as a duplicate id.
+        if (other = seen[[cell_id, row['id']]]) && other != set
+          @errors << "#{where}: #{cell_id}/#{row['id']} is also in #{other}"
+        end
+        seen[[cell_id, row['id']]] = set
+        check_input(cell_id, row['input'] || {}, where)
+        check_gold(cell['grader'], row['gold'] || {}, where, row['input'] || {})
+      end
+    end
+
+    # A label for an id the set does not have is a typo or a removed row: it would silently label nothing.
+    def check_labels(set, ids)
+      Store.labels(set).each do |label|
+        @errors << "labels/#{set}: #{label['id']} is not a row of the set" unless ids.include?(label['id'])
+        @errors << "labels/#{set}/#{label['id']}: pass must be a or b" unless %w[a b].include?(label['pass'])
+      end
     end
 
     def check_input(cell_id, input, where)
@@ -162,12 +184,6 @@ module GenieEval
 
       gap = gold['max_gap']
       'max_gap must be a number >= 0' unless gap.is_a?(Numeric) && gap >= 0
-    end
-
-    def check_pool_row(row)
-      where = "pools.jsonl #{row['cell']}/#{row['id']}"
-      @errors << "#{where}: pool must be dev or test" unless %w[dev test].include?(row['pool'])
-      @errors << "#{where}: role must be null, hard or canary" unless [nil, 'hard', 'canary'].include?(row['role'])
     end
 
     def check_prompts

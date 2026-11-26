@@ -5,7 +5,7 @@ require 'minitest/mock'
 require 'tmpdir'
 require_relative '../../../eval/lib/genie_eval'
 
-# End to end without a model: run -> cache -> report -> save baseline -> roles -> regression verdict.
+# End to end without a model: run -> cache -> report -> save baseline -> regression verdict.
 class GenieEvalPipelineTest < Minitest::Test
   Store = GenieEval::Store
 
@@ -25,7 +25,7 @@ class GenieEvalPipelineTest < Minitest::Test
   def test_quick_run_baseline_and_regression
     quick = GenieEval::Selection.call('quick')
 
-    assert_equal 3, quick.size, 'without roles, quick runs the whole dev pool'
+    assert_equal 3, quick.size, 'quick runs the whole dev pool'
     assert_equal 3, runner(quick).estimate['cases']
     assert_match(/MISSING 3 of 3 cases/, scoreboard(quick).report, 'cases not run yet are not failures')
     refute_match(/0\.0%/, scoreboard(quick).report)
@@ -36,17 +36,41 @@ class GenieEvalPipelineTest < Minitest::Test
     assert_equal 'NO BASELINE', scoreboard(quick).verdict
 
     GenieEval::Baseline.save!(@system, GenieEval::Selection.call('full'), saved_by: 'test', force: true)
-    roles = Store.pools.to_h { |p| [p['id'], p['role']] }
-
-    assert_equal({ 'good' => 'canary', 'bad' => 'hard', 'pair' => 'canary' }, roles)
-
     FileUtils.rm_rf(@system.run_root)
-    @answers['good'] = 5 # the canary now fails
+    @answers['good'] = 5 # the baseline always passed it: a canary
     run_cases(GenieEval::Selection.call('quick'))
     board = scoreboard(GenieEval::Selection.call('quick'))
 
     assert_equal 'STOP', board.verdict
     assert_match %r{BROKE\s+scorer.by_jury_bench/good \(canary\)}, board.report
+  end
+
+  def test_a_case_that_failed_in_one_baseline_replicate_is_not_a_canary
+    items = GenieEval::Selection.call('quick')
+    run_cases(items)
+    FileUtils.cp_r(@system.run_dir(1), @system.run_dir(2))
+    record = File.join(@system.run_dir(2), 'scorer.by_jury_bench', 'good.json')
+    Store.write_json(record, JSON.parse(File.read(record)).merge('output' => { 'data' => 5, 'reasoning' => 'r' }))
+    GenieEval::Baseline.save!(@system, GenieEval::Selection.call('full'), saved_by: 'test', force: true)
+    FileUtils.rm_rf(@system.run_root)
+    @answers['good'] = 5
+    run_cases(items)
+    board = scoreboard(items)
+
+    assert_equal 'LOOK', board.verdict, 'it broke against r1, but r2 already failed it'
+    refute_match(/\(canary\)/, board.report)
+  end
+
+  def test_idle_rows_do_not_run
+    add_case('scorer.by_jury_bench', 'waiting', { 'text' => 'good', 'criteria' => 'c' }, { 'band' => [0, 100] },
+             status: 'queued')
+    add_case('scorer.by_jury_bench', 'typo', { 'text' => 'good', 'criteria' => 'c' }, { 'band' => [0, 100] },
+             status: 'exclude')
+
+    ids = GenieEval::Selection.call('full').map { |i| i.case['id'] }
+
+    refute_includes ids, 'waiting'
+    refute_includes ids, 'typo', 'an unknown status keeps a row out'
   end
 
   def test_errors_are_recorded_and_retried
@@ -155,11 +179,9 @@ class GenieEvalPipelineTest < Minitest::Test
     add_case('scorer.by_jury_bench', id, input, gold, tags:)
   end
 
-  def add_case(cell, id, input, gold, tags: {})
-    Store.write_jsonl(GenieEval.path('cases', "#{cell}.jsonl"),
-                      Store.cases(cell) + [{ 'id' => id, 'cell' => cell, 'tags' => tags, 'input' => input }])
-    Store.write_jsonl(GenieEval.path('gold', "#{cell}.jsonl"), Store.gold(cell).values + [{ 'id' => id, 'gold' => gold }])
-    Store.write_pools(Store.pools + [{ 'cell' => cell, 'id' => id, 'pool' => 'dev', 'role' => nil }])
+  def add_case(cell, id, input, gold, **extra)
+    row = { 'id' => id, 'cells' => [cell], 'pool' => 'dev', 'tags' => extra[:tags] || {}, 'input' => input, 'gold' => gold }
+    Store.write_rows(cell, Store.rows(cell) + [row.merge('status' => extra[:status]).compact])
   end
 
   def runner(items)
@@ -194,19 +216,7 @@ class GenieEvalPipelineTest < Minitest::Test
                        { 'id' => 'scorer.by_jury_bench', 'grader' => 'scorer', 'weight' => 1 },
                        { 'id' => 'comparator.by_debate', 'grader' => 'comparator', 'weight' => 1 }
                      ])
-    scorer = %w[good bad].map { |id| { 'id' => id, 'cell' => 'scorer.by_jury_bench', 'input' => { 'text' => id, 'criteria' => 'c' } } }
-    Store.write_jsonl(GenieEval.path('cases', 'scorer.by_jury_bench.jsonl'), scorer)
-    Store.write_jsonl(GenieEval.path('gold', 'scorer.by_jury_bench.jsonl'),
-                      %w[good bad].map { |id| { 'id' => id, 'gold' => { 'band' => [50, 100] } } })
-    Store.write_jsonl(GenieEval.path('cases', 'comparator.by_debate.jsonl'), [
-                        { 'id' => 'pair', 'cell' => 'comparator.by_debate',
-                          'input' => { 'player_a' => 'A', 'player_b' => 'B', 'criteria' => 'c' } }
-                      ])
-    Store.write_jsonl(GenieEval.path('gold', 'comparator.by_debate.jsonl'), [{ 'id' => 'pair', 'gold' => { 'winner' => 'a' } }])
-    Store.write_pools([
-                        { 'cell' => 'scorer.by_jury_bench', 'id' => 'good', 'pool' => 'dev', 'role' => nil },
-                        { 'cell' => 'scorer.by_jury_bench', 'id' => 'bad', 'pool' => 'dev', 'role' => nil },
-                        { 'cell' => 'comparator.by_debate', 'id' => 'pair', 'pool' => 'dev', 'role' => nil }
-                      ])
+    %w[good bad].each { |id| add_case('scorer.by_jury_bench', id, { 'text' => id, 'criteria' => 'c' }, { 'band' => [50, 100] }) }
+    add_case('comparator.by_debate', 'pair', { 'player_a' => 'A', 'player_b' => 'B', 'criteria' => 'c' }, { 'winner' => 'a' })
   end
 end

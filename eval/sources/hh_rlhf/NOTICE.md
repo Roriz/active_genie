@@ -1,7 +1,7 @@
 # hh-rlhf (Anthropic), helpful-base test split
 
-The `hh_*` cases in `eval/cases/comparator.by_debate.jsonl` and `eval/cases/comparator.by_fight.jsonl`,
-their gold, and the drafts and labeling passes in `eval/labeling/` are derived from
+The `hh_*` rows in `eval/sets/comparator.jsonl` (inputs and gold) and their labeling passes in
+`eval/labels/comparator.jsonl` are derived from
 [Anthropic/hh-rlhf](https://huggingface.co/datasets/Anthropic/hh-rlhf)
 ([github.com/anthropics/hh-rlhf](https://github.com/anthropics/hh-rlhf)), under the MIT License:
 

@@ -10,8 +10,12 @@ module GenieEvalTasks
   def system = GenieEval::System.from_env
   def cells = ENV['CELLS']&.split(',')&.map(&:strip)
 
+  def set
+    ENV.fetch('SET') { abort "SET=<set> is required, one of: #{GenieEval::Store.sets.join(', ')}" }
+  end
+
   def items(mode)
-    GenieEval::Selection.call(mode, cells:, all_dev: ENV['ALL_DEV'] == '1')
+    GenieEval::Selection.call(mode, cells:)
   end
 
   def check!
@@ -61,10 +65,13 @@ module GenieEvalTasks
   end
 
   def status
-    rows = GenieEval::Selection.all_items
-    rows.group_by(&:cell).each do |cell, cell_items|
-      counts = cell_items.group_by { |i| [i.pool, i.role || '-'] }.transform_values(&:size)
-      puts format('%-28s %s', cell, counts.sort.map { |(pool, role), n| "#{pool}/#{role} #{n}" }.join(', '))
+    GenieEval::Selection.all_items.group_by(&:cell).each do |cell, cell_items|
+      puts format('%-28s %s', cell, cell_items.map { |i| i.pool || '-' }.tally.sort.map { |pool, n| "#{pool} #{n}" }.join(', '))
+    end
+    puts
+    GenieEval::Store.sets.each do |set|
+      counts = GenieEval::Store.rows(set).map { |r| r['status'] || '-' }.tally
+      puts format('%-28s %s', set, counts.sort.map { |status, n| "#{status} #{n}" }.join(', '))
     end
     puts
     GenieEval.config.fetch('release').each do |entry|
@@ -83,12 +90,12 @@ namespace :eval do
     exit 1 unless check.ok?
   end
 
-  desc 'Free: cases per cell, pool and role, and which baselines exist'
+  desc 'Free: cases per cell and pool, rows per set and status, and which baselines exist'
   task :status do
     GenieEvalTasks.status
   end
 
-  desc 'Paid: dev pool (3 hard + 2 canaries per cell once roles exist) -> GO / LOOK / STOP. YES=1 to spend'
+  desc 'Paid: the dev pool against the baseline -> GO / LOOK / STOP. YES=1 to spend'
   task :quick do
     GenieEvalTasks.run('quick')
   end
@@ -104,15 +111,26 @@ namespace :eval do
     GenieEvalTasks.report(GenieEvalTasks.system, GenieEvalTasks.items(mode), mode)
   end
 
-  desc 'Free: merge drafted cases with their blind labeling passes and decisions. CELL=<cell or drafts set>'
+  desc 'Free: compare the blind labels with the gold and write each drafted row\'s status. SET=<set>'
   task :label do
-    set = ENV.fetch('CELL') { abort 'CELL=<cell> is required, e.g. CELL=extractor.with_litote or CELL=comparator' }
+    set = GenieEvalTasks.set
     result = GenieEval::Labeling.merge(set)
     dropped = result[:dropped].positive? ? ", #{result[:dropped]} dropped as unclear" : ''
-    puts "#{set}: #{result[:promoted]} cases in the test pool, #{result[:queued]} waiting for a decision#{dropped}"
+    drafts = result[:draft].positive? ? ", #{result[:draft]} still waiting for a blind pass" : ''
+    puts "#{set}: #{result[:confirmed]} confirmed, #{result[:queued]} waiting for a decision#{dropped}#{drafts}"
     result[:queue].each do |q|
-      puts "  #{q['id']}.#{q['field']}: drafted #{JSON.generate(q['drafted'])} | A #{q['pass_a'].inspect} | B #{q['pass_b'].inspect}"
+      puts "  #{q['id']}.#{q['field']}: gold #{JSON.generate(q['gold'])} | A #{q['pass_a'].inspect} | B #{q['pass_b'].inspect}"
     end
+    if result[:queued].positive?
+      puts 'Settle a queued row in eval/sets/: edit its gold if needed and set "status": "decided".'
+    end
+  rescue GenieEval::Error => e
+    abort e.message
+  end
+
+  desc 'Free: print the rows a blind labeler should label, without their gold. SET=<set>'
+  task :blind do
+    GenieEval::Labeling.blind(GenieEvalTasks.set).each { |row| puts JSON.generate(row) }
   rescue GenieEval::Error => e
     abort e.message
   end
@@ -123,7 +141,6 @@ namespace :eval do
     saved_by = ENV['BY'] || GenieEval.git('config', 'user.name')
     GenieEval::Baseline.save!(sys, GenieEvalTasks.items('full'), saved_by:, force: ENV['FORCE'] == '1')
     puts "Saved baseline for #{sys.name} at #{sys.baseline_dir.delete_prefix("#{GenieEval::REPO}/")}."
-    puts 'Dev-pool roles (hard / canary) updated in eval/pools.jsonl.' if sys.dev?
   rescue GenieEval::Error => e
     abort e.message
   end

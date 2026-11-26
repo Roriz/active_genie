@@ -7,15 +7,15 @@
 #
 # Downloads the split into tmp/datasets/hh_rlhf (gitignored) at a pinned revision and checks its
 # SHA-256. Each row is one conversation with two possible last replies, and a crowdworker's pick of
-# the more helpful one. The picks are noisy, so the cases are written as drafts: a case enters the
-# test pool only when two blind labeling passes agree with the crowdworker (`rake eval:label
-# CELL=comparator`); otherwise it is dropped, not queued. The same cases go to by_debate and
+# the more helpful one. The picks are noisy, so the cases are added to eval/sets/comparator.jsonl as
+# drafts: a case runs only when two blind labeling passes agree with the crowdworker (`rake eval:label
+# SET=comparator`); otherwise it is dropped, not queued. The same cases go to by_debate and
 # by_fight, so the two methods can be compared on paired cases.
 #
 # Picks short, benign conversations whose two replies are both real answers, half where the picked
 # reply is the longer one and half where it is the shorter one, so length alone cannot win. Which
 # reply is player_a is decided by a hash of the case, so the gold is a mix of "a" and "b".
-# Re-running rewrites the same drafts.
+# Re-running adds only ids the set does not have yet, so it never touches a row already labeled.
 
 require 'zlib'
 require_relative '../../lib/genie_eval'
@@ -57,9 +57,12 @@ module HhRlhfSource
     # Fewer on one side would let a length preference pay.
     raise "only #{picked.size} drafts, want #{PER_LENGTH_SIDE} per length side" unless picked.size == 2 * PER_LENGTH_SIDE
 
-    drafts = picked.sort_by { |c| c[:id] }.map { |c| draft(c) }
-    GenieEval::Store.write_jsonl(GenieEval.path('labeling', 'drafts', "#{SET}.jsonl"), drafts)
-    puts "#{SET}: #{picked.size} drafts from #{candidates.size} candidates; label them, then rake eval:label CELL=#{SET}"
+    rows = GenieEval::Store.rows(SET)
+    known = rows.to_set { |r| r['id'] }
+    added = picked.sort_by { |c| c[:id] }.reject { |c| known.include?(c[:id]) }.map { |c| draft(c) }
+    GenieEval::Store.write_rows(SET, (rows + added).sort_by { |r| r['id'] })
+    puts "#{SET}: #{added.size} new drafts (#{picked.size} picked from #{candidates.size} candidates); " \
+         "label them (rake eval:blind SET=#{SET}), then rake eval:label SET=#{SET}"
   end
 
   # Into a .part file first, so a failed, cut or unexpected download never sits at FILE.
@@ -114,14 +117,14 @@ module HhRlhfSource
   def draft(cand)
     good_is_a = Digest::SHA256.hexdigest("#{cand[:id]}:side").to_i(16).even?
     player_a, player_b = good_is_a ? [cand[:good], cand[:bad]] : [cand[:bad], cand[:good]]
-    { 'id' => cand[:id], 'cells' => CELLS, 'source' => 'hh-rlhf',
+    { 'id' => cand[:id], 'cells' => CELLS, 'pool' => 'test', 'status' => 'draft', 'source' => 'hh-rlhf',
       'tags' => { 'domain' => 'chat', 'difficulty' => 'subtle', 'length' => cand[:length],
                   'user_turns' => cand[:context].count { |role, _| role == 'Human' } },
       'input' => { 'player_a' => player_a, 'player_b' => player_b,
                    'criteria' => "#{CRITERIA}\n\nConversation:\n#{transcript(cand[:context])}" },
       'gold' => { 'winner' => good_is_a ? 'a' : 'b' },
-      'on_disagreement' => 'drop', 'labeled_by' => 'hh-rlhf crowdworker',
-      'why' => 'hh-rlhf helpful-base test: the crowdworker picked this reply as more helpful.' }
+      'why' => 'hh-rlhf helpful-base test: the crowdworker picked this reply as more helpful.',
+      'on_disagreement' => 'drop' }
   end
 
   def transcript(context)

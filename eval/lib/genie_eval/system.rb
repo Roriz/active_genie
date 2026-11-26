@@ -24,11 +24,6 @@ module GenieEval
       "#{provider}-#{model}"
     end
 
-    def dev?
-      dev = GenieEval.config.fetch('dev')
-      provider == dev['provider'] && model == dev['model']
-    end
-
     # Content hash of every file under lib/, so uncommitted edits get their own runs.
     def lib_hash
       @lib_hash ||= begin
@@ -54,6 +49,10 @@ module GenieEval
 
     def baseline_dir
       GenieEval.path('baselines', name)
+    end
+
+    def baseline_replicates
+      Dir.glob(File.join(baseline_dir, 'r*')).filter_map { |d| d[/r(\d+)\z/, 1]&.to_i }.sort
     end
 
     def git
