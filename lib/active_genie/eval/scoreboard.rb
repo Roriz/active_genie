@@ -2,9 +2,10 @@
 
 module ActiveGenie
   module Eval
-    # The text report of one eval: pass rate per set and overall with a CI, the paired comparison with
-    # the baseline (delta, exact McNemar p, MDE), field outcomes or rubric scores, the noise floor, what
-    # broke or got fixed and, for quick runs, a GO / LOOK / STOP verdict.
+    # The report of one eval run: pass rate per set and overall with a CI, the paired comparison with
+    # the baseline (delta, exact McNemar p, MDE), the confusion matrices (baseline vs now, field
+    # outcomes, each categorical field, score bands), the noise floor, what broke or got fixed and, for
+    # quick runs, a GO / LOOK / STOP verdict. `report` is terminal text, `markdown` the same as markdown.
     class Scoreboard
       def initialize(system:, items:, mode:)
         @system = system
@@ -17,11 +18,8 @@ module ActiveGenie
         load_baseline
       end
 
-      def report
-        lines = header + set_table + overall + field_outcomes + scores + noise_floor + problems + flips
-        lines += ["VERDICT: #{verdict}"] if @mode.to_s == 'quick'
-        lines.join("\n")
-      end
+      def report = document.to_text
+      def markdown = document.to_markdown
 
       # STOP: a canary (a case the baseline passed in every replicate) broke. LOOK: something else broke,
       # errored or is missing, or no case could be compared with the baseline. GO: nothing broke.
@@ -34,6 +32,17 @@ module ActiveGenie
       end
 
       private
+
+      def document
+        @document ||= begin
+          doc = header.concat(summary)
+          doc.concat(Matrices.baseline(paired)) if @baseline
+          [Matrices.field_outcomes(@current.rows), Matrices.categorical(@current.rows), Matrices.bands(@current.rows),
+           noise_floor, problems, flips].each { |section| doc.concat(section) }
+          doc.blank.line("VERDICT: #{verdict}") if @mode.to_s == 'quick'
+          doc
+        end
+      end
 
       def load_baseline
         replicates = @system.baseline_replicates
@@ -51,16 +60,16 @@ module ActiveGenie
       end
 
       def pct(value)
-        value.nil? ? '   -  ' : format('%5.1f%%', value * 100)
+        value.nil? ? '-' : format('%.1f%%', value * 100)
       end
 
       def interval(range)
-        range ? "[#{pct(range[0]).strip}, #{pct(range[1]).strip}]" : ''
+        range ? "[#{pct(range[0])}, #{pct(range[1])}]" : ''
       end
 
       def header
         base = @baseline ? baseline_description : 'none yet (run eval:full on main, then eval:save)'
-        ["ActiveGenie eval - #{@mode} - #{@system.describe}", "baseline: #{base}", '']
+        Report.new.line("ActiveGenie eval - #{@mode} - #{@system.describe}").line("baseline: #{base}")
       end
 
       def baseline_description
@@ -69,29 +78,30 @@ module ActiveGenie
         "#{meta['branch']} #{meta['sha'].to_s[0, 8]} (code #{meta['code_hash'].to_s[0, 8]}, saved #{meta['saved_at']})"
       end
 
-      def set_table
-        rows = @current.rows.group_by { |r| r.item.set }.map do |set, set_rows|
-          passed = set_rows.count(&:pass?)
-          format('%-28s %4d %6d %8s', set, set_rows.size, passed, pct(passed.to_f / set_rows.size))
-        end
-        ['set                            n   pass     rate', *rows, '']
-      end
-
-      def overall
+      def summary
+        report = Report.new.heading('Results')
         n = @current.rows.size
-        return [] if n.zero?
+        return report.line('no case has an output for this code yet') if n.zero?
 
+        sets = @current.rows.group_by { |r| r.item.set }.map do |set, rows|
+          passed = rows.count(&:pass?)
+          [set, rows.size, passed, pct(passed.to_f / rows.size)]
+        end
+        report.table(%w[set cases pass rate], sets).blank
         passed = @current.rows.count(&:pass?)
         rate = passed.to_f / n
-        mde = [Stats.mde(rate, n), 1.0].min
-        lines = ["pass rate: #{pct(rate).strip} #{interval(Stats.wilson(passed, n))} (#{passed}/#{n})",
-                 "smallest change this many cases can reliably detect (MDE): ~#{pct(mde).strip}"]
-        lines << delta_line if @baseline
-        lines << ''
+        report.line("pass rate: #{pct(rate)} #{interval(Stats.wilson(passed, n))} (#{passed}/#{n})")
+              .line("smallest change this many cases can reliably detect (MDE): ~#{pct([Stats.mde(rate, n), 1.0].min)}")
+        report.line(delta_line) if @baseline
+        report.concat(fields_right).concat(scores)
       end
 
       def paired
-        @paired ||= @current.rows.filter_map { |row| (base = @baseline.by_key[row.key]) && [row, base] }
+        @paired ||= if @baseline
+                      @current.rows.filter_map { |row| (base = @baseline.by_key[row.key]) && [row, base] }
+                    else
+                      []
+                    end
       end
 
       def delta_line
@@ -104,67 +114,75 @@ module ActiveGenie
       end
 
       def broke
-        @broke ||= @baseline ? paired.select { |cur, base| base.pass? && !cur.pass? }.map(&:first) : []
+        @broke ||= paired.select { |cur, base| base.pass? && !cur.pass? }.map(&:first)
       end
 
       def fixed
-        @fixed ||= @baseline ? paired.select { |cur, base| !base.pass? && cur.pass? }.map(&:first) : []
+        @fixed ||= paired.select { |cur, base| !base.pass? && cur.pass? }.map(&:first)
       end
 
-      def field_outcomes
-        rows = @current.rows.select { |r| r.grade.detail['fields'] }
-        return [] if rows.empty?
+      def fields_right
+        outcomes = @current.rows.filter_map { |r| Matrices.fields(r) }
+        return Report.new if outcomes.empty?
 
-        counts = rows.flat_map { |r| r.grade.detail['fields'].values }.tally
-        clusters = rows.map { |r| r.grade.detail['fields'].values.map { |o| Graders::Fields::RIGHT.include?(o) ? 1 : 0 } }
-        ["fields: #{pct(Stats.mean(clusters.flatten)).strip} right #{interval(Stats.bootstrap_ci(clusters:))} " \
-         '(CI resamples whole cases)', "  #{counts.sort.map { |k, v| "#{k} #{v}" }.join(', ')}", '']
+        clusters = outcomes.map { |fields| fields.values.map { |o| Graders::Fields::RIGHT.include?(o) ? 1 : 0 } }
+        Report.new.line("fields: #{pct(Stats.mean(clusters.flatten))} right " \
+                        "#{interval(Stats.bootstrap_ci(clusters:))} (CI resamples whole cases)")
       end
 
       # Mean score for band and rubric graders.
       def scores
-        values = @current.rows.filter_map { |r| r.grade.detail['score'] }
-        return [] if values.empty?
+        values = @current.rows.map { |r| r.grade.detail['score'] }.grep(Numeric)
+        return Report.new if values.empty?
 
-        [format('mean score: %.1f over %d cases', Stats.mean(values), values.size), '']
+        Report.new.line(format('mean score: %.1f over %d cases', Stats.mean(values), values.size))
       end
 
       # Share of cases whose pass/fail differs between replicates of the same code.
       def noise_floor
         replicates = @system.replicates
-        return [] if replicates.size < 2
+        return Report.new if replicates.size < 2
 
         runs = replicates.map { |r| Results.load(@definition, @system.run_root, @items, replicate: r).by_key }
         # Only replicates that have an output count: a case missing from one is not a flip.
         compared = @items.map { |item| runs.map { |run| run[item.key] }.select { |row| row&.record }.map(&:pass?) }
                          .select { |outcomes| outcomes.size > 1 }
-        return [] if compared.empty?
+        return Report.new if compared.empty?
 
         flipping = compared.count { |outcomes| outcomes.uniq.size > 1 }
-        ["noise floor: #{pct(flipping.to_f / compared.size).strip} of #{compared.size} cases flip across " \
-         "#{replicates.size} identical runs", '']
+        Report.new.heading('Noise').line("noise floor: #{pct(flipping.to_f / compared.size)} of #{compared.size} " \
+                                         "cases flip across #{replicates.size} identical runs")
       end
 
       def problems
         lines = @current.errors.map { |r| "ERROR   #{r.key}: #{r.record['error'].lines.first&.strip}" }
         if @missing.any?
           lines << "MISSING #{@missing.size} of #{@items.size} cases have no output for this code yet " \
-                   '(left out of the rates; run with YES=1)'
+                   '(left out of the rates; run them to fill in)'
         end
         unjudged = @current.rows.count { |r| r.grade.unjudged? }
-        lines << "UNJUDGED #{unjudged} case(s) wait for the judge and count as failures (run with YES=1)" if unjudged.positive?
-        lines.empty? ? [] : [*lines, '']
+        if unjudged.positive?
+          lines << "UNJUDGED #{unjudged} case(s) wait for the judge and count as failures (a confirmed run judges them)"
+        end
+        section('Problems', lines)
       end
 
       # With a baseline: what broke or got fixed. Without one: every failing case.
       def flips
-        lines = if @baseline
-                  broke.map { |r| "BROKE   #{r.key}#{' (canary)' if canary?(r)} #{brief(r)}" } +
-                    fixed.map { |r| "FIXED   #{r.key}" }
-                else
-                  @current.rows.reject { |r| r.pass? || r.record['error'] }.map { |r| "FAIL    #{r.key} #{brief(r)}" }
-                end
-        lines.empty? ? [] : [*lines, '']
+        if @baseline
+          lines = broke.map { |r| "BROKE   #{r.key}#{' (canary)' if canary?(r)} #{brief(r)}" } +
+                  fixed.map { |r| "FIXED   #{r.key}" }
+          return section('Changes since the baseline', lines)
+        end
+
+        failing = @current.rows.reject { |r| r.pass? || r.record['error'] }
+        section('Failures', failing.map { |r| "FAIL    #{r.key} #{brief(r)}" })
+      end
+
+      def section(title, lines)
+        return Report.new if lines.empty?
+
+        lines.each_with_object(Report.new.heading(title)) { |line, report| report.line(line) }
       end
 
       def brief(row)

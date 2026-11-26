@@ -3,7 +3,7 @@
 # The <%= name %> eval: the code it runs and how each answer is graded. See evals/README.md.
 #
 #   bin/rails active_genie:eval:check EVAL=<%= name %>        free: checks the data
-#   bin/rails active_genie:eval:quick EVAL=<%= name %>        prints the cost; YES=1 runs the dev pool
+#   bin/rails active_genie:eval EVAL=<%= name %>              shows the cases and the cost, asks, runs
 ActiveGenie::Eval.define '<%= name %>' do
   # Your real harness: build the prompt, call the model, parse the answer, exactly as the app does.
   # `input` is a row's "input"; return what the feature returns (a Hash, a String, a number, a list

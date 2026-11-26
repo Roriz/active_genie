@@ -31,17 +31,36 @@ module ActiveGenie
         end
       end
 
-      # Rough cost of the pending cases, from the tokens earlier runs of this eval used.
+      # Rough cost and duration of the pending cases, from what earlier runs of this eval used. `seconds`
+      # is nil until a case has run once.
       def estimate
         todo = pending
         per_case = tokens_per_case
         tokens = { 'input' => per_case['input'] * todo.size, 'output' => per_case['output'] * todo.size }
-        price = (Eval.config['usd_per_million_tokens'] || {})[system.model]
-        usd = price && (((tokens['input'] * price['input']) + (tokens['output'] * price['output'])) / 1_000_000.0)
-        { 'cases' => todo.size, 'input_tokens' => tokens['input'], 'output_tokens' => tokens['output'], 'usd' => usd }
+        latency = seconds_per_case
+        # The pool never runs more workers than cases, so 1 case at concurrency 8 still takes a full call.
+        rounds = todo.size.fdiv([@concurrency, todo.size].min.clamp(1..)).ceil
+        { 'cases' => todo.size, 'input_tokens' => tokens['input'], 'output_tokens' => tokens['output'],
+          'usd' => self.class.usd(system.model, tokens['input'], tokens['output']),
+          'seconds' => latency && (rounds * latency).ceil }
       end
 
-      # `judge`: whether to call the (paid) judge too; the rake tasks pass it only with YES=1.
+      # The cached cases of this replicate still waiting for a judge verdict. Free: it reads the verdict
+      # cache only. A custom grader has no judge, and running it here could spend before the question.
+      def unjudged
+        return [] if system.definition.custom_grader?
+
+        cached = items - pending
+        Results.load(system.definition, system.run_root, cached, replicate:).rows.select { |r| r.grade.unjudged? }
+      end
+
+      # Dollars for these tokens at the price in evals/config.yml, or nil when it has none.
+      def self.usd(model, input_tokens, output_tokens)
+        price = (Eval.config['usd_per_million_tokens'] || {})[model]
+        price && (((input_tokens * price['input']) + (output_tokens * price['output'])) / 1_000_000.0)
+      end
+
+      # `judge`: whether to call the (paid) judge too; the rake tasks pass it once the run is confirmed.
       def run!(judge: true)
         todo = pending
         configure!
@@ -50,7 +69,6 @@ module ActiveGenie
         else
           write_manifest(todo.size)
           run_pool(todo)
-          @io.puts
         end
         judge! if judge
       end
@@ -101,16 +119,17 @@ module ActiveGenie
       def run_pool(todo)
         queue = Queue.new
         todo.each { |item| queue << item }
-        mutex = Mutex.new
+        label = replicate > 1 ? "r#{replicate}" : nil
+        progress = Progress.new(total: todo.size, io: @io, model: system.model, label:)
         workers = Array.new([@concurrency, todo.size].min) do
           Thread.new do
             while (item = next_item(queue))
-              record = run_one(item)
-              mutex.synchronize { @io.print(record['error'] ? 'E' : '.') }
+              progress.tick(run_one(item))
             end
           end
         end
         workers.each(&:join)
+        progress.finish
       end
 
       def next_item(queue)
@@ -183,13 +202,22 @@ module ActiveGenie
 
       # Average tokens per case from every cached record of this eval (runs and baselines).
       def tokens_per_case
-        records = Dir.glob(system.definition.path('{runs,baselines}', '*', 'r*', '*.json'))
-                     .reject { |f| File.basename(f) == 'manifest.json' }
-                     .map { |f| JSON.parse(File.read(f)) }
-                     .select { |r| r.dig('usage', 'calls').to_i.positive? }
+        records = history.select { |r| r.dig('usage', 'calls').to_i.positive? }
         return Eval.config['default_tokens_per_case'] || { 'input' => 3000, 'output' => 1000 } if records.empty?
 
         %w[input output].to_h { |k| [k, records.sum { |r| r.dig('usage', "#{k}_tokens") } / records.size] }
+      end
+
+      def seconds_per_case
+        latencies = history.reject { |r| r['error'] }.filter_map { |r| r['latency_s'] }
+        latencies.empty? ? nil : latencies.sum / latencies.size
+      end
+
+      # Every cached record of this eval (runs and baselines), read once per runner.
+      def history
+        @history ||= Dir.glob(system.definition.path('{runs,baselines}', '*', 'r*', '*.json'))
+                        .reject { |f| File.basename(f) == 'manifest.json' }
+                        .map { |f| JSON.parse(File.read(f)) }
       end
     end
   end

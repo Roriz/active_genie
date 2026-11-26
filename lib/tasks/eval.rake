@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 # Evals for your own LLM features. See the README that `active_genie:eval:install` writes to evals/.
-# Paid tasks print the cost of the cases that aren't cached yet and stop unless YES=1.
+#
+#   rake active_genie:eval EVAL=<name>             the dev pool (MODE=full for every case, REPEAT=n)
+#
+# A run first shows the eval and what it would call, cost and take, then asks before spending.
 Rake::Task.define_task(:environment) unless Rake::Task.task_defined?(:environment)
 
 module ActiveGenieEvalTasks
@@ -36,46 +39,69 @@ module ActiveGenieEvalTasks
     abort 'active_genie:eval:check failed; fix the data before spending money.'
   end
 
+  # Shows the eval and the plan, asks before spending (YES=1 skips the question; without a terminal,
+  # YES=1 is required), runs with a progress line, then prints and saves the report.
   def run(mode, replicates: 1)
     definition = self.definition
     check!(definition.name)
     system = eval_lib::System.from_env(definition)
     items = eval_lib::Selection.call(definition, mode)
-    abort "No #{mode} cases in #{definition.name}." if items.empty?
+    overview = eval_lib::Overview.new(system:)
+    abort "#{overview.report.to_text}\n\nNo #{mode} cases in #{definition.name} yet." if items.empty?
 
     runners = (1..replicates).map { |r| eval_lib::Runner.new(system:, items:, replicate: r) }
-    return unless pay?(system, runners)
+    plan = overview.plan(mode:, runners:)
+    puts overview.report.concat(plan).to_text, ''
+    return unless confirmed?(runners)
 
-    runners.each { |runner| runner.run!(judge: ENV['YES'] == '1') }
+    runners.each { |runner| runner.run!(judge: true) }
+    puts
     report(system, items, mode)
   end
 
-  def pay?(system, runners)
-    estimates = runners.map(&:estimate)
-    cases = estimates.sum { |e| e['cases'] }
-    judge_only = cases.zero?
-    unless judge_only
-      usd = estimates.map { |e| e['usd'] }
-      cost = usd.all? ? format('about $%.2f', usd.sum) : 'cost unknown (add a price in evals/config.yml)'
-      tokens = estimates.sum { |e| e['input_tokens'] + e['output_tokens'] }
-      puts "#{system.describe}: #{cases} case runs to call, ~#{tokens} tokens, #{cost}."
-    end
-    return true if judge_only || ENV['YES'] == '1'
+  # Nothing to call and no verdict to fetch in any replicate: free, so no question.
+  def confirmed?(runners)
+    paid = runners.sum { |r| r.estimate['cases'] }.positive? || runners.any? { |r| r.unjudged.any? }
+    return true if !paid || ENV['YES'] == '1'
 
-    puts 'Nothing was called. Re-run with YES=1 to spend it.'
+    unless $stdin.tty? && $stdout.tty?
+      puts 'Nothing was called. Re-run with YES=1 to spend it.'
+      return false
+    end
+
+    print 'Run it? [y/N] '
+    return true if $stdin.gets.to_s.strip.match?(/\Ay(es)?\z/i)
+
+    puts 'Nothing was called.'
     false
   end
 
+  # REPEAT=n: how many replicates to run, 1 or more.
+  def replicates
+    value = ENV.fetch('REPEAT', '1')
+    count = Integer(value, 10, exception: false)
+    abort "REPEAT is a number of runs, 1 or more, not #{value.inspect}" unless count&.positive?
+    count
+  end
+
+  # The report goes to the terminal and, next to the run, to report-<mode>.md (pasteable into a pull
+  # request) and report-<mode>.json.
   def report(system, items, mode)
     board = eval_lib::Scoreboard.new(system:, items:, mode:)
-    text = board.report
-    puts text
+    puts board.report
+    FileUtils.mkdir_p(system.run_root)
+    markdown = File.join(system.run_root, "report-#{mode}.md")
+    File.write(markdown, board.markdown)
     eval_lib::Store.write_json(File.join(system.run_root, "report-#{mode}.json"),
-                               { 'text' => text, 'verdict' => board.verdict })
+                               { 'text' => board.report, 'verdict' => board.verdict })
+    puts '', "report: #{markdown.delete_prefix("#{eval_lib.app_root}/")}"
     exit 1 if mode == 'quick' && board.verdict == 'STOP'
   end
 
+  # With EVAL=<name>: that eval's size and diversity. Without: one line per eval.
   def status
+    return puts eval_lib::Overview.new(system: eval_lib::System.from_env(definition)).report.to_text if ENV['EVAL']
+
     eval_lib.load!.each_value.sort_by(&:name).each do |definition|
       store = eval_lib::Store
       counts = store.sets(definition).flat_map { |s| store.rows(definition, s) }
@@ -88,6 +114,14 @@ module ActiveGenieEvalTasks
 end
 
 namespace :active_genie do
+  desc 'Run EVAL=<name>: shows its cases and the estimate, asks, runs with progress, reports. MODE=quick|full'
+  task eval: :environment do
+    mode = ENV.fetch('MODE', 'quick')
+    abort "MODE is quick or full, not #{mode.inspect}" unless %w[quick full].include?(mode)
+
+    ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.run(mode, replicates: ActiveGenieEvalTasks.replicates) }
+  end
+
   namespace :eval do
     desc 'Write evals/config.yml, evals/README.md and evals/.gitignore (never overwrites)'
     task :install do
@@ -107,19 +141,19 @@ namespace :active_genie do
       exit 1 unless check.ok?
     end
 
-    desc 'Free: cases per eval, pool and status, and which baselines exist'
+    desc 'Free: cases per eval and which baselines exist; EVAL=<name> for its size and diversity'
     task status: :environment do
       ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.status }
     end
 
-    desc 'Paid: the dev pool of EVAL=<name> against its baseline -> GO / LOOK / STOP. YES=1 to spend'
+    desc 'Paid: the dev pool of EVAL=<name> against its baseline -> GO / LOOK / STOP (asks first)'
     task quick: :environment do
-      ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.run('quick') }
+      ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.run('quick', replicates: ActiveGenieEvalTasks.replicates) }
     end
 
-    desc 'Paid: every case of EVAL=<name>. REPEAT=3 measures the noise floor. YES=1 to spend'
+    desc 'Paid: every case of EVAL=<name>. REPEAT=3 measures the noise floor (asks first)'
     task full: :environment do
-      ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.run('full', replicates: Integer(ENV.fetch('REPEAT', '1'))) }
+      ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.run('full', replicates: ActiveGenieEvalTasks.replicates) }
     end
 
     desc 'Free: re-print the report of EVAL=<name> from cached outputs. MODE=quick|full'

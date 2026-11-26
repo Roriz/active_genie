@@ -10,7 +10,7 @@ module ActiveGenie
     #
     # Verdicts are appended to evals/judge/<model>.jsonl (commit it): each question is asked once per
     # judge model, and reports read the file instead of calling the model. The judge is only called
-    # while `online` (a paid run with YES=1); a verdict that isn't cached yet grades as `unjudged`.
+    # while `online` (a paid run you confirmed); a verdict that isn't cached yet grades as `unjudged`.
     class Judge
       FUNCTION = {
         name: 'judge_equivalence',

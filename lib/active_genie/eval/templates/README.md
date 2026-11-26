@@ -20,27 +20,85 @@ evals/
     runs/                       # outputs of your working tree (gitignored)
 ```
 
-## The loop
+## Running an eval
 
 ```shell
-bin/rails "active_genie:eval:new[ticket_router]"      # once per feature (quoted for zsh)
-bin/rails active_genie:eval:check                     # free: data integrity
-bin/rails active_genie:eval:quick EVAL=ticket_router  # prints the cost of what isn't cached
-YES=1 bin/rails active_genie:eval:quick EVAL=ticket_router   # runs the dev pool -> GO / LOOK / STOP
+bin/rails active_genie:eval EVAL=ticket_router              # the dev pool
+bin/rails active_genie:eval EVAL=ticket_router MODE=full    # every case
 ```
 
-1. Change a prompt, a parser or a model in the app. The eval always runs your working tree.
-2. `quick` runs the dev pool and compares each case with the baseline:
-   - **STOP**: a canary broke. A canary is a case the baseline passed in every replicate.
-   - **LOOK**: something else broke, errored or is missing.
-   - **GO**: nothing broke.
-3. Before merging, `YES=1 bin/rails active_genie:eval:full EVAL=...` runs every case. It reports the
-   pass rate with a CI, the delta against the baseline with its CI and an exact McNemar p-value, and
-   the cases that broke or got fixed.
-4. After merging to `main`, promote the run to the new baseline:
-   `YES=1 REPEAT=3 bin/rails active_genie:eval:full EVAL=... && bin/rails active_genie:eval:save EVAL=...`.
-   `REPEAT=3` runs everything three times to measure the noise floor: how often a case flips between
-   identical runs.
+Every run goes through the same four steps:
+
+1. **What's in the eval.** How many cases run, how many wait for labels and how many were left
+   out, for each pool. Then how varied the cases are: difficulty, tags, and what the gold asks for
+   (for example, `field intent  4 values (billing 4 · delivery 4 · refund 4 · other 2)`).
+2. **The plan.** How many cases are cached and how many it would call, with an estimate of the
+   tokens, the cost and the time (from earlier runs), and any judge calls.
+3. **It asks.** `Run it? [y/N]`. Only `y` spends anything. `YES=1` answers yes for you. Without a
+   terminal (CI, a script), `YES=1` is required, so a run is never paid by accident.
+4. **Progress, then the report.** A progress line shows the cases done, the time elapsed and left,
+   the errors and the cost so far. The report is printed and also written to
+   `<name>/runs/<run>/report-<mode>.md`, which you can paste into a pull request.
+
+### Reading the report
+
+```
+Results
+  set            cases  pass   rate
+  ticket_router     14    13  92.9%
+
+pass rate: 92.9% [68.5%, 98.7%] (13/14)
+smallest change this many cases can reliably detect (MDE): ~27.5%
+delta vs baseline: +35.7 pp [+14.3, +57.1] on 14 paired cases, McNemar p=0.062 (0 broke, 5 fixed)
+
+Baseline vs now
+                 now pass  now fail
+  baseline pass  8         0 broke
+  baseline fail  5 fixed   1
+
+Field outcomes
+                answered              left empty
+  gold present  20 correct · 1 wrong  0 omission
+  gold absent   0 invention           7 correct abstention
+
+intent: gold ↓ · predicted →
+            billing  delivery  refund  other
+  billing         4         ·       ·      ·
+  delivery        ·         3       ·      1
+  refund          ·         ·       4      ·
+  other           ·         ·       ·      2
+accuracy 93% (13/14) · most confused: delivery → other (1)
+```
+
+- **Results**: the pass rate with a 95% interval, and the MDE, which is the smallest change this many
+  cases can detect. A delta smaller than the MDE is not evidence.
+- **Baseline vs now**: the cases that broke or got fixed since the baseline. These are what the
+  McNemar p-value is computed from.
+- **Field outcomes**: what was expected (present or absent) against what came back (an answer or
+  nothing). Inventions and omissions are different failures, and they need different fixes.
+- **A matrix per categorical field**: the gold value in each row, the predicted value in each
+  column. Everything off the diagonal is a mistake, and the most confused pairs say where to look.
+- **Score bands** (for `band` and `rubric`): whether each score landed below, inside or above its
+  band.
+- Then the problems (errors, missing outputs, cases waiting for the judge), the list of what broke,
+  got fixed or failed, and, for the dev pool, the verdict:
+  - **STOP**: a canary broke. A canary is a case the baseline passed in every replicate. The task
+    exits with 1.
+  - **LOOK**: something else broke, errored or is missing.
+  - **GO**: nothing broke.
+
+### The loop
+
+1. Change a prompt, a parser or a model. The eval always runs your working tree.
+2. `bin/rails active_genie:eval EVAL=...` on the dev pool, until it says GO.
+3. Before merging, run it with `MODE=full`: the test pool is where tuning to the dev cases shows.
+4. After merging to `main`, save the new baseline. `REPEAT=3` runs everything three times to
+   measure the noise floor: how often a case flips between identical runs.
+
+   ```shell
+   bin/rails active_genie:eval EVAL=... MODE=full REPEAT=3
+   bin/rails active_genie:eval:save EVAL=...
+   ```
 
 Outputs are cached per case in `<name>/runs/<provider>-<model>-<code hash>/`. Re-running only calls
 the cases that are new or that errored. The code hash covers the files in `watch` and `eval.rb`, so
@@ -48,19 +106,20 @@ changing any of them starts a fresh run. `active_genie:eval:report` re-prints a 
 
 | Task | Cost | What it does |
 |---|---|---|
-| `active_genie:eval:new[name]` | free | Writes `<name>/eval.rb` and a starting set |
+| `active_genie:eval` | paid, asks first | Overview, plan and estimate, then runs with progress and reports (`MODE=quick\|full`, `REPEAT=n`) |
+| `"active_genie:eval:new[name]"` | free | Writes `<name>/eval.rb` and a starting set |
 | `active_genie:eval:check` | free | Validates every eval, set and labels file (`EVAL=` for one) |
-| `active_genie:eval:status` | free | Cases per eval, pool and status, and which baselines exist |
-| `active_genie:eval:quick` | paid | The dev pool, compared with the baseline |
-| `active_genie:eval:full` | paid | Every case. `REPEAT=n` for replicates |
+| `active_genie:eval:status` | free | One line per eval; with `EVAL=`, its size and diversity |
 | `active_genie:eval:report` | free | Re-prints the report from cached outputs (`MODE=quick\|full`) |
 | `active_genie:eval:save` | free | Promotes the complete run to `<name>/baselines/` |
 | `active_genie:eval:blind` | free | Prints a set's drafts without their gold, for a blind labeler (`SET=`) |
 | `active_genie:eval:label` | free | Compares the labels with the gold and writes each draft's status (`SET=`) |
 
-Environment: `EVAL=<name>`, `PROVIDER` and `MODEL` (default: `dev` in `config.yml`), `YES=1` to
-spend money, `SET=<set>` for labeling, `BY=name` for `save`, `FORCE=1` to save while the watched
-files have uncommitted changes.
+`active_genie:eval:quick` and `active_genie:eval:full` are shortcuts for `MODE=quick` and `MODE=full`.
+
+Environment: `EVAL=<name>`, `MODE`, `REPEAT`, `PROVIDER` and `MODEL` (default: `dev` in
+`config.yml`), `YES=1` to run without the question, `SET=<set>` for labeling, `BY=name` for
+`save`, `FORCE=1` to save while the watched files have uncommitted changes.
 
 ## Good practices
 
@@ -196,8 +255,8 @@ are:
 
 `{"rubric": "Answers the question asked, cites the order number, no promises of a refund date.",
 "band": [70, 100]}`. The judge scores the output 0 to 100 against the rubric, with ActiveGenie's
-Scorer, and the case passes inside the band. Rubric rows are graded only after a run with `YES=1`;
-until then they show as `unjudged`.
+Scorer, and the case passes inside the band. Rubric rows are graded only by a run you confirm (or
+run with `YES=1`); until then they show as `unjudged`.
 
 ## Labeling
 

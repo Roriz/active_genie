@@ -56,27 +56,53 @@ end
 - `watch` lists the files the feature depends on. When one of them changes, the next run starts
   fresh. Until then, each case's output is cached and never paid for twice.
 
-## The loop
+## Running it
 
 ```shell
-bin/rails active_genie:eval:check                          # free: validates the data
-bin/rails active_genie:eval:quick EVAL=ticket_router       # prints what the run would cost
-YES=1 bin/rails active_genie:eval:quick EVAL=ticket_router # runs the dev cases -> GO / LOOK / STOP
+bin/rails active_genie:eval EVAL=ticket_router              # the dev cases
+bin/rails active_genie:eval EVAL=ticket_router MODE=full    # every case
 ```
 
-1. Change a prompt, a model or the code around the call.
-2. `quick` runs the dev cases and compares them with the baseline:
-   - **STOP** means a case that always passed now fails.
-   - **LOOK** means something else broke or errored.
-   - **GO** means nothing broke.
-3. Before merging, `full` runs every case. It reports the pass rate with a confidence interval, the
-   change against the baseline with an exact McNemar p-value, and the cases that broke or got fixed.
-4. After merging, save the new baseline:
-   `YES=1 REPEAT=3 bin/rails active_genie:eval:full EVAL=ticket_router` and then
-   `bin/rails active_genie:eval:save EVAL=ticket_router`. `REPEAT=3` measures how often a case flips
-   between identical runs.
+A run shows the eval first: how many cases are in each pool, how varied they are (difficulty, tags,
+the values the gold asks for), how many are cached, and what the rest would cost and how long they
+would take. Then it asks `Run it? [y/N]`. `YES=1` answers for you. In CI, where there is no terminal,
+`YES=1` is required, so nothing is ever paid by accident.
 
-Paid tasks always print their cost first, and only call a model when you pass `YES=1`.
+While it runs, a progress line shows the cases done, the time left, the errors and the cost so far.
+When it finishes, the report is printed, and also written as markdown you can paste into a pull
+request:
+
+```
+intent: gold ↓ · predicted →
+            billing  delivery  refund  other
+  billing         ·         ·       4      ·
+  delivery        ·         3       ·      1
+  refund          ·         ·       4      ·
+  other           ·         ·       ·      2
+accuracy 64% (9/14) · most confused: billing → refund (4), delivery → other (1)
+```
+
+The report has:
+- the pass rate with its confidence interval, and the smallest change this many cases can detect (MDE)
+- the change against the baseline, with an exact McNemar p-value
+- four confusion matrices: baseline vs now, field outcomes (expected present or absent against
+  answered or left empty), one per categorical field (as above), and score bands
+- the cases that broke, got fixed or failed
+
+On the dev cases, it ends with a verdict:
+- **STOP**: a case that always passed now fails.
+- **LOOK**: something else broke or errored.
+- **GO**: nothing broke.
+
+1. Change a prompt, a model or the code around the call, and run it until it says GO.
+2. Before merging, run it with `MODE=full`.
+3. After merging, save the new baseline. `REPEAT=3` measures how often a case flips between identical
+   runs.
+
+   ```shell
+   bin/rails active_genie:eval EVAL=ticket_router MODE=full REPEAT=3
+   bin/rails active_genie:eval:save EVAL=ticket_router
+   ```
 
 ## Gold you can trust
 
