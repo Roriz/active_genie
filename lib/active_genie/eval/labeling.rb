@@ -42,7 +42,7 @@ module ActiveGenie
       # with the names their `values` must answer (the gold's field names, `score` or `list`).
       def blind(definition, set)
         known_rows(definition, set).select { |row| row['status'] == 'draft' }.map do |row|
-          blind_row = row.slice('id', 'input')
+          blind_row = row.slice('id', 'input', 'twin') # a twin row's labeler scores both texts
           next blind_row if definition.custom_grader? || !row['gold'].is_a?(Hash)
 
           names = definition.grader == 'fields' ? row['gold']['fields'] : fields(definition, row['gold'])
@@ -82,7 +82,9 @@ module ActiveGenie
         labels = passes.transform_values { |by_id| by_id[row['id']] }
         fields(definition, row['gold']).filter_map do |field, spec|
           unlabeled = labels.select { |_p, label| label.nil? || !label['values']&.key?(field) }.keys
-          verdicts = (labels.keys - unlabeled).to_h { |p| [p, accepts?(definition, spec, labels[p]['values'][field])] }
+          verdicts = (labels.keys - unlabeled).to_h do |p|
+            [p, accepts?(definition, spec, labels[p]['values'][field], twin: !row['twin'].nil?)]
+          end
           disagreed = verdicts.select { |_p, v| v == false }.keys
           unjudged = verdicts.select { |_p, v| v.nil? }.keys
           next if unlabeled.empty? && disagreed.empty? && unjudged.empty?
@@ -98,7 +100,8 @@ module ActiveGenie
       end
 
       # The labeled fields of a gold: { name => spec }. A labeler answers each field's name: a `fields`
-      # gold's own field names, `score` for band and rubric (a 0-100 number), `list` for list.
+      # gold's own field names, `score` for band and rubric (a number, or {"text", "twin"} numbers for a
+      # twin row), `list` for list, `winner` for winner ("a", "b" or "either", in the row's own terms).
       def fields(definition, gold)
         if definition.custom_grader?
           raise Error,
@@ -109,13 +112,20 @@ module ActiveGenie
         when 'fields' then gold.fetch('fields')
         when 'band', 'rubric' then { 'score' => gold }
         when 'list' then { 'list' => gold }
+        when 'winner' then { 'winner' => gold }
         end
       end
 
       # true or false, or nil when only the judge could accept the value and it has not ruled on it.
-      def accepts?(definition, spec, value)
+      def accepts?(definition, spec, value, twin: false)
         case definition.grader
-        when 'band', 'rubric' then Graders::Band.within?(spec, Matchers.number(value))
+        when 'band', 'rubric' then scored_within?(spec, value, twin:)
+        when 'winner'
+          unless value.nil? || Graders::Winner::SIDES.include?(value)
+            raise Error, "a pass gave winner #{value.inspect}; it takes #{Graders::Winner::SIDES.join(', ')}"
+          end
+
+          value == spec['winner']
         when 'list'
           return false if Matchers.absent?(value)
           raise Error, "a pass gave list #{value.inspect}; it takes an array of answers" unless value.is_a?(Array)
@@ -125,6 +135,19 @@ module ActiveGenie
           outcome = Graders::Fields.outcome(spec, value)
           outcome == 'unjudged' ? nil : Graders::Fields::RIGHT.include?(outcome)
         end
+      end
+
+      # A twin row's score label is {"text": n, "twin": n}: both in the band, as the grader needs, and
+      # within `max_gap` when the gold has one.
+      def scored_within?(spec, value, twin: false)
+        scores = value.is_a?(Hash) ? value : { 'text' => value }
+        text = Matchers.number(scores['text'])
+        return Graders::Band.within?(spec, text) unless twin || spec.key?('max_gap')
+
+        other = Matchers.number(scores['twin'])
+        return false unless Graders::Band.within?(spec, text) && Graders::Band.within?(spec, other)
+
+        !spec.key?('max_gap') || Graders::Band.gap(text, other).abs <= spec['max_gap']
       end
     end
   end

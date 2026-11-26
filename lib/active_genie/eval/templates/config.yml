@@ -16,7 +16,13 @@ usd_per_million_tokens:
   gpt-6.1-terra: { input: 1.0, output: 5.0 }
 
 # Used for the estimate until a run has recorded real token usage.
-default_tokens_per_case: { input: 3000, output: 1000 }
+default_tokens_per_call: { input: 3000, output: 1000 }
+
+# Optional: the files every eval depends on, as globs from the app root, for evals whose eval.rb has
+# no `watch` of its own.
+# watch:
+#   - app/services/**/*.rb
+#   - config/initializers/active_genie.rb
 
 # Cases run in parallel threads. Keep it at 1 if your feature isn't thread-safe.
 concurrency: 1

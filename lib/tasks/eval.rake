@@ -39,27 +39,67 @@ module ActiveGenieEvalTasks
     abort 'active_genie:eval:check failed; fix the data before spending money.'
   end
 
-  # Shows the eval and the plan, asks before spending (YES=1 skips the question; without a terminal,
-  # YES=1 is required), runs with a progress line, then prints and saves the report.
+  # One eval's run, planned: what it would call before anything is asked.
+  Planned = Struct.new(:definition, :system, :items, :runners, keyword_init: true)
+
+  # EVAL=<name>, EVAL=a,b or EVAL=all.
+  def definitions
+    names = ENV.fetch('EVAL') { abort "EVAL=<name> (or a,b or all) is required, one of: #{eval_lib.load!.keys.sort.join(', ')}" }
+    return eval_lib.load!.values.sort_by(&:name) if names == 'all'
+
+    names.split(',').map { |name| eval_lib.fetch(name.strip) }
+  end
+
+  # Shows each eval and the plan, asks once before spending (YES=1 skips the question; without a
+  # terminal, YES=1 is required), runs with a progress line, then prints and saves each report. A
+  # suite (several evals) ends with one summary table.
   def run(mode, replicates: 1)
-    definition = self.definition
-    check!(definition.name)
+    definitions = self.definitions
+    definitions.each { |definition| check!(definition.name) }
+    plans = definitions.filter_map { |definition| plan(definition, mode, replicates) }
+    abort "No #{mode} cases to run." if plans.empty?
+    puts "All #{plans.size} evals: #{eval_lib::Overview.cost(plans.flat_map(&:runners).map(&:estimate))}", '' if plans.size > 1
+    return unless confirmed?(plans.flat_map(&:runners))
+
+    boards = plans.map do |planned|
+      puts "Running #{planned.definition.name}..." if plans.size > 1
+      planned.runners.each { |runner| runner.run!(judge: true) }
+      puts
+      report(planned.system, planned.items, mode, exit_on_stop: plans.size == 1)
+    end
+    summary(boards, mode) if plans.size > 1
+  end
+
+  def plan(definition, mode, replicates)
     system = eval_lib::System.from_env(definition)
     items = eval_lib::Selection.call(definition, mode)
     overview = eval_lib::Overview.new(system:)
-    abort "#{overview.report.to_text}\n\nNo #{mode} cases in #{definition.name} yet." if items.empty?
+    if items.empty?
+      puts overview.report.to_text, '', "No #{mode} cases in #{definition.name} yet.", ''
+      return
+    end
 
     runners = (1..replicates).map { |r| eval_lib::Runner.new(system:, items:, replicate: r) }
-    plan = overview.plan(mode:, runners:)
-    puts overview.report.concat(plan).to_text, ''
-    return unless confirmed?(runners)
-
-    runners.each { |runner| runner.run!(judge: true) }
-    puts
-    report(system, items, mode)
+    puts overview.report.concat(overview.plan(mode:, runners:)).to_text, ''
+    Planned.new(definition:, system:, items:, runners:)
   end
 
-  # Nothing to call and no verdict to fetch in any replicate: free, so no question.
+  # One row per eval (and per variant), and the mean of their rates: each counts the same, however many
+  # cases it has.
+  def summary(boards, mode)
+    rows = boards.flat_map { |board| board.summary_rows.map { |row| row.merge(verdict: board.verdict) } }
+    pct = ->(v) { v.nil? ? '-' : format('%.1f%%', v * 100) }
+    table = rows.map do |row|
+      [row[:name], row[:cases], pct.call(row[:rate]), row[:delta] ? format('%+.1f', row[:delta] * 100) : '-',
+       mode == 'quick' ? row[:verdict] : '']
+    end
+    rates = rows.filter_map { |row| row[:rate] }
+    report = eval_lib::Report.new.heading("Summary (#{mode})").table(%w[eval cases rate delta verdict], table)
+    report.line("mean of #{rates.size} rates: #{pct.call(rates.sum / rates.size)}") if rates.any?
+    puts '', report.to_text
+    exit 1 if mode == 'quick' && boards.any? { |b| b.verdict == 'STOP' }
+  end
+
   def confirmed?(runners)
     paid = runners.sum { |r| r.estimate['cases'] }.positive? || runners.any? { |r| r.unjudged.any? }
     return true if !paid || ENV['YES'] == '1'
@@ -86,7 +126,7 @@ module ActiveGenieEvalTasks
 
   # The report goes to the terminal and, next to the run, to report-<mode>.md (pasteable into a pull
   # request) and report-<mode>.json.
-  def report(system, items, mode)
+  def report(system, items, mode, exit_on_stop: true)
     board = eval_lib::Scoreboard.new(system:, items:, mode:)
     puts board.report
     FileUtils.mkdir_p(system.run_root)
@@ -95,7 +135,8 @@ module ActiveGenieEvalTasks
     eval_lib::Store.write_json(File.join(system.run_root, "report-#{mode}.json"),
                                { 'text' => board.report, 'verdict' => board.verdict })
     puts '', "report: #{markdown.delete_prefix("#{eval_lib.app_root}/")}"
-    exit 1 if mode == 'quick' && board.verdict == 'STOP'
+    exit 1 if exit_on_stop && mode == 'quick' && board.verdict == 'STOP'
+    board
   end
 
   # With EVAL=<name>: that eval's size and diversity. Without: one line per eval.
@@ -114,7 +155,7 @@ module ActiveGenieEvalTasks
 end
 
 namespace :active_genie do
-  desc 'Run EVAL=<name>: shows its cases and the estimate, asks, runs with progress, reports. MODE=quick|full'
+  desc 'Run EVAL=<name> (or a,b or all): shows the cases and the estimate, asks, runs, reports. MODE=quick|full'
   task eval: :environment do
     mode = ENV.fetch('MODE', 'quick')
     abort "MODE is quick or full, not #{mode.inspect}" unless %w[quick full].include?(mode)

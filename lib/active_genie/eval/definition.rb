@@ -9,8 +9,15 @@ module ActiveGenie
     #     grader :fields
     #     watch 'app/services/ticket_router.rb', 'app/prompts/ticket_router/**/*'
     #   end
+    #
+    # An eval can run several variants on the same cases instead of one `call`, to compare them head to
+    # head (two prompts, two models, two methods):
+    #
+    #     variant(:v1) { |input| TicketRouter.new(prompt: :v1).route(input['text']) }
+    #     variant(:v2) { |input| TicketRouter.new(prompt: :v2).route(input['text']) }
     class Definition
-      GRADERS = %w[fields band list rubric].freeze
+      GRADERS = %w[fields band list rubric winner].freeze
+      NAME = /\A[a-z][a-z0-9_]*\z/
       # config/initializers holds ActiveGenie's own settings (temperature, max_tokens, ...).
       DEFAULT_WATCH = ['app/**/*', 'lib/**/*', 'config/**/*.yml', 'config/initializers/**/*.rb', 'Gemfile.lock'].freeze
 
@@ -27,7 +34,16 @@ module ActiveGenie
           @definition.subject = block
         end
 
-        # :fields, :band, :list or :rubric (see evals/README.md), or a block
+        # One of several subjects run on the same cases; the report compares them pair by pair.
+        def variant(name, &block)
+          name = name.to_s
+          raise Error, "#{@definition.name}: variant names are snake_case, not #{name.inspect}" unless name.match?(NAME)
+          raise Error, "#{@definition.name}: variant #{name} needs a block to run" unless block
+
+          @definition.variants[name] = block
+        end
+
+        # :fields, :band, :list, :rubric or :winner (see evals/README.md), or a block
         # `{ |output, gold, row| ... }` returning true/false, or a Hash with "pass" and any details.
         def grader(name = nil, &block)
           @definition.grader = block || name.to_s
@@ -40,7 +56,7 @@ module ActiveGenie
         end
       end
 
-      attr_reader :name, :dir
+      attr_reader :name, :dir, :variants
       attr_accessor :subject, :grader
       attr_writer :watch
 
@@ -48,10 +64,30 @@ module ActiveGenie
         @name = name
         @dir = dir
         @grader = 'fields'
+        @variants = {}
       end
 
+      # [nil] for an eval with one `call`, else its variant names in the order they were defined.
+      def variant_names
+        @variants.empty? ? [nil] : @variants.keys
+      end
+
+      # The block that runs `variant` (nil: the eval's `call`).
+      def subject_for(variant)
+        variant ? @variants.fetch(variant) : subject
+      end
+
+      def runnable?
+        !subject.nil? || @variants.any?
+      end
+
+      # The eval's own `watch`, else `watch:` in evals/config.yml (one list for every eval of the app),
+      # else DEFAULT_WATCH.
       def watch
-        @watch || DEFAULT_WATCH
+        return @watch if @watch
+
+        globs = Array(Eval.config['watch']).map(&:to_s)
+        globs.empty? ? DEFAULT_WATCH : globs
       end
 
       def custom_grader?

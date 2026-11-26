@@ -21,6 +21,15 @@ module ActiveGenie
       def report = document.to_text
       def markdown = document.to_markdown
 
+      # One line per variant (one for an eval without variants), for a suite's summary table:
+      # { name:, cases:, rate:, delta: } where delta is nil without a baseline.
+      def summary_rows
+        by_variant.map do |variant, rows|
+          { name: [@definition.name, variant].compact.join('/'), cases: rows.size, rate: rate(rows),
+            delta: Stats.mean(deltas(paired_for(variant))) }
+        end
+      end
+
       # STOP: a canary (a case the baseline passed in every replicate) broke. LOOK: something else broke,
       # errored or is missing, or no case could be compared with the baseline. GO: nothing broke.
       def verdict
@@ -37,8 +46,8 @@ module ActiveGenie
         @document ||= begin
           doc = header.concat(summary)
           doc.concat(Matrices.baseline(paired)) if @baseline
-          [Matrices.field_outcomes(@current.rows), Matrices.categorical(@current.rows), Matrices.bands(@current.rows),
-           noise_floor, problems, flips].each { |section| doc.concat(section) }
+          by_variant.each { |variant, rows| doc.concat(matrices(rows, variant)) }
+          [noise_floor, problems, flips].each { |section| doc.concat(section) }
           doc.blank.line("VERDICT: #{verdict}") if @mode.to_s == 'quick'
           doc
         end
@@ -53,6 +62,23 @@ module ActiveGenie
         @baseline = Results.new(base.first.rows - base.first.missing)
         always = ->(key) { base.all? { |b| b.by_key[key].then { |row| row.record && row.pass? } } }
         @canaries = @items.map(&:key).select(&always).to_set
+      end
+
+      # { variant => rows }, with every variant present even before it has an output.
+      def by_variant
+        @by_variant ||= @definition.variant_names.to_h { |v| [v, @current.rows.select { |r| r.item.variant == v }] }
+      end
+
+      def variants? = @definition.variants.any?
+
+      # The matrices of one variant's rows, each heading naming the variant when there are several.
+      def matrices(rows, variant)
+        sections = [Matrices.field_outcomes(rows), Matrices.categorical(rows), Matrices.bands(rows),
+                    Matrices.winner(rows), Matrices.twins(rows)]
+        sections.each_with_object(Report.new) do |section, report|
+          section.blocks.each { |b| b.text = "#{b.text} · #{variant}" if variant && b.kind == :heading }
+          report.concat(section)
+        end
       end
 
       def canary?(row)
@@ -83,6 +109,8 @@ module ActiveGenie
         n = @current.rows.size
         return report.line('no case has an output for this code yet') if n.zero?
 
+        return report.concat(variant_summary) if variants?
+
         sets = @current.rows.group_by { |r| r.item.set }.map do |set, rows|
           passed = rows.count(&:pass?)
           [set, rows.size, passed, pct(passed.to_f / rows.size)]
@@ -96,6 +124,36 @@ module ActiveGenie
         report.concat(fields_right).concat(scores)
       end
 
+      # Each variant's rate, then every pair of variants on the cases both ran: how often each one passes
+      # where the other fails, with the exact McNemar p-value of that split.
+      def variant_summary
+        report = Report.new
+        table = by_variant.map do |variant, rows|
+          passed = rows.count(&:pass?)
+          [variant, rows.size, passed, pct(rate(rows)), interval(Stats.wilson(passed, rows.size))]
+        end
+        report.table(['variant', 'cases', 'pass', 'rate', '95% CI'], table).blank
+        by_variant.keys.combination(2).each do |left, right|
+          report.line(head_to_head(left, right))
+        end
+        # Per variant: a mean over all of them would blur the very difference being compared.
+        by_variant.each do |variant, rows|
+          report.line("#{variant}: #{delta_line(paired_for(variant))}") if @baseline
+          report.concat(fields_right(rows, variant)).concat(scores(rows, variant))
+        end
+        report
+      end
+
+      def head_to_head(left, right)
+        a = by_variant[left].to_h { |r| [r.item.id, r.pass?] }
+        b = by_variant[right].to_h { |r| [r.item.id, r.pass?] }
+        both = a.keys & b.keys
+        wins = both.count { |id| a[id] && !b[id] }
+        losses = both.count { |id| !a[id] && b[id] }
+        format('%s vs %s on %d shared cases: +%d / -%d, McNemar p=%.3f', left, right, both.size, wins, losses,
+               Stats.mcnemar_p(wins, losses))
+      end
+
       def paired
         @paired ||= if @baseline
                       @current.rows.filter_map { |row| (base = @baseline.by_key[row.key]) && [row, base] }
@@ -104,13 +162,21 @@ module ActiveGenie
                     end
       end
 
-      def delta_line
-        deltas = paired.map { |cur, base| (cur.pass? ? 1 : 0) - (base.pass? ? 1 : 0) }
+      def paired_for(variant) = paired.select { |cur, _base| cur.item.variant == variant }
+
+      def rate(rows) = rows.empty? ? nil : rows.count(&:pass?).to_f / rows.size
+
+      # +1 per case fixed, -1 per case broken, 0 when it did as well as the baseline.
+      def deltas(pairs) = pairs.map { |cur, base| (cur.pass? ? 1 : 0) - (base.pass? ? 1 : 0) }
+
+      def delta_line(pairs = paired)
+        deltas = deltas(pairs)
+        broke = pairs.count { |cur, base| base.pass? && !cur.pass? }
+        fixed = pairs.count { |cur, base| !base.pass? && cur.pass? }
         ci = Stats.bootstrap_ci(deltas)
         ci_text = ci ? format('[%+.1f, %+.1f]', ci[0] * 100, ci[1] * 100) : ''
         format('delta vs baseline: %+.1f pp %s on %d paired cases, McNemar p=%.3f (%d broke, %d fixed)',
-               (Stats.mean(deltas) || 0) * 100, ci_text, paired.size, Stats.mcnemar_p(broke.size, fixed.size),
-               broke.size, fixed.size)
+               (Stats.mean(deltas) || 0) * 100, ci_text, pairs.size, Stats.mcnemar_p(broke, fixed), broke, fixed)
       end
 
       def broke
@@ -121,21 +187,22 @@ module ActiveGenie
         @fixed ||= paired.select { |cur, base| !base.pass? && cur.pass? }.map(&:first)
       end
 
-      def fields_right
-        outcomes = @current.rows.filter_map { |r| Matrices.fields(r) }
+      def fields_right(rows = @current.rows, variant = nil)
+        outcomes = rows.filter_map { |r| Matrices.fields(r) }
         return Report.new if outcomes.empty?
 
         clusters = outcomes.map { |fields| fields.values.map { |o| Graders::Fields::RIGHT.include?(o) ? 1 : 0 } }
-        Report.new.line("fields: #{pct(Stats.mean(clusters.flatten))} right " \
+        Report.new.line("#{"#{variant}: " if variant}fields: #{pct(Stats.mean(clusters.flatten))} right " \
                         "#{interval(Stats.bootstrap_ci(clusters:))} (CI resamples whole cases)")
       end
 
       # Mean score for band and rubric graders.
-      def scores
-        values = @current.rows.map { |r| r.grade.detail['score'] }.grep(Numeric)
+      def scores(rows = @current.rows, variant = nil)
+        values = rows.map { |r| r.grade.detail['score'] }.grep(Numeric)
         return Report.new if values.empty?
 
-        Report.new.line(format('mean score: %.1f over %d cases', Stats.mean(values), values.size))
+        Report.new.line(format('%smean score: %.1f over %d cases', variant ? "#{variant}: " : '', Stats.mean(values),
+                               values.size))
       end
 
       # Share of cases whose pass/fail differs between replicates of the same code.

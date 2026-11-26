@@ -117,7 +117,7 @@ class AppEvalReportTest < Minitest::Test
     assert_match(/field intent\s+2 values \(refund 3 · billing 1\)/, text)
     assert_match(/field order_id\s+present 4 · checks eq/, text, 'an id is not a category')
     assert_match(/quick: 3 dev cases, 0 cached, 3 to call/, text)
-    assert_match(/~3 case runs · ~12000 tokens · cost unknown .* · time unknown until a case has run/, text)
+    assert_match(/~3 calls · ~12000 tokens · cost unknown .* · time unknown until a case has run/, text)
   end
 
   def test_overview_counts_false_tags_and_skips_tags_that_are_not_an_object

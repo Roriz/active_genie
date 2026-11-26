@@ -1,7 +1,7 @@
 name: Eval
 
-# Manual only: every run calls paid provider APIs. Runs the golden-set eval in eval/ against
-# each release model and uploads the cached outputs and reports. See eval/README.md.
+# Manual only: every run calls paid provider APIs. Runs the gem's evals in evals/ against each
+# release model and uploads the cached outputs and reports. See evals/README.md.
 on:
   workflow_dispatch:
     inputs:
@@ -31,7 +31,7 @@ jobs:
         with:
           ruby-version: '3.4'
           bundler-cache: true
-      - run: bundle exec rake eval:check
+      - run: bundle exec rake active_genie:eval:check
 
   eval:
     needs: check
@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Keep in sync with "release" in eval/config.json.
+        # The release models. evals/config.yml pins only the dev model and the judge.
         model:
           - { provider: openai, name: gpt-6.1-luna }
           - { provider: anthropic, name: claude-haiku-4-5 }
@@ -58,19 +58,21 @@ jobs:
 
       - name: Run ${{ inputs.mode }}
         run: |
-          if [ "${{ inputs.mode }}" = "full" ]; then
-            REPEAT=${{ inputs.repeat }} bundle exec rake eval:full | tee report.txt
-          else
-            bundle exec rake eval:quick | tee report.txt
-          fi
+          set -o pipefail
+          repeat=1
+          if [ "${{ inputs.mode }}" = "full" ]; then repeat=${{ inputs.repeat }}; fi
+          # A STOP or a crash still fails the job, but only after the report reaches the summary.
+          status=0
+          EVAL=all MODE=${{ inputs.mode }} REPEAT=$repeat bundle exec rake active_genie:eval | tee report.txt || status=$?
           cat report.txt >> "$GITHUB_STEP_SUMMARY"
+          exit $status
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: eval-${{ inputs.mode }}-${{ matrix.model.provider }}-${{ matrix.model.name }}
           path: |
-            eval/runs/
-            eval/judge/
+            evals/*/runs/
+            evals/judge/
           retention-days: 14
           if-no-files-found: ignore

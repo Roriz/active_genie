@@ -7,8 +7,10 @@ module ActiveGenie
     # twice; errored cases are retried on the next run.
     class Runner
       USAGE_KEY = :active_genie_eval_usage
+      DEFAULT_TOKENS = { 'input' => 3000, 'output' => 1000 }.freeze # per call, until a run has recorded usage
       # What the `call` block gets besides the input: which provider and model this run is for, and the row.
-      Context = Struct.new(:provider, :model, :row, keyword_init: true)
+      # `shared` is one Hash for both calls of a twin row, for what they must share (juries picked once).
+      Context = Struct.new(:provider, :model, :row, :variant, :twin, :shared, keyword_init: true)
 
       attr_reader :system, :items, :replicate
 
@@ -21,7 +23,7 @@ module ActiveGenie
       end
 
       def record_path(item)
-        File.join(system.run_dir(replicate), "#{item.id}.json")
+        File.join(system.run_dir(replicate), item.file)
       end
 
       def pending
@@ -35,14 +37,16 @@ module ActiveGenie
       # is nil until a case has run once.
       def estimate
         todo = pending
-        per_case = tokens_per_case
-        tokens = { 'input' => per_case['input'] * todo.size, 'output' => per_case['output'] * todo.size }
-        latency = seconds_per_case
+        calls = todo.sum { |item| item.twin ? 2 : 1 } # a twin row calls the feature twice
+        per_call = tokens_per_call
+        tokens = { 'input' => per_call['input'] * calls, 'output' => per_call['output'] * calls }
+        latency = seconds_per_call
         # The pool never runs more workers than cases, so 1 case at concurrency 8 still takes a full call.
-        rounds = todo.size.fdiv([@concurrency, todo.size].min.clamp(1..)).ceil
-        { 'cases' => todo.size, 'input_tokens' => tokens['input'], 'output_tokens' => tokens['output'],
+        workers = [@concurrency, todo.size].min.clamp(1..)
+        { 'cases' => todo.size, 'calls' => calls,
+          'input_tokens' => tokens['input'], 'output_tokens' => tokens['output'],
           'usd' => self.class.usd(system.model, tokens['input'], tokens['output']),
-          'seconds' => latency && (rounds * latency).ceil }
+          'seconds' => latency && (calls * latency / workers).ceil }
       end
 
       # The cached cases of this replicate still waiting for a judge verdict. Free: it reads the verdict
@@ -143,21 +147,28 @@ module ActiveGenie
         Thread.current.thread_variable_set(USAGE_KEY, usage)
         started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         body = begin
-          { 'output' => serialize(wrap { call(item) }) }
+          shared = {}
+          output = { 'output' => serialize(wrap { call(item, item.input, twin: false, shared:) }) }
+          output['twin'] = serialize(wrap { call(item, item.twin_input, twin: true, shared:) }) if item.twin
+          output
         rescue StandardError, ScriptError => e # NotImplementedError and LoadError are ScriptErrors
           { 'error' => "#{e.class}: #{e.message}"[0, 1000] }
         end
         latency = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
-        record = { 'id' => item.id, 'set' => item.set, 'replicate' => replicate, 'input_sha' => item.input_sha }
+        record = { 'id' => item.id, 'set' => item.set, 'variant' => item.variant, 'replicate' => replicate,
+                   'input_sha' => item.input_sha }.compact
                  .merge(body, 'usage' => usage, 'latency_s' => latency.round(2), 'at' => Time.now.utc.iso8601)
         Store.write_json(record_path(item), record)
         record
       end
 
-      def call(item)
-        subject = system.definition.subject || raise(Error, "#{system.definition.name}: eval.rb has no `call` block")
-        context = Context.new(provider: system.provider, model: system.model, row: item.case)
-        subject.arity == 1 ? subject.call(item.case['input']) : subject.call(item.case['input'], context)
+      def call(item, input, twin:, shared:)
+        subject = system.definition.subject_for(item.variant)
+        raise(Error, "#{system.definition.name}: eval.rb has no `call` block") unless subject
+
+        context = Context.new(provider: system.provider, model: system.model, row: item.case, variant: item.variant,
+                              twin:, shared:)
+        subject.arity == 1 ? subject.call(input) : subject.call(input, context)
       end
 
       # Inside a Rails app, each case runs like a request: with the app's executor (autoloading,
@@ -200,22 +211,30 @@ module ActiveGenie
         Store.write_json(file, manifest)
       end
 
-      # Average tokens per case from every cached record of this eval (runs and baselines).
-      def tokens_per_case
+      # Tokens per call of the feature, from cached records: a twin row's record holds two calls.
+      def tokens_per_call
         records = history.select { |r| r.dig('usage', 'calls').to_i.positive? }
-        return Eval.config['default_tokens_per_case'] || { 'input' => 3000, 'output' => 1000 } if records.empty?
+        if records.empty?
+          return Eval.config['default_tokens_per_call'] || Eval.config['default_tokens_per_case'] || DEFAULT_TOKENS
+        end
 
-        %w[input output].to_h { |k| [k, records.sum { |r| r.dig('usage', "#{k}_tokens") } / records.size] }
+        calls = records.sum { |r| calls_in(r) }
+        %w[input output].to_h { |k| [k, records.sum { |r| r.dig('usage', "#{k}_tokens").to_i } / calls] }
       end
 
-      def seconds_per_case
-        latencies = history.reject { |r| r['error'] }.filter_map { |r| r['latency_s'] }
-        latencies.empty? ? nil : latencies.sum / latencies.size
+      def seconds_per_call
+        timed = history.reject { |r| r['error'] }.select { |r| r['latency_s'] }
+        return nil if timed.empty?
+
+        timed.sum { |r| r['latency_s'] } / timed.sum { |r| calls_in(r) }
       end
 
-      # Every cached record of this eval (runs and baselines), read once per runner.
+      def calls_in(record) = record.key?('twin') ? 2 : 1
+
+      # Every cached record of this eval (runs and baselines, a variant's under its own folder), read once
+      # per runner.
       def history
-        @history ||= Dir.glob(system.definition.path('{runs,baselines}', '*', 'r*', '*.json'))
+        @history ||= Dir.glob(system.definition.path('{runs,baselines}', '*', 'r*', '**', '*.json'))
                         .reject { |f| File.basename(f) == 'manifest.json' }
                         .map { |f| JSON.parse(File.read(f)) }
       end

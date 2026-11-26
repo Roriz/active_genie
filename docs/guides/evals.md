@@ -104,6 +104,18 @@ On the dev cases, it ends with a verdict:
    bin/rails active_genie:eval:save EVAL=ticket_router
    ```
 
+## Comparing versions and checking for bias
+
+- **Variants.** `variant(:v1) { ... }` and `variant(:v2) { ... }` in one eval run two prompts, models
+  or designs on the same cases. The report compares them head to head:
+  `v1 vs v2 on 30 shared cases: +1 / -6, McNemar p=0.125`.
+- **Twin rows.** A row with a `twin` holds the same input with one change that should not matter, such
+  as a claimed credential, padding or the author's name. It passes only when the answer doesn't move.
+  For scores, `max_gap` limits how far the two may drift, and the report shows the mean gap per
+  `tags.bias`.
+- **Several evals at once.** `EVAL=all` runs every eval behind one confirmation and ends with a summary
+  table.
+
 ## Gold you can trust
 
 A gold answer you write alone is a guess. For drafted cases, give two labelers the cases without

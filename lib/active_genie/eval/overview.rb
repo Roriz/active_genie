@@ -36,19 +36,37 @@ module ActiveGenie
       # The run a mode would make: what is cached, what it would call, and its estimate.
       def plan(mode:, runners:)
         estimates = runners.map(&:estimate)
-        selected = runners.first.items.size
+        items = runners.first.items
+        selected = items.size
         to_call = estimates.sum { |e| e['cases'] }
+        variants = @definition.variants.keys
+        cases = items.map(&:id).uniq.size
+        each = variants.any? ? " × #{variants.size} variants (#{variants.join(', ')})" : ''
         repeat = runners.size > 1 ? " × #{runners.size} replicates" : ''
+        twins = items.select(&:twin).map(&:id).uniq.size # rows, like `cases`, not rows × variants
         report = Report.new.heading('Plan')
         pool = mode.to_s == 'quick' ? ' dev' : nil
-        report.line("#{mode}: #{selected}#{pool} cases#{repeat}, " \
+        report.line("#{mode}: #{cases}#{pool} cases#{each}#{repeat}, " \
                     "#{(selected * runners.size) - to_call} cached, #{to_call} to call")
-        report.line("  #{cost(estimates)}") if to_call.positive?
+        report.line("  #{twins} of them are twin pairs: two calls each") if twins.positive?
+        report.line("  #{Overview.cost(estimates)}") if to_call.positive?
         judge = judge_line(runners, to_call)
         report.line("  #{judge}") if judge
         report
       end
 
+      # One line for the estimates of any number of runners (one eval, or a whole suite).
+      def self.cost(estimates)
+        tokens = estimates.sum { |e| e['input_tokens'] + e['output_tokens'] }
+        usd = estimates.map { |e| e['usd'] }
+        seconds = estimates.map { |e| e['seconds'] }
+        money = usd.all? ? format('~$%.2f', usd.sum) : 'cost unknown (add a price in evals/config.yml)'
+        time = seconds.all? ? "~#{Progress.clock(seconds.sum)}" : 'time unknown until a case has run'
+        "~#{estimates.sum { |e| e['calls'] }} calls · ~#{tokens} tokens · #{money} · #{time}"
+      end
+
+      # Judge calls are paid too: a rubric case needs one, a `judge: true` field one when its check fails.
+      # Cached cases of every replicate count, since the run judges them all.
       private
 
       def title
@@ -125,17 +143,6 @@ module ActiveGenie
         end
       end
 
-      def cost(estimates)
-        tokens = estimates.sum { |e| e['input_tokens'] + e['output_tokens'] }
-        usd = estimates.map { |e| e['usd'] }
-        seconds = estimates.map { |e| e['seconds'] }
-        money = usd.all? ? format('~$%.2f', usd.sum) : 'cost unknown (add a price in evals/config.yml)'
-        time = seconds.all? ? "~#{Progress.clock(seconds.sum)}" : 'time unknown until a case has run'
-        "~#{estimates.sum { |e| e['cases'] }} case runs · ~#{tokens} tokens · #{money} · #{time}"
-      end
-
-      # Judge calls are paid too: a rubric case needs one, a `judge: true` field one when its check fails.
-      # Cached cases of every replicate count, since the run judges them all.
       def judge_line(runners, to_call)
         return if @definition.custom_grader?
 
