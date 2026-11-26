@@ -1,0 +1,24 @@
+# frozen_string_literal: true
+
+# The <%= name %> eval: the code it runs and how each answer is graded. See evals/README.md.
+#
+#   bin/rails active_genie:eval:check EVAL=<%= name %>        free: checks the data
+#   bin/rails active_genie:eval:quick EVAL=<%= name %>        prints the cost; YES=1 runs the dev pool
+ActiveGenie::Eval.define '<%= name %>' do
+  # Your real harness: build the prompt, call the model, parse the answer, exactly as the app does.
+  # `input` is a row's "input"; return what the feature returns (a Hash, a String, a number, a list
+  # or an ActiveGenie::Result). `context.provider` and `context.model` say what this run is for.
+  call do |input, context|
+    # <%= class_name %>.new(model: context.model).call(input['text'])
+    raise NotImplementedError, "call your feature from evals/<%= name %>/eval.rb (model: #{context.model})"
+  end
+
+  # How each row's gold is checked: :fields, :band, :list or :rubric, or your own block:
+  #   grader { |output, gold, record| output['intent'] == gold['intent'] }
+  grader :fields
+
+  # The files this feature depends on (globs from the app root). Changing any of them starts a fresh
+  # run; until then, outputs are cached per case and never paid for twice. config/initializers holds
+  # ActiveGenie's own settings.
+  watch 'app/**/*.rb', 'config/**/*.yml', 'config/initializers/**/*.rb'
+end

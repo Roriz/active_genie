@@ -36,6 +36,7 @@ Metrics/MethodLength:
   Exclude:
     - 'test/**/*'
     - 'eval/**/*'
+    - 'lib/active_genie/eval/**/*'
     - 'lib/tasks/**/*'
 
 Metrics/ClassLength:
@@ -44,6 +45,7 @@ Metrics/ClassLength:
   Exclude:
     - 'test/**/*'
     - 'eval/**/*'
+    - 'lib/active_genie/eval/**/*'
 
 Metrics/ModuleLength:
   CountComments: false
@@ -51,6 +53,7 @@ Metrics/ModuleLength:
   Exclude:
     - 'test/**/*'
     - 'eval/**/*'
+    - 'lib/active_genie/eval/**/*'
 
 Layout/LineLength:
   AllowedPatterns: ['\s#']
@@ -61,6 +64,8 @@ Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
     - 'eval/**/*'
+    - 'lib/active_genie/eval/**/*'
+    - 'lib/tasks/eval.rake'
 
 Minitest/MultipleAssertions:
   Enabled: false
@@ -69,11 +74,15 @@ Metrics/CyclomaticComplexity:
   Exclude:
     - 'test/**/*'
     - 'eval/**/*'
+    - 'lib/active_genie/eval/**/*'
+    - 'lib/tasks/eval.rake'
 
 Metrics/PerceivedComplexity:
   Exclude:
     - 'test/**/*'
     - 'eval/**/*'
+    - 'lib/active_genie/eval/**/*'
+    - 'lib/tasks/eval.rake'
 
 Metrics/BlockLength:
   Exclude:
@@ -90,8 +99,11 @@ Minitest/AssertTruthy:
 Naming/MethodParameterName:
   Exclude:
     - 'eval/lib/genie_eval/stats.rb'
+    - 'lib/active_genie/eval/stats.rb'
 
 # Report tables use positional width specifiers (%-28s), clearer than named tokens there.
 Style/FormatStringToken:
   Exclude:
     - 'eval/**/*'
+    - 'lib/active_genie/eval/**/*'
+    - 'lib/tasks/eval.rake'

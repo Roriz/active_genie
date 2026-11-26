@@ -42,7 +42,9 @@ module ActiveGenie
       return unless defined?(Rake)
 
       Rake::Task.define_task(:environment)
-      Dir.glob(File.join(__dir__, 'tasks', '*.rake')).each { |r| load r }
+      # Only the tasks meant for apps. tasks/test.rake is the gem's own test suite: loaded into an app,
+      # it would hook `rake test` and clear the app's API keys.
+      %w[install eval].each { |name| load File.join(__dir__, 'tasks', "#{name}.rake") }
     end
   end
 end
