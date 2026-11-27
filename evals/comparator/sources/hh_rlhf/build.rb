@@ -5,12 +5,13 @@
 #
 #   bundle exec ruby evals/comparator/sources/hh_rlhf/build.rb
 #
-# Downloads the split into tmp/datasets/hh_rlhf (gitignored) at a pinned revision and checks its
-# SHA-256. Each row is one conversation with two possible last replies, and a crowdworker's pick of
-# the more helpful one. The picks are noisy, so the cases are added to evals/comparator/sets/comparator.jsonl
-# as drafts: a case runs only when two blind labeling passes agree with the crowdworker (`rake
-# active_genie:eval:label EVAL=comparator SET=comparator`); otherwise it is dropped, not queued. Both
-# variants (by_debate and by_fight) run the same cases, so the two methods are compared on paired cases.
+# Reads the split from data/helpful-base-test.jsonl.gz, a verbatim copy of the upstream file at a
+# pinned revision (URL below), and checks its SHA-256. Each row is one conversation with two
+# possible last replies, and a crowdworker's pick of the more helpful one. The picks are noisy, so
+# the cases are added to evals/comparator/sets/comparator.jsonl as drafts: a case runs only when two
+# blind labeling passes agree with the crowdworker (`rake active_genie:eval:label EVAL=comparator
+# SET=comparator`); otherwise it is dropped, not queued. Both variants (by_debate and by_fight) run
+# the same cases, so the two methods are compared on paired cases.
 #
 # Picks short, benign conversations whose two replies are both real answers, half where the picked
 # reply is the longer one and half where it is the shorter one, so length alone cannot win. Which
@@ -22,11 +23,12 @@ require_relative '../../../../lib/active_genie'
 require_relative '../../../../lib/active_genie/eval'
 
 module HhRlhfSource
+  # Provenance: FILE is this upstream file, unmodified. Fetch it and compare SHA-256s to check.
   REVISION = '09be8c5bbc57cb3887f3a9732ad6aa7ec602a1fa'
   URL = "https://huggingface.co/datasets/Anthropic/hh-rlhf/resolve/#{REVISION}/helpful-base/test.jsonl.gz".freeze
   SHA256 = '8be3fc1a13b27901631696f2be6f184c799f1baeaf145f53ac5db24960adc37b'
   REPO = File.expand_path('../../../..', __dir__)
-  FILE = File.join(REPO, 'tmp', 'datasets', 'hh_rlhf', 'helpful-base-test.jsonl.gz')
+  FILE = File.join(__dir__, 'data', 'helpful-base-test.jsonl.gz')
   SET = 'comparator'
   PER_LENGTH_SIDE = 40
 
@@ -46,8 +48,7 @@ module HhRlhfSource
   module_function
 
   def run
-    download unless File.exist?(FILE)
-    verify!(FILE)
+    verify!
 
     candidates = Zlib::GzipReader.open(FILE, external_encoding: Encoding::UTF_8) do |gz|
       gz.each_line.filter_map { |line| candidate(JSON.parse(line)) }
@@ -69,19 +70,11 @@ module HhRlhfSource
     puts "then rake active_genie:eval:label EVAL=comparator SET=#{SET}"
   end
 
-  # Into a .part file first, so a failed, cut or unexpected download never sits at FILE.
-  def download
-    FileUtils.mkdir_p(File.dirname(FILE))
-    part = "#{FILE}.part"
-    system('curl', '--fail', '-sSL', '-o', part, URL, exception: true)
-    verify!(part)
-    File.rename(part, FILE)
-  end
+  def verify!
+    raise "#{FILE} is missing: restore it from git, or fetch #{URL}" unless File.exist?(FILE)
+    return if Digest::SHA256.file(FILE).hexdigest == SHA256
 
-  def verify!(file)
-    return if Digest::SHA256.file(file).hexdigest == SHA256
-
-    raise "#{file}: SHA-256 mismatch, refusing to use it (delete it to download again)"
+    raise "#{FILE}: SHA-256 mismatch, it no longer matches #{URL}; restore it from git"
   end
 
   # Both texts are the same conversation up to the last reply.

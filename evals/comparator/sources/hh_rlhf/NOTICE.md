@@ -30,7 +30,12 @@ SOFTWARE.
 ```
 
 - Source: `helpful-base/test.jsonl.gz` at revision `09be8c5bbc57cb3887f3a9732ad6aa7ec602a1fa`
-  (SHA-256 `8be3fc1a13b27901631696f2be6f184c799f1baeaf145f53ac5db24960adc37b`).
+  (SHA-256 `8be3fc1a13b27901631696f2be6f184c799f1baeaf145f53ac5db24960adc37b`), from
+  <https://huggingface.co/datasets/Anthropic/hh-rlhf/resolve/09be8c5bbc57cb3887f3a9732ad6aa7ec602a1fa/helpful-base/test.jsonl.gz>.
+- Copy: [`data/helpful-base-test.jsonl.gz`](data/helpful-base-test.jsonl.gz) in this folder is a
+  verbatim, unmodified copy of that file, committed so `build.rb` reads it instead of downloading
+  it. It must keep the SHA-256 above; `build.rb` refuses to run otherwise. The `hh_*` rows are
+  derived from it.
 - Paper: Bai et al. "Training a Helpful and Harmless Assistant with Reinforcement Learning from Human
   Feedback." 2022.
 - Changes (`build.rb`): the shared conversation becomes the `criteria` and the two last replies the

@@ -1,0 +1,2 @@
+# Vendored datasets: byte-identical to upstream (build scripts check their SHA-256), never diffed.
+*.jsonl.gz binary
