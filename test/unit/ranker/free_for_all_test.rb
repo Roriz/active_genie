@@ -66,6 +66,24 @@ module ActiveGenie
         logs.each { |log| assert_equal id, log[:free_for_all_id], "#{log[:code]} entry is missing the id" }
       end
 
+      def test_every_match_log_entry_carries_both_player_ids
+        logs = []
+        players = [{ id: 'player_a', content: 'Player A content' }, { id: 'player_b', content: 'Player B content' }]
+
+        FreeForAll.call(players, 'test criteria', config: {
+                          providers: { openai: { api_key: 'test_key' } },
+                          log: { output: ->(log) { logs << log } }
+                        })
+
+        match_logs = logs.select { |log| %i[llm_usage free_for_all].include?(log[:code]) }
+
+        assert_equal %i[llm_usage free_for_all], match_logs.map { |log| log[:code] }.uniq
+        match_logs.each do |log|
+          assert_equal %w[player_a player_b], log.values_at(:player_a_id, :player_b_id), "#{log[:code]} entry"
+        end
+        assert_equal 'Player A content', logs.find { |log| log[:code] == :free_for_all }[:winner]
+      end
+
       # Critical Path: Ranking Logic
       def test_ranks_players_by_ffa_score
         players = ActiveGenie::Ranker::Entities::Players.new(
