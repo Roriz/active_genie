@@ -25,8 +25,8 @@ class GemEvalsTest < Minitest::Test
   end
 
   def test_every_eval_has_cases_and_watches_the_library_not_the_engine
-    expected = %w[comparator extractor_data extractor_with_explanation extractor_with_litote lister_with_feud
-                  lister_with_juries scorer_by_jury_bench]
+    expected = %w[comparator extractor extractor_with_litote lister_with_feud lister_with_juries
+                  scorer_by_jury_bench]
 
     assert_equal expected, Eval.load!.keys.sort
     Eval.definitions.each_value do |definition|
@@ -35,5 +35,6 @@ class GemEvalsTest < Minitest::Test
              "#{definition.name} must not watch the eval engine")
     end
     assert_equal %w[by_debate by_fight], Eval.fetch('comparator').variant_names
+    assert_equal %w[data with_explanation], Eval.fetch('extractor').variant_names
   end
 end

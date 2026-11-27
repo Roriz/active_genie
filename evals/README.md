@@ -21,16 +21,15 @@ bundle exec rake prompts:check                                    # free: lints 
 
 | Eval | Method | Grader | Cases (dev + test) |
 |---|---|---|---|
-| `extractor_data` | `Extractor.data` | `fields` | 7 + 30 |
-| `extractor_with_explanation` | `Extractor.with_explanation` | `fields` | 7 + 30 |
+| `extractor` | `Extractor.data` and `with_explanation`, as two variants | `fields` | 14 + 60 |
 | `extractor_with_litote` | `Extractor.with_litote` | `fields` | 6 + 30 |
 | `comparator` | `Comparator.by_debate` and `by_fight`, as two variants | `winner`, both orders | 20 + 39 |
 | `lister_with_feud` | `Lister.with_feud` | `list` | 10 + 30 |
 | `lister_with_juries` | `Lister.with_juries` | `list` | 10 |
 | `scorer_by_jury_bench` | `Scorer.by_jury_bench` | `band`, bias pairs as twin rows | 20 + 25 |
 
-The headline is the mean of the eight rates in the `EVAL=all` summary (the comparator counts once per
-variant), so an eval with many cases doesn't drown out the others.
+The headline is the mean of the eight rates in the `EVAL=all` summary (the extractor and the
+comparator count once per variant), so an eval with many cases doesn't drown out the others.
 
 - `config.yml` pins the dev model (`gpt-6.1-terra`) and the judge (`claude-sonnet-5-5`).
 - Its `watch:` covers the modules the evals measure, not the eval engine. Changing the engine doesn't
