@@ -19,7 +19,7 @@ module ActiveGenie
         write(Eval.path('.gitignore'), read('gitignore'), io:)
       end
 
-      # evals/<name>/eval.rb and a starting set with example rows.
+      # evals/<name>/eval.rb and a starting datasets.jsonl with example rows.
       def new_eval(name, io: $stdout)
         name = name.to_s
         raise Error, "eval names are snake_case, like ticket_router (not #{name.inspect})" unless name.match?(NAME)
@@ -27,7 +27,7 @@ module ActiveGenie
         install(io:) unless File.exist?(Eval.path('config.yml'))
         class_name = name.split('_').map(&:capitalize).join
         write(Eval.path(name, 'eval.rb'), ERB.new(read('eval.rb.erb'), trim_mode: '-').result(binding), io:)
-        write(Eval.path(name, 'sets', "#{name}.jsonl"), read('set.jsonl'), io:)
+        write(Eval.path(name, 'datasets.jsonl'), read('datasets.jsonl'), io:)
       end
 
       def read(template)

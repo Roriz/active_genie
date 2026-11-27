@@ -4,8 +4,8 @@ module ActiveGenie
   module Eval
     # Labels drafted rows with two blind passes and writes the outcome into each row's `status`:
     #
-    #   evals/<name>/sets/<set>.jsonl    the rows; a drafted row starts with "status": "draft"
-    #   evals/<name>/labels/<set>.jsonl  the passes: { "id", "pass": "a" | "b", "labeler", "values" }
+    #   evals/<name>/datasets.jsonl  the rows; a drafted row starts with "status": "draft"
+    #   evals/<name>/gold.jsonl      the passes: { "id", "pass": "a" | "b", "labeler", "values" }
     #
     # Two people (or a person and a model, or two models) answer each draft without seeing its gold;
     # `blind` prints what they get. A field is agreed when the gold accepts both passes' values, using
@@ -21,9 +21,9 @@ module ActiveGenie
     module Labeling
       module_function
 
-      def merge(definition, set)
-        rows = known_rows(definition, set)
-        passes = passes(definition, set)
+      def merge(definition)
+        rows = Store.rows(definition)
+        passes = passes(definition)
         queue = []
         rows = rows.map do |row|
           next row unless Store::LABELED.include?(row['status'])
@@ -32,7 +32,7 @@ module ActiveGenie
           queue.concat(open) if (status = status(row, open)) == 'queued'
           row.merge('status' => status)
         end
-        Store.write_rows(definition, set, rows)
+        Store.write_rows(definition, rows)
         counts = Hash.new(0).merge(rows.map { |r| r['status'] }.tally)
         { confirmed: counts['confirmed'], queued: counts['queued'], dropped: counts['dropped'], draft: counts['draft'],
           queue: }
@@ -40,8 +40,8 @@ module ActiveGenie
 
       # What a blind labeler sees: the drafts still waiting for a pass, without their gold or why, but
       # with the names their `values` must answer (the gold's field names, `score` or `list`).
-      def blind(definition, set)
-        known_rows(definition, set).select { |row| row['status'] == 'draft' }.map do |row|
+      def blind(definition)
+        Store.rows(definition).select { |row| row['status'] == 'draft' }.map do |row|
           blind_row = row.slice('id', 'input', 'twin') # a twin row's labeler scores both texts
           next blind_row if definition.custom_grader? || !row['gold'].is_a?(Hash)
 
@@ -58,19 +58,11 @@ module ActiveGenie
         'queued'
       end
 
-      def known_rows(definition, set)
-        unless Store.sets(definition).include?(set)
-          raise Error, "#{definition.name} has no set #{set} (sets: #{Store.sets(definition).join(', ')})"
-        end
-
-        Store.rows(definition, set)
-      end
-
       # { "a" => { id => label }, "b" => { id => label } }: the latest successful label per id.
-      def passes(definition, set)
-        labels = Store.labels(definition, set).reject { |r| r['error'] }
+      def passes(definition)
+        labels = Store.labels(definition).reject { |r| r['error'] }
         odd = labels.map { |r| r['pass'] }.uniq - %w[a b]
-        raise Error, "#{definition.name}/#{set} labels: pass must be a or b, not #{odd.map(&:inspect).join(', ')}" if odd.any?
+        raise Error, "#{definition.name}/gold.jsonl: pass must be a or b, not #{odd.map(&:inspect).join(', ')}" if odd.any?
 
         %w[a b].to_h { |p| [p, labels.select { |r| r['pass'] == p }.to_h { |r| [r['id'], r] }] }
       end

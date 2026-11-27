@@ -4,8 +4,8 @@ module ActiveGenie
   module Eval
     # Reads and writes an eval's committed data:
     #
-    #   evals/<name>/sets/<set>.jsonl    one row per case: pool, status, tags, input, gold and why
-    #   evals/<name>/labels/<set>.jsonl  the blind labeling passes of the set's drafted rows
+    #   evals/<name>/datasets.jsonl  one row per case: pool, status, tags, input, gold and why
+    #   evals/<name>/gold.jsonl      the blind labeling passes of the drafted rows
     module Store
       # A row with no status has no labeling step. `decided` and `excluded` are set by a person.
       STATUSES = %w[draft confirmed queued dropped decided excluded].freeze
@@ -28,7 +28,7 @@ module ActiveGenie
         end
       end
 
-      # Through a .tmp file, so an interrupted write never truncates a committed set.
+      # Through a .tmp file, so an interrupted write never truncates a committed dataset.
       def write_jsonl(file, rows)
         FileUtils.mkdir_p(File.dirname(file))
         tmp = "#{file}.tmp"
@@ -43,27 +43,21 @@ module ActiveGenie
         File.rename(tmp, file)
       end
 
-      def sets(definition)
-        Dir.glob(definition.path('sets', '*.jsonl')).map { |f| File.basename(f, '.jsonl') }.sort
+      def rows(definition)
+        read_jsonl(definition.path('datasets.jsonl'))
       end
 
-      def rows(definition, set)
-        read_jsonl(definition.path('sets', "#{set}.jsonl"))
+      def write_rows(definition, rows)
+        write_jsonl(definition.path('datasets.jsonl'), rows)
       end
 
-      def write_rows(definition, set, rows)
-        write_jsonl(definition.path('sets', "#{set}.jsonl"), rows)
+      def labels(definition)
+        read_jsonl(definition.path('gold.jsonl'))
       end
 
-      def labels(definition, set)
-        read_jsonl(definition.path('labels', "#{set}.jsonl"))
-      end
-
-      # [set, row] for every row of the eval that runs.
+      # Every row of the eval that runs.
       def cases(definition)
-        sets(definition).flat_map do |set|
-          rows(definition, set).select { |row| runs?(row) }.map { |row| [set, row] }
-        end
+        rows(definition).select { |row| runs?(row) }
       end
 
       def runs?(row)

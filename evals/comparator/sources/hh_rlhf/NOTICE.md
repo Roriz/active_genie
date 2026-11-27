@@ -1,7 +1,7 @@
 # hh-rlhf (Anthropic), helpful-base test split
 
-The `hh_*` rows in `evals/comparator/sets/comparator.jsonl` (inputs and gold) and their labeling
-passes in `evals/comparator/labels/comparator.jsonl` are derived from
+The `hh_*` rows in `evals/comparator/datasets.jsonl` (inputs and gold) and their labeling
+passes in `evals/comparator/gold.jsonl` are derived from
 [Anthropic/hh-rlhf](https://huggingface.co/datasets/Anthropic/hh-rlhf)
 ([github.com/anthropics/hh-rlhf](https://github.com/anthropics/hh-rlhf)), under the MIT License:
 

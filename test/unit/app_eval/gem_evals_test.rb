@@ -4,7 +4,7 @@ require_relative '../test_helper'
 require_relative '../../../lib/active_genie/eval'
 
 # The gem's own evals in evals/ are data like any app's: this runs the free check on them, so a broken
-# set, label or eval.rb fails CI. No model is called.
+# dataset, gold or eval.rb fails CI. No model is called.
 class GemEvalsTest < Minitest::Test
   Eval = ActiveGenie::Eval
 

@@ -5,7 +5,7 @@ module ActiveGenie
     # Picks which cases a mode runs: `quick` the dev pool, `full` every case, once per variant.
     module Selection
       # One case run by one variant (nil when the eval has a single `call`).
-      Item = Struct.new(:set, :case, :variant, keyword_init: true) do
+      Item = Struct.new(:case, :variant, keyword_init: true) do
         def id = self.case['id']
         def key = variant ? "#{variant}/#{id}" : id
         def pool = self.case['pool']
@@ -38,7 +38,7 @@ module ActiveGenie
       def call(definition, mode)
         rows = Store.cases(definition)
         items = definition.variant_names.flat_map do |variant|
-          rows.map { |set, row| Item.new(set:, case: row, variant:) }
+          rows.map { |row| Item.new(case: row, variant:) }
         end
         case mode.to_s
         when 'quick' then items.select { |i| i.pool == 'dev' }
