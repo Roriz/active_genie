@@ -13,7 +13,7 @@ module ActiveGenie
 
       def self.load(definition, root, items, replicate: 1)
         rows = items.map do |item|
-          record = item.cached_record(File.join(root, "r#{replicate}", "#{item.id}.json"))
+          record = item.cached_record(File.join(root, "r#{replicate}", item.file))
           gold = item.gold || raise(Error, "#{definition.name}/#{item.id} has no gold")
           Row.new(item:, record:, grade: Graders.grade(definition, gold, record))
         end

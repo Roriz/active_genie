@@ -13,7 +13,7 @@ ActiveGenie::Eval.define '<%= name %>' do
     raise NotImplementedError, "call your feature from evals/<%= name %>/eval.rb (model: #{context.model})"
   end
 
-  # How each row's gold is checked: :fields, :band, :list or :rubric, or your own block:
+  # How each row's gold is checked: :fields, :band, :list, :rubric or :winner, or your own block:
   #   grader { |output, gold, record| output['intent'] == gold['intent'] }
   grader :fields
 

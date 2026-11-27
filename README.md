@@ -74,7 +74,7 @@ Full documentation is at [activegenie.ai](https://activegenie.ai):
 - [Evaluating your features](https://activegenie.ai/guides/evals): golden-set evals for your own LLM
   features, with `rake "active_genie:eval:new[name]"`
 - [Benchmark results](https://activegenie.ai/benchmark/latest)
-- [Eval: how changes to the gem are measured](eval/README.md)
+- [Eval: how changes to the gem are measured](evals/README.md)
 
 ## Contributing
 

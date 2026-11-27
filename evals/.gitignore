@@ -1,0 +1,3 @@
+# Outputs of your working tree: cached per case, never committed. Baselines and judge verdicts are.
+*/runs/
+*.tmp

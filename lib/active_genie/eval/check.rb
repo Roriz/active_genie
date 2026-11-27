@@ -74,7 +74,10 @@ module ActiveGenie
 
       def check_eval(definition)
         name = definition.name
-        @errors << "#{name}: eval.rb has no `call` block" unless definition.subject
+        @errors << "#{name}: eval.rb has no `call` block or variants" unless definition.runnable?
+        if definition.subject && definition.variants.any?
+          @warnings << "#{name}: eval.rb has both a `call` block and variants; only the variants run"
+        end
         unless definition.custom_grader? || Definition::GRADERS.include?(definition.grader)
           @errors << "#{name}: grader must be one of #{Definition::GRADERS.join(', ')} or a block, not #{definition.grader.inspect}"
         end
@@ -115,6 +118,9 @@ module ActiveGenie
         end
         @errors << "#{where}: needs an input" unless row.key?('input')
         return @errors << "#{where}: needs a gold" unless row['gold'].is_a?(Hash)
+
+        twin = twin_problem(definition, row)
+        @errors << "#{where}: #{twin}" if twin
         return if definition.custom_grader?
 
         problem = case definition.grader
@@ -122,8 +128,32 @@ module ActiveGenie
                   when 'band' then band_problem(row['gold'])
                   when 'list' then list_problem(row['gold'])
                   when 'rubric' then rubric_problem(row['gold'])
+                  when 'winner' then winner_problem(row['gold'])
                   end
         @errors << "#{where}: #{problem}" if problem
+      end
+
+      # A twin is a Hash merged over the input that changes it; `max_gap` (a number) only means
+      # something for a twin scored by band or rubric.
+      def twin_problem(definition, row)
+        twin = row['twin']
+        gap = row['gold'].key?('max_gap')
+        if twin.nil?
+          return gap ? 'max_gap needs a twin: the same input with one change that should not matter' : nil
+        end
+        return 'twin must be an object merged over the input, e.g. {"text": "..."}' unless twin.is_a?(Hash) && twin.any?
+        # Merged at run time: on any other input the twin call would fail after the first one was paid.
+        return 'a twin needs an object input to merge over' unless row['input'].is_a?(Hash)
+        return 'twin must change the input' if row['input'].merge(twin) == row['input']
+        return unless gap
+
+        return 'max_gap only applies to band and rubric graders' unless %w[band rubric].include?(definition.grader)
+
+        'max_gap must be a number >= 0' unless row['gold']['max_gap'].is_a?(Numeric) && row['gold']['max_gap'] >= 0
+      end
+
+      def winner_problem(gold)
+        "winner must be one of #{Graders::Winner::SIDES.join(', ')}" unless Graders::Winner::SIDES.include?(gold['winner'])
       end
 
       def check_labels(definition, set, ids)

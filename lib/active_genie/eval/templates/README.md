@@ -25,6 +25,7 @@ evals/
 ```shell
 bin/rails active_genie:eval EVAL=ticket_router              # the dev pool
 bin/rails active_genie:eval EVAL=ticket_router MODE=full    # every case
+bin/rails active_genie:eval EVAL=all                        # every eval, one question, then a summary
 ```
 
 Every run goes through the same four steps:
@@ -39,6 +40,11 @@ Every run goes through the same four steps:
 4. **Progress, then the report.** A progress line shows the cases done, the time elapsed and left,
    the errors and the cost so far. The report is printed and also written to
    `<name>/runs/<run>/report-<mode>.md`, which you can paste into a pull request.
+
+With `EVAL=all` (or `EVAL=a,b`), every eval shows its plan, and a total is added. One question
+covers them all. Then each report prints, and the run ends with a summary table. It has one row per
+eval (and per variant), with its rate, its delta against its baseline and its verdict, and then the
+mean of the rates. Each eval counts the same in that mean, however many cases it has.
 
 ### Reading the report
 
@@ -165,11 +171,55 @@ end
   It returns what the feature returns. An `ActiveGenie::Result` keeps its `data` and `reasoning`;
   anything else is stored as JSON. In a Rails app, each case runs inside the app's executor, like
   a request.
-- **`grader`** is `:fields`, `:band`, `:list` or `:rubric` (below), or a block
+- **`grader`** is `:fields`, `:band`, `:list`, `:rubric` or `:winner` (below), or a block
   `{ |output, gold, record| ... }` that returns true/false, or a Hash with `"pass"` and any details
   to show in the report.
 - **`watch`** lists the files the feature depends on, as globs from the app root. Keep it narrow:
-  a change to any watched file starts a fresh, paid run.
+  a change to any watched file starts a fresh, paid run. Without it, the eval uses `watch:` from
+  `config.yml` (one list for every eval), else the app's `app/`, `lib/` and `config/`.
+
+### Variants: two versions, head to head
+
+To compare two prompts, two models or two designs, run them as **variants** of one eval instead
+of two evals. Each variant runs every case, so the comparison is paired:
+
+```ruby
+ActiveGenie::Eval.define 'ticket_router' do
+  variant(:v1) { |input| TicketRouter.new(prompt: :v1).call(input['text']) }
+  variant(:v2) { |input| TicketRouter.new(prompt: :v2).call(input['text']) }
+  grader :fields
+end
+```
+
+The report shows each variant's rate, then a line per pair:
+`v1 vs v2 on 30 shared cases: +1 / -6, McNemar p=0.125`. That counts how often each variant passes
+where the other fails. Each variant also gets its own matrices, and is compared with its own
+baseline. `context.variant` tells the block which variant it's running.
+
+### Twin rows: an answer that must not move
+
+A twin row is the same input with one change that should not matter: padding, a claimed
+credential, the author's name, a reordered list. The eval runs the input and its twin, and the row
+passes only when both outputs pass:
+
+```json
+{"id": "refund_with_title", "pool": "test", "tags": {"bias": "authority"},
+ "input": {"text": "I was charged twice for order 1234."},
+ "twin": {"text": "As a senior engineer, I can tell you I was charged twice for order 1234."},
+ "gold": {"fields": {"intent": {"present": true, "check": "eq", "value": "refund"}}}}
+```
+
+`twin` is merged over `input`, so it only names what changes. For the `band` and `rubric` graders,
+`max_gap` in the gold also limits how far apart the two scores may be. The report's "Twin pairs"
+table shows the mean gap (twin minus input) for each `tags.bias`. Both calls of a pair get the same
+`context.shared` Hash, for whatever they must share, so the gap comes from the change alone:
+
+```ruby
+call do |input, context|
+  juries = context.shared[:juries] ||= pick_juries(input) # picked once per pair
+  MyScorer.call(input['text'], juries:)
+end
+```
 
 ## Rows
 
@@ -250,6 +300,14 @@ are:
 - `no_item`: no item matches.
 - `min_items`: at least `n` items.
 - `min_groups`: at least `min` of the groups are filled, each by a different item.
+
+### `winner`: a pick between two
+
+`{"winner": "a"}` with `"a"`, `"b"` or `"either"`. The output is the side picked (`"a"`, `"b"`,
+`"either"`, or `nil` for no pick). Position bias is common in pairwise judges, so run both orders
+and return `{"ab": side, "ba": side}`, with each side mapped back to the row's own a/b. Then both
+orders must give the gold winner, `either` passes on any two picks, and the report shows how often
+the two orders agreed.
 
 ### `rubric`: free text
 

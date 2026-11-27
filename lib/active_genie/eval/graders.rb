@@ -8,14 +8,20 @@ module ActiveGenie
     #   band    {"band": [60, 100]}                        a number (or a Hash's "score") in the band
     #   list    {"checks": [{"type": "top_k_any", "k": 2, "any_of": ["apple"]}, ...]}
     #   rubric  {"rubric": "Polite, answers the question asked, ...", "band": [70, 100]}
+    #   winner  {"winner": "a"}                              "a", "b" or "either"; both orders must agree
     #
-    # or the eval's own block.
+    # or the eval's own block. A twin row (see Selection::Item#twin) passes when both its outputs pass;
+    # a band or rubric gold may also limit how far apart the two scores are (`max_gap`). A gold with
+    # `require_reasoning: true` fails an output that came back without its reasoning.
     module Graders
       Grade = Struct.new(:pass, :detail, keyword_init: true) do
-        # Waiting for a judge verdict that isn't cached yet (a rubric row, or a `judge: true` field).
+        # Waiting for a judge verdict that isn't cached yet (a rubric row, or a `judge: true` field), on
+        # either output of a twin row.
         def unjudged?
           fields = detail['fields']
-          detail['outcome'] == 'unjudged' || (fields.is_a?(Hash) && fields.value?('unjudged'))
+          twin = detail['twin']
+          detail['outcome'] == 'unjudged' || (fields.is_a?(Hash) && fields.value?('unjudged')) ||
+            (twin.is_a?(Hash) && self.class.new(pass: false, detail: twin).unjudged?)
         end
       end
 
@@ -25,7 +31,14 @@ module ActiveGenie
         return Grade.new(pass: false, detail: { 'outcome' => 'missing' }) if record.nil?
         return Grade.new(pass: false, detail: { 'outcome' => 'error', 'error' => record['error'] }) if record['error']
 
-        output = record.dig('output', 'data')
+        grade = record.key?('twin') ? twin(definition, gold, record) : one(definition, gold, record, 'output')
+        return grade unless gold['require_reasoning'] && missing_reasoning?(record)
+
+        Grade.new(pass: false, detail: grade.detail.merge('reasoning' => 'missing'))
+      end
+
+      def one(definition, gold, record, key)
+        output = record.dig(key, 'data')
         return custom(definition, output, gold, record) if definition.custom_grader?
 
         case definition.grader
@@ -33,8 +46,29 @@ module ActiveGenie
         when 'band' then Band.grade(gold, output)
         when 'list' then List.grade(gold, output)
         when 'rubric' then Rubric.grade(gold, output)
+        when 'winner' then Winner.grade(gold, output)
         else raise Error, "#{definition.name}: unknown grader #{definition.grader.inspect}"
         end
+      end
+
+      # Both outputs must pass. For scores, `gap` is twin minus text, so its sign shows which way the
+      # change that should not matter moved the score; `max_gap` caps its size.
+      def twin(definition, gold, record)
+        first = one(definition, gold, record, 'output')
+        second = one(definition, gold, record, 'twin')
+        detail = first.detail.merge('twin' => second.detail)
+        pass = first.pass && second.pass
+        if first.detail['score'].is_a?(Numeric) || second.detail['score'].is_a?(Numeric)
+          gap = Band.gap(first.detail['score'], second.detail['score'])
+          detail.merge!('twin_score' => second.detail['score'], 'gap' => gap)
+          pass &&= !gap.nil? && gap.abs <= gold['max_gap'] if gold.key?('max_gap')
+        end
+        Grade.new(pass:, detail:)
+      end
+
+      def missing_reasoning?(record)
+        outputs = [record['output'], record['twin']].compact
+        outputs.any? { |output| Matchers.absent?(output['reasoning']) }
       end
 
       # A custom grader returns true/false, or a Hash with "pass" (or :pass) and any details to show.
@@ -103,6 +137,11 @@ module ActiveGenie
           lo, hi = gold.fetch('band')
           !score.nil? && score.between?(lo, hi)
         end
+
+        # Rounded as the report shows it, so a gap shown as 10.0 passes a max_gap of 10.
+        def gap(score, twin)
+          score && twin && (twin - score).round(1)
+        end
       end
 
       # A free-text answer, scored 0-100 by the judge against the row's rubric.
@@ -117,6 +156,25 @@ module ActiveGenie
           Grade.new(pass: Band.within?(gold, score),
                     detail: { 'score' => score, 'band' => gold.fetch('band'),
                               'why' => verdict.reason })
+        end
+      end
+
+      # A pick between two sides. The output is the side ("a", "b" or "either", or nil for no pick), or a
+      # Hash of the side picked in each order, {"ab": ..., "ba": ...}, already mapped back to the row's own
+      # a/b. With both orders, both must give the gold winner, and `consistent` says whether they agreed.
+      module Winner
+        SIDES = %w[a b either].freeze
+
+        module_function
+
+        def grade(gold, output)
+          winner = gold.fetch('winner')
+          picks = output.is_a?(Hash) ? output.values_at('ab', 'ba') : [output]
+          picks = picks.map { |p| SIDES.include?(p) ? p : nil }
+          pass = winner == 'either' ? picks.none?(&:nil?) : picks.all?(winner)
+          detail = output.is_a?(Hash) ? { 'ab' => picks[0], 'ba' => picks[1] } : { 'winner' => picks[0] }
+          detail['consistent'] = !picks[0].nil? && picks.uniq.size == 1 if picks.size == 2
+          Grade.new(pass:, detail:)
         end
       end
 

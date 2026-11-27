@@ -35,7 +35,7 @@ Metrics/MethodLength:
   AllowedMethods: ['call']
   Exclude:
     - 'test/**/*'
-    - 'eval/**/*'
+    - 'evals/**/*'
     - 'lib/active_genie/eval/**/*'
     - 'lib/tasks/**/*'
 
@@ -44,7 +44,7 @@ Metrics/ClassLength:
   CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
   Exclude:
     - 'test/**/*'
-    - 'eval/**/*'
+    - 'evals/**/*'
     - 'lib/active_genie/eval/**/*'
 
 Metrics/ModuleLength:
@@ -52,8 +52,9 @@ Metrics/ModuleLength:
   CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
   Exclude:
     - 'test/**/*'
-    - 'eval/**/*'
+    - 'evals/**/*'
     - 'lib/active_genie/eval/**/*'
+    - 'lib/tasks/eval.rake'
 
 Layout/LineLength:
   AllowedPatterns: ['\s#']
@@ -63,7 +64,7 @@ Layout/LineLength:
 Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
-    - 'eval/**/*'
+    - 'evals/**/*'
     - 'lib/active_genie/eval/**/*'
     - 'lib/tasks/eval.rake'
 
@@ -73,20 +74,20 @@ Minitest/MultipleAssertions:
 Metrics/CyclomaticComplexity:
   Exclude:
     - 'test/**/*'
-    - 'eval/**/*'
+    - 'evals/**/*'
     - 'lib/active_genie/eval/**/*'
     - 'lib/tasks/eval.rake'
 
 Metrics/PerceivedComplexity:
   Exclude:
     - 'test/**/*'
-    - 'eval/**/*'
+    - 'evals/**/*'
     - 'lib/active_genie/eval/**/*'
     - 'lib/tasks/eval.rake'
 
 Metrics/BlockLength:
   Exclude:
-    - 'eval/tasks/**/*'
+    - 'tasks/**/*'
     - 'lib/tasks/**/*'
     - '*.gemspec'
 
@@ -98,12 +99,11 @@ Minitest/AssertTruthy:
 # Statistics code uses the textbook names (n, k, p, z).
 Naming/MethodParameterName:
   Exclude:
-    - 'eval/lib/genie_eval/stats.rb'
     - 'lib/active_genie/eval/stats.rb'
 
 # Report tables use positional width specifiers (%-28s), clearer than named tokens there.
 Style/FormatStringToken:
   Exclude:
-    - 'eval/**/*'
+    - 'evals/**/*'
     - 'lib/active_genie/eval/**/*'
     - 'lib/tasks/eval.rake'

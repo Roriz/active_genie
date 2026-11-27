@@ -1,0 +1,24 @@
+# The gem's own evals. The release models live in .github/workflows/benchmark.yml, which runs each of
+# them with PROVIDER=... MODEL=....
+dev:
+  provider: openai
+  model: gpt-6.1-terra
+
+# Grades the `fields` marked `judge: true` when their check fails. Pinned: changing it is a new baseline.
+judge:
+  provider: anthropic
+  model: claude-sonnet-5-5
+
+usd_per_million_tokens:
+  gpt-6.1-terra: { input: 1.0, output: 5.0 }
+
+default_tokens_per_call: { input: 3000, output: 1000 }
+
+concurrency: 4
+
+# What every eval here depends on: the modules it measures and the code they share. The eval engine
+# (lib/active_genie/eval) and the rake tasks are left out, so changing them doesn't start fresh, paid runs.
+watch:
+  - lib/active_genie.rb
+  - lib/active_genie/{configuration,logger}.rb
+  - lib/active_genie/{comparator,configs,entities,errors,extractor,lister,providers,ranker,scorer,utils}{.rb,/**/*}

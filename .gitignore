@@ -10,5 +10,5 @@ cache/
 
 docs/.vitepress/dist
 
-# eval outputs (baselines in eval/baselines are committed)
+# outputs of the old eval/ layout, from before evals/ (safe to delete); evals/.gitignore covers the new runs
 eval/runs/

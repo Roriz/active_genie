@@ -75,6 +75,54 @@ module ActiveGenie
         Report.new.heading('Score bands').table(['gold band', 'below', 'inside', 'above', 'no score'], table)
       end
 
+      # Gold winner x how the pick went: right in every order it ran, right in one of the two, or never.
+      # With both orders, it also says how often the two orders agreed (position bias shows up there).
+      # Only rows with a winner gold: a custom grader's details may use these keys for anything.
+      def winner(rows)
+        graded = rows.select do |r|
+          Graders::Winner::SIDES.include?(r.item.gold['winner']) &&
+            (r.grade.detail.key?('ab') || r.grade.detail.key?('winner'))
+        end
+        return Report.new if graded.empty?
+
+        table = graded.group_by { |r| r.item.gold['winner'] }.sort.map do |winner, group|
+          outcome = group.map { |r| winner_outcome(winner, r.grade) }.tally
+          [winner, *%w[right one_order wrong].map { |k| dot(outcome[k].to_i) }]
+        end
+        report = Report.new.heading('Winner').table(['gold winner', 'right', 'one order only', 'wrong'], table)
+        both = graded.select { |r| r.grade.detail.key?('consistent') }
+        return report if both.empty?
+
+        agreed = both.count { |r| r.grade.detail['consistent'] }
+        report.line("order consistency (same pick in both orders): #{(100.0 * agreed / both.size).round(1)}% " \
+                    "(#{agreed}/#{both.size})")
+      end
+
+      # Twin rows: how far the change that should not matter moved the score (twin minus text), per
+      # `tags.bias` when the rows name one. A positive mean gap means the change raised the score.
+      def twins(rows)
+        paired = rows.select { |r| r.grade.detail['gap'].is_a?(Numeric) }
+        return Report.new if paired.empty?
+
+        # As text, so a tag that is a number or a boolean still sorts with the others.
+        bias_of = ->(r) { r.item.case['tags'].is_a?(Hash) ? r.item.case['tags']['bias'] : nil }
+        table = paired.group_by { |r| bias_of.call(r)&.to_s || 'all' }.sort.map do |bias, group|
+          gaps = group.map { |r| r.grade.detail['gap'] }
+          [bias, group.size, format('%+.1f', Stats.mean(gaps)), format('%.1f', Stats.mean(gaps.map(&:abs))),
+           group.count(&:pass?)]
+        end
+        Report.new.heading('Twin pairs').table(['bias', 'pairs', 'mean gap', 'mean |gap|', 'pass'], table)
+      end
+
+      def winner_outcome(winner, grade)
+        picks = grade.detail.key?('ab') ? grade.detail.values_at('ab', 'ba') : [grade.detail['winner']]
+        right = picks.count { |p| winner == 'either' ? !p.nil? : p == winner }
+        return 'right' if right == picks.size
+        return 'one_order' if right.positive?
+
+        'wrong'
+      end
+
       def field_matrix(name, cells)
         golds = cells.map(&:first).tally.sort_by { |label, n| [-n, label] }.map(&:first)
         predicted = cells.map { |c| c[1] }.tally.sort_by { |label, n| [-n, label] }.map(&:first)
