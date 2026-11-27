@@ -40,8 +40,15 @@ comparator count once per variant), so an eval with many cases doesn't drown out
 - `config.yml` pins the dev model (`gpt-6.1-terra`) and the judge (`claude-sonnet-5-5`).
 - Its `watch:` covers the modules the evals measure, not the eval engine. Changing the engine doesn't
   start fresh, paid runs.
-- The four release models run in the `Eval` workflow (`.github/workflows/benchmark.yml`, triggered by
-  hand), with `PROVIDER=` and `MODEL=`.
+- Evals run locally; no CI workflow calls a provider. The four release models run one at a time, with
+  `PROVIDER=` and `MODEL=` and that provider's API key set. Add `REPEAT=3` to measure the noise floor:
+
+  ```shell
+  PROVIDER=openai    MODEL=gpt-6.1-luna          bundle exec rake active_genie:eval EVAL=all MODE=full
+  PROVIDER=anthropic MODEL=claude-haiku-4-5      bundle exec rake active_genie:eval EVAL=all MODE=full
+  PROVIDER=google    MODEL=gemini-3.5-flash-lite bundle exec rake active_genie:eval EVAL=all MODE=full
+  PROVIDER=deepseek  MODEL=deepseek-v4-flash     bundle exec rake active_genie:eval EVAL=all MODE=full
+  ```
 - The 80 cases migrated from `test/e2e` are dev only, because the prompts were written alongside them.
 
 ## Where the cases come from

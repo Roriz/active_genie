@@ -1,5 +1,5 @@
-# The gem's own evals. The release models live in .github/workflows/benchmark.yml, which runs each of
-# them with PROVIDER=... MODEL=....
+# The gem's own evals. They run locally. The release models, and the PROVIDER=... MODEL=... command
+# for each, are listed in evals/README.md.
 dev:
   provider: openai
   model: gpt-6.1-terra
