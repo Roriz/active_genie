@@ -19,6 +19,10 @@ module ActiveGenie
           deepseek: DeepseekProvider
         }.freeze
 
+        # What a model writes when a schema forces a value it does not have: "", "null", ":null",
+        # "<unknown>", "'None'". A phrase such as "None of the above" is a value.
+        PLACEHOLDER = /\A\W*(?:null|none|undefined|unknown)\W*\z/i
+
         def function_calling(messages, function, config: {}, logprobs: false, top_logprobs: 5)
           model, provider_name = model_and_provider_by(config)
 
@@ -97,11 +101,14 @@ module ActiveGenie
           return response unless target_hash.is_a?(Hash)
 
           target_hash.each do |key, value|
-            target_hash[key] = nil if ['null', 'none', 'undefined', '', 'unknown',
-                                       '<unknown>'].include?(value.to_s.strip.downcase)
+            target_hash[key] = nil if placeholder?(value)
           end
 
           response
+        end
+
+        def placeholder?(value)
+          value.is_a?(String) && (value.strip.empty? || value.match?(PLACEHOLDER))
         end
       end
     end

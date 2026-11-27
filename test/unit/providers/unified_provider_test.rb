@@ -253,6 +253,21 @@ module ActiveGenie
           assert_equal 'valid_value', result[:field_valid]
         end
       end
+
+      def test_response_normalization_of_placeholders_wrapped_in_punctuation
+        config = Configuration.new({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
+        mock_provider_instance = Minitest::Mock.new
+        mock_response = { 'colon' => ':null', 'quoted' => '"None"', 'parens' => '(unknown)', 'dot' => 'null.',
+                          'spaced' => '  ', 'phrase' => 'None of the above', 'dash' => '-' }
+        mock_provider_instance.expect(:function_calling, mock_response, [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        result = ActiveGenie::Providers::OpenaiProvider.stub(:new, mock_provider_instance) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_equal({ 'colon' => nil, 'quoted' => nil, 'parens' => nil, 'dot' => nil, 'spaced' => nil,
+                       'phrase' => 'None of the above', 'dash' => '-' }, result)
+      end
     end
   end
 end
