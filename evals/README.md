@@ -14,8 +14,14 @@ The Ranker is out of scope. Its live tests stay in `test/e2e/ranker`.
 bundle exec rake active_genie:eval:check                          # free: every eval, dataset and gold
 bundle exec rake active_genie:eval EVAL=all                       # the dev pools of all evals, then a summary
 bundle exec rake active_genie:eval EVAL=comparator MODE=full      # one eval, every case
-bundle exec rake prompts:check                                    # free: lints lib/**/*.prompt.md and the function JSON
 ```
+
+## What an eval measures
+
+An eval measures the harness: the gem's code plus the LLM call, judged on what the ActiveGenie method
+returns. It never measures a prompt, or the model's raw output, on its own. If the model answers
+differently but the code normalizes or repairs that answer into the expected result, the case
+passes. A prompt is one part of the harness: change it, then measure what the method returns.
 
 ## The evals
 

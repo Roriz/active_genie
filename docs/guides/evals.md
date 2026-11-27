@@ -13,6 +13,13 @@ this to work.
 The engine comes from the gem, so `bundle update` brings its fixes. The data is yours: the cases,
 labels and baselines live in `evals/` and are versioned with your app.
 
+## What an eval measures
+
+An eval measures the harness: your code plus the LLM call, judged on what your code returns. It never
+grades a prompt, or the raw model text, on its own. If the model answers differently but your code
+normalizes or repairs that answer into the expected result, the case passes. A prompt is one part of
+the harness: change it, then measure what the harness returns.
+
 ## Setup
 
 In a Rails app, load the tasks in your `Rakefile` (see [Installation](/introduction/installation)):

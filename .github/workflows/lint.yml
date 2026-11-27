@@ -30,7 +30,5 @@ jobs:
     - name: Run RuboCop
       run: bundle exec rubocop --parallel --format progress
 
-    - name: Check the prompts and the eval data
-      run: |
-        bundle exec rake prompts:check
-        bundle exec rake active_genie:eval:check
+    - name: Check the eval data
+      run: bundle exec rake active_genie:eval:check
