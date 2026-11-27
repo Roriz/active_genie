@@ -110,24 +110,25 @@ module ActiveGenie
       end
 
       def elo_result
-        result = ActiveGenie::Result.new(
-          data: @players.sorted.map(&:content),
-          metadata: {
-            elo_id:,
-            players: @players,
-            players_in_round: players_in.map(&:id),
-            debates_count: matches.size,
-            total_tokens: @total_tokens,
-            previous_highest_elo: @previous_highest_elo,
-            highest_elo:,
-            highest_elo_diff: highest_elo - @previous_highest_elo,
-            players_elo_diff:
-          }
-        )
+        result = ActiveGenie::Result.new(data: @players.sorted.map(&:content), metadata: elo_metadata)
 
         ActiveGenie.logger.call({ elo_id:, code: :elo_report, **result.metadata }, config:)
 
         result
+      end
+
+      def elo_metadata
+        {
+          elo_id:,
+          players: @players,
+          players_in_round: players_in.map(&:id),
+          debates_count: matches.size,
+          total_tokens: @total_tokens,
+          previous_highest_elo: @previous_highest_elo,
+          highest_elo:,
+          highest_elo_diff: highest_elo - @previous_highest_elo,
+          players_elo_diff:
+        }
       end
 
       def players_in
