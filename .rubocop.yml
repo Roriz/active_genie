@@ -87,7 +87,6 @@ Metrics/PerceivedComplexity:
 
 Metrics/BlockLength:
   Exclude:
-    - 'tasks/**/*'
     - 'lib/tasks/**/*'
     - '*.gemspec'
 

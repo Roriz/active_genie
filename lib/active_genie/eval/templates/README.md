@@ -20,6 +20,14 @@ evals/
     runs/                       # outputs of your working tree (gitignored)
 ```
 
+## What an eval measures
+
+An eval measures the harness: your code plus the LLM call, judged on what your code returns. The
+`call` block runs the app's own code, and the grader reads what that code returns, not the raw model
+text. If the model answers differently but your code normalizes or repairs that answer into the
+expected result, the case passes. A prompt is one part of the harness: change it, then measure what
+the harness returns.
+
 ## Running an eval
 
 ```shell

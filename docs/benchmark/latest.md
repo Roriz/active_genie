@@ -185,7 +185,7 @@ What each module has to get right:
 These results came from the `test/e2e` suite, which has since been replaced by the golden-set evals in [`evals/`](https://github.com/roriz/active_genie/tree/main/evals). The same 80 Comparator, Extractor, Lister and Scorer cases now live there as data, with gold answers, baselines and paired statistics. Set the API key for the provider you want to test, then:
 
 ```shell
-bundle exec rake active_genie:eval:check prompts:check    # free: data integrity and prompt lint
+bundle exec rake active_genie:eval:check    # free: data integrity
 PROVIDER=anthropic MODEL=claude-haiku-4-5 bundle exec rake active_genie:eval EVAL=all         # shows the cost, asks
 PROVIDER=anthropic MODEL=claude-haiku-4-5 YES=1 bundle exec rake active_genie:eval EVAL=all   # no question
 ```
