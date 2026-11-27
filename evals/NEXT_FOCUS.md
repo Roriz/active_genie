@@ -165,14 +165,14 @@ and the report compares them head to head on the same cases.
 Need a paired run (nothing changed yet):
 
 - **Nullable non-boolean fields in `Extractor::Explanation` and litote.** Give `Explanation` the
-  `nullable` fields of `Extractor::Data`. Run `EVAL=extractor_with_explanation,extractor_with_litote`
-  (37 + 36 cases). Keep it if inventions drop on the 13 non-boolean fields whose gold is absent
-  (all in `extractor_with_explanation`; booleans stay as they are) and omissions don't rise. The field outcomes matrix shows both.
+  `nullable` fields of `Extractor::Data`. Run `EVAL=extractor,extractor_with_litote`
+  (74 cases × 2 variants + 36 cases). Keep it if inventions drop on the 13 non-boolean fields whose gold is absent
+  (all in the `draft_explanation_*` rows of `extractor`; booleans stay as they are) and omissions don't rise. The field outcomes matrix shows both.
 - **"Null only if the text gives no basis to answer".** The wording is in the callers' field
   descriptions (here, the eval sets), not in `lib/`. The current sets can't show the problem:
   CondaQA is gone, booleans stay non-nullable since #88, and no "Null if" field is a yes/no question
-  that needs inference. First draft about 15 such cases into `extractor_data` (yes/no as a string
-  enum, so null is possible), then run both wordings as variants of `extractor_data` (about 52 cases).
+  that needs inference. First draft about 15 such cases into `extractor` (yes/no as a string
+  enum, so null is possible), then run both wordings as variants of `extractor` (about 89 cases).
 - **The comparator picks the shorter reply in three of four failures.** Four failures can't show a
   bias. After the harder pairs below, run `EVAL=comparator` (59 cases, two variants, both orders) and
   compare the failure rate of `picked_shorter` (20 test cases) with `picked_longer` (19).
@@ -188,7 +188,7 @@ Need a paired run (nothing changed yet):
 
 Need data or a decision:
 
-- **Five queued scorer cases.** Recommendation, from the two blind passes in `labels/`:
+- **Five queued scorer cases.** Recommendation, from the two blind passes in `gold.jsonl`:
   - `draft_bias_authority_03`: exclude. Pass B scores the twin 52 against 85 because the citations
     are made up, so the pair doesn't isolate authority. Redraft it with correct attributions.
   - `draft_bias_verbosity_02`: both passes give a gap of 0, but score 78 and 55 against [35, 75].

@@ -101,10 +101,10 @@ class AppEvalTest < Minitest::Test
       { 'fields' => { 'intent' => { 'present' => true, 'check' => 'eq', 'value' => intent },
                       'order_id' => { 'present' => false } } }
     end
-    write_set('router', [
-                { 'id' => 'refund_me', 'pool' => 'dev', 'input' => { 'text' => 'refund me' }, 'gold' => gold.call('refund') },
-                { 'id' => 'where_is_it', 'pool' => 'dev', 'input' => { 'text' => 'where is it' }, 'gold' => gold.call('refund') }
-              ])
+    write_dataset('router', [
+                    { 'id' => 'refund_me', 'pool' => 'dev', 'input' => { 'text' => 'refund me' }, 'gold' => gold.call('refund') },
+                    { 'id' => 'where_is_it', 'pool' => 'dev', 'input' => { 'text' => 'where is it' }, 'gold' => gold.call('refund') }
+                  ])
     items = Eval::Selection.call(router, 'quick')
     run_cases(items)
 
