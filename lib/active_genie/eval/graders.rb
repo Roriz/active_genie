@@ -180,7 +180,8 @@ module ActiveGenie
 
       module List
         CHECKS = { 'top_k_any' => %w[k any_of], 'bottom_k_none' => %w[k any_of], 'min_groups' => %w[min groups],
-                   'any_item' => %w[any_of], 'no_item' => %w[any_of], 'min_items' => %w[n] }.freeze
+                   'any_item' => %w[any_of], 'no_item' => %w[any_of], 'min_items' => %w[n],
+                   'max_items' => %w[n] }.freeze
 
         module_function
 
@@ -220,6 +221,7 @@ module ActiveGenie
           when 'any_item' then items.any?(&hit)
           when 'no_item' then items.none?(&hit)
           when 'min_items' then items.size >= check.fetch('n')
+          when 'max_items' then items.size <= check.fetch('n')
           else raise Error, "unknown list check #{check['type'].inspect}"
           end
         end

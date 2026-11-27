@@ -70,6 +70,23 @@ class AppEvalGradersTest < Minitest::Test
     refute grade('list', { 'checks' => [{ 'type' => 'bottom_k_none', 'k' => 1, 'any_of' => ['price'] }] }, output(items)).pass
   end
 
+  def test_list_max_items_caps_the_count_and_pairs_with_min_items_for_an_exact_count
+    at_most = { 'checks' => [{ 'type' => 'max_items', 'n' => 3 }] }
+
+    assert Graders::List.pass?(at_most, %w[a b]), 'under the limit'
+    assert Graders::List.pass?(at_most, %w[a b c]), 'at the limit'
+    refute Graders::List.pass?(at_most, %w[a b c d]), 'over the limit'
+
+    exactly = { 'checks' => [{ 'type' => 'min_items', 'n' => 3 }, { 'type' => 'max_items', 'n' => 3 }] }
+    result = grade('list', exactly, output(%w[a b c d]))
+
+    refute result.pass
+    assert_equal({ 'min_items' => true, 'max_items' => false }, result.detail['checks'])
+    assert_equal 4, result.detail['items']
+    assert grade('list', exactly, output(%w[a b c])).pass
+    refute grade('list', exactly, output(%w[a b])).pass
+  end
+
   def test_list_terms_match_where_a_word_starts
     rain = { 'checks' => [{ 'type' => 'any_item', 'any_of' => ['rain'] }] }
 
