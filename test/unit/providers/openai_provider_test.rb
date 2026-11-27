@@ -103,6 +103,53 @@ module ActiveGenie
         end
       end
 
+      def test_request_without_logprobs_does_not_ask_for_them
+        stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop')
+
+        call_openai
+
+        assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
+          body = JSON.parse(req.body)
+
+          refute body.key?('logprobs')
+          refute body.key?('top_logprobs')
+          assert_equal 'gpt-5.6-luna', body['model']
+          assert_equal({ 'type' => 'function', 'function' => { 'name' => 'score_function' } }, body['tool_choice'])
+        end
+      end
+
+      def test_logprobs_requested_but_not_returned_come_back_nil
+        stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop')
+
+        result = @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, logprobs: true)
+
+        assert_equal({ data: { 'score' => 8 }, logprobs: nil }, result)
+      end
+
+      def test_logprobs_are_reshaped_into_chosen_and_top_candidates
+        stub_openai(
+          message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop',
+          logprobs: { content: [{ token: '8', logprob: -0.2, top_logprobs: [{ token: '8', logprob: -0.2 }] },
+                                { token: '}' }] }
+        )
+
+        result = @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, logprobs: true)
+
+        assert_equal(
+          {
+            'chosenCandidates' => [{ 'token' => '8', 'logProbability' => -0.2 }, { 'token' => '}', 'logProbability' => 0.0 }],
+            'topCandidates' => [{ 'candidates' => [{ 'token' => '8', 'logProbability' => -0.2 }] }, { 'candidates' => [] }]
+          },
+          result[:logprobs]
+        )
+      end
+
+      def test_empty_logprobs_content_comes_back_nil
+        stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop', logprobs: { content: [] })
+
+        assert_nil @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, logprobs: true)[:logprobs]
+      end
+
       # Critical Path: answers without a usable tool call must raise, not
       # return {} as if the model had extracted nothing.
       def test_answer_without_a_tool_call_raises_invalid_response
