@@ -22,9 +22,7 @@ module ActiveGenie
         def function_calling(messages, function, config: {}, logprobs: false, top_logprobs: 5)
           model, provider_name = model_and_provider_by(config)
 
-          provider = PROVIDER_NAME_TO_PROVIDER[provider_name&.to_sym]
-
-          raise ActiveGenie::WithoutAvailableProviderError if provider.nil?
+          provider = provider_class(provider_name)
 
           config.llm.model = model
 
@@ -52,6 +50,10 @@ module ActiveGenie
           [model, provider_name]
         end
         # rubocop:enable Metrics/AbcSize, Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
+
+        def provider_class(provider_name)
+          PROVIDER_NAME_TO_PROVIDER[provider_name&.to_sym] || raise(ActiveGenie::WithoutAvailableProviderError)
+        end
 
         def explicit_choice(config)
           model = config.llm.model
