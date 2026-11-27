@@ -29,7 +29,7 @@ passes. A prompt is one part of the harness: change it, then measure what the me
 |---|---|---|---|
 | `extractor` | `Extractor.data` and `with_explanation`, as two variants | `fields` | 14 + 60 |
 | `extractor_with_litote` | `Extractor.with_litote` | `fields` | 6 + 30 |
-| `comparator` | `Comparator.by_debate` and `by_fight`, as two variants | `winner`, both orders | 20 + 39 |
+| `comparator` | `Comparator.by_debate` and `by_fight`, as two variants | `winner`, both orders | 20 + 50 |
 | `lister_with_feud` | `Lister.with_feud` | `list` | 10 + 30 |
 | `lister_with_juries` | `Lister.with_juries` | `list` | 10 |
 | `scorer_by_jury_bench` | `Scorer.by_jury_bench` | `band`, bias pairs as twin rows | 20 + 25 |
@@ -72,7 +72,8 @@ MIT-only rule. Both are allowed again (see
   one. Those picks are noisy, so `comparator/sources/hh_rlhf/build.rb` adds them as drafts with
   `"on_disagreement": "drop"`. A case is kept only when both blind passes pick the same reply as the
   crowdworker. Pass B sees the replies in the opposite order to pass A, so a labeler's position bias
-  can't keep a case. Half the drafts have the picked reply as the longer one and half as the shorter
+  can't keep a case. Where one pass agreed and the other called it a tie, the pair was adjudicated
+  by hand (`decided` or `excluded`, with the reason in `why`). Half the drafts have the picked reply as the longer one and half as the shorter
   one (`tags.length`), so preferring length doesn't pay. Both variants run every case, so `by_debate`
   and `by_fight` are compared head to head on the same cases.
 - **scorer_by_jury_bench**: no source with multi-rater scores is used yet (the openly licensed
