@@ -39,7 +39,7 @@ module ActiveGenie
                        provider_instance.function_calling(messages, function)
                      end
 
-          normalize_response(response)
+          normalize_response(response, function)
         end
 
         private
@@ -94,17 +94,23 @@ module ActiveGenie
           [model, provider_name]
         end
 
-        def normalize_response(response)
-          return response if response.nil?
-
+        # A placeholder the field's own enum lists ("none", "unknown") is an answer, so it stays.
+        def normalize_response(response, function)
           target_hash = response.is_a?(Hash) && response.key?(:data) ? response[:data] : response
           return response unless target_hash.is_a?(Hash)
 
+          properties = function.dig(:parameters, :properties)
           target_hash.each do |key, value|
-            target_hash[key] = nil if placeholder?(value)
+            target_hash[key] = nil if placeholder?(value) && !enum_of(properties, key).include?(value)
           end
 
           response
+        end
+
+        # Function schemas come with symbol or string keys (Extractor::Data's fields have string ones).
+        def enum_of(properties, key)
+          field = properties && (properties[key.to_sym] || properties[key.to_s])
+          field.is_a?(Hash) ? Array(field[:enum] || field['enum']) : []
         end
 
         def placeholder?(value)
