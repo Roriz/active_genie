@@ -150,8 +150,9 @@ one is a hypothesis to test with a paired run, not a decided change.
   methods on how well they emulate a crowd, and its gold is partly circular (models guessing what
   a crowd says). The real measure is a Family Feud score against counted answers: a survey of our
   own (about 30 questions, 30 to 100 people), whose counts would extend the lister gold.
-- **`lister.with_juries` has no test pool of its own.** It is judged through the scorer, whose
-  test cases let it pick the juries.
+- **`lister.with_juries` has no test pool of its own.** Resolved: 15 drafted test cases check the
+  experts, the wrong experts and the count of three (the new `max_items` check). The quality of
+  the juries is still judged through the scorer, whose test cases let it pick them.
 
 ### Where the open items stand (2026-11-26)
 
@@ -206,10 +207,9 @@ Need data or a decision:
 - **"Either" cases.** There are 6, all dev. Draft about 10 test ties if consistency on ties matters.
 - **Lister at the ceiling.** Whether to run our own survey (cost, and who answers) is the owner's
   call.
-- **`lister_with_juries` test pool.** Recommendation: a small test pool that checks what the prompt
-  now asks for (job titles, not names; no overlapping roles) with `no_item` and `min_items`, and keep
-  judging quality through the scorer. `list` has no "at most n items" check, so "exactly three"
-  would need an engine change.
+- **`lister_with_juries` test pool.** Done: 15 test cases with `any_item`, `no_item`, and
+  `min_items` + `max_items` of 3 for "exactly three" (the `max_items` check is new). Both blind
+  passes met every gold, so all 15 are confirmed. Quality is still judged through the scorer.
 - **Verdict by case or by field.** Recommendation: keep the verdict on cases, because one wrong
   field is a wrong result for the caller, and read the `fields` column next to it.
 
