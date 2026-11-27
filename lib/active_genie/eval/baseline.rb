@@ -26,7 +26,7 @@ module ActiveGenie
           next if force
 
           unjudged = results.rows.count { |row| row.grade.unjudged? }
-          raise Error, "replicate r#{r} has #{unjudged} case(s) waiting for the judge; run with YES=1 (FORCE=1 overrides)" if unjudged.positive?
+          raise Error, "replicate r#{r} has #{unjudged} case(s) waiting for the judge; run the eval again to judge them (FORCE=1 overrides)" if unjudged.positive?
         end
         return if force || !system.git['dirty']
 

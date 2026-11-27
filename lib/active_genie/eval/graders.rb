@@ -14,7 +14,8 @@ module ActiveGenie
       Grade = Struct.new(:pass, :detail, keyword_init: true) do
         # Waiting for a judge verdict that isn't cached yet (a rubric row, or a `judge: true` field).
         def unjudged?
-          detail['outcome'] == 'unjudged' || detail.fetch('fields', {}).value?('unjudged')
+          fields = detail['fields']
+          detail['outcome'] == 'unjudged' || (fields.is_a?(Hash) && fields.value?('unjudged'))
         end
       end
 

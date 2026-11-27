@@ -5,8 +5,8 @@ dev:
   provider: openai
   model: gpt-6.1-terra
 
-# Grades `rubric` rows and the `fields` marked `judge: true`, only when YES=1. Pin it: changing the
-# judge changes the grades, so treat that as a new baseline.
+# Grades `rubric` rows and the `fields` marked `judge: true`, only in a run you confirm (or YES=1).
+# Pin it: changing the judge changes the grades, so treat that as a new baseline.
 judge:
   provider: anthropic
   model: claude-sonnet-5-5
