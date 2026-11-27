@@ -84,10 +84,6 @@ GEM
     rubocop-rake (0.7.1)
       lint_roller (~> 1.1)
       rubocop (>= 1.72.1)
-    rubocop-rspec (3.10.2)
-      lint_roller (~> 1.1)
-      regexp_parser (>= 2.0)
-      rubocop (~> 1.86, >= 1.86.2)
     ruby-progressbar (1.13.0)
     stringio (3.2.0)
     traces (0.18.2)
@@ -112,7 +108,6 @@ DEPENDENCIES
   rubocop
   rubocop-minitest
   rubocop-rake
-  rubocop-rspec
   webmock
 
 BUNDLED WITH
