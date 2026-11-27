@@ -95,8 +95,9 @@ one is a hypothesis to test with a paired run, not a decided change.
   answered null on 7 of 15 yes/no questions that needed inference, because the description invited
   abstaining. Watch for this in drafted cases; "Null only if the text gives no basis to answer" is
   the wording to try.
-- **`webmock` pulls in `addressable` (Apache-2.0).** It is a test-only dependency of the library's
-  unit tests. Replacing it means our own minimal HTTP stub in `test/`; decide separately.
+- **`webmock` pulls in `addressable` (Apache-2.0).** This was a problem under the old MIT-only
+  rule. Apache-2.0 is a clear open license, so it is fine now and there is no need to replace
+  `webmock` with our own HTTP stub. (It is also test-only, so it never reaches users.)
 
 - **Comparator test pool is near the ceiling.** First run (2026-11-17, gpt-6.1-terra, 41 hh-rlhf
   test cases + 10 dev cases per cell): `by_debate` 50/51, `by_fight` 47/51; same winner in both
@@ -142,19 +143,35 @@ one is a hypothesis to test with a paired run, not a decided change.
 ## Data for the next phases (license check, 2026-11-17)
 
 The datasets first planned for the comparator, scorer and lister cells were chosen before the
-MIT-only rule. Checked on Hugging Face and GitHub:
+MIT-only rule, and this check was first done under it. The "Usable?" column is now judged under the
+current rule in [Where the cases come from](README.md#where-the-cases-come-from): any clear open
+license is fine with credit (a `NOTICE.md` next to the data); no stated license, NC terms, or
+share-alike/copyleft terms that would reach users are not. Checked on Hugging Face and GitHub:
 
 | Planned or candidate source | License | Usable? |
 |---|---|---|
 | `Anthropic/hh-rlhf` (human pairwise preferences, ~44k downloads/month) | MIT | Yes: used for the comparator test pool (helpful-base test; only clear pairs kept, see [Where the cases come from](README.md#where-the-cases-come-from)) |
 | `openbmb/UltraFeedback` and its binarized forks | MIT | No: GPT-4 labels, not human taste |
-| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k | CC BY 4.0 | No |
-| Arena human preference 55k | Apache-2.0 | No |
+| MT-Bench human judgments, HelpSteer2/3, Community Alignment, Arena 140k | CC BY 4.0 | Yes, with credit |
+| Arena human preference 55k | Apache-2.0 | Yes, with credit |
 | SWOW, Anthropic global opinions / persuasion | NC licenses | No |
 | SHP (Reddit), OpenAI summarize-from-feedback / WebGPT comparisons | no license stated | No |
-| ProtoQA (Family Feud questions with survey answers, scraped from fan sites) | CC BY 4.0 | No |
+| ProtoQA (Family Feud questions with survey answers, scraped from fan sites) | CC BY 4.0 | Yes, with credit; the answers were scraped from fan sites, so check their origin first |
 | Cold-Family-Feud `games/` (570 Feud games, checked 2026-11-18) | MIT repo, but the games have no stated source and the repo ships a script that generates "realistic" point values | No: unknown origin, and the counts may be made up |
 
-No MIT-licensed source exists for the scorer (multi-rater ratings) or the lister (how many people
-give each answer), so those cells need drafted cases. The lister's goal, emulating what a crowd
+Under the MIT-only rule no source existed for the scorer (multi-rater ratings) or the lister (how
+many people give each answer), so those cells got drafted cases.
+
+Sources the current rule newly allows, as possible follow-ups (none is used yet; each needs its own
+check that the data fits the cell, and a `NOTICE.md` when added):
+
+- **CondaQA** (Apache-2.0) and **CUAD** (CC BY 4.0): the extractor sources removed under the old
+  rule.
+- **Arena human preference 55k** (Apache-2.0), and the CC BY 4.0 sets above (MT-Bench human
+  judgments, HelpSteer2/3, Community Alignment, Arena 140k): human preference or rating data for
+  the comparator and possibly the scorer. Whether any of them has the multi-rater ratings the scorer
+  needs is still to check.
+- **ProtoQA** (CC BY 4.0): Family Feud questions with answer counts for the lister.
+
+Until then the scorer and lister keep their drafted cases. The lister's goal, emulating what a crowd
 would say, is the hardest to draft: a small survey we run ourselves may be worth considering.
