@@ -82,7 +82,7 @@ module ActiveGenie
         player_b_reward = compute_player_reward(logprobs_result, 'player_b')
         judge_candidates = ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(
           logprobs_result, 'impartial_judge_winner'
-        )
+        ).to_a
 
         winner_key = decide_winner_key(player_a_reward, player_b_reward, judge_candidates, data)
         logprob_metadata = build_logprob_metadata(player_a_reward, player_b_reward, judge_candidates, winner_key)
@@ -102,19 +102,34 @@ module ActiveGenie
                                                                                            max_score: 5.0)
       end
 
+      # Expected rewards decide first, then the judge token's probabilities, then the judge's written pick.
       def decide_winner_key(player_a_reward, player_b_reward, judge_candidates, data)
-        if player_a_reward && player_b_reward &&
-           player_a_reward.raw_expected_reward != player_b_reward.raw_expected_reward
-          return player_a_reward.raw_expected_reward > player_b_reward.raw_expected_reward ? 'player_a' : 'player_b'
-        end
+        reward_winner_key(player_a_reward, player_b_reward) ||
+          judge_token_winner_key(judge_candidates) ||
+          data&.dig('impartial_judge_winner')
+      end
 
-        if judge_candidates && !judge_candidates.empty?
-          prob_a = extract_token_probability(judge_candidates, 'player_a')
-          prob_b = extract_token_probability(judge_candidates, 'player_b')
-          return prob_a >= prob_b ? 'player_a' : 'player_b' if prob_a.positive? || prob_b.positive?
-        end
+      # nil when either reward is missing or they tie.
+      def reward_winner_key(player_a_reward, player_b_reward)
+        return nil unless player_a_reward && player_b_reward
 
-        data&.dig('impartial_judge_winner')
+        reward_a = player_a_reward.raw_expected_reward
+        reward_b = player_b_reward.raw_expected_reward
+        return nil if reward_a == reward_b
+
+        reward_a > reward_b ? 'player_a' : 'player_b'
+      end
+
+      # nil when neither player's token shows up among the judge's candidates.
+      def judge_token_winner_key(judge_candidates)
+        prob_a, prob_b = winner_probabilities(judge_candidates)
+        return nil unless prob_a.positive? || prob_b.positive?
+
+        prob_a >= prob_b ? 'player_a' : 'player_b'
+      end
+
+      def winner_probabilities(judge_candidates)
+        %w[player_a player_b].map { |player_key| extract_token_probability(judge_candidates, player_key) }
       end
 
       def extract_token_probability(candidates, target_token)
@@ -126,18 +141,25 @@ module ActiveGenie
       end
 
       def build_logprob_metadata(player_a_reward, player_b_reward, judge_candidates, winner_key)
-        meta = { 'logprobs_used' => true, 'logprobs_winner' => winner_key }
-        meta['player_a_expected_reward'] = player_a_reward.raw_expected_reward if player_a_reward
-        meta['player_b_expected_reward'] = player_b_reward.raw_expected_reward if player_b_reward
-        meta['player_a_normalized_score'] = player_a_reward.normalized_score if player_a_reward
-        meta['player_b_normalized_score'] = player_b_reward.normalized_score if player_b_reward
+        { 'logprobs_used' => true, 'logprobs_winner' => winner_key }
+          .merge(reward_metadata(player_a_reward, player_b_reward))
+          .merge(winner_probability_metadata(judge_candidates))
+      end
 
-        if judge_candidates && !judge_candidates.empty?
-          meta['player_a_winner_probability'] = extract_token_probability(judge_candidates, 'player_a').round(4)
-          meta['player_b_winner_probability'] = extract_token_probability(judge_candidates, 'player_b').round(4)
-        end
+      def reward_metadata(player_a_reward, player_b_reward)
+        {
+          'player_a_expected_reward' => player_a_reward&.raw_expected_reward,
+          'player_b_expected_reward' => player_b_reward&.raw_expected_reward,
+          'player_a_normalized_score' => player_a_reward&.normalized_score,
+          'player_b_normalized_score' => player_b_reward&.normalized_score
+        }.compact
+      end
 
-        meta
+      def winner_probability_metadata(judge_candidates)
+        return {} if judge_candidates.empty?
+
+        prob_a, prob_b = winner_probabilities(judge_candidates)
+        { 'player_a_winner_probability' => prob_a.round(4), 'player_b_winner_probability' => prob_b.round(4) }
       end
 
       def module_config
