@@ -95,6 +95,25 @@ class AppEvalTest < Minitest::Test
     assert_match(/delta vs baseline: -50\.0 pp/, report)
   end
 
+  def test_the_summary_row_gives_the_field_rate_next_to_the_all_or_nothing_case_rate
+    define_router
+    gold = lambda do |intent|
+      { 'fields' => { 'intent' => { 'present' => true, 'check' => 'eq', 'value' => intent },
+                      'order_id' => { 'present' => false } } }
+    end
+    write_set('router', [
+                { 'id' => 'refund_me', 'pool' => 'dev', 'input' => { 'text' => 'refund me' }, 'gold' => gold.call('refund') },
+                { 'id' => 'where_is_it', 'pool' => 'dev', 'input' => { 'text' => 'where is it' }, 'gold' => gold.call('refund') }
+              ])
+    items = Eval::Selection.call(router, 'quick')
+    run_cases(items)
+
+    row = board(items).summary_rows.first
+
+    assert_in_delta 0.5, row[:rate], 1e-9, 'where_is_it fails as a case on one wrong field'
+    assert_in_delta 0.75, row[:fields], 1e-9, 'three of its four fields are right'
+  end
+
   def test_the_call_block_gets_a_context_and_results_keep_their_reasoning
     seen = []
     define_router(call: lambda do |input, context|
