@@ -146,6 +146,43 @@ module ActiveGenie
         assert_raises(BaseProvider::InvalidResponseError) { call_google }
       end
 
+      def test_answer_wrapped_in_an_array_is_unwrapped
+        stub_answer('[{"score": 8}]')
+
+        assert_equal({ 'score' => 8 }, call_google)
+      end
+
+      def test_answer_shaped_like_the_schema_is_unwrapped
+        stub_answer('[{"type": "object", "properties": {"score": 8}}]')
+
+        assert_equal({ 'score' => 8 }, call_google)
+      end
+
+      def test_answer_nested_in_an_input_schema_is_unwrapped
+        stub_answer('{"input_schema": {"properties": {"score": 8}}}')
+
+        assert_equal({ 'score' => 8 }, call_google)
+      end
+
+      def test_answer_that_is_an_empty_json_array_raises_invalid_response
+        stub_answer('[]')
+
+        error = assert_raises(BaseProvider::InvalidResponseError) { call_google }
+
+        assert_includes error.message, 'not a JSON object'
+      end
+
+      def test_request_without_logprobs_does_not_ask_for_them
+        stub_answer('{"score": 8}')
+
+        call_google
+
+        assert_requested(:post, /generativelanguage\.googleapis\.com/) do |req|
+          assert_equal({ 'response_mime_type' => 'application/json', 'temperature' => 0.1 },
+                       JSON.parse(req.body)['generationConfig'])
+        end
+      end
+
       def test_modules_surface_the_refusal_instead_of_crashing
         stub_google(promptFeedback: { blockReason: 'SAFETY' })
 
@@ -185,6 +222,10 @@ module ActiveGenie
       def stub_google(body)
         stub_request(:post, /generativelanguage\.googleapis\.com/)
           .to_return(body: { usageMetadata: { promptTokenCount: 1 }, **body }.to_json)
+      end
+
+      def stub_answer(text)
+        stub_google(candidates: [{ finishReason: 'STOP', content: { parts: [{ text: }] } }])
       end
 
       def call_google
