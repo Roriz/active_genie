@@ -6,6 +6,11 @@ require 'webmock/minitest'
 module ActiveGenie
   module Comparator
     class DebateTest < Minitest::Test
+      OPENAI_CONFIG = {
+        llm: { model: 'gpt-5.6-luna' },
+        providers: { default: 'openai', openai: { api_key: 'openai_secret' } }
+      }.freeze
+
       def setup
         @player_a = 'Player A content'
         @player_b = 'Player B content'
@@ -249,7 +254,83 @@ module ActiveGenie
         end
       end
 
+      def test_higher_expected_reward_wins_over_the_judge_pick
+        stub_debate_with_logprobs(winner: 'player_a',
+                                  steps: score_steps('player_a_quality_score', 2) +
+                                         score_steps('player_b_quality_score', 5))
+
+        result = Debate.call(@player_a, @player_b, @criteria, config: OPENAI_CONFIG)
+
+        assert_equal @player_b, result.data
+        assert_equal(
+          { 'logprobs_used' => true, 'logprobs_winner' => 'player_b',
+            'player_a_expected_reward' => 2.0, 'player_b_expected_reward' => 5.0,
+            'player_a_normalized_score' => 0.25, 'player_b_normalized_score' => 1.0 },
+          result.metadata.except('impartial_judge_winner', 'impartial_judge_winner_reasoning')
+        )
+      end
+
+      def test_tied_expected_rewards_fall_back_to_the_judge_pick
+        stub_debate_with_logprobs(winner: 'player_b',
+                                  steps: score_steps('player_a_adherence_score', 4) +
+                                         score_steps('player_b_adherence_score', 4))
+
+        result = Debate.call(@player_a, @player_b, @criteria, config: OPENAI_CONFIG)
+
+        assert_equal @player_b, result.data
+        assert_equal 'player_b', result.metadata['logprobs_winner']
+        assert_in_delta 4.0, result.metadata['player_a_expected_reward']
+        refute result.metadata.key?('player_a_winner_probability')
+      end
+
+      # The judge's step is located like a score's: by a numeric token right after the field name.
+      def test_judge_token_probabilities_decide_when_rewards_are_missing
+        stub_debate_with_logprobs(winner: 'player_a',
+                                  steps: [step('impartial_judge_winner'), step('": '),
+                                          step('1', { 'player_b' => Math.log(0.7), 'player_a' => Math.log(0.2) })])
+
+        result = Debate.call(@player_a, @player_b, @criteria, config: OPENAI_CONFIG)
+
+        assert_equal @player_b, result.data
+        assert_in_delta 0.2, result.metadata['player_a_winner_probability']
+        assert_in_delta 0.7, result.metadata['player_b_winner_probability']
+        refute result.metadata.key?('player_a_expected_reward')
+      end
+
+      def test_logprobs_without_scored_fields_fall_back_to_the_judge_pick
+        stub_debate_with_logprobs(winner: 'player_b', steps: [step('{'), step('}')])
+
+        result = Debate.call(@player_a, @player_b, @criteria, config: OPENAI_CONFIG)
+
+        assert_equal @player_b, result.data
+        assert_equal(
+          { 'logprobs_used' => true, 'logprobs_winner' => 'player_b' },
+          result.metadata.except('impartial_judge_winner', 'impartial_judge_winner_reasoning')
+        )
+      end
+
       private
+
+      def stub_debate_with_logprobs(winner:, steps:)
+        arguments = { impartial_judge_winner: winner, impartial_judge_winner_reasoning: 'Judged on clarity.' }.to_json
+        choice = {
+          message: { tool_calls: [{ function: { name: 'comparation_through_debate', arguments: } }] },
+          logprobs: { content: steps }
+        }
+
+        stub_request(:post, 'https://api.openai.com/v1/chat/completions')
+          .to_return(status: 200, body: { choices: [choice], usage: { total_tokens: 1 } }.to_json)
+      end
+
+      # One OpenAI logprobs step; alternatives maps each top candidate token to its log probability.
+      def step(token, alternatives = { token => 0.0 })
+        { token:, logprob: alternatives.fetch(token, 0.0),
+          top_logprobs: alternatives.map { |alt, logprob| { token: alt, logprob: } } }
+      end
+
+      def score_steps(field, score)
+        [step(field), step('": '), step(score.to_s)]
+      end
 
       def stub_debate_response(winner:, reasoning:)
         arguments_json = {
