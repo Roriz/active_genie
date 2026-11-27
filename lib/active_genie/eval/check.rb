@@ -2,8 +2,9 @@
 
 module ActiveGenie
   module Eval
-    # Free checks, no model calls: evals/config.yml, each eval.rb, and the integrity of every set and
-    # labels file. A typo in a gold would not fail loudly at run time: it would silently grade wrong.
+    # Free checks, no model calls: evals/config.yml, each eval.rb, and the integrity of every
+    # datasets.jsonl and gold.jsonl. A typo in a gold would not fail loudly at run time: it would
+    # silently grade wrong.
     class Check
       ISO_DATE = /\A\d{4}-\d{2}-\d{2}\z/
       ID = /\A[a-z0-9_]+\z/
@@ -61,11 +62,9 @@ module ActiveGenie
         judge = Eval.config['judge']
         return if judge.is_a?(Hash) && judge['provider'] && judge['model']
 
-        judged = definition.grader == 'rubric' || Store.sets(definition).any? do |set|
-          Store.rows(definition, set).any? do |row|
-            fields = row.dig('gold', 'fields') if row['gold'].is_a?(Hash)
-            fields.is_a?(Hash) && fields.values.any? { |spec| spec.is_a?(Hash) && spec['judge'] }
-          end
+        judged = definition.grader == 'rubric' || Store.rows(definition).any? do |row|
+          fields = row.dig('gold', 'fields') if row['gold'].is_a?(Hash)
+          fields.is_a?(Hash) && fields.values.any? { |spec| spec.is_a?(Hash) && spec['judge'] }
         end
         return unless judged
 
@@ -84,27 +83,18 @@ module ActiveGenie
         definition.watch.each do |glob|
           @warnings << "#{name}: watch #{glob.inspect} matches no file" if Dir.glob(File.join(Eval.app_root, glob)).empty?
         end
-        check_sets(definition)
+        check_rows(definition)
         check_judge(definition)
       end
 
-      def check_sets(definition)
+      def check_rows(definition)
         name = definition.name
-        sets = Store.sets(definition)
-        @warnings << "#{name}: no sets yet in evals/#{name}/sets/" if sets.empty?
-        seen = {}
-        sets.each do |set|
-          rows = Store.rows(definition, set)
-          rows.each do |row|
-            where = "#{name}/#{set}/#{row['id']}"
-            @errors << "#{where}: id is also in set #{seen[row['id']]}" if seen.key?(row['id'])
-            seen[row['id']] ||= set
-            check_row(definition, row, where)
-          end
-          check_labels(definition, set, rows.map { |r| r['id'] })
-        end
-        labeled = Dir.glob(definition.path('labels', '*.jsonl')).map { |f| File.basename(f, '.jsonl') }
-        (labeled - sets).each { |set| @errors << "#{name}: labels/#{set}.jsonl has no set: it labels nothing" }
+        rows = Store.rows(definition)
+        @warnings << "#{name}: no cases yet in evals/#{name}/datasets.jsonl" if rows.empty?
+        ids = rows.map { |r| r['id'] }
+        ids.tally.each { |id, n| @errors << "#{name}/#{id}: id appears #{n} times in datasets.jsonl" if n > 1 }
+        rows.each { |row| check_row(definition, row, "#{name}/#{row['id']}") }
+        check_labels(definition, ids)
       end
 
       def check_row(definition, row, where)
@@ -156,10 +146,10 @@ module ActiveGenie
         "winner must be one of #{Graders::Winner::SIDES.join(', ')}" unless Graders::Winner::SIDES.include?(gold['winner'])
       end
 
-      def check_labels(definition, set, ids)
-        Store.labels(definition, set).each do |label|
-          where = "#{definition.name}/labels/#{set}"
-          @errors << "#{where}: #{label['id']} is not a row of the set" unless ids.include?(label['id'])
+      def check_labels(definition, ids)
+        Store.labels(definition).each do |label|
+          where = "#{definition.name}/gold.jsonl"
+          @errors << "#{where}: #{label['id']} is not a row of datasets.jsonl" unless ids.include?(label['id'])
           @errors << "#{where}/#{label['id']}: pass must be a or b" unless %w[a b].include?(label['pass'])
         end
       end

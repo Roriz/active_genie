@@ -123,7 +123,7 @@ one is a hypothesis to test with a paired run, not a decided change.
   The pairs are easy to see through, which is good news for the method but means the set cannot
   yet show whether more viewpoints remove bias. Next: subtler pairs (a confident vs a hedged tone, a polished vs a plain layout) and a
   paired run with a single jury against the default three.
-- **Five drafted scorer cases wait for a decision** (`"status": "queued"` in `evals/scorer_by_jury_bench/sets/scorer_by_jury_bench.jsonl`).
+- **Five drafted scorer cases wait for a decision** (`"status": "queued"` in `evals/scorer_by_jury_bench/datasets.jsonl`).
   `draft_bias_authority_03` should probably be excluded: its invented citations are a real
   defect, so the pair does not isolate authority bias.
 - **Some migrated scorer cases score claims, not work.** `engineering_code_quality`,

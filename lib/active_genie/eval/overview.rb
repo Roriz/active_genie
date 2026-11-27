@@ -3,7 +3,7 @@
 module ActiveGenie
   module Eval
     # What an eval holds before it runs: how many cases are in each pool and state, how varied they
-    # are (difficulty, tags, sets, what the gold asks for), and, given a plan, what a run would call,
+    # are (difficulty, tags, what the gold asks for), and, given a plan, what a run would call,
     # cost and take.
     #
     #   ticket_router · openai/gpt-6.1-terra · code 830a8f71 · main 3012c2b0
@@ -23,8 +23,8 @@ module ActiveGenie
       def initialize(system:)
         @system = system
         @definition = system.definition
-        @rows = Store.sets(@definition).flat_map { |set| Store.rows(@definition, set).map { |row| [set, row] } }
-        @running = @rows.map(&:last).select { |row| Store.runs?(row) }
+        @rows = Store.rows(@definition)
+        @running = @rows.select { |row| Store.runs?(row) }
       end
 
       def report
@@ -78,7 +78,7 @@ module ActiveGenie
 
       def case_rows
         STATES.filter_map do |state, matches|
-          rows = @rows.map(&:last).select(&matches)
+          rows = @rows.select(&matches)
           next if rows.empty? && state != 'run'
 
           dev = rows.count { |r| r['pool'] == 'dev' }
@@ -89,14 +89,10 @@ module ActiveGenie
 
       def diversity
         report = Report.new
-        return report.line('no case runs yet: add rows to a set (see evals/README.md)') if @running.empty?
+        return report.line('no case runs yet: add rows to datasets.jsonl (see evals/README.md)') if @running.empty?
 
-        pairs = []
-        sets = @rows.select { |_set, row| Store.runs?(row) }.map(&:first).tally
-        pairs << ['sets', tally(sets)] if sets.size > 1
         difficulty = @running.map { |r| tags(r)['difficulty'].then { |d| d.nil? ? 'untagged' : d.to_s } }
-        pairs << ['difficulty', tally(difficulty.tally)]
-        report.pairs(pairs + tag_pairs + gold_pairs)
+        report.pairs([['difficulty', tally(difficulty.tally)]] + tag_pairs + gold_pairs)
       end
 
       # A `false` tag is a value like any other, so it is counted, not skipped.

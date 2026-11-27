@@ -155,7 +155,7 @@ module ActiveGenie
           { 'error' => "#{e.class}: #{e.message}"[0, 1000] }
         end
         latency = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
-        record = { 'id' => item.id, 'set' => item.set, 'variant' => item.variant, 'replicate' => replicate,
+        record = { 'id' => item.id, 'variant' => item.variant, 'replicate' => replicate,
                    'input_sha' => item.input_sha }.compact
                  .merge(body, 'usage' => usage, 'latency_s' => latency.round(2), 'at' => Time.now.utc.iso8601)
         Store.write_json(record_path(item), record)

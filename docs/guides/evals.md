@@ -36,7 +36,7 @@ evals/
   .gitignore                  # keeps runs/ out of git
   ticket_router/
     eval.rb                   # what to call and how to grade it
-    sets/ticket_router.jsonl  # example cases to replace with your own
+    datasets.jsonl            # example cases to replace with your own
 ```
 
 Point `eval.rb` at your feature:
@@ -134,7 +134,7 @@ the disagreement yourself.
 - **Don't trust a change smaller than the MDE.** The report prints the smallest change your number of
   cases can detect.
 - **Never commit personal data.** Take cases from real traffic, but remove names, emails and secrets
-  before they go into a set.
+  before they go into `datasets.jsonl`.
 
 The `evals/README.md` that the task writes covers every grader, the case format and labeling in
 detail.

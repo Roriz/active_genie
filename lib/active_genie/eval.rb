@@ -11,7 +11,7 @@ module ActiveGenie
   # cases you keep in `evals/<name>/`, grade every answer against its gold, and compare each change
   # with a frozen baseline, with statistics that tell a real change from model noise.
   #
-  # Your app owns the data (`evals/config.yml`, `evals/<name>/eval.rb`, its sets, labels and
+  # Your app owns the data (`evals/config.yml`, `evals/<name>/eval.rb`, its datasets, gold and
   # baselines); this module is the engine that runs it. Start with `rake active_genie:eval:install`
   # and `rake "active_genie:eval:new[name]"`, then read the README it writes into evals/.
   module Eval

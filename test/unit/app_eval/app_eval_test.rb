@@ -48,7 +48,7 @@ class AppEvalTest < Minitest::Test
     Eval::Scaffold.new_eval('ticket_router', io: @io)
 
     assert_equal '# mine', File.read(eval_rb)
-    %w[config.yml README.md .gitignore ticket_router/sets/ticket_router.jsonl].each do |file|
+    %w[config.yml README.md .gitignore ticket_router/datasets.jsonl].each do |file|
       assert_path_exists File.join(@app, 'evals', file)
     end
     assert_match(%r{exists  evals/ticket_router/eval.rb}, @io.string)
@@ -132,8 +132,8 @@ class AppEvalTest < Minitest::Test
         watch 'router.rb'
       end
     RUBY
-    write_set('reply', [{ 'id' => 'late', 'pool' => 'dev', 'input' => { 'text' => 'the delay' },
-                          'gold' => { 'rubric' => 'Apologizes', 'band' => [70, 100] } }])
+    write_dataset('reply', [{ 'id' => 'late', 'pool' => 'dev', 'input' => { 'text' => 'the delay' },
+                              'gold' => { 'rubric' => 'Apologizes', 'band' => [70, 100] } }])
     answerer = FakeAnswerer.new('rubric' => { 'score' => 80, 'reason' => 'polite' })
     Eval::Judge.current = Eval::Judge.new(provider: 'fake', model: 'fake-judge', answerer:)
     definition = Eval.fetch('reply')
@@ -176,7 +176,7 @@ class AppEvalTest < Minitest::Test
 
   def test_a_custom_grader_returns_a_pass_and_details
     define_router(grader: ->(output, gold, _record) { { pass: output['intent'] == gold['intent'], 'got' => output['intent'] } })
-    write_set('router', [{ 'id' => 'refund_me', 'pool' => 'dev', 'input' => { 'text' => 'refund me' }, 'gold' => { 'intent' => 'refund' } }])
+    write_dataset('router', [{ 'id' => 'refund_me', 'pool' => 'dev', 'input' => { 'text' => 'refund me' }, 'gold' => { 'intent' => 'refund' } }])
     items = Eval::Selection.call(router, 'quick')
     run_cases(items)
     grade = Eval::Results.load(router, system.run_root, items).rows.first.grade
@@ -189,10 +189,10 @@ class AppEvalTest < Minitest::Test
     define_router
     gold = { 'fields' => { 'intent' => { 'present' => true, 'check' => 'eq', 'value' => 'refund' } } }
     row = ->(id, status) { { 'id' => id, 'pool' => 'test', 'status' => status, 'input' => { 'text' => id }, 'gold' => gold }.compact }
-    write_set('router', [row.call('agreed', 'draft'), row.call('split', 'draft'), row.call('half', 'draft'),
-                         row.call('settled', 'decided'), row.call('plain', nil)])
+    write_dataset('router', [row.call('agreed', 'draft'), row.call('split', 'draft'), row.call('half', 'draft'),
+                             row.call('settled', 'decided'), row.call('plain', nil)])
     label = ->(id, pass, intent) { { 'id' => id, 'pass' => pass, 'values' => { 'intent' => intent } } }
-    Eval::Store.write_jsonl(File.join(@app, 'evals', 'router', 'labels', 'router.jsonl'), [
+    Eval::Store.write_jsonl(File.join(@app, 'evals', 'router', 'gold.jsonl'), [
                               label.call('agreed', 'a', 'Refund'), label.call('agreed', 'b', 'refund'),
                               label.call('split', 'a', 'refund'), label.call('split', 'b', 'billing'),
                               label.call('half', 'a', 'refund'), label.call('settled', 'a', 'billing'),
@@ -200,36 +200,36 @@ class AppEvalTest < Minitest::Test
                             ])
 
     assert_equal([{ 'id' => 'agreed', 'input' => { 'text' => 'agreed' }, 'fields' => ['intent'] }],
-                 Eval::Labeling.blind(router, 'router').first(1))
+                 Eval::Labeling.blind(router).first(1))
 
-    result = Eval::Labeling.merge(router, 'router')
+    result = Eval::Labeling.merge(router)
 
     assert_equal [1, 1, 1], result.values_at(:confirmed, :queued, :draft)
-    assert_equal(%w[confirmed queued draft decided] + [nil], Eval::Store.rows(router, 'router').map { |r| r['status'] })
-    assert_equal(%w[agreed settled plain], Eval::Store.cases(router).map { |_set, r| r['id'] })
+    assert_equal(%w[confirmed queued draft decided] + [nil], Eval::Store.rows(router).map { |r| r['status'] })
+    assert_equal(%w[agreed settled plain], Eval::Store.cases(router).map { |r| r['id'] })
   end
 
   def test_check_finds_broken_data
     define_router
-    write_set('router', [
-                { 'id' => 'ok', 'pool' => 'dev', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } },
-                { 'id' => 'typo', 'pool' => 'dev', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => true, 'check' => 'equals' } } } },
-                { 'id' => 'odd_status', 'pool' => 'dev', 'status' => 'exclude', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } },
-                { 'id' => 'no_pool', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } }
-              ])
-    write_set('router', set: 'more', rows: [{ 'id' => 'ok', 'pool' => 'dev', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } }])
-    Eval::Store.write_jsonl(File.join(@app, 'evals', 'router', 'labels', 'gone.jsonl'), [{ 'id' => 'x', 'pass' => 'a' }])
+    write_dataset('router', [
+                    { 'id' => 'ok', 'pool' => 'dev', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } },
+                    { 'id' => 'typo', 'pool' => 'dev', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => true, 'check' => 'equals' } } } },
+                    { 'id' => 'odd_status', 'pool' => 'dev', 'status' => 'exclude', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } },
+                    { 'id' => 'no_pool', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } },
+                    { 'id' => 'ok', 'pool' => 'dev', 'input' => {}, 'gold' => { 'fields' => { 'a' => { 'present' => false } } } }
+                  ])
+    Eval::Store.write_jsonl(File.join(@app, 'evals', 'router', 'gold.jsonl'), [{ 'id' => 'gone', 'pass' => 'a' }])
 
     check = Eval::Check.new.run
     errors = check.errors.join("\n")
 
     refute_predicate check, :ok?
-    assert_match %r{router/router/typo: unknown or missing check for a}, errors
-    assert_match %r{router/router/odd_status: status must be one of}, errors
-    assert_match %r{router/router/no_pool: pool must be dev or test}, errors
-    assert_match %r{router/router/ok: id is also in set more}, errors
-    assert_match %r{labels/gone.jsonl has no set}, errors
-    refute_includes Eval::Store.cases(router).map { |_s, r| r['id'] }, 'odd_status', 'a status typo keeps the row out'
+    assert_match %r{router/typo: unknown or missing check for a}, errors
+    assert_match %r{router/odd_status: status must be one of}, errors
+    assert_match %r{router/no_pool: pool must be dev or test}, errors
+    assert_match %r{router/ok: id appears 2 times in datasets.jsonl}, errors
+    assert_match %r{router/gold.jsonl: gone is not a row of datasets.jsonl}, errors
+    refute_includes Eval::Store.cases(router).map { |r| r['id'] }, 'odd_status', 'a status typo keeps the row out'
   end
 
   def test_a_call_block_raising_a_script_error_is_recorded_not_a_crash
@@ -252,22 +252,22 @@ class AppEvalTest < Minitest::Test
   def test_an_unjudged_label_is_queued_not_dropped
     define_router
     spec = { 'present' => true, 'check' => 'eq', 'value' => 'refund', 'judge' => true, 'question' => 'What?' }
-    write_set('router', [{ 'id' => 'x', 'pool' => 'dev', 'status' => 'draft', 'on_disagreement' => 'drop',
-                           'input' => {}, 'gold' => { 'fields' => { 'intent' => spec } } }])
-    Eval::Store.write_jsonl(File.join(@app, 'evals', 'router', 'labels', 'router.jsonl'),
+    write_dataset('router', [{ 'id' => 'x', 'pool' => 'dev', 'status' => 'draft', 'on_disagreement' => 'drop',
+                               'input' => {}, 'gold' => { 'fields' => { 'intent' => spec } } }])
+    Eval::Store.write_jsonl(File.join(@app, 'evals', 'router', 'gold.jsonl'),
                             [{ 'id' => 'x', 'pass' => 'a', 'values' => { 'intent' => 'money back' } },
                              { 'id' => 'x', 'pass' => 'b', 'values' => { 'intent' => 'refund' } }])
 
-    assert_equal 1, Eval::Labeling.merge(router, 'router')[:queued]
+    assert_equal 1, Eval::Labeling.merge(router)[:queued]
   end
 
   def test_check_catches_values_the_matchers_cannot_use_and_a_missing_judge
     define_router
     spec = ->(check, value, **rest) { { 'present' => true, 'check' => check, 'value' => value }.merge(rest.transform_keys(&:to_s)) }
-    write_set('router', [{ 'id' => 'bad', 'pool' => 'dev', 'input' => {},
-                           'gold' => { 'fields' => { 'a' => spec.call('between', 5), 'b' => spec.call('near', 5),
-                                                     'c' => spec.call('regex', '('), 'd' => spec.call('gte', '3'),
-                                                     'e' => spec.call('eq', 'x', judge: true, question: 'Q?') } } }])
+    write_dataset('router', [{ 'id' => 'bad', 'pool' => 'dev', 'input' => {},
+                               'gold' => { 'fields' => { 'a' => spec.call('between', 5), 'b' => spec.call('near', 5),
+                                                         'c' => spec.call('regex', '('), 'd' => spec.call('gte', '3'),
+                                                         'e' => spec.call('eq', 'x', judge: true, question: 'Q?') } } }])
     File.write(File.join(@app, 'evals', 'config.yml'), "dev:\n  model: m\nusd_per_million_tokens:\n")
     Eval.reset!
     errors = Eval::Check.new.run.errors.join("\n")
@@ -303,11 +303,11 @@ class AppEvalTest < Minitest::Test
     self.class.current_call = call
     router.grader = grader.is_a?(Symbol) ? grader.to_s : grader
     gold = ->(intent) { { 'fields' => { 'intent' => { 'present' => true, 'check' => 'eq', 'value' => intent } } } }
-    write_set('router', [
-                { 'id' => 'refund_me', 'pool' => 'dev', 'input' => { 'text' => 'refund me' }, 'gold' => gold.call('refund') },
-                { 'id' => 'where_is_it', 'pool' => 'dev', 'input' => { 'text' => 'where is it' }, 'gold' => gold.call('delivery') },
-                { 'id' => 'held_out', 'pool' => 'test', 'input' => { 'text' => 'refund me' }, 'gold' => gold.call('refund') }
-              ])
+    write_dataset('router', [
+                    { 'id' => 'refund_me', 'pool' => 'dev', 'input' => { 'text' => 'refund me' }, 'gold' => gold.call('refund') },
+                    { 'id' => 'where_is_it', 'pool' => 'dev', 'input' => { 'text' => 'where is it' }, 'gold' => gold.call('delivery') },
+                    { 'id' => 'held_out', 'pool' => 'test', 'input' => { 'text' => 'refund me' }, 'gold' => gold.call('refund') }
+                  ])
   end
 
   class << self
@@ -322,7 +322,7 @@ class AppEvalTest < Minitest::Test
     Eval.app_root = @app
   end
 
-  def write_set(name, rows_or_nil = nil, set: name, rows: rows_or_nil)
-    Eval::Store.write_jsonl(File.join(@app, 'evals', name, 'sets', "#{set}.jsonl"), rows)
+  def write_dataset(name, rows)
+    Eval::Store.write_jsonl(File.join(@app, 'evals', name, 'datasets.jsonl'), rows)
   end
 end

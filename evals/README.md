@@ -11,7 +11,7 @@ what is specific to the gem.
 The Ranker is out of scope. Its live tests stay in `test/e2e/ranker`.
 
 ```shell
-bundle exec rake active_genie:eval:check                          # free: every eval, set and label
+bundle exec rake active_genie:eval:check                          # free: every eval, dataset and gold
 bundle exec rake active_genie:eval EVAL=all                       # the dev pools of all evals, then a summary
 bundle exec rake active_genie:eval EVAL=comparator MODE=full      # one eval, every case
 bundle exec rake prompts:check                                    # free: lints lib/**/*.prompt.md and the function JSON
@@ -49,7 +49,7 @@ reach users is still out. Credit the source: keep a `NOTICE.md` next to the data
 
 When no openly licensed source fits, the cases are written here instead. They're drafted
 (`"status": "draft"`), labeled by two blind passes, and checked with
-`rake active_genie:eval:label EVAL=<name> SET=<set>`. The extractor evals started from CUAD
+`rake active_genie:eval:label EVAL=<name>`. The extractor evals started from CUAD
 (CC BY 4.0) and CondaQA (Apache-2.0), and both were replaced with drafted cases under an earlier
 MIT-only rule. Both are allowed again (see
 [NEXT_FOCUS.md](NEXT_FOCUS.md#data-for-the-next-phases-license-check-2026-11-17)).

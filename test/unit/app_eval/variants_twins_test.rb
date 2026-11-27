@@ -79,15 +79,15 @@ class AppEvalVariantsTwinsTest < Minitest::Test
     write_eval('picker', "ActiveGenie::Eval.define('picker') { call { |i| i }\n grader :winner\n watch 'picker.rb' }\n",
                [row('one', 'a', status: 'draft'), row('two', 'b', status: 'draft')])
     label = ->(id, pass, winner) { { 'id' => id, 'pass' => pass, 'values' => { 'winner' => winner } } }
-    Eval::Store.write_jsonl(File.join(@app, 'evals', 'picker', 'labels', 'picker.jsonl'),
+    Eval::Store.write_jsonl(File.join(@app, 'evals', 'picker', 'gold.jsonl'),
                             [label.call('one', 'a', 'a'), label.call('one', 'b', 'a'),
                              label.call('two', 'a', 'b'), label.call('two', 'b', 'a')])
 
-    assert_equal [1, 1], Eval::Labeling.merge(Eval.fetch('picker'), 'picker').values_at(:confirmed, :queued)
+    assert_equal [1, 1], Eval::Labeling.merge(Eval.fetch('picker')).values_at(:confirmed, :queued)
 
-    Eval::Store.write_jsonl(File.join(@app, 'evals', 'picker', 'labels', 'picker.jsonl'), [label.call('one', 'a', 'A')])
+    Eval::Store.write_jsonl(File.join(@app, 'evals', 'picker', 'gold.jsonl'), [label.call('one', 'a', 'A')])
     assert_raises(Eval::Error, 'a broken label is not a silent disagreement') do
-      Eval::Labeling.merge(Eval.fetch('picker'), 'picker')
+      Eval::Labeling.merge(Eval.fetch('picker'))
     end
 
     band = Eval::Definition.new(name: 'b', dir: @app).tap { |d| d.grader = 'band' }
@@ -104,7 +104,7 @@ class AppEvalVariantsTwinsTest < Minitest::Test
                [twin_row.merge('status' => 'draft')])
 
     assert_equal [{ 'id' => 'wordy', 'input' => { 'text' => 'plain' }, 'twin' => { 'text' => 'plain!!' },
-                    'fields' => ['score'] }], Eval::Labeling.blind(Eval.fetch('scorer'), 'scorer')
+                    'fields' => ['score'] }], Eval::Labeling.blind(Eval.fetch('scorer'))
     assert_predicate Eval::Graders::Grade.new(pass: false, detail: { 'score' => 50, 'twin' => { 'outcome' => 'unjudged' } }),
                      :unjudged?
   end
@@ -119,11 +119,11 @@ class AppEvalVariantsTwinsTest < Minitest::Test
                [row('bad', 'c')])
     errors = Eval::Check.new.run.errors.join("\n")
 
-    assert_match %r{scorer/scorer/no_twin: max_gap needs a twin}, errors
-    assert_match %r{scorer/scorer/same: twin must change the input}, errors
-    assert_match %r{scorer/scorer/string: twin must be an object}, errors
-    assert_match %r{scorer/scorer/text_input: a twin needs an object input}, errors
-    assert_match %r{picker/picker/bad: winner must be one of a, b, either}, errors
+    assert_match %r{scorer/no_twin: max_gap needs a twin}, errors
+    assert_match %r{scorer/same: twin must change the input}, errors
+    assert_match %r{scorer/string: twin must be an object}, errors
+    assert_match %r{scorer/text_input: a twin needs an object input}, errors
+    assert_match %r{picker/bad: winner must be one of a, b, either}, errors
   end
 
   def test_config_watch_is_the_default_for_every_eval
@@ -151,9 +151,9 @@ class AppEvalVariantsTwinsTest < Minitest::Test
 
   def write_eval(name, source, rows)
     dir = File.join(@app, 'evals', name)
-    FileUtils.mkdir_p(File.join(dir, 'sets'))
+    FileUtils.mkdir_p(dir)
     File.write(File.join(dir, 'eval.rb'), source)
-    Eval::Store.write_jsonl(File.join(dir, 'sets', "#{name}.jsonl"), rows)
+    Eval::Store.write_jsonl(File.join(dir, 'datasets.jsonl'), rows)
     Eval.reset!
     Eval.app_root = @app
   end

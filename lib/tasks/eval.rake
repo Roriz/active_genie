@@ -21,10 +21,6 @@ module ActiveGenieEvalTasks
     eval_lib.fetch(name)
   end
 
-  def set
-    ENV.fetch('SET') { abort "SET=<set> is required, one of: #{eval_lib::Store.sets(definition).join(', ')}" }
-  end
-
   def guard
     yield
   rescue ActiveGenie::Eval::Error => e
@@ -144,9 +140,7 @@ module ActiveGenieEvalTasks
     return puts eval_lib::Overview.new(system: eval_lib::System.from_env(definition)).report.to_text if ENV['EVAL']
 
     eval_lib.load!.each_value.sort_by(&:name).each do |definition|
-      store = eval_lib::Store
-      counts = store.sets(definition).flat_map { |s| store.rows(definition, s) }
-                                     .map { |r| "#{r['pool'] || '-'}/#{r['status'] || '-'}" }.tally
+      counts = eval_lib::Store.rows(definition).map { |r| "#{r['pool'] || '-'}/#{r['status'] || '-'}" }.tally
       system = eval_lib::System.from_env(definition)
       saved = system.baseline_replicates.any? ? "baseline for #{system.name}" : "no baseline for #{system.name}"
       puts format('%-28s %s; %s', definition.name, counts.sort.map { |k, n| "#{k} #{n}" }.join(', '), saved)
@@ -169,13 +163,13 @@ namespace :active_genie do
       ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.eval_lib::Scaffold.install }
     end
 
-    desc 'Start a new eval: evals/<name>/eval.rb and a starting set. Usage: active_genie:eval:new[name]'
+    desc 'Start a new eval: evals/<name>/eval.rb and a starting datasets.jsonl. Usage: active_genie:eval:new[name]'
     task :new, [:name] do |_t, args|
       name = args[:name] || ENV.fetch('EVAL') { abort 'Usage: rake "active_genie:eval:new[ticket_router]"' }
       ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.eval_lib::Scaffold.new_eval(name) }
     end
 
-    desc 'Free: check evals/config.yml and every eval, set and labels file. EVAL=<name> for one'
+    desc 'Free: check evals/config.yml and every eval, datasets.jsonl and gold.jsonl. EVAL=<name> for one'
     task check: :environment do
       check = ActiveGenieEvalTasks.eval_lib::Check.new.run(only: ENV.fetch('EVAL', nil))
       puts check.report
@@ -219,24 +213,24 @@ namespace :active_genie do
       end
     end
 
-    desc 'Free: print the drafts of EVAL=<name> SET=<set> without their gold, for a blind labeler'
+    desc 'Free: print the drafts of EVAL=<name> without their gold, for a blind labeler'
     task blind: :environment do
       ActiveGenieEvalTasks.guard do
         lib = ActiveGenieEvalTasks.eval_lib
-        lib::Labeling.blind(ActiveGenieEvalTasks.definition, ActiveGenieEvalTasks.set).each do |row|
+        lib::Labeling.blind(ActiveGenieEvalTasks.definition).each do |row|
           puts JSON.generate(row)
         end
       end
     end
 
-    desc 'Free: compare the blind labels of EVAL=<name> SET=<set> with the gold and write each draft\'s status'
+    desc 'Free: compare the blind labels of EVAL=<name> with the gold and write each draft\'s status'
     task label: :environment do
       ActiveGenieEvalTasks.guard do
-        set = ActiveGenieEvalTasks.set
-        result = ActiveGenieEvalTasks.eval_lib::Labeling.merge(ActiveGenieEvalTasks.definition, set)
+        definition = ActiveGenieEvalTasks.definition
+        result = ActiveGenieEvalTasks.eval_lib::Labeling.merge(definition)
         waiting = result[:draft].positive? ? ", #{result[:draft]} still waiting for a blind pass" : ''
         dropped = result[:dropped].positive? ? ", #{result[:dropped]} dropped as unclear" : ''
-        puts "#{set}: #{result[:confirmed]} confirmed, #{result[:queued]} waiting for a decision#{dropped}#{waiting}"
+        puts "#{definition.name}: #{result[:confirmed]} confirmed, #{result[:queued]} waiting for a decision#{dropped}#{waiting}"
         result[:queue].each do |q|
           puts "  #{q['id']}.#{q['field']}: gold #{JSON.generate(q['gold'])} | A #{q['pass_a'].inspect} | B #{q['pass_b'].inspect}"
         end

@@ -26,10 +26,10 @@ class AppEvalReportTest < Minitest::Test
   end
 
   def test_report_renders_the_same_blocks_as_text_and_markdown
-    report = Eval::Report.new.heading('Results').table(%w[set cases rate], [['router', 12, '75.0%']]).line('done')
+    report = Eval::Report.new.heading('Results').table(%w[eval cases rate], [['router', 12, '75.0%']]).line('done')
 
-    assert_equal "Results\n  set     cases   rate\n  router     12  75.0%\ndone", report.to_text, 'number columns right-align'
-    assert_equal "### Results\n\n| set | cases | rate |\n| :-- | --: | --: |\n| router | 12 | 75.0% |\n\ndone\n",
+    assert_equal "Results\n  eval    cases   rate\n  router     12  75.0%\ndone", report.to_text, 'number columns right-align'
+    assert_equal "### Results\n\n| eval | cases | rate |\n| :-- | --: | --: |\n| router | 12 | 75.0% |\n\ndone\n",
                  report.to_markdown
   end
 
@@ -123,11 +123,11 @@ class AppEvalReportTest < Minitest::Test
   def test_overview_counts_false_tags_and_skips_tags_that_are_not_an_object
     define_router
     definition = Eval.fetch('router')
-    rows = Eval::Store.rows(definition, 'router')
+    rows = Eval::Store.rows(definition)
     rows[0]['tags'] = { 'difficulty' => 'easy', 'vip' => false }
     rows[1]['tags'] = %w[billing hard]
     rows[2]['tags'] = { 'difficulty' => 'subtle', 'vip' => true }
-    Eval::Store.write_rows(definition, 'router', rows)
+    Eval::Store.write_rows(definition, rows)
     text = Eval::Overview.new(system: Eval::System.new(definition:, provider: 'openai', model: 'm1')).report.to_text
 
     assert_match(/difficulty\s+easy 2 · subtle 1 · untagged 1/, text)
@@ -169,7 +169,7 @@ class AppEvalReportTest < Minitest::Test
   private
 
   def row(detail, pass: true, gold: {}, data: nil)
-    item = Eval::Selection::Item.new(set: 'router', case: { 'id' => "c#{rand(1_000_000)}", 'gold' => gold })
+    item = Eval::Selection::Item.new(case: { 'id' => "c#{rand(1_000_000)}", 'gold' => gold })
     Row.new(item:, record: { 'output' => { 'data' => data } }, grade: Grade.new(pass:, detail:))
   end
 
@@ -181,7 +181,7 @@ class AppEvalReportTest < Minitest::Test
 
   def define_router(judge: false)
     dir = File.join(@app, 'evals', 'router')
-    FileUtils.mkdir_p(File.join(dir, 'sets'))
+    FileUtils.mkdir_p(dir)
     File.write(File.join(dir, 'eval.rb'), "ActiveGenie::Eval.define('router') { call { |i| i }\n watch 'router.rb' }\n")
     judged = judge ? { 'judge' => true, 'question' => 'What is asked?' } : {}
     gold = lambda do |intent, order|
@@ -191,7 +191,7 @@ class AppEvalReportTest < Minitest::Test
     rows = [%w[a refund 1 dev easy], %w[b refund 2 dev easy], %w[c billing 3 dev subtle], %w[d refund 4 test easy]]
            .map { |id, intent, order, pool, diff| { 'id' => id, 'pool' => pool, 'tags' => { 'difficulty' => diff }, 'input' => {}, 'gold' => gold.call(intent, order) } }
     rows << { 'id' => 'e', 'pool' => 'test', 'status' => 'draft', 'input' => {}, 'gold' => gold.call('refund', '5') }
-    Eval::Store.write_jsonl(File.join(dir, 'sets', 'router.jsonl'), rows)
+    Eval::Store.write_jsonl(File.join(dir, 'datasets.jsonl'), rows)
     Eval.reset!
     Eval.app_root = @app
   end

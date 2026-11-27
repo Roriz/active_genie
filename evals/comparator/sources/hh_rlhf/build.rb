@@ -8,15 +8,15 @@
 # Reads the split from data/helpful-base-test.jsonl.gz, a verbatim copy of the upstream file at a
 # pinned revision (URL below), and checks its SHA-256. Each row is one conversation with two
 # possible last replies, and a crowdworker's pick of the more helpful one. The picks are noisy, so
-# the cases are added to evals/comparator/sets/comparator.jsonl as drafts: a case runs only when two
-# blind labeling passes agree with the crowdworker (`rake active_genie:eval:label EVAL=comparator
-# SET=comparator`); otherwise it is dropped, not queued. Both variants (by_debate and by_fight) run
-# the same cases, so the two methods are compared on paired cases.
+# the cases are added to evals/comparator/datasets.jsonl as drafts: a case runs only when two blind
+# labeling passes agree with the crowdworker (`rake active_genie:eval:label EVAL=comparator`);
+# otherwise it is dropped, not queued. Both variants (by_debate and by_fight) run the same cases, so
+# the two methods are compared on paired cases.
 #
 # Picks short, benign conversations whose two replies are both real answers, half where the picked
 # reply is the longer one and half where it is the shorter one, so length alone cannot win. Which
 # reply is player_a is decided by a hash of the case, so the gold is a mix of "a" and "b".
-# Re-running adds only ids the set does not have yet, so it never touches a row already labeled.
+# Re-running adds only ids the dataset does not have yet, so it never touches a row already labeled.
 
 require 'zlib'
 require_relative '../../../../lib/active_genie'
@@ -29,7 +29,6 @@ module HhRlhfSource
   SHA256 = '8be3fc1a13b27901631696f2be6f184c799f1baeaf145f53ac5db24960adc37b'
   REPO = File.expand_path('../../../..', __dir__)
   FILE = File.join(__dir__, 'data', 'helpful-base-test.jsonl.gz')
-  SET = 'comparator'
   PER_LENGTH_SIDE = 40
 
   MAX_USER_TURNS = 2
@@ -61,13 +60,13 @@ module HhRlhfSource
 
     ActiveGenie::Eval.app_root = REPO
     definition = ActiveGenie::Eval.fetch('comparator')
-    rows = ActiveGenie::Eval::Store.rows(definition, SET)
+    rows = ActiveGenie::Eval::Store.rows(definition)
     known = rows.to_set { |r| r['id'] }
     added = picked.sort_by { |c| c[:id] }.reject { |c| known.include?(c[:id]) }.map { |c| draft(c) }
-    ActiveGenie::Eval::Store.write_rows(definition, SET, (rows + added).sort_by { |r| r['id'] })
-    puts "#{SET}: #{added.size} new drafts (#{picked.size} picked from #{candidates.size} candidates)"
-    puts "Label them (rake active_genie:eval:blind EVAL=comparator SET=#{SET}),"
-    puts "then rake active_genie:eval:label EVAL=comparator SET=#{SET}"
+    ActiveGenie::Eval::Store.write_rows(definition, (rows + added).sort_by { |r| r['id'] })
+    puts "comparator: #{added.size} new drafts (#{picked.size} picked from #{candidates.size} candidates)"
+    puts 'Label them (rake active_genie:eval:blind EVAL=comparator),'
+    puts 'then rake active_genie:eval:label EVAL=comparator'
   end
 
   def verify!

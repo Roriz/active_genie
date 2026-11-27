@@ -5,7 +5,7 @@ Each folder here is an eval of one LLM feature of this app. An eval runs the fea
 against its gold, and compares each change with a frozen baseline, using statistics that tell a real
 change apart from model noise.
 
-The engine comes from the `active_genie` gem. The data is yours: this folder, its sets, labels and
+The engine comes from the `active_genie` gem. The data is yours: this folder, its datasets, gold and
 baselines are versioned with the app.
 
 ```
@@ -14,8 +14,8 @@ evals/
   judge/<model>.jsonl           # cached judge verdicts (commit them)
   <name>/
     eval.rb                     # the code it runs, how answers are graded, the files it watches
-    sets/<set>.jsonl            # the cases: one row each, input and gold together
-    labels/<set>.jsonl          # blind labeling passes of drafted rows
+    datasets.jsonl              # the cases: one row each, input and gold together
+    gold.jsonl                  # blind labeling passes of drafted rows
     baselines/<provider>-<model>/   # frozen outputs of main (commit them)
     runs/                       # outputs of your working tree (gitignored)
 ```
@@ -50,9 +50,6 @@ mean of the rates. Each eval counts the same in that mean, however many cases it
 
 ```
 Results
-  set            cases  pass   rate
-  ticket_router     14    13  92.9%
-
 pass rate: 92.9% [68.5%, 98.7%] (13/14)
 smallest change this many cases can reliably detect (MDE): ~27.5%
 delta vs baseline: +35.7 pp [+14.3, +57.1] on 14 paired cases, McNemar p=0.062 (0 broke, 5 fixed)
@@ -113,19 +110,19 @@ changing any of them starts a fresh run. `active_genie:eval:report` re-prints a 
 | Task | Cost | What it does |
 |---|---|---|
 | `active_genie:eval` | paid, asks first | Overview, plan and estimate, then runs with progress and reports (`MODE=quick\|full`, `REPEAT=n`) |
-| `"active_genie:eval:new[name]"` | free | Writes `<name>/eval.rb` and a starting set |
-| `active_genie:eval:check` | free | Validates every eval, set and labels file (`EVAL=` for one) |
+| `"active_genie:eval:new[name]"` | free | Writes `<name>/eval.rb` and a starting `<name>/datasets.jsonl` |
+| `active_genie:eval:check` | free | Validates every eval, `datasets.jsonl` and `gold.jsonl` (`EVAL=` for one) |
 | `active_genie:eval:status` | free | One line per eval; with `EVAL=`, its size and diversity |
 | `active_genie:eval:report` | free | Re-prints the report from cached outputs (`MODE=quick\|full`) |
 | `active_genie:eval:save` | free | Promotes the complete run to `<name>/baselines/` |
-| `active_genie:eval:blind` | free | Prints a set's drafts without their gold, for a blind labeler (`SET=`) |
-| `active_genie:eval:label` | free | Compares the labels with the gold and writes each draft's status (`SET=`) |
+| `active_genie:eval:blind` | free | Prints an eval's drafts without their gold, for a blind labeler |
+| `active_genie:eval:label` | free | Compares the labels with the gold and writes each draft's status |
 
 `active_genie:eval:quick` and `active_genie:eval:full` are shortcuts for `MODE=quick` and `MODE=full`.
 
 Environment: `EVAL=<name>`, `MODE`, `REPEAT`, `PROVIDER` and `MODEL` (default: `dev` in
-`config.yml`), `YES=1` to run without the question, `SET=<set>` for labeling, `BY=name` for
-`save`, `FORCE=1` to save while the watched files have uncommitted changes.
+`config.yml`), `YES=1` to run without the question, `BY=name` for `save`, `FORCE=1` to save while
+the watched files have uncommitted changes.
 
 ## Good practices
 
@@ -141,7 +138,7 @@ Environment: `EVAL=<name>`, `MODE`, `REPEAT`, `PROVIDER` and `MODEL` (default: `
   failure remains, measure how often it happens, then try stronger levers (examples, a different
   design, ActiveGenie's juries or debates).
 - **Use real cases, without real people in them.** Take inputs from logs or support tickets, and
-  remove names, emails and anything secret before they go into a set. A set is committed.
+  remove names, emails and anything secret before they go into `datasets.jsonl`. It is committed.
 - **Keep a test pool you never tune on.** Iterate against `dev`. Run `test` only in `full`, so a
   prompt fitted to the dev cases can't hide a regression.
 - **Change one thing at a time.** Each run compares with the baseline on the same cases. Two
@@ -321,14 +318,14 @@ run with `YES=1`); until then they show as `unjudged`.
 A gold you write alone is a guess. For drafted cases, get two blind answers:
 
 1. Add the row with `"status": "draft"` and your intended gold.
-2. `bin/rails active_genie:eval:blind EVAL=<name> SET=<set>` prints the drafts without their gold,
+2. `bin/rails active_genie:eval:blind EVAL=<name>` prints the drafts without their gold,
    with the `fields` each answer must name. Give them to two labelers (two people, or a person and
    a model).
-3. Append their answers to `<name>/labels/<set>.jsonl`, one line per answer:
+3. Append their answers to `<name>/gold.jsonl`, one line per answer:
    `{"id": "...", "pass": "a", "labeler": "ana", "values": {"intent": "refund"}}`. `values` has one
    entry per graded field: the field names for `fields`, `score` for `band` and `rubric`, `list`
    for `list`.
-4. `bin/rails active_genie:eval:label EVAL=<name> SET=<set>` sets each draft's status:
+4. `bin/rails active_genie:eval:label EVAL=<name>` sets each draft's status:
 
 | `status` | Set by | Meaning | Runs? |
 |---|---|---|---|

@@ -2,7 +2,7 @@
 
 module ActiveGenie
   module Eval
-    # The report of one eval run: pass rate per set and overall with a CI, the paired comparison with
+    # The report of one eval run: the pass rate with a CI, the paired comparison with
     # the baseline (delta, exact McNemar p, MDE), the confusion matrices (baseline vs now, field
     # outcomes, each categorical field, score bands), the noise floor, what broke or got fixed and, for
     # quick runs, a GO / LOOK / STOP verdict. `report` is terminal text, `markdown` the same as markdown.
@@ -111,11 +111,6 @@ module ActiveGenie
 
         return report.concat(variant_summary) if variants?
 
-        sets = @current.rows.group_by { |r| r.item.set }.map do |set, rows|
-          passed = rows.count(&:pass?)
-          [set, rows.size, passed, pct(passed.to_f / rows.size)]
-        end
-        report.table(%w[set cases pass rate], sets).blank
         passed = @current.rows.count(&:pass?)
         rate = passed.to_f / n
         report.line("pass rate: #{pct(rate)} #{interval(Stats.wilson(passed, n))} (#{passed}/#{n})")
