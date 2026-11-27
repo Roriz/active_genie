@@ -86,7 +86,7 @@ module ActiveGenie
       end
 
       def calculate_final_score(data, logprobs_result)
-        fallback_score = data&.dig('final_score') || data&.dig(:final_score) || 0
+        fallback_score = written_final_score(data)
         return [fallback_score, {}] if logprobs_result.nil?
 
         final_score_cands = ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(
@@ -105,6 +105,10 @@ module ActiveGenie
         logprob_metadata = build_logprob_metadata(final_score_calc, aggregated_jury_reward, chosen_score)
 
         [chosen_score, logprob_metadata]
+      end
+
+      def written_final_score(data)
+        data&.dig('final_score') || data&.dig(:final_score) || 0
       end
 
       def compute_jury_expected_values(logprobs_result)
@@ -143,33 +147,36 @@ module ActiveGenie
       end
 
       def properties
-        @properties ||= begin
-          tmp = {}
-          juries.each do |jury|
-            jury_key = jury_key_for(jury)
-            tmp["#{jury_key}_reasoning"] = {
-              type: 'string',
-              description: "The reasoning of the Scorer process by #{jury}."
-            }
-            tmp["#{jury_key}_score"] = {
-              type: 'number',
-              description: "The score given by #{jury}.",
-              min: 0,
-              max: 100
-            }
-          end
+        @properties ||= juries.map { |jury| jury_properties(jury) }.reduce({}, :merge).merge(final_properties)
+      end
 
-          tmp[:final_score] = {
+      def jury_properties(jury)
+        jury_key = jury_key_for(jury)
+        {
+          "#{jury_key}_reasoning" => {
+            type: 'string',
+            description: "The reasoning of the Scorer process by #{jury}."
+          },
+          "#{jury_key}_score" => {
+            type: 'number',
+            description: "The score given by #{jury}.",
+            min: 0,
+            max: 100
+          }
+        }
+      end
+
+      def final_properties
+        {
+          final_score: {
             type: 'number',
             description: 'The final score based on the previous juries'
-          }
-          tmp[:final_reasoning] = {
+          },
+          final_reasoning: {
             type: 'string',
             description: 'The final reasoning based on the previous juries'
           }
-
-          tmp
-        end
+        }
       end
 
       # Jury names become JSON schema property keys, which providers cap at 64
