@@ -33,6 +33,9 @@ module ActiveGenie
         'E' => 1.0
       }.freeze
 
+      # Token characters that belong to the JSON around a value, not to the value.
+      JSON_PUNCTUATION = '",:{}[] '
+
       class << self
         # Calculates continuous expected value and normalized 0..1 score from log probability candidates.
         #
@@ -51,29 +54,16 @@ module ActiveGenie
         def calculate_continuous_score(candidates, min_score: nil, max_score: nil, token_map: nil)
           return nil if candidates.nil? || candidates.empty?
 
-          parsed_candidates = parse_candidates(candidates, token_map, min_score, max_score)
-          return nil if parsed_candidates.empty?
+          min_val, max_val = score_bounds(token_map, min_score, max_score)
+          probabilities = normalized_probabilities(parse_candidates(candidates, token_map, min_val, max_val))
+          return nil if probabilities.nil?
 
-          total_raw_probability = parsed_candidates.sum { |c| c[:raw_probability] }
-          return nil if total_raw_probability.zero?
-
-          normalized_candidates = build_normalized_probabilities(parsed_candidates, total_raw_probability)
-          expected_value = normalized_candidates.sum { |c| c[:score] * c[:probability] }
-
-          min_val = min_score || (token_map ? token_map.values.map(&:to_f).min : 1.0)
-          max_val = max_score || (token_map ? token_map.values.map(&:to_f).max : 10.0)
-
-          score_range = max_val - min_val
-          normalized_score = score_range.zero? ? 0.0 : (expected_value - min_val) / score_range.to_f
-          normalized_score = normalized_score.clamp(0.0, 1.0)
-
-          top_token = candidates.first[:token] || candidates.first['token']
-
+          expected_value = weighted_mean(probabilities)
           ContinuousScoreResult.new(
             expected_value: expected_value.round(4),
-            normalized_score: normalized_score.round(4),
-            probabilities: normalized_candidates,
-            top_token:
+            normalized_score: normalize(expected_value, min_val, max_val).round(4),
+            probabilities:,
+            top_token: field(candidates.first, :token)
           )
         end
 
@@ -89,19 +79,13 @@ module ActiveGenie
         # @param max_score [Numeric] Maximum score bound of the evaluation scale.
         # @return [AggregatedRewardResult, nil] Aggregated raw reward and normalized continuous score.
         def aggregate_expected_rewards(expected_rewards, min_score: 1.0, max_score: 5.0)
-          return nil if expected_rewards.nil? || expected_rewards.empty?
-
-          valid_rewards = expected_rewards.compact
+          valid_rewards = Array(expected_rewards).compact
           return nil if valid_rewards.empty?
 
           raw_expected_reward = (valid_rewards.sum.to_f / valid_rewards.size).round(4)
-          score_range = max_score - min_score
-          normalized_score = score_range.zero? ? 0.0 : (raw_expected_reward - min_score) / score_range.to_f
-          normalized_score = normalized_score.clamp(0.0, 1.0).round(4)
-
           AggregatedRewardResult.new(
             raw_expected_reward:,
-            normalized_score:,
+            normalized_score: normalize(raw_expected_reward, min_score, max_score).round(4),
             count: valid_rewards.size
           )
         end
@@ -116,50 +100,64 @@ module ActiveGenie
         def extract_field_candidates(logprobs_result, field_name, token_map: nil)
           return nil if logprobs_result.nil?
 
-          top_candidates_steps = logprobs_result['topCandidates'] || logprobs_result[:topCandidates]
-          chosen_candidates = logprobs_result['chosenCandidates'] || logprobs_result[:chosenCandidates]
+          top_candidates_steps = field(logprobs_result, :topCandidates)
+          chosen_candidates = field(logprobs_result, :chosenCandidates)
           return nil if top_candidates_steps.nil? || chosen_candidates.nil?
 
-          field_key = field_name.to_s
-          field_token_index = find_field_value_token_index(chosen_candidates, field_key, token_map)
-          return nil if field_token_index.nil? || field_token_index >= top_candidates_steps.size
-
-          step_data = top_candidates_steps[field_token_index]
-          step_data['candidates'] || step_data[:candidates]
+          field_token_index = find_field_value_token_index(chosen_candidates, field_name.to_s, token_map)
+          step_data = field_token_index && top_candidates_steps[field_token_index]
+          field(step_data, :candidates) if step_data
         end
 
         private
 
-        def parse_candidates(candidates, token_map, min_score, max_score)
+        # Logprobs arrive with symbol or string keys depending on who built them.
+        def field(hash, key)
+          hash[key] || hash[key.to_s]
+        end
+
+        # Without explicit bounds the scale spans the token map's values, or 1..10 for numeric tokens.
+        def score_bounds(token_map, min_score, max_score)
+          values = token_map ? token_map.values.map(&:to_f) : [1.0, 10.0]
+          [min_score || values.min, max_score || values.max]
+        end
+
+        # Linear position of value inside min..max, clamped to 0..1 (0.0 on a single-point scale).
+        def normalize(value, min_score, max_score)
+          score_range = max_score - min_score
+          return 0.0 if score_range.zero?
+
+          ((value - min_score) / score_range.to_f).clamp(0.0, 1.0)
+        end
+
+        def parse_candidates(candidates, token_map, min_val, max_val)
           candidates.filter_map do |candidate|
-            token = (candidate[:token] || candidate['token']).to_s
-            cleaned_token = token.tr('",:{}[] ', '')
-            next if cleaned_token.empty?
+            token = field(candidate, :token).to_s
+            score_val = resolve_token_score(token.tr(JSON_PUNCTUATION, ''), token_map)
+            next unless score_val&.between?(min_val, max_val)
 
-            score_val = resolve_token_score(cleaned_token, token_map)
-            next if score_val.nil?
-
-            min_val = min_score || (token_map ? token_map.values.map(&:to_f).min : 1.0)
-            max_val = max_score || (token_map ? token_map.values.map(&:to_f).max : 10.0)
-            next if score_val < min_val || score_val > max_val
-
-            log_prob = candidate[:logProbability] || candidate['logProbability'] || candidate[:log_probability] || 0.0
-            raw_prob = Math.exp(log_prob)
-
-            { score: score_val, raw_probability: raw_prob, token: }
+            { score: score_val, raw_probability: Math.exp(log_probability(candidate)), token: }
           end
         end
 
+        def log_probability(candidate)
+          field(candidate, :logProbability) || candidate[:log_probability] || 0.0
+        end
+
         def resolve_token_score(cleaned_token, token_map)
-          if token_map
-            key = token_map.keys.find { |k| k.to_s.casecmp(cleaned_token).zero? }
-            return token_map[key].to_f if key
-          end
+          return nil if cleaned_token.empty?
+
+          key = token_map&.keys&.find { |k| k.to_s.casecmp(cleaned_token).zero? }
+          return token_map[key].to_f if key
 
           numeric?(cleaned_token) ? cleaned_token.to_f : nil
         end
 
-        def build_normalized_probabilities(parsed_candidates, total_raw_probability)
+        # Rescales raw probabilities to sum to 1; nil when there is nothing to rescale.
+        def normalized_probabilities(parsed_candidates)
+          total_raw_probability = parsed_candidates.sum { |c| c[:raw_probability] }
+          return nil if total_raw_probability.zero?
+
           parsed_candidates.map do |c|
             {
               score: c[:score],
@@ -169,25 +167,34 @@ module ActiveGenie
           end
         end
 
+        def weighted_mean(probabilities)
+          probabilities.sum { |c| c[:score] * c[:probability] }
+        end
+
         def find_field_value_token_index(chosen_candidates, field_key, token_map)
-          tokens = chosen_candidates.map { |c| (c[:token] || c['token']).to_s }
+          tokens = chosen_candidates.map { |c| field(c, :token).to_s }
 
-          tokens.each_with_index do |token, idx|
-            next unless token.include?(field_key)
+          tokens.each_index do |idx|
+            next unless tokens[idx].include?(field_key)
 
-            # Look ahead for the value token after ':'
-            ((idx + 1)...[idx + 4, tokens.size].min).each do |value_idx|
-              val_token = tokens[value_idx].tr('",:{}[] ', '')
-              valid_value = if token_map
-                              token_map.keys.any? { |k| k.to_s.casecmp(val_token).zero? }
-                            else
-                              numeric?(val_token)
-                            end
-              return value_idx if valid_value
-            end
+            value_idx = value_token_index_after(tokens, idx, token_map)
+            return value_idx if value_idx
           end
 
           nil
+        end
+
+        # The value sits within the three tokens after the field name (past the `": ` separator).
+        def value_token_index_after(tokens, field_idx, token_map)
+          ((field_idx + 1)...[field_idx + 4, tokens.size].min).find do |value_idx|
+            value_token?(tokens[value_idx].tr(JSON_PUNCTUATION, ''), token_map)
+          end
+        end
+
+        def value_token?(val_token, token_map)
+          return numeric?(val_token) unless token_map
+
+          token_map.keys.any? { |k| k.to_s.casecmp(val_token).zero? }
         end
 
         def numeric?(str)
