@@ -81,23 +81,19 @@ module ActiveGenie
 
       def response_formatted(provider_response)
         raw_data = provider_response.slice(*@data_to_extract.keys.map(&:to_s)).transform_keys(&:to_sym)
-
-        filtered_data = raw_data.select do |key, _val|
-          accuracy_key = "#{key}_accuracy"
-          if provider_response.key?(accuracy_key)
-            provider_response[accuracy_key].to_i >= min_accuracy.to_i
-          else
-            true
-          end
-        end
-
-        first_reasoning_key = provider_response["#{provider_response.keys.first}_explanation"]
+        filtered_data = raw_data.select { |key, _val| accurate_enough?(provider_response, key) }
 
         ActiveGenie::Result.new(
           data: filtered_data,
-          reasoning: first_reasoning_key,
+          reasoning: provider_response["#{provider_response.keys.first}_explanation"],
           metadata: provider_response
         )
+      end
+
+      # A field the model gave no accuracy for is kept.
+      def accurate_enough?(provider_response, key)
+        accuracy_key = "#{key}_accuracy"
+        !provider_response.key?(accuracy_key) || provider_response[accuracy_key].to_i >= min_accuracy.to_i
       end
 
       def min_accuracy
