@@ -49,6 +49,12 @@ export default defineConfig({
         ]
       },
       {
+        text: 'Guides',
+        items: [
+          { text: 'Evaluating your features', link: '/guides/evals' },
+        ]
+      },
+      {
         text: 'Benchmark',
         items: [
           { text: 'Latest results', link: '/benchmark/latest' },

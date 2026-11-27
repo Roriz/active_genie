@@ -1,0 +1,22 @@
+# Models your evals run against. `dev` is what `active_genie:eval:quick` and `:full` use by default;
+# PROVIDER=... MODEL=... override it for one run. If your feature uses ActiveGenie, the run points
+# ActiveGenie at this provider and model; any other code gets them in the `call` block's context.
+dev:
+  provider: openai
+  model: gpt-6.1-terra
+
+# Grades `rubric` rows and the `fields` marked `judge: true`, only when YES=1. Pin it: changing the
+# judge changes the grades, so treat that as a new baseline.
+judge:
+  provider: anthropic
+  model: claude-sonnet-5-5
+
+# Prices for cost estimates (USD per million tokens). Without one, runs print token counts only.
+usd_per_million_tokens:
+  gpt-6.1-terra: { input: 1.0, output: 5.0 }
+
+# Used for the estimate until a run has recorded real token usage.
+default_tokens_per_case: { input: 3000, output: 1000 }
+
+# Cases run in parallel threads. Keep it at 1 if your feature isn't thread-safe.
+concurrency: 1

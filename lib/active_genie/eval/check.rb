@@ -1,0 +1,238 @@
+# frozen_string_literal: true
+
+module ActiveGenie
+  module Eval
+    # Free checks, no model calls: evals/config.yml, each eval.rb, and the integrity of every set and
+    # labels file. A typo in a gold would not fail loudly at run time: it would silently grade wrong.
+    class Check
+      ISO_DATE = /\A\d{4}-\d{2}-\d{2}\z/
+      ID = /\A[a-z0-9_]+\z/
+
+      attr_reader :errors, :warnings
+
+      def initialize
+        @errors = []
+        @warnings = []
+      end
+
+      def run(only: nil)
+        check_config
+        definitions = Eval.load!.values
+        if only
+          definitions = definitions.select { |d| d.name == only.to_s }
+          @errors << "no eval #{only} in evals/ (evals: #{Eval.definitions.keys.sort.join(', ')})" if definitions.empty?
+        elsif definitions.empty?
+          @warnings << 'no evals yet: create one with `rake "active_genie:eval:new[name]"`'
+        end
+        definitions.each { |definition| check_eval(definition) }
+        self
+      # An eval.rb that raises anything at load time (a typo, a missing require) is reported, not a crash.
+      rescue StandardError, ScriptError => e
+        @errors << "#{e.class}: #{e.message}"
+        self
+      end
+
+      def ok?
+        errors.empty?
+      end
+
+      def report
+        [*errors.map { |e| "ERROR #{e}" }, *warnings.map { |w| "WARN  #{w}" },
+         ok? ? 'check passed' : "check failed: #{errors.size} error(s)"].join("\n")
+      end
+
+      private
+
+      def check_config
+        config = Eval.config
+        concurrency = config['concurrency']
+        unless concurrency.nil? || (concurrency.is_a?(Integer) && concurrency.positive?)
+          @errors << "evals/config.yml: concurrency must be a positive integer, not #{concurrency.inspect}"
+        end
+        return if config['dev']
+
+        @warnings << 'evals/config.yml has no dev: { provider, model }; runs use your app\'s own defaults'
+      end
+
+      # Rubric rows and `judge: true` fields need the judge; without one a paid run grades nothing.
+      def check_judge(definition)
+        return if definition.custom_grader?
+
+        judge = Eval.config['judge']
+        return if judge.is_a?(Hash) && judge['provider'] && judge['model']
+
+        judged = definition.grader == 'rubric' || Store.sets(definition).any? do |set|
+          Store.rows(definition, set).any? do |row|
+            fields = row.dig('gold', 'fields') if row['gold'].is_a?(Hash)
+            fields.is_a?(Hash) && fields.values.any? { |spec| spec.is_a?(Hash) && spec['judge'] }
+          end
+        end
+        return unless judged
+
+        @errors << "#{definition.name}: grades with the judge, but evals/config.yml has no judge: { provider, model }"
+      end
+
+      def check_eval(definition)
+        name = definition.name
+        @errors << "#{name}: eval.rb has no `call` block" unless definition.subject
+        unless definition.custom_grader? || Definition::GRADERS.include?(definition.grader)
+          @errors << "#{name}: grader must be one of #{Definition::GRADERS.join(', ')} or a block, not #{definition.grader.inspect}"
+        end
+        definition.watch.each do |glob|
+          @warnings << "#{name}: watch #{glob.inspect} matches no file" if Dir.glob(File.join(Eval.app_root, glob)).empty?
+        end
+        check_sets(definition)
+        check_judge(definition)
+      end
+
+      def check_sets(definition)
+        name = definition.name
+        sets = Store.sets(definition)
+        @warnings << "#{name}: no sets yet in evals/#{name}/sets/" if sets.empty?
+        seen = {}
+        sets.each do |set|
+          rows = Store.rows(definition, set)
+          rows.each do |row|
+            where = "#{name}/#{set}/#{row['id']}"
+            @errors << "#{where}: id is also in set #{seen[row['id']]}" if seen.key?(row['id'])
+            seen[row['id']] ||= set
+            check_row(definition, row, where)
+          end
+          check_labels(definition, set, rows.map { |r| r['id'] })
+        end
+        labeled = Dir.glob(definition.path('labels', '*.jsonl')).map { |f| File.basename(f, '.jsonl') }
+        (labeled - sets).each { |set| @errors << "#{name}: labels/#{set}.jsonl has no set: it labels nothing" }
+      end
+
+      def check_row(definition, row, where)
+        @errors << "#{where}: id must be snake_case" unless row['id'].to_s.match?(ID)
+        @errors << "#{where}: pool must be dev or test" unless %w[dev test].include?(row['pool'])
+        unless row['status'].nil? || Store::STATUSES.include?(row['status'])
+          @errors << "#{where}: status must be one of #{Store::STATUSES.join(', ')} (or absent)"
+        end
+        if row.key?('on_disagreement') && row['on_disagreement'] != 'drop'
+          @errors << "#{where}: on_disagreement takes only \"drop\""
+        end
+        @errors << "#{where}: needs an input" unless row.key?('input')
+        return @errors << "#{where}: needs a gold" unless row['gold'].is_a?(Hash)
+        return if definition.custom_grader?
+
+        problem = case definition.grader
+                  when 'fields' then fields_problem(row['gold'])
+                  when 'band' then band_problem(row['gold'])
+                  when 'list' then list_problem(row['gold'])
+                  when 'rubric' then rubric_problem(row['gold'])
+                  end
+        @errors << "#{where}: #{problem}" if problem
+      end
+
+      def check_labels(definition, set, ids)
+        Store.labels(definition, set).each do |label|
+          where = "#{definition.name}/labels/#{set}"
+          @errors << "#{where}: #{label['id']} is not a row of the set" unless ids.include?(label['id'])
+          @errors << "#{where}/#{label['id']}: pass must be a or b" unless %w[a b].include?(label['pass'])
+        end
+      end
+
+      def fields_problem(gold)
+        fields = gold['fields']
+        return 'a fields gold needs a non-empty "fields" hash' unless fields.is_a?(Hash) && fields.any?
+
+        unknown = fields.reject { |_n, spec| spec.is_a?(Hash) && (spec['present'] == false || Matchers::CHECKS.include?(spec['check'])) }
+        return "unknown or missing check for #{unknown.keys.join(', ')} (checks: #{Matchers::CHECKS.join(', ')})" if unknown.any?
+
+        odd = fields.reject { |_n, spec| [true, false, 'optional'].include?(spec['present']) }
+        return "present must be true, false or \"optional\" for #{odd.keys.join(', ')}" if odd.any?
+
+        malformed = fields.reject { |_n, spec| spec['present'] == false || value_problem(spec).nil? }
+        if malformed.any?
+          return malformed.map { |name, spec| "#{name}: #{spec['check']} #{value_problem(spec)}" }.join('; ')
+        end
+
+        dates = fields.select { |_n, spec| spec['check'] == 'date' && !spec['value'].to_s.match?(ISO_DATE) }
+        return "date checks need an ISO value (YYYY-MM-DD) for #{dates.keys.join(', ')}" if dates.any?
+
+        unasked = fields.select { |_n, spec| spec['judge'] && spec['question'].to_s.strip.empty? }
+        "judge fields need a question: #{unasked.keys.join(', ')}" if unasked.any?
+      end
+
+      # A check's `value` the matcher can't use would crash the report after a paid run, or (a `between`
+      # without [lo, hi]) grade every output wrong.
+      def value_problem(spec)
+        value = spec['value']
+        case spec['check']
+        when 'regex' then regex_problem(value)
+        when 'contains_any', 'contains_all' then 'needs a list of texts' unless terms?(Array(value))
+        when 'gte', 'lte' then 'needs a number' unless value.is_a?(Numeric)
+        when 'between' then 'needs [lo, hi] numbers with lo <= hi' unless band?(value)
+        when 'near'
+          delta = spec['delta']
+          'needs a number and a "delta" >= 0' unless value.is_a?(Numeric) && delta.is_a?(Numeric) && delta >= 0
+        end
+      end
+
+      def band?(value)
+        value.is_a?(Array) && value.size == 2 && value.all?(Numeric) && value[0] <= value[1]
+      end
+
+      def regex_problem(value)
+        return 'needs a pattern text' unless value.is_a?(String)
+
+        Regexp.new(value)
+        nil
+      rescue RegexpError => e
+        "is not a valid pattern (#{e.message})"
+      end
+
+      def band_problem(gold)
+        lo, hi = gold['band']
+        'band must be [lo, hi] with lo <= hi' unless [lo, hi].all?(Numeric) && lo <= hi
+      end
+
+      def rubric_problem(gold)
+        return 'a rubric gold needs a "rubric" text' unless gold['rubric'].is_a?(String) && !gold['rubric'].strip.empty?
+
+        lo, hi = gold['band']
+        return if [lo, hi].all?(Numeric) && lo <= hi && lo >= 0 && hi <= 100
+
+        'a rubric gold needs a band [lo, hi] within 0..100'
+      end
+
+      def list_problem(gold)
+        checks = gold['checks']
+        return 'a list gold needs a non-empty "checks" array' unless checks.is_a?(Array) && checks.any?
+        return 'each list check must be an object with a type' unless checks.all? { |c| c.is_a?(Hash) && c['type'] }
+
+        unknown = checks.map { |c| c['type'] } - Graders::List::CHECKS.keys
+        return "unknown list checks #{unknown.join(', ')}" if unknown.any?
+
+        checks.filter_map { |c| list_check_problem(c) }.first
+      end
+
+      # A check takes exactly its settings: a misspelled key would otherwise be ignored by the grader.
+      def list_check_problem(check)
+        type = check['type']
+        settings = Graders::List::CHECKS.fetch(type)
+        odd = check.keys - ['type'] - settings
+        return "#{type} takes #{settings.join(' and ')}, not #{odd.join(', ')}" if odd.any?
+
+        bad = settings.reject do |key|
+          value = check[key]
+          case key
+          when 'k', 'min', 'n' then value.is_a?(Integer) && value.positive?
+          when 'any_of' then terms?(value)
+          when 'groups' then value.is_a?(Array) && value.any? && value.all? { |g| terms?(g) }
+          end
+        end
+        return "#{type} needs a well-formed #{bad.join(' and ')}" if bad.any?
+        return unless type == 'min_groups' && check['min'] > check['groups'].size
+
+        "min_groups min #{check['min']} is more than its #{check['groups'].size} groups"
+      end
+
+      def terms?(value)
+        value.is_a?(Array) && value.any? && value.all? { |t| t.is_a?(String) && !t.strip.empty? }
+      end
+    end
+  end
+end

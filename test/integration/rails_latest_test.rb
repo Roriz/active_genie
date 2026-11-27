@@ -23,5 +23,15 @@ module ActiveGenie
       assert_match(/Successfully installed active_genie!\n/, output)
       assert_path_exists "#{@rails_app_path}/config/initializers/active_genie.rb", 'Initializer file not created'
     end
+
+    def test_scaffolds_an_eval_that_passes_the_free_check
+      output = Bundler.with_unbundled_env do
+        `cd #{@rails_app_path} && bin/rails "active_genie:eval:new[ticket_router]" && bin/rails active_genie:eval:check 2>&1`
+      end
+
+      assert_path_exists "#{@rails_app_path}/evals/ticket_router/eval.rb"
+      assert_path_exists "#{@rails_app_path}/evals/README.md"
+      assert_match(/check passed/, output)
+    end
   end
 end
