@@ -211,6 +211,23 @@ module ActiveGenie
           assert_equal 50, result.metadata['age_accuracy']
         end
       end
+
+      def test_fields_without_an_accuracy_are_kept_and_the_first_explanation_is_the_reasoning
+        answer = { name: 'John Doe', name_explanation: 'Stated.', age: 25, age_accuracy: 40, profession: 'engineer',
+                   profession_accuracy: 90 }
+        tool_call = { function: { name: 'data_extractor', arguments: answer.to_json } }
+        stub_request(:post, 'https://api.openai.com/v1/chat/completions').to_return(
+          status: 200, body: { choices: [{ message: { tool_calls: [tool_call] } }], usage: { total_tokens: 1 } }.to_json
+        )
+
+        result = ActiveGenie::Extractor.with_explanation(
+          @text, @schema,
+          config: { llm: { model: 'gpt-5.6-luna' }, providers: { default: 'openai', openai: { api_key: 'secret' } } }
+        )
+
+        assert_equal({ name: 'John Doe', profession: 'engineer' }, result.data)
+        assert_equal 'Stated.', result.reasoning
+      end
     end
   end
 end
