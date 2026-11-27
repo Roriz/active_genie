@@ -34,24 +34,20 @@ module ActiveGenie
       end
 
       def debate(player_a, player_b)
-        debate_config = ActiveGenie::DeepMerge.call(
-          config.to_h,
-          { log: { additional_context: { player_a_id: player_a.id, player_b_id: player_b.id } } }
-        )
+        player_ids = { player_a_id: player_a.id, player_b_id: player_b.id }
 
         result = ActiveGenie::Comparator.by_debate(
           player_a.content,
           player_b.content,
           @criteria,
-          config: ActiveGenie.new_configuration(debate_config)
+          config: debate_config(player_ids)
         )
 
         winner, loser = winner_and_loser(result.data, player_a, player_b)
 
         ActiveGenie.logger.call(
           {
-            player_a_id: player_a.id,
-            player_b_id: player_b.id,
+            **player_ids,
             code: :free_for_all,
             winner: winner.to_s[0..20],
             loser: loser.to_s[0..20],
@@ -60,6 +56,13 @@ module ActiveGenie
         )
 
         [winner, loser]
+      end
+
+      # Every log line of the match carries both player ids.
+      def debate_config(player_ids)
+        ActiveGenie.new_configuration(
+          ActiveGenie::DeepMerge.call(config.to_h, { log: { additional_context: player_ids } })
+        )
       end
 
       # Comparator returns the winning content itself, which may be a String or

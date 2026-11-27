@@ -33,6 +33,14 @@ module ActiveGenie
         mock_provider_instance.verify
       end
 
+      def test_unknown_provider_raises_without_available_provider
+        config = Configuration.new({ llm: { model: 'command-r' }, providers: { default: 'cohere' } })
+
+        assert_raises(ActiveGenie::WithoutAvailableProviderError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+      end
+
       def test_choose_openai_by_model_name
         config = Configuration.new({ llm: { model: 'gpt-5' }, providers: { openai: { api_key: 'secret' } } })
 

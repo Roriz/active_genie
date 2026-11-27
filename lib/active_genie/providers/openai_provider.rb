@@ -29,19 +29,7 @@ module ActiveGenie
       # @param top_logprobs [Integer] Number of top candidate log probabilities per token step.
       # @return [Hash, nil] The parsed JSON object matching the schema, or { data: Hash, logprobs: Hash } if logprobs requested.
       def function_calling(messages, function, logprobs: false, top_logprobs: 5)
-        payload = {
-          messages:,
-          tools: [function_to_tool(function)],
-          tool_choice: { type: 'function', function: { name: function[:name] } },
-          stream: false,
-          model:,
-          temperature: @config.llm.temperature
-        }
-        if logprobs
-          payload[:logprobs] = true
-          payload[:top_logprobs] = top_logprobs
-        end
-
+        payload = build_payload(messages, function, logprobs ? { logprobs: true, top_logprobs: } : {})
         raw_response = request_allowing_reasoning_fallback(payload)
 
         raise InvalidResponseError, "Invalid response: #{raw_response}" if raw_response.nil? || raw_response.keys.empty?
@@ -52,8 +40,7 @@ module ActiveGenie
 
         return parsed_data unless logprobs
 
-        logprobs_data = normalize_openai_logprobs(raw_response.dig('choices', 0, 'logprobs'))
-        { data: parsed_data, logprobs: logprobs_data }
+        { data: parsed_data, logprobs: normalize_openai_logprobs(raw_response.dig('choices', 0, 'logprobs')) }
       end
 
       # Extracts field candidates from logprobsResult.
@@ -76,6 +63,18 @@ module ActiveGenie
       end
 
       private
+
+      def build_payload(messages, function, logprobs_options)
+        {
+          messages:,
+          tools: [function_to_tool(function)],
+          tool_choice: { type: 'function', function: { name: function[:name] } },
+          stream: false,
+          model:,
+          temperature: @config.llm.temperature,
+          **logprobs_options
+        }
+      end
 
       # Sends the request, and if the model refuses function tools while
       # reasoning is active, disables reasoning and sends it once more.
@@ -132,34 +131,26 @@ module ActiveGenie
         nil
       end
 
+      # Reshapes OpenAI's per-token logprobs into Gemini's logprobsResult,
+      # the shape LogprobsCalculator reads.
       def normalize_openai_logprobs(openai_logprobs)
-        return nil if openai_logprobs.nil?
-
-        content_steps = openai_logprobs['content'] || openai_logprobs[:content] || []
-        return nil if content_steps.empty?
-
-        chosen_candidates = content_steps.map do |step|
-          {
-            'token' => step['token'] || step[:token],
-            'logProbability' => step['logprob'] || step[:logprob] || 0.0
-          }
-        end
-
-        top_candidates = content_steps.map do |step|
-          top_probs = step['top_logprobs'] || step[:top_logprobs] || []
-          candidates = top_probs.map do |c|
-            {
-              'token' => c['token'] || c[:token],
-              'logProbability' => c['logprob'] || c[:logprob] || 0.0
-            }
-          end
-          { 'candidates' => candidates }
-        end
+        content_steps = openai_logprobs && value_at(openai_logprobs, 'content')
+        return nil if content_steps.nil? || content_steps.empty?
 
         {
-          'chosenCandidates' => chosen_candidates,
-          'topCandidates' => top_candidates
+          'chosenCandidates' => content_steps.map { |step| logprob_candidate(step) },
+          'topCandidates' => content_steps.map do |step|
+            { 'candidates' => Array(value_at(step, 'top_logprobs')).map { |c| logprob_candidate(c) } }
+          end
         }
+      end
+
+      def logprob_candidate(entry)
+        { 'token' => value_at(entry, 'token'), 'logProbability' => value_at(entry, 'logprob') || 0.0 }
+      end
+
+      def value_at(hash, key)
+        hash[key] || hash[key.to_sym]
       end
 
       def function_to_tool(function)

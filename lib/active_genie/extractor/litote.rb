@@ -32,27 +32,23 @@ module ActiveGenie
 
       def call
         response = Explanation.call(@text, extract_with_litote, config:)
-        is_litote = response.data[:message_litote]
         litote_rephrased = response.data[:litote_rephrased]
 
-        if is_litote
-          response = Explanation.call(litote_rephrased, @data_to_extract, config:)
-          meta = (response.metadata || {}).merge(
-            'message_litote' => true,
-            'litote_rephrased' => litote_rephrased
-          )
-          ActiveGenie::Result.new(data: response.data, reasoning: response.reasoning, metadata: meta)
+        if response.data[:message_litote]
+          rephrased_response = Explanation.call(litote_rephrased, @data_to_extract, config:)
+          litote_result(rephrased_response, rephrased_response.data, litote: true, litote_rephrased:)
         else
           clean_data = response.data.except(:message_litote, :litote_rephrased)
-          meta = (response.metadata || {}).merge(
-            'message_litote' => false,
-            'litote_rephrased' => litote_rephrased
-          )
-          ActiveGenie::Result.new(data: clean_data, reasoning: response.reasoning, metadata: meta)
+          litote_result(response, clean_data, litote: false, litote_rephrased:)
         end
       end
 
       private
+
+      def litote_result(response, data, litote:, litote_rephrased:)
+        metadata = (response.metadata || {}).merge('message_litote' => litote, 'litote_rephrased' => litote_rephrased)
+        ActiveGenie::Result.new(data:, reasoning: response.reasoning, metadata:)
+      end
 
       def extract_with_litote
         parameters = JSON.parse(File.read(File.join(__dir__, 'litote.json')), symbolize_names: true)

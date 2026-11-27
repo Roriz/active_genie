@@ -24,18 +24,8 @@ module ActiveGenie
       # @raise [RefusalError] when Gemini blocks the prompt or the answer.
       # @raise [InvalidResponseError] when the answer is missing, cut off, or not a JSON object.
       def function_calling(messages, function, logprobs: false, top_logprobs: 5)
-        contents = convert_messages_to_contents(messages, function)
-        contents << output_as_json_schema(function)
-
-        generation_config = {
-          response_mime_type: 'application/json',
-          temperature: 0.1
-        }
-        if logprobs
-          generation_config[:responseLogprobs] = true
-          generation_config[:logprobs] = top_logprobs
-        end
-
+        contents = convert_messages_to_contents(messages, function) << output_as_json_schema(function)
+        generation_config = build_generation_config(logprobs ? { responseLogprobs: true, logprobs: top_logprobs } : {})
         payload = { contents:, generationConfig: generation_config }
 
         response = execute_function_calling_request(payload, generation_config, logprobs)
@@ -49,8 +39,7 @@ module ActiveGenie
         parsed_data = normalize_response(json_string)
         return parsed_data unless logprobs
 
-        logprobs_data = response&.dig('candidates', 0, 'logprobsResult')
-        { data: parsed_data, logprobs: logprobs_data }
+        { data: parsed_data, logprobs: response&.dig('candidates', 0, 'logprobsResult') }
       end
 
       # Extracts field candidates from logprobsResult.
@@ -81,6 +70,11 @@ module ActiveGenie
       }.freeze
 
       private
+
+      # A fresh hash per call: the logprobs fallback deletes keys from it.
+      def build_generation_config(logprobs_options)
+        { response_mime_type: 'application/json', temperature: 0.1, **logprobs_options }
+      end
 
       def execute_function_calling_request(payload, generation_config, logprobs_requested)
         retry_with_backoff do
@@ -129,21 +123,23 @@ module ActiveGenie
       end
 
       def normalize_response(json_string)
-        parsed_response = begin
-          JSON.parse(json_string)
-        rescue JSON::ParserError
-          raise InvalidResponseError, "Google answer is not valid JSON: #{json_string[0, 200]}"
-        end
-
-        output = if parsed_response.is_a?(Array)
-                   parsed_response.dig(0, 'properties') || parsed_response[0]
-                 else
-                   parsed_response
-                 end
-
+        output = unwrap_array(parse_json(json_string))
         raise InvalidResponseError, "Google answer is not a JSON object: #{json_string[0, 200]}" unless output.is_a?(Hash)
 
         output.dig('input_schema', 'properties') || output
+      end
+
+      def parse_json(json_string)
+        JSON.parse(json_string)
+      rescue JSON::ParserError
+        raise InvalidResponseError, "Google answer is not valid JSON: #{json_string[0, 200]}"
+      end
+
+      # Gemini sometimes wraps the object in an array, or answers with the schema shape itself.
+      def unwrap_array(parsed_response)
+        return parsed_response unless parsed_response.is_a?(Array)
+
+        parsed_response.dig(0, 'properties') || parsed_response[0]
       end
 
       # Converts standard message format to Google's 'contents' format

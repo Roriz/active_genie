@@ -1,10 +1,3 @@
-inherit_from: .rubocop_todo.yml
-
-# Combine Exclude lists with the todo file instead of replacing them.
-inherit_mode:
-  merge:
-    - Exclude
-
 # The behavior of RuboCop can be controlled via the .rubocop.yml
 # configuration file. It makes it possible to enable/disable
 # certain cops (checks) and to alter their behavior if they accept
@@ -29,6 +22,9 @@ AllCops:
 Style/Documentation:
   Enabled: false
 
+# The Metrics cops skip tests, where a test reads best as one straight
+# arrange-act-assert sequence, and the eval engine with its rake tasks.
+# Every other file meets the limits; there are no per-file excludes.
 Metrics/MethodLength:
   CountComments: false
   CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
