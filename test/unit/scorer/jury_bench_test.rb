@@ -6,6 +6,11 @@ require 'webmock/minitest'
 module ActiveGenie
   module Scorer
     class JuryBenchTest < Minitest::Test
+      OPENAI_CONFIG = {
+        llm: { model: 'gpt-5.6-luna' },
+        providers: { default: 'openai', openai: { api_key: 'openai_secret' } }
+      }.freeze
+
       def setup
         @criteria = 'How much positive sentiment is expressed in the text? Where 0 is very negative, 100 is the most positive as possible.'
         @text_to_score = 'This is the best thing ever!'
@@ -253,6 +258,46 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
         assert_equal 100, props['senior_software_engineer_score'][:max]
       end
 
+      def test_function_schema_lists_each_jury_then_the_final_fields
+        jury_bench = JuryBench.new(@text_to_score, @criteria, ['Grammar Expert', 'Tone Advocate'])
+
+        props = jury_bench.send(:build_function)[:parameters][:properties]
+
+        assert_equal ['grammar_expert_reasoning', 'grammar_expert_score', 'tone_advocate_reasoning',
+                      'tone_advocate_score', :final_score, :final_reasoning], props.keys
+        assert_equal 'The reasoning of the Scorer process by Tone Advocate.',
+                     props['tone_advocate_reasoning'][:description]
+        assert_equal({ type: 'string', description: 'The final reasoning based on the previous juries' },
+                     props[:final_reasoning])
+      end
+
+      def test_jury_score_logprobs_stand_in_when_the_final_score_has_none
+        stub_scorer_with_logprobs({ final_score: 50, final_reasoning: 'Mixed.' },
+                                  score_steps('grammar_expert_score', 80) + score_steps('tone_advocate_score', 60))
+
+        result = JuryBench.call(@text_to_score, @criteria, ['Grammar Expert', 'Tone Advocate'], config: OPENAI_CONFIG)
+
+        assert_in_delta 70.0, result.data
+        assert_equal(
+          { 'logprobs_used' => true, 'continuous_final_score' => 70.0,
+            'juries_raw_expected_reward' => 70.0, 'juries_normalized_score' => 0.7 },
+          result.metadata.slice('logprobs_used', 'continuous_final_score', 'juries_raw_expected_reward',
+                                'juries_normalized_score', 'final_score_expected_value')
+        )
+      end
+
+      def test_logprobs_without_scored_fields_fall_back_to_the_written_final_score
+        stub_scorer_with_logprobs({ final_score: 42, final_reasoning: 'Plain.' }, [step('{'), step('}')])
+
+        result = JuryBench.call(@text_to_score, @criteria, ['Grammar Expert'], config: OPENAI_CONFIG)
+
+        assert_equal 42, result.data
+        assert_equal(
+          { 'logprobs_used' => true, 'continuous_final_score' => 42 },
+          result.metadata.except('final_score', 'final_reasoning')
+        )
+      end
+
       # Critical Path: Fallback Behavior
       def test_fallback_data_score_when_final_score_missing
         # Mock-free testing: Stub provider to return JSON tool response without final_score
@@ -353,6 +398,27 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
           assert_equal true, result.metadata['logprobs_used']
           assert_in_delta 84.0, result.metadata['continuous_final_score'], 0.5
         end
+      end
+
+      private
+
+      def stub_scorer_with_logprobs(arguments, steps)
+        choice = {
+          message: { tool_calls: [{ function: { name: 'scorer', arguments: arguments.to_json } }] },
+          logprobs: { content: steps }
+        }
+
+        stub_request(:post, 'https://api.openai.com/v1/chat/completions')
+          .to_return(status: 200, body: { choices: [choice], usage: { total_tokens: 1 } }.to_json)
+      end
+
+      # One OpenAI logprobs step whose only candidate is the chosen token.
+      def step(token)
+        { token:, logprob: 0.0, top_logprobs: [{ token:, logprob: 0.0 }] }
+      end
+
+      def score_steps(field, score)
+        [step(field), step('": '), step(score.to_s)]
       end
     end
   end
