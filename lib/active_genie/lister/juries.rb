@@ -37,52 +37,54 @@ module ActiveGenie
           {  role: 'user', content: "<text-to-score>#{@text}</text-to-score>" }
         ]
 
-        function = {
-          name: 'identify_jury',
-          description: 'Discover a list of juries based on the text and given criteria.',
-          parameters: {
-            type: 'object',
-            properties: {
-              why_these_juries: {
-                type: 'string',
-                description: 'A brief explanation of why these juries were chosen.'
-              },
-              juries: {
-                type: 'array',
-                description: 'The list of best juries',
-                items: {
-                  type: 'string'
-                }
-              }
-            },
-            required: %w[why_these_juries juries]
-          }
-        }
-
         provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
           messages,
-          function,
+          FUNCTION,
           config:
         )
 
-        juries = provider_response['juries'] || []
-        if juries.is_a?(String)
-          begin
-            juries = JSON.parse(juries)
-          rescue JSON::ParserError
-            juries = juries.split(',').map(&:strip)
-          end
-        end
-        juries = Array(juries).map(&:to_s).map(&:strip).reject(&:empty?)
-
         ActiveGenie::Result.new(
-          data: juries,
+          data: normalize_juries(provider_response['juries'] || []),
           reasoning: provider_response['why_these_juries'],
           metadata: provider_response
         )
       end
 
+      FUNCTION = {
+        name: 'identify_jury',
+        description: 'Discover a list of juries based on the text and given criteria.',
+        parameters: {
+          type: 'object',
+          properties: {
+            why_these_juries: {
+              type: 'string',
+              description: 'A brief explanation of why these juries were chosen.'
+            },
+            juries: {
+              type: 'array',
+              description: 'The list of best juries',
+              items: {
+                type: 'string'
+              }
+            }
+          },
+          required: %w[why_these_juries juries]
+        }
+      }.freeze
+
       private
+
+      # Models sometimes answer the array as a JSON string or a comma-separated list.
+      def normalize_juries(juries)
+        juries = parse_juries_string(juries) if juries.is_a?(String)
+        Array(juries).map(&:to_s).map(&:strip).reject(&:empty?)
+      end
+
+      def parse_juries_string(juries)
+        JSON.parse(juries)
+      rescue JSON::ParserError
+        juries.split(',').map(&:strip)
+      end
 
       def prompt
         @prompt ||= File.read(File.join(__dir__, 'juries.prompt.md'))
