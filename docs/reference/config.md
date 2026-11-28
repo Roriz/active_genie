@@ -11,7 +11,7 @@ Set defaults once, at boot:
 ```ruby
 ActiveGenie.configure do |config|
   config.providers.openai.api_key = ENV['OPENAI_API_KEY']
-  config.llm.model = 'gpt-4o-mini'
+  config.llm.model = 'gpt-5.6-luna'
 end
 ```
 
@@ -46,7 +46,7 @@ ActiveGenie ships with four providers: OpenAI, Anthropic, DeepSeek, and Google. 
 
 | Provider | Key | Environment variable | Default model | Default API URL |
 | :--- | :--- | :--- | :--- | :--- |
-| OpenAI | `:openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | `https://api.openai.com/v1` |
+| OpenAI | `:openai` | `OPENAI_API_KEY` | `gpt-5.6-luna` | `https://api.openai.com/v1` |
 | Anthropic | `:anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-5-5` | `https://api.anthropic.com` |
 | DeepSeek | `:deepseek` | `DEEPSEEK_API_KEY` | `deepseek-flash` | `https://api.deepseek.com/v1` |
 | Google | `:google` | `GENERATIVE_LANGUAGE_GOOGLE_API_KEY`, falling back to `GEMINI_API_KEY` | `gemini-3.8-flash` | `https://generativelanguage.googleapis.com` |

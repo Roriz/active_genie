@@ -26,7 +26,7 @@ require_relative 'scoring'
 # @param criteria [String] Evaluation criteria configuration
 #   Example: "What is more similar to the letter 'O'?"
 # @param config [Hash] Additional configuration config
-#   Example: { model: "gpt-4o", api_key: ENV['OPENAI_API_KEY'] }
+#   Example: { llm: { model: 'gpt-5.6-luna' } }
 # @return [Hash] Final ranked player results
 module ActiveGenie
   module Ranker
