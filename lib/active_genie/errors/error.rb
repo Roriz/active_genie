@@ -18,9 +18,8 @@ module ActiveGenie
 
     def self.docs_url = "#{DOCS_URL}##{code.downcase}"
 
-    # A plain message is passed through as is, like any StandardError.
-    def initialize(message = nil, **values)
-      super(message || compose(values))
+    def initialize(**values)
+      super(compose(values))
     end
 
     def code = self.class.code

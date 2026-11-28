@@ -39,9 +39,11 @@ Plain `rake test` also runs `test:integration`, which builds a Rails app in `/tm
   `ranker/values/players.rb`.
 - `lib/active_genie/eval/` is the eval engine. It ships with the gem so apps can eval their own LLM
   features. `evals/` is the gem's own eval data, run on that same engine.
-- `lib/tasks/` is shipped. `ActiveGenie.load_tasks` loads only `install.rake` and `eval.rake` into
-  apps, because `test.rake` would hook an app's `rake test` and clear its API keys. Tasks only the
-  gem needs go in `tasks/`, which isn't shipped.
+- `lib/tasks/` is shipped. `ActiveGenie.load_tasks` loads only `install.rake`, `eval.rake` and
+  `eval_install.rake` into apps, because `test.rake` would hook an app's `rake test` and clear its
+  API keys. Tasks only the gem needs go in `tasks/`, which isn't shipped. The install tasks keep
+  their templates next to them in `lib/tasks/templates/`: `active_genie.rb` for `install.rake`, and
+  `eval/` for `eval_install.rake` (`active_genie:eval:install` and `active_genie:eval:new[name]`).
 - `test/unit/` (offline, WebMock and per-provider fixtures), `test/integration/` (installs into a
   fresh Rails app) and `test/e2e/` (live, paid).
 - `tmp/` is gitignored and skipped by RuboCop. Put scratch files and downloads there.
@@ -114,7 +116,7 @@ the code returns, so that is what to grade, and fixing the parsing is as valid a
 prompt.
 
 The gem's evals are described in `evals/README.md`. The method (running, reading a report, writing
-an eval, graders, labeling) is in `lib/active_genie/eval/templates/README.md`, which is also the
+an eval, graders, labeling) is in `lib/tasks/templates/eval/README.md`, which is also the
 guide apps get.
 
 ## Tests

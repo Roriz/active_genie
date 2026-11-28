@@ -3,6 +3,7 @@
 require_relative '../test_helper'
 require 'tmpdir'
 require_relative '../../../lib/active_genie/eval'
+require_relative '../tasks/eval_install_helper'
 
 # Variants (several subjects on the same cases, compared head to head), twin rows (an input and the
 # same input with one change, run with a shared context), the winner grader's labeling, and the
@@ -14,7 +15,7 @@ class AppEvalVariantsTwinsTest < Minitest::Test
     @app = Dir.mktmpdir
     Eval.reset!
     Eval.app_root = @app
-    Eval::Scaffold.install(io: StringIO.new)
+    capture_io { EvalInstallTasks.invoke('install') }
     File.write(File.join(@app, 'picker.rb'), 'v1')
     @io = StringIO.new
   end

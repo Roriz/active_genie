@@ -3,7 +3,7 @@
 These are the gem's evals. They're built the way any app builds its evals, with the engine the gem
 ships (`ActiveGenie::Eval`). Every change to `lib/` is measured against a frozen baseline of `main`.
 
-**The method is in [the app guide](../lib/active_genie/eval/templates/README.md)**: running an eval,
+**The method is in [the app guide](../lib/tasks/templates/eval/README.md)**: running an eval,
 reading the report, the good practices, writing an eval, the row format, the graders and labeling.
 `rake active_genie:eval:install` writes that same guide into an app's `evals/`. This page covers only
 what is specific to the gem.

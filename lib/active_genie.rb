@@ -45,7 +45,7 @@ module ActiveGenie
       Rake::Task.define_task(:environment)
       # Only the tasks meant for apps. tasks/test.rake is the gem's own test suite: loaded into an app,
       # it would hook `rake test` and clear the app's API keys.
-      %w[install eval].each { |name| load File.join(__dir__, 'tasks', "#{name}.rake") }
+      %w[install eval eval_install].each { |name| load File.join(__dir__, 'tasks', "#{name}.rake") }
     end
   end
 end

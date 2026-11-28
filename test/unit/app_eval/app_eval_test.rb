@@ -3,8 +3,9 @@
 require_relative '../test_helper'
 require 'tmpdir'
 require_relative '../../../lib/active_genie/eval'
+require_relative '../tasks/eval_install_helper'
 
-# ActiveGenie::Eval end to end inside a throwaway app: scaffold -> define -> run -> report -> baseline
+# ActiveGenie::Eval end to end inside a throwaway app: install -> define -> run -> report -> baseline
 # -> regression verdict, plus graders, the judge cache, labeling and the free check. No model is called.
 class AppEvalTest < Minitest::Test
   Eval = ActiveGenie::Eval
@@ -29,7 +30,7 @@ class AppEvalTest < Minitest::Test
     Eval.reset!
     Eval.app_root = @app
     @io = StringIO.new
-    Eval::Scaffold.install(io: @io)
+    capture_io { EvalInstallTasks.invoke('install') }
     File.write(File.join(@app, 'router.rb'), 'v1')
     @answers = { 'refund me' => { 'intent' => 'refund' }, 'where is it' => { 'intent' => 'delivery' } }
   end
@@ -39,27 +40,6 @@ class AppEvalTest < Minitest::Test
     Eval.reset!
     Eval::Judge.online = false
     FileUtils.rm_rf(@app)
-  end
-
-  def test_scaffold_writes_the_starting_files_and_never_overwrites
-    Eval::Scaffold.new_eval('ticket_router', io: @io)
-    eval_rb = File.join(@app, 'evals', 'ticket_router', 'eval.rb')
-    File.write(eval_rb, '# mine')
-    Eval::Scaffold.new_eval('ticket_router', io: @io)
-
-    assert_equal '# mine', File.read(eval_rb)
-    %w[config.yml README.md .gitignore ticket_router/datasets.jsonl].each do |file|
-      assert_path_exists File.join(@app, 'evals', file)
-    end
-    assert_match(%r{exists  evals/ticket_router/eval.rb}, @io.string)
-    assert_raises(Eval::Error) { Eval::Scaffold.new_eval('Ticket Router', io: @io) }
-  end
-
-  def test_the_scaffolded_eval_passes_the_check_once_it_calls_something
-    Eval::Scaffold.new_eval('ticket_router', io: @io)
-    check = Eval::Check.new.run
-
-    assert_predicate check, :ok?, check.report
   end
 
   def test_an_eval_is_named_after_its_folder
