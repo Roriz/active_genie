@@ -160,17 +160,6 @@ namespace :active_genie do
   end
 
   namespace :eval do
-    desc 'Write evals/config.yml, evals/README.md and evals/.gitignore (never overwrites)'
-    task :install do
-      ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.eval_lib::Scaffold.install }
-    end
-
-    desc 'Start a new eval: evals/<name>/eval.rb and a starting datasets.jsonl. Usage: active_genie:eval:new[name]'
-    task :new, [:name] do |_t, args|
-      name = args[:name] || ENV.fetch('EVAL') { abort 'Usage: rake "active_genie:eval:new[ticket_router]"' }
-      ActiveGenieEvalTasks.guard { ActiveGenieEvalTasks.eval_lib::Scaffold.new_eval(name) }
-    end
-
     desc 'Free: check evals/config.yml and every eval, datasets.jsonl and gold.jsonl. EVAL=<name> for one'
     task check: :environment do
       check = ActiveGenieEvalTasks.eval_lib::Check.new.run(only: ENV.fetch('EVAL', nil))

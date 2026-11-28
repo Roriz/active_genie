@@ -3,6 +3,7 @@
 require_relative '../test_helper'
 require 'tmpdir'
 require_relative '../../../lib/active_genie/eval'
+require_relative '../tasks/eval_install_helper'
 
 # The parts of a run you read: the overview and plan before it, the progress line during it, and the
 # report's confusion matrices after it, in text and markdown.
@@ -15,7 +16,7 @@ class AppEvalReportTest < Minitest::Test
     @app = Dir.mktmpdir
     Eval.reset!
     Eval.app_root = @app
-    Eval::Scaffold.install(io: StringIO.new)
+    capture_io { EvalInstallTasks.invoke('install') }
     File.write(File.join(@app, 'router.rb'), 'v1')
   end
 
