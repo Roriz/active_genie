@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+require_relative '../../test_helper'
 
 module ActiveGenie
   module Ranker
-    module Entities
+    module Values
       class PlayersTest < Minitest::Test
         def test_tier_calculations_with_correct_indexing
           # Create 20 players with descending sort values (via scores)

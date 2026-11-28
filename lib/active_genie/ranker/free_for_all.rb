@@ -8,7 +8,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, config: nil)
-        @players = Entities::Players.new(players)
+        @players = Values::Players.new(players)
         @criteria = criteria
         @initial_config = config
         @start_time = Time.now

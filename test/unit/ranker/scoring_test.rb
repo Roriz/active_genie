@@ -16,7 +16,7 @@ module ActiveGenie
       end
 
       def test_scoring_assigns_scores_to_players_without_scores
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', score: nil },
             { id: 'player_b', content: 'Player B content', score: nil },
@@ -40,7 +40,7 @@ module ActiveGenie
       end
 
       def test_scoring_does_not_rescore_players_with_existing_scores
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', score: 80 },
             { id: 'player_b', content: 'Player B content', score: 90 }
@@ -61,7 +61,7 @@ module ActiveGenie
       end
 
       def test_scoring_with_custom_juries
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', score: nil },
             { id: 'player_b', content: 'Player B content', score: nil }
@@ -79,7 +79,7 @@ module ActiveGenie
       end
 
       def test_scoring_handles_empty_player_list
-        players = ActiveGenie::Ranker::Entities::Players.new([])
+        players = ActiveGenie::Ranker::Values::Players.new([])
         criteria = 'test criteria'
 
         # Should not raise an error
@@ -92,7 +92,7 @@ module ActiveGenie
       end
 
       def test_scoring_with_auto_generated_juries
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', score: nil }
           ]
@@ -111,7 +111,7 @@ module ActiveGenie
       end
 
       def test_scoring_with_empty_juries_array_triggers_auto_generation
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', score: nil }
           ]
@@ -146,7 +146,7 @@ module ActiveGenie
             openai_tool_response(final_score: 50, final_reasoning: 'stubbed')
           end
         end
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           (1..3).map { |i| { id: "player_#{i}", content: "Player #{i} content" } }
         )
 
@@ -157,7 +157,7 @@ module ActiveGenie
       end
 
       def test_scoring_with_mixed_scored_and_unscored_players
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', score: 85 },
             { id: 'player_b', content: 'Player B content', score: nil },

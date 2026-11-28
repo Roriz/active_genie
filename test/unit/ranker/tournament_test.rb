@@ -302,7 +302,7 @@ module ActiveGenie
       end
 
       def test_accepts_players_instance
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content' },
             { id: 'player_b', content: 'Player B content' }

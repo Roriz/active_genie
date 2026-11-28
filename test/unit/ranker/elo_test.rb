@@ -26,7 +26,7 @@ module ActiveGenie
       end
 
       def test_result_data_contains_sorted_player_contents
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', elo: 1000 },
             { id: 'player_b', content: 'Player B content', elo: 1000 }
@@ -56,7 +56,7 @@ module ActiveGenie
       end
 
       def test_elo_updates_after_debates
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', elo: 1000 },
             { id: 'player_b', content: 'Player B content', elo: 1000 }
@@ -88,7 +88,7 @@ module ActiveGenie
       end
 
       def test_elo_diff_tracking
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', elo: 1000 },
             { id: 'player_b', content: 'Player B content', elo: 1000 }
@@ -116,7 +116,7 @@ module ActiveGenie
 
       def test_every_match_conserves_the_total_rating
         stub_judge('player_a')
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           (1..20).map { |i| { id: "player_#{i}", content: "Player #{i} content", elo: 900 + (i * 10) } }
         )
         total_before = players.sum(&:elo)
@@ -128,7 +128,7 @@ module ActiveGenie
       end
 
       def test_highest_elo_tracking
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', elo: 1000 },
             { id: 'player_b', content: 'Player B content', elo: 1000 }
@@ -157,7 +157,7 @@ module ActiveGenie
       # opponents must alternate between its top and bottom, or one lower-tier
       # player faces only the strongest and another only the weakest.
       def test_every_lower_tier_player_faces_both_stronger_and_weaker_opponents
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           (1..20).map { |i| { id: "player_#{i}", content: "Player #{i} content", score: 101 - i } }
         )
         elo = Elo.new(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
@@ -184,7 +184,7 @@ module ActiveGenie
       end
 
       def create_players(count, elo_split: false)
-        ActiveGenie::Ranker::Entities::Players.new(
+        ActiveGenie::Ranker::Values::Players.new(
           (1..count).map do |i|
             {
               id: "player_#{i}",

@@ -4,7 +4,7 @@ require_relative 'player'
 
 module ActiveGenie
   module Ranker
-    module Entities
+    module Values
       class Players
         def initialize(players)
           @players = if players.is_a?(Players)

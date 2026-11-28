@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+require_relative '../../test_helper'
 
 module ActiveGenie
   module Ranker
-    module Entities
+    module Values
       class PlayerTest < Minitest::Test
         def test_initialization_with_string_keys
           params = { 'name' => 'Alice', 'content' => 'Alice is a writer', 'score' => 80 }

@@ -34,6 +34,9 @@ Plain `rake test` also runs `test:integration`, which builds a Rails app in `/tm
   response.
 - `lib/active_genie/configs/` holds the config classes. `configuration.rb` wires them together.
 - `lib/active_genie/errors/` holds the user-facing errors.
+- `lib/active_genie/values/` holds the plain objects the modules return or pass around, such as
+  `ActiveGenie::Result`. A module's own ones live in `<module>/values/`, like
+  `ranker/values/players.rb`.
 - `lib/active_genie/eval/` is the eval engine. It ships with the gem so apps can eval their own LLM
   features. `evals/` is the gem's own eval data, run on that same engine.
 - `lib/tasks/` is shipped. `ActiveGenie.load_tasks` loads only `install.rake` and `eval.rake` into

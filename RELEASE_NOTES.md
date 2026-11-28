@@ -1,3 +1,15 @@
+# ActiveGenie Unreleased
+
+## Behavior changes to check before upgrading
+
+- **`Ranker::Entities` is now `Ranker::Values`.** `ActiveGenie::Ranker::Entities::Player` and
+  `ActiveGenie::Ranker::Entities::Players` are renamed to `ActiveGenie::Ranker::Values::Player` and
+  `ActiveGenie::Ranker::Values::Players`, with no alias for the old names. Their behavior is the same.
+  The files moved from `lib/active_genie/entities/` to `lib/active_genie/ranker/values/`, and
+  `ActiveGenie::Result` keeps its name but now lives in `lib/active_genie/values/result.rb`.
+
+---
+
 # ActiveGenie v1.0.0.rc2 Release Notes
 
 The second release candidate for 1.0. The eval engine the gem uses on itself now ships in the gem, so

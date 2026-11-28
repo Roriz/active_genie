@@ -21,4 +21,4 @@ concurrency: 4
 watch:
   - lib/active_genie.rb
   - lib/active_genie/{configuration,logger}.rb
-  - lib/active_genie/{comparator,configs,entities,errors,extractor,lister,providers,ranker,scorer,utils}{.rb,/**/*}
+  - lib/active_genie/{comparator,configs,errors,extractor,lister,providers,ranker,scorer,utils,values}{.rb,/**/*}

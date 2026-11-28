@@ -17,7 +17,7 @@ module ActiveGenie
 
       # Critical Path: Result Interface
       def test_returns_result_with_sorted_players_as_data
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', ffa_win_count: 0 },
             { id: 'player_b', content: 'Player B content', ffa_win_count: 0 }
@@ -33,7 +33,7 @@ module ActiveGenie
       end
 
       def test_returns_result_with_required_metadata
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content' },
             { id: 'player_b', content: 'Player B content' }
@@ -43,7 +43,7 @@ module ActiveGenie
         result = FreeForAll.call(players, 'test criteria', config: { providers: { openai: { api_key: 'test_key' } } })
 
         assert_kind_of String, result.metadata[:free_for_all_id]
-        assert_kind_of ActiveGenie::Ranker::Entities::Players, result.metadata[:players]
+        assert_kind_of ActiveGenie::Ranker::Values::Players, result.metadata[:players]
         assert_equal 1, result.metadata[:debates_count]
         assert_kind_of Float, result.metadata[:duration_seconds]
         assert_kind_of Integer, result.metadata[:total_tokens]
@@ -86,7 +86,7 @@ module ActiveGenie
 
       # Critical Path: Ranking Logic
       def test_ranks_players_by_ffa_score
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', ffa_win_count: 2 },
             { id: 'player_b', content: 'Player B content', ffa_win_count: 0 }
@@ -102,7 +102,7 @@ module ActiveGenie
       end
 
       def test_updates_player_win_and_lose_counts
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content', ffa_win_count: 0, ffa_lose_count: 0 },
             { id: 'player_b', content: 'Player B content', ffa_win_count: 0, ffa_lose_count: 0 }
@@ -122,7 +122,7 @@ module ActiveGenie
 
       # Critical Path: Match Generation
       def test_creates_correct_number_of_matches
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           (1..5).map { |i| { id: "player_#{i}", content: "Player #{i} content" } }
         )
 
@@ -133,7 +133,7 @@ module ActiveGenie
       end
 
       def test_creates_all_unique_pairwise_combinations
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           (1..4).map { |i| { id: "player_#{i}", content: "Player #{i} content" } }
         )
 
@@ -160,7 +160,7 @@ module ActiveGenie
 
       # Critical Path: Edge Cases
       def test_handles_two_players_minimum
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content' },
             { id: 'player_b', content: 'Player B content' }
@@ -174,7 +174,7 @@ module ActiveGenie
       end
 
       def test_all_players_participate_in_battles
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           (1..10).map { |i| { id: "player_#{i}", content: "Player #{i} content" } }
         )
 
@@ -203,7 +203,7 @@ module ActiveGenie
       # The judge stub decides by content, so these hold whatever order matches are paired in.
       def test_credits_the_judged_winner_when_players_are_hashes
         stub_judge { |a, b| winner_by_content(a, b) }
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [{ id: 'weak', content: { name: 'Weak' } }, { id: 'strong', content: { name: 'Strong' } }]
         )
 
@@ -216,7 +216,7 @@ module ActiveGenie
 
       def test_credits_the_judged_winner_when_players_are_strings
         stub_judge { |a, b| winner_by_content(a, b) }
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [{ id: 'weak', content: 'Weak' }, { id: 'strong', content: 'Strong' }]
         )
 
@@ -229,7 +229,7 @@ module ActiveGenie
 
       def test_records_a_draw_when_the_judge_picks_no_winner
         stub_judge { nil }
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [{ id: 'player_a', content: 'Player A content' }, { id: 'player_b', content: 'Player B content' }]
         )
 
@@ -240,7 +240,7 @@ module ActiveGenie
       end
 
       def test_accepts_players_instance
-        players = ActiveGenie::Ranker::Entities::Players.new(
+        players = ActiveGenie::Ranker::Values::Players.new(
           [
             { id: 'player_a', content: 'Player A content' },
             { id: 'player_b', content: 'Player B content' }

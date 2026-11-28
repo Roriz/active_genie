@@ -4,7 +4,7 @@ require 'digest'
 
 module ActiveGenie
   module Ranker
-    module Entities
+    module Values
       class Player
         def initialize(params)
           @params = if params.is_a?(String)
