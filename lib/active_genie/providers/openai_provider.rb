@@ -6,7 +6,6 @@ require 'net/http'
 require_relative 'base_provider'
 require_relative 'usage_logger'
 require_relative 'tool_arguments'
-require_relative '../utils/logprobs_calculator'
 
 module ActiveGenie
   module Providers
@@ -25,11 +24,9 @@ module ActiveGenie
       # @param messages [Array<Hash>] A list of messages representing the conversation history.
       #   Each hash should have :role ('user', 'assistant', or 'system') and :content (String).
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @param logprobs [Boolean] Whether to request and return token log probabilities.
-      # @param top_logprobs [Integer] Number of top candidate log probabilities per token step.
-      # @return [Hash, nil] The parsed JSON object matching the schema, or { data: Hash, logprobs: Hash } if logprobs requested.
-      def function_calling(messages, function, logprobs: false, top_logprobs: 5)
-        payload = build_payload(messages, function, logprobs ? { logprobs: true, top_logprobs: } : {})
+      # @return [Hash, nil] The parsed JSON object matching the schema.
+      def function_calling(messages, function, **)
+        payload = build_payload(messages, function)
         raw_response = request_allowing_reasoning_fallback(payload)
 
         raise InvalidResponseError, "Invalid response: #{raw_response}" if raw_response.nil? || raw_response.keys.empty?
@@ -38,41 +35,19 @@ module ActiveGenie
         ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: raw_response },
                                 config: @config)
 
-        return parsed_data unless logprobs
-
-        { data: parsed_data, logprobs: normalize_openai_logprobs(raw_response.dig('choices', 0, 'logprobs')) }
-      end
-
-      # Extracts field candidates from logprobsResult.
-      def extract_field_logprobs(logprobs_result, field_name, token_map: nil)
-        ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(logprobs_result, field_name, token_map:)
-      end
-
-      # Computes expected value and normalized score from candidate logprobs.
-      def calculate_continuous_score(candidates, min_score: nil, max_score: nil, token_map: nil)
-        ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(
-          candidates, min_score:, max_score:, token_map:
-        )
-      end
-
-      # Aggregates raw expected rewards across multiple evaluation criteria (C) and repetitions (K).
-      def aggregate_expected_rewards(expected_rewards, min_score: 1.0, max_score: 5.0)
-        ActiveGenie::Utils::LogprobsCalculator.aggregate_expected_rewards(
-          expected_rewards, min_score:, max_score:
-        )
+        parsed_data
       end
 
       private
 
-      def build_payload(messages, function, logprobs_options)
+      def build_payload(messages, function)
         {
           messages:,
           tools: [function_to_tool(function)],
           tool_choice: { type: 'function', function: { name: function[:name] } },
           stream: false,
           model:,
-          temperature: @config.llm.temperature,
-          **logprobs_options
+          temperature: @config.llm.temperature
         }
       end
 
@@ -129,28 +104,6 @@ module ActiveGenie
         parsed if parsed.is_a?(Hash)
       rescue JSON::ParserError
         nil
-      end
-
-      # Reshapes OpenAI's per-token logprobs into Gemini's logprobsResult,
-      # the shape LogprobsCalculator reads.
-      def normalize_openai_logprobs(openai_logprobs)
-        content_steps = openai_logprobs && value_at(openai_logprobs, 'content')
-        return nil if content_steps.nil? || content_steps.empty?
-
-        {
-          'chosenCandidates' => content_steps.map { |step| logprob_candidate(step) },
-          'topCandidates' => content_steps.map do |step|
-            { 'candidates' => Array(value_at(step, 'top_logprobs')).map { |c| logprob_candidate(c) } }
-          end
-        }
-      end
-
-      def logprob_candidate(entry)
-        { 'token' => value_at(entry, 'token'), 'logProbability' => value_at(entry, 'logprob') || 0.0 }
-      end
-
-      def value_at(hash, key)
-        hash[key] || hash[key.to_sym]
       end
 
       def function_to_tool(function)

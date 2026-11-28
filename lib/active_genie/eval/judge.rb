@@ -127,19 +127,17 @@ module ActiveGenie
           response = ActiveGenie::Providers::UnifiedProvider.function_calling(
             messages, FUNCTION, config: ActiveGenie.new_configuration(@config)
           )
-          data = response.is_a?(Hash) && response.key?(:data) ? response[:data] : response
-          data.is_a?(Hash) ? data.transform_keys(&:to_s) : data
+          response.is_a?(Hash) ? response.transform_keys(&:to_s) : response
         end
 
         # One fixed jury: without it the Scorer asks a model to pick juries per question, an extra paid
         # call whose answer changes the verdict. The Scorer reads a missing score as 0, so the score is
-        # kept only when the answer (or its logprobs) carried one; else the answer counts as malformed.
+        # kept only when the answer carried one; else the answer counts as malformed.
         def rubric(payload)
           result = ActiveGenie::Scorer.call(payload[:candidate], payload[:rubric], juries: RUBRIC_JURIES,
                                                                                    config: @config)
           meta = result.metadata.is_a?(Hash) ? result.metadata.transform_keys(&:to_s) : {}
-          scored = %w[final_score final_score_expected_value juries_raw_expected_reward].any? { |k| !meta[k].nil? }
-          { 'score' => (result.data if scored), 'reason' => result.reasoning.to_s }
+          { 'score' => (result.data unless meta['final_score'].nil?), 'reason' => result.reasoning.to_s }
         end
       end
     end

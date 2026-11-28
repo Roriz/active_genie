@@ -26,7 +26,7 @@ module ActiveGenie
         @provider = OpenaiProvider.new(@config)
       end
 
-      def test_function_calling_without_logprobs
+      def test_function_calling_returns_the_parsed_arguments
         mock_response = {
           'choices' => [
             {
@@ -50,60 +50,7 @@ module ActiveGenie
         end
       end
 
-      def test_function_calling_with_logprobs
-        mock_response = {
-          'choices' => [
-            {
-              'message' => {
-                'tool_calls' => [
-                  {
-                    'function' => {
-                      'arguments' => '{"score": 8}'
-                    }
-                  }
-                ]
-              },
-              'logprobs' => {
-                'content' => [
-                  { 'token' => 'score', 'logprob' => -0.1, 'top_logprobs' => [{ 'token' => 'score', 'logprob' => -0.1 }] },
-                  {
-                    'token' => '8',
-                    'logprob' => -0.22314,
-                    'top_logprobs' => [
-                      { 'token' => '8', 'logprob' => -0.22314 },
-                      { 'token' => '7', 'logprob' => -1.60943 }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
-
-        captured_payload = nil
-        @provider.stub(:request, lambda { |payload|
-          captured_payload = payload
-          mock_response
-        }) do
-          result = @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, logprobs: true, top_logprobs: 10)
-
-          assert_equal true, captured_payload[:logprobs]
-          assert_equal 10, captured_payload[:top_logprobs]
-          assert_equal({ 'score' => 8 }, result[:data])
-          refute_nil result[:logprobs]
-
-          candidates = @provider.extract_field_logprobs(result[:logprobs], 'score')
-
-          refute_nil candidates
-
-          score_res = @provider.calculate_continuous_score(candidates, min_score: 1.0, max_score: 10.0)
-
-          refute_nil score_res
-          assert_in_delta 7.8, score_res.expected_value, 0.1
-        end
-      end
-
-      def test_request_without_logprobs_does_not_ask_for_them
+      def test_request_sends_only_the_chat_completion_fields
         stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop')
 
         call_openai
@@ -111,43 +58,10 @@ module ActiveGenie
         assert_requested(:post, 'https://api.openai.com/v1/chat/completions') do |req|
           body = JSON.parse(req.body)
 
-          refute body.key?('logprobs')
-          refute body.key?('top_logprobs')
+          assert_equal %w[messages tools tool_choice stream model temperature], body.keys
           assert_equal 'gpt-5.6-luna', body['model']
           assert_equal({ 'type' => 'function', 'function' => { 'name' => 'score_function' } }, body['tool_choice'])
         end
-      end
-
-      def test_logprobs_requested_but_not_returned_come_back_nil
-        stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop')
-
-        result = @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, logprobs: true)
-
-        assert_equal({ data: { 'score' => 8 }, logprobs: nil }, result)
-      end
-
-      def test_logprobs_are_reshaped_into_chosen_and_top_candidates
-        stub_openai(
-          message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop',
-          logprobs: { content: [{ token: '8', logprob: -0.2, top_logprobs: [{ token: '8', logprob: -0.2 }] },
-                                { token: '}' }] }
-        )
-
-        result = @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, logprobs: true)
-
-        assert_equal(
-          {
-            'chosenCandidates' => [{ 'token' => '8', 'logProbability' => -0.2 }, { 'token' => '}', 'logProbability' => 0.0 }],
-            'topCandidates' => [{ 'candidates' => [{ 'token' => '8', 'logProbability' => -0.2 }] }, { 'candidates' => [] }]
-          },
-          result[:logprobs]
-        )
-      end
-
-      def test_empty_logprobs_content_comes_back_nil
-        stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'stop', logprobs: { content: [] })
-
-        assert_nil @provider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, logprobs: true)[:logprobs]
       end
 
       # Critical Path: answers without a usable tool call must raise, not

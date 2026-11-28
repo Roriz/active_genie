@@ -271,31 +271,17 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
                      props[:final_reasoning])
       end
 
-      def test_jury_score_logprobs_stand_in_when_the_final_score_has_none
-        stub_scorer_with_logprobs({ final_score: 50, final_reasoning: 'Mixed.' },
-                                  score_steps('grammar_expert_score', 80) + score_steps('tone_advocate_score', 60))
+      def test_the_written_final_score_is_the_score_even_when_the_juries_disagree
+        arguments = { grammar_expert_score: 80, tone_advocate_score: 60, final_score: 50, final_reasoning: 'Mixed.' }
+        choice = { message: { tool_calls: [{ function: { name: 'scorer', arguments: arguments.to_json } }] } }
+        stub_request(:post, 'https://api.openai.com/v1/chat/completions')
+          .to_return(status: 200, body: { choices: [choice], usage: { total_tokens: 1 } }.to_json)
 
         result = JuryBench.call(@text_to_score, @criteria, ['Grammar Expert', 'Tone Advocate'], config: OPENAI_CONFIG)
 
-        assert_in_delta 70.0, result.data
-        assert_equal(
-          { 'logprobs_used' => true, 'continuous_final_score' => 70.0,
-            'juries_raw_expected_reward' => 70.0, 'juries_normalized_score' => 0.7 },
-          result.metadata.slice('logprobs_used', 'continuous_final_score', 'juries_raw_expected_reward',
-                                'juries_normalized_score', 'final_score_expected_value')
-        )
-      end
-
-      def test_logprobs_without_scored_fields_fall_back_to_the_written_final_score
-        stub_scorer_with_logprobs({ final_score: 42, final_reasoning: 'Plain.' }, [step('{'), step('}')])
-
-        result = JuryBench.call(@text_to_score, @criteria, ['Grammar Expert'], config: OPENAI_CONFIG)
-
-        assert_equal 42, result.data
-        assert_equal(
-          { 'logprobs_used' => true, 'continuous_final_score' => 42 },
-          result.metadata.except('final_score', 'final_reasoning')
-        )
+        assert_equal 50, result.data
+        assert_equal 'Mixed.', result.reasoning
+        assert_equal arguments.transform_keys(&:to_s), result.metadata
       end
 
       # Critical Path: Fallback Behavior
@@ -365,60 +351,6 @@ The score of 73 places this in the \"Good\" range, indicating a strong conceptua
 
         assert_equal res1.data, res2.data
         assert_equal res1.reasoning, res2.reasoning
-      end
-
-      def test_logprobs_continuous_final_score_calculation
-        mock_logprobs_response = {
-          data: {
-            'final_score' => 80,
-            'final_reasoning' => 'High quality response'
-          },
-          logprobs: {
-            'chosenCandidates' => [
-              { 'token' => 'final_score' }, { 'token' => '": ' }, { 'token' => '85' }
-            ],
-            'topCandidates' => [
-              { 'candidates' => [{ 'token' => 'final_score' }] },
-              { 'candidates' => [{ 'token' => '": ' }] },
-              {
-                'candidates' => [
-                  { 'token' => '85', 'logProbability' => -0.22314 },
-                  { 'token' => '80', 'logProbability' => -1.60943 }
-                ]
-              }
-            ]
-          }
-        }
-
-        ActiveGenie::Providers::UnifiedProvider.stub(:function_calling, mock_logprobs_response) do
-          result = JuryBench.call(@text_to_score, @criteria, ['Grammar Expert'])
-
-          assert_in_delta 84.0, result.data, 0.5
-          assert_equal 'High quality response', result.reasoning
-          assert_equal true, result.metadata['logprobs_used']
-          assert_in_delta 84.0, result.metadata['continuous_final_score'], 0.5
-        end
-      end
-
-      private
-
-      def stub_scorer_with_logprobs(arguments, steps)
-        choice = {
-          message: { tool_calls: [{ function: { name: 'scorer', arguments: arguments.to_json } }] },
-          logprobs: { content: steps }
-        }
-
-        stub_request(:post, 'https://api.openai.com/v1/chat/completions')
-          .to_return(status: 200, body: { choices: [choice], usage: { total_tokens: 1 } }.to_json)
-      end
-
-      # One OpenAI logprobs step whose only candidate is the chosen token.
-      def step(token)
-        { token:, logprob: 0.0, top_logprobs: [{ token:, logprob: 0.0 }] }
-      end
-
-      def score_steps(field, score)
-        [step(field), step('": '), step(score.to_s)]
       end
     end
   end

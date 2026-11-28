@@ -85,8 +85,7 @@ Some tests stub internal ActiveGenie code instead of HTTP:
   test's direct collaborator, and the behaviour under test is which provider gets picked.
 - `test/unit/providers/{openai,google}_provider_test.rb` stub the provider's own `request` method
   to feed it parsed bodies.
-- The logprobs tests in `comparator/debate_test.rb`, `scorer/jury_bench_test.rb` and
-  `extractor/with_explanation_test.rb` stub `UnifiedProvider.function_calling`.
+- `extractor/with_explanation_test.rb` stubs `UnifiedProvider.function_calling` in one test.
 - `ranker/scoring_test.rb` stubs `Lister::Juries.call` in two tests.
 
 Treat these as existing exceptions, not as the pattern to follow. For new tests, stub HTTP. Stub an

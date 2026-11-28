@@ -83,8 +83,7 @@ tests. The Ranker makes no model calls of its own. It composes `Comparator.by_de
 Providers are a closed list, so a new one touches every place that lists them:
 
 1. `lib/active_genie/providers/<name>_provider.rb`: subclass `BaseProvider` (Net::HTTP with retries)
-   and implement `function_calling(messages, function, **)`. Modules may pass `logprobs:` and
-   `top_logprobs:`, so accept them even when the API has no logprobs.
+   and implement `function_calling(messages, function, **)`.
 2. `lib/active_genie/configs/providers/<name>_config.rb`: subclass `ProviderBase` with `api_key`
    (with an env fallback), `api_url`, `default_model` and `valid_model?`.
 3. Register it in `ProvidersConfig::BUILT_IN` and `UnifiedProvider::PROVIDER_NAME_TO_PROVIDER`.

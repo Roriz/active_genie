@@ -23,19 +23,14 @@ module ActiveGenie
         # "<unknown>", "'None'". A phrase such as "None of the above" is a value.
         PLACEHOLDER = /\A\W*(?:null|none|undefined|unknown)\W*\z/i
 
-        def function_calling(messages, function, config: {}, logprobs: false, top_logprobs: 5)
+        def function_calling(messages, function, config: {})
           model, provider_name = model_and_provider_by(config)
 
           provider = provider_class(provider_name)
 
           config.llm.model = model
 
-          provider_instance = provider.new(config)
-          response = if logprobs
-                       provider_instance.function_calling(messages, function, logprobs:, top_logprobs:)
-                     else
-                       provider_instance.function_calling(messages, function)
-                     end
+          response = provider.new(config).function_calling(messages, function)
 
           normalize_response(response, function)
         end
@@ -98,12 +93,11 @@ module ActiveGenie
 
         # A placeholder the field's own enum lists ("none", "unknown") is an answer, so it stays.
         def normalize_response(response, function)
-          target_hash = response.is_a?(Hash) && response.key?(:data) ? response[:data] : response
-          return response unless target_hash.is_a?(Hash)
+          return response unless response.is_a?(Hash)
 
           properties = function.dig(:parameters, :properties)
-          target_hash.each do |key, value|
-            target_hash[key] = nil if placeholder?(value) && !enum_of(properties, key).include?(value)
+          response.each do |key, value|
+            response[key] = nil if placeholder?(value) && !enum_of(properties, key).include?(value)
           end
 
           response

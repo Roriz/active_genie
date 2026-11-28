@@ -2,7 +2,6 @@
 
 require_relative '../providers/unified_provider'
 require_relative '../utils/text_case'
-require_relative '../utils/logprobs_calculator'
 
 module ActiveGenie
   module Scorer
@@ -11,7 +10,7 @@ module ActiveGenie
     # with the ability to automatically recommend juries when none are specified.
     #
     # The Scorer process evaluates text based on given criteria and returns detailed feedback
-    # including individual jury scores, reasoning, and a final aggregated continuous score based on logprobs.
+    # including individual jury scores, reasoning, and the final score the model writes from them.
     #
     # @example JuryBench usage with a single jury
     #   JuryBench.call("Sample text", "Evaluate grammar and clarity", ["Grammar Expert"])
@@ -41,14 +40,7 @@ module ActiveGenie
           { role: 'user', content: "Text to score: #{@text}" }
         ]
 
-        provider_response = ::ActiveGenie::Providers::UnifiedProvider.function_calling(
-          messages,
-          build_function,
-          config:,
-          logprobs: true
-        )
-
-        response_formatted(provider_response)
+        response_formatted(ActiveGenie::Providers::UnifiedProvider.function_calling(messages, build_function, config:))
       end
 
       PROMPT = File.read(File.join(__dir__, 'jury_bench.prompt.md'))
@@ -58,80 +50,13 @@ module ActiveGenie
 
       private
 
-      def response_formatted(provider_response)
-        data = extract_data(provider_response)
-        logprobs_result = extract_logprobs(provider_response)
-
-        final_score_val, logprob_metadata = calculate_final_score(data, logprobs_result)
-        reasoning = data&.dig('final_reasoning')
-        combined_metadata = (data || {}).merge(logprob_metadata)
-
+      # A missing final_score reads as 0; Eval::Judge relies on the metadata to tell the two apart.
+      def response_formatted(data)
         ActiveGenie::Result.new(
-          data: final_score_val,
-          reasoning:,
-          metadata: combined_metadata
+          data: data&.dig('final_score') || data&.dig(:final_score) || 0,
+          reasoning: data&.dig('final_reasoning'),
+          metadata: data || {}
         )
-      end
-
-      def extract_data(provider_response)
-        if provider_response.is_a?(Hash) && provider_response.key?(:data)
-          provider_response[:data]
-        else
-          provider_response
-        end
-      end
-
-      def extract_logprobs(provider_response)
-        provider_response.is_a?(Hash) ? provider_response[:logprobs] : nil
-      end
-
-      def calculate_final_score(data, logprobs_result)
-        fallback_score = written_final_score(data)
-        return [fallback_score, {}] if logprobs_result.nil?
-
-        final_score_cands = ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(
-          logprobs_result, 'final_score'
-        )
-        final_score_calc = ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(
-          final_score_cands, min_score: 0.0, max_score: 100.0
-        )
-
-        jury_expected_values = compute_jury_expected_values(logprobs_result)
-        aggregated_jury_reward = ActiveGenie::Utils::LogprobsCalculator.aggregate_expected_rewards(
-          jury_expected_values, min_score: 0.0, max_score: 100.0
-        )
-
-        chosen_score = final_score_calc&.expected_value || aggregated_jury_reward&.raw_expected_reward || fallback_score
-        logprob_metadata = build_logprob_metadata(final_score_calc, aggregated_jury_reward, chosen_score)
-
-        [chosen_score, logprob_metadata]
-      end
-
-      def written_final_score(data)
-        data&.dig('final_score') || data&.dig(:final_score) || 0
-      end
-
-      def compute_jury_expected_values(logprobs_result)
-        juries.filter_map do |jury|
-          jury_key = jury_key_for(jury)
-          cands = ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(logprobs_result, "#{jury_key}_score")
-          calc = ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(cands, min_score: 0.0,
-                                                                                          max_score: 100.0)
-          calc&.expected_value
-        end
-      end
-
-      def build_logprob_metadata(final_score_calc, aggregated_jury_reward, chosen_score)
-        meta = { 'logprobs_used' => true, 'continuous_final_score' => chosen_score }
-        meta['final_score_expected_value'] = final_score_calc.expected_value if final_score_calc
-        meta['final_score_normalized'] = final_score_calc.normalized_score if final_score_calc
-
-        if aggregated_jury_reward
-          meta['juries_raw_expected_reward'] = aggregated_jury_reward.raw_expected_reward
-          meta['juries_normalized_score'] = aggregated_jury_reward.normalized_score
-        end
-
-        meta
       end
 
       def build_function
