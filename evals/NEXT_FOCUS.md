@@ -117,9 +117,12 @@ one is a hypothesis to test with a paired run, not a decided change.
   orders 98.0% and 96.1%. On the 41 paired test cases `by_debate` fixes 3 cases `by_fight` misses and
   loses none (exact McNemar p = 0.25): the direction supports "a longer debate makes the decision
   easier", but the sample cannot show it. Keeping only pairs both labelers agree on made the set
-  easy. To test the theory, adjudicate the 17 dropped pairs where one labeler agreed with the
-  crowdworker and the other said "either" (the labeling desk, phase 5), and draft harder pairs.
-  Three of the four failures have the shorter reply as the winner (`tags.length`).
+  easy. Three of the four failures have the shorter reply as the winner (`tags.length`).
+  Adjudicated 2026-11-27: of the 18 dropped pairs where one labeler agreed with the crowdworker and
+  the other said "either", 11 are now `decided` (all with the crowdworker's pick) and 7 `excluded`
+  as having no better reply. The test pool runs 50 cases (39 confirmed + 11 decided; 25
+  `picked_longer`, 25 `picked_shorter`), and 23 stay dropped. The 11 have two flawed replies, so
+  they should be harder than the 39. No run on them yet. Harder drafted pairs are still to come.
 - **No "either" cases in the comparator test pool.** hh-rlhf always has a pick, so ties and
   taste-dependent pairs are only in the dev pool (from `test/e2e`). Draft some if consistency on
   ties matters.
@@ -174,8 +177,8 @@ Need a paired run (nothing changed yet):
   that needs inference. First draft about 15 such cases into `extractor` (yes/no as a string
   enum, so null is possible), then run both wordings as variants of `extractor` (about 89 cases).
 - **The comparator picks the shorter reply in three of four failures.** Four failures can't show a
-  bias. After the harder pairs below, run `EVAL=comparator` (59 cases, two variants, both orders) and
-  compare the failure rate of `picked_shorter` (20 test cases) with `picked_longer` (19).
+  bias. Run `EVAL=comparator` (70 cases, two variants, both orders) and compare the failure rate
+  of `picked_shorter` (25 test cases) with `picked_longer` (25).
 - **Distraction lowers scores most; one jury against three.** Run `EVAL=scorer_by_jury_bench` (45
   cases, 15 of them twin rows) with two variants, `three_juries` and `one_jury` (the first jury
   `Lister.with_juries` picks), and compare the mean |gap| per bias in the twin pairs table. It says
@@ -201,8 +204,10 @@ Need data or a decision:
   `academia_scientific_rigor_high`, `legal_brief_quality`, dev only). Rewrite them to contain the
   work: a diff, a methods section, the brief's argument. Lowering the bands would reward scoring
   claims nobody can check.
-- **Harder comparator pairs.** The labels now hold 18 dropped pairs where one pass agrees with the
-  crowdworker and the other says "either". Adjudicate those, and draft harder pairs.
+- **Harder comparator pairs.** Done 2026-11-27 for the 18 dropped pairs where one pass agrees
+  with the crowdworker and the other says "either": Claude adjudicated them, with 11 `decided` (no
+  gold changed) and 7 `excluded`. The reason for each is in its `why`. Drafting harder pairs is
+  still open.
 - **"Either" cases.** There are 6, all dev. Draft about 10 test ties if consistency on ties matters.
 - **Lister at the ceiling.** Whether to run our own survey (cost, and who answers) is the owner's
   call.
