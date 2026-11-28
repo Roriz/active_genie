@@ -73,6 +73,12 @@
   provider with a key recognises it (`o3`, a fine-tune, a gateway model), the call used to swap in
   another provider's default model without a word. It now raises `InvalidModelError`, which shows the
   `providers.default` to set. A provider's own `default_model` now always resolves to that provider.
+- **`ActiveGenie::Eval::Scaffold` is removed.** It shipped in rc2. Write the starting files with
+  `rake active_genie:eval:install` and `rake "active_genie:eval:new[name]"`, which now live in
+  `lib/tasks/eval_install.rake` and which `ActiveGenie.load_tasks` loads. The templates moved from
+  `lib/active_genie/eval/templates/` to `lib/tasks/templates/eval/`. A name that isn't snake_case
+  raises `ActiveGenie::Eval::InvalidEvalNameError` (`AG-E206`), still an `Eval::Error`, and the task
+  prints it without a backtrace.
 - **Fix: `InvalidLogOutputError` was a `NameError`.** Its file was never loaded, so setting
   `config.log.output` to something that can't be called raised `NameError` instead.
 
