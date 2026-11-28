@@ -51,7 +51,9 @@ class EvalInstallTest < Minitest::Test
       assert_raises(SystemExit) { EvalInstallTasks.invoke('new', 'Ticket Router') }
     end
 
-    assert_equal "eval names are snake_case, like ticket_router (not \"Ticket Router\")\n", err
+    assert_equal "#{Eval::InvalidEvalNameError.new('Ticket Router').message}\n", err
+    assert_includes err, 'rake "active_genie:eval:new[ticket_router]"'
+    assert_match(/#ag-e206\n\z/, err)
     refute_path_exists File.join(@app, 'evals')
   end
 

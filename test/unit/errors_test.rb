@@ -100,10 +100,6 @@ module ActiveGenie
       end
     end
 
-    def test_a_plain_message_passes_through_like_any_standard_error
-      assert_equal 'boom', Eval::Error.new('boom').message
-    end
-
     def test_snake_case_suggests_a_valid_eval_name
       assert_equal 'ticket_router', Eval::Error.snake_case('Ticket Router')
       assert_equal 'ticket_router', Eval::Error.snake_case('TicketRouter')

@@ -25,9 +25,16 @@ module ActiveGenieEvalInstall
     write('.gitignore', read('gitignore'))
   end
 
+  # A gem error, such as a bad eval name, prints its message without a backtrace, as eval.rake's do.
+  def guard
+    yield
+  rescue ActiveGenie::Error => e
+    abort e.message
+  end
+
   # evals/<name>/eval.rb and a starting datasets.jsonl with example rows.
   def new_eval(name)
-    abort "eval names are snake_case, like ticket_router (not #{name.inspect})" unless name.match?(NAME)
+    raise eval_lib::InvalidEvalNameError, name unless name.match?(NAME)
 
     install unless File.exist?(eval_lib.path('config.yml'))
     write(File.join(name, 'eval.rb'), eval_rb(name))
@@ -65,7 +72,7 @@ namespace :active_genie do
     desc 'Start a new eval: evals/<name>/eval.rb and a starting datasets.jsonl. Usage: active_genie:eval:new[name]'
     task :new, [:name] do |_t, args|
       name = args[:name] || ENV.fetch('EVAL') { abort 'Usage: rake "active_genie:eval:new[ticket_router]"' }
-      ActiveGenieEvalInstall.new_eval(name)
+      ActiveGenieEvalInstall.guard { ActiveGenieEvalInstall.new_eval(name) }
     end
   end
 end
