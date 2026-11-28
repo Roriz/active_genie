@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../entities/players'
+require_relative 'values/players'
 
 module ActiveGenie
   module Ranker
@@ -10,7 +10,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, config: nil)
-        @players = Entities::Players.new(players)
+        @players = Values::Players.new(players)
         @higher_tier = @players.calc_higher_tier
         @lower_tier = @players.calc_lower_tier
         @criteria = criteria

@@ -3,7 +3,7 @@
 require_relative 'active_genie/logger'
 require_relative 'active_genie/configuration'
 
-require_relative 'active_genie/entities/result'
+require_relative 'active_genie/values/result'
 require_relative 'active_genie/utils/base_module'
 require_relative 'active_genie/utils/deep_merge'
 require_relative 'active_genie/utils/logprobs_calculator'

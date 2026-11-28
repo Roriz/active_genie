@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../entities/players'
+require_relative 'values/players'
 require_relative 'free_for_all'
 require_relative 'elo'
 require_relative 'scoring'
@@ -32,7 +32,7 @@ module ActiveGenie
   module Ranker
     class Tournament < ActiveGenie::BaseModule
       def initialize(players, criteria, juries: [], config: {})
-        @players = Entities::Players.new(players)
+        @players = Values::Players.new(players)
         @criteria = criteria
         @juries = Array(juries).compact.uniq
         super(config:)

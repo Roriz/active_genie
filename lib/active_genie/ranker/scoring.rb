@@ -10,7 +10,7 @@ module ActiveGenie
       end
 
       def initialize(players, criteria, juries: [], config: nil)
-        @players = Entities::Players.new(players)
+        @players = Values::Players.new(players)
         @criteria = criteria
         @initial_config = config
         @juries = Array(juries).compact.uniq
