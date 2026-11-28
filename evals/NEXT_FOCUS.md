@@ -36,8 +36,10 @@ and of the Airbnb integration feedback. Each one is a hypothesis.
 
 - **Specification**
   - `Lister::Juries` shipped with the Family Feud prompt (#90): the instruction was simply wrong.
+    Resolved in #90.
   - The juries function schema required `reasoning` while its properties defined `why_these_juries`.
-    DeepSeek then sometimes returned `juries` as a string (Airbnb feedback).
+    DeepSeek then sometimes returned `juries` as a string (Airbnb feedback). Resolved in 3cf43b8
+    (v0.30.11): `required` names `why_these_juries`, and a `juries` string is parsed into a list.
   - "Null if the text does not say" invited abstaining on yes/no questions that needed inference.
   - `Extractor::Explanation` and litote use a strict non-nullable schema; only `min_accuracy` keeps
     them from inventing values.
@@ -45,6 +47,7 @@ and of the Airbnb integration feedback. Each one is a hypothesis.
   - Migrated scorer cases describe the work ("100% test coverage") instead of containing it.
   - The comparator and lister test pools sit at the ceiling, so the eval never sees hard inputs.
   - `Player` assumed symbol keys; real callers pass parsed JSON with string keys (Airbnb feedback).
+    Resolved in 3cf43b8 (v0.30.11): `Player` turns its keys into symbols.
 - **Generalization**
   - Three of the four comparator failures pick the shorter reply (`tags.length`).
   - In the scorer bias pairs, distraction lowers scores most (mean -5.0).
@@ -52,6 +55,10 @@ and of the Airbnb integration feedback. Each one is a hypothesis.
 
 Most bugs that reached users so far are specification or comprehension failures, not generalization.
 More techniques won't fix those.
+
+The three items marked resolved are fixed in the code. The rest are still open. Where each one
+stands, and the run or decision that would settle it, is in
+[Where the open items stand](#where-the-open-items-stand-2026-11-26) below.
 
 ## Candidate next steps, per gulf
 
@@ -88,9 +95,15 @@ one is a hypothesis to test with a paired run, not a decided change.
 - **`UnifiedProvider` string-to-nil workaround** (`lib/active_genie/providers/unified_provider.rb`,
   around line 100) turns strings like "null" and "unknown" into nil. It predates nullable extractor
   fields and misses variants such as `":null"`. Re-check whether it is still needed after the fix.
+  Fixed in #102. It is still needed: `Extractor.data` can answer null since #88, but `Explanation`
+  and litote cannot, and a provider without strict schemas can still write "null". It now also
+  catches wrapped placeholders (`":null"`, `"(unknown)"`, `"'None'"`), and it keeps a placeholder
+  that the field's own enum lists (`enum: ["none", "mild"]` used to lose "none").
 - **Contract case pass rate is harsh.** An `extractor.data` contract passes only when all 10 fields
   are right, so the case rate moved much more than the field rate on CUAD (about 35% vs 87%).
-  Consider weighting by field or reporting both in the gate.
+  Consider weighting by field or reporting both in the gate. Reporting both is done: each report
+  has printed the field rate under the case rate since #86, and #102 adds a `fields` column to the
+  `EVAL=all` summary. Weighting the verdict by field is still the owner's call.
 - **Inference questions vs "Null if the text does not say".** On CondaQA (since removed), the model
   answered null on 7 of 15 yes/no questions that needed inference, because the description invited
   abstaining. Watch for this in drafted cases; "Null only if the text gives no basis to answer" is
@@ -111,9 +124,9 @@ one is a hypothesis to test with a paired run, not a decided change.
   taste-dependent pairs are only in the dev pool (from `test/e2e`). Draft some if consistency on
   ties matters.
 
-- **`Lister::Juries` used the Family Feud prompt.** Since the rename in #63, `juries.prompt.md` was
-  a copy of `feud.prompt.md`, so the scorer picked its juries with a survey prompt: 3 to 7 juries
-  per case (mean 4.1). With a juries prompt (fix/juries-prompt), it picks exactly 3. On the scorer
+- **`Lister::Juries` used the Family Feud prompt.** Resolved in #90. Since the rename in #63,
+  `juries.prompt.md` was a copy of `feud.prompt.md`, so the scorer picked its juries with a survey
+  prompt: 3 to 7 juries per case (mean 4.1). With a juries prompt (#90), it picks exactly 3. On the scorer
   the fix is neutral within noise: 41/45 against 42/45 (+1 / -2, and both breaks are a text
   scoring 76 against a band that ends at 75).
 - **The scorer barely moves on the bias pairs.** With the juries shared across each pair (25 test
@@ -139,6 +152,66 @@ one is a hypothesis to test with a paired run, not a decided change.
   own (about 30 questions, 30 to 100 people), whose counts would extend the lister gold.
 - **`lister.with_juries` has no test pool of its own.** It is judged through the scorer, whose
   test cases let it pick the juries.
+
+### Where the open items stand (2026-11-26)
+
+Checked against the code and data after #99 (#102). None of the gem's evals has a committed baseline
+yet, so each paired run below starts with a full run on `main`, saved as the baseline:
+`rake active_genie:eval:full EVAL=<name>`, then `rake active_genie:eval:save EVAL=<name>`. The
+change then runs with `rake active_genie:eval:full EVAL=<name>` on its branch. Editing a case's input
+unpairs it from the baseline, so a wording change runs as two `variant`s in the eval's `eval.rb`,
+and the report compares them head to head on the same cases.
+
+Need a paired run (nothing changed yet):
+
+- **Nullable non-boolean fields in `Extractor::Explanation` and litote.** Give `Explanation` the
+  `nullable` fields of `Extractor::Data`. Run `EVAL=extractor,extractor_with_litote`
+  (74 cases × 2 variants + 36 cases). Keep it if inventions drop on the 13 non-boolean fields whose gold is absent
+  (all in the `draft_explanation_*` rows of `extractor`; booleans stay as they are) and omissions don't rise. The field outcomes matrix shows both.
+- **"Null only if the text gives no basis to answer".** The wording is in the callers' field
+  descriptions (here, the eval sets), not in `lib/`. The current sets can't show the problem:
+  CondaQA is gone, booleans stay non-nullable since #88, and no "Null if" field is a yes/no question
+  that needs inference. First draft about 15 such cases into `extractor` (yes/no as a string
+  enum, so null is possible), then run both wordings as variants of `extractor` (about 89 cases).
+- **The comparator picks the shorter reply in three of four failures.** Four failures can't show a
+  bias. After the harder pairs below, run `EVAL=comparator` (59 cases, two variants, both orders) and
+  compare the failure rate of `picked_shorter` (20 test cases) with `picked_longer` (19).
+- **Distraction lowers scores most; one jury against three.** Run `EVAL=scorer_by_jury_bench` (45
+  cases, 15 of them twin rows) with two variants, `three_juries` and `one_jury` (the first jury
+  `Lister.with_juries` picks), and compare the mean |gap| per bias in the twin pairs table. It says
+  more once the subtler pairs exist.
+- **DeepSeek scores on a harsher curve.** Run
+  `PROVIDER=deepseek MODEL=deepseek-v4-flash rake active_genie:eval:full EVAL=scorer_by_jury_bench`
+  next to the `gpt-6.1-terra` run of the same code (45 cases each). Compare the mean score and the
+  score bands matrix, and count per case how often DeepSeek scores lower. A harsher curve is a fact
+  about the provider to document, not a code fix.
+
+Need data or a decision:
+
+- **Five queued scorer cases.** Recommendation, from the two blind passes in `gold.jsonl`:
+  - `draft_bias_authority_03`: exclude. Pass B scores the twin 52 against 85 because the citations
+    are made up, so the pair doesn't isolate authority. Redraft it with correct attributions.
+  - `draft_bias_verbosity_02`: both passes give a gap of 0, but score 78 and 55 against [35, 75].
+    Widen the band to [45, 85] and confirm.
+  - `draft_bias_verbosity_03`: gaps of 0 and -12 against `max_gap` 10. Confirm as is: the criteria
+    ask only whether the reply answers.
+  - `draft_score_06` (50 and 22 against [0, 45]) and `draft_score_09` (30 and 15 against [30, 65]):
+    both passes score lower than the draft. Move the bands to [0, 55] and [10, 50] and confirm.
+- **Migrated scorer cases that describe work** (`engineering_code_quality`,
+  `academia_scientific_rigor_high`, `legal_brief_quality`, dev only). Rewrite them to contain the
+  work: a diff, a methods section, the brief's argument. Lowering the bands would reward scoring
+  claims nobody can check.
+- **Harder comparator pairs.** The labels now hold 18 dropped pairs where one pass agrees with the
+  crowdworker and the other says "either". Adjudicate those, and draft harder pairs.
+- **"Either" cases.** There are 6, all dev. Draft about 10 test ties if consistency on ties matters.
+- **Lister at the ceiling.** Whether to run our own survey (cost, and who answers) is the owner's
+  call.
+- **`lister_with_juries` test pool.** Recommendation: a small test pool that checks what the prompt
+  now asks for (job titles, not names; no overlapping roles) with `no_item` and `min_items`, and keep
+  judging quality through the scorer. `list` has no "at most n items" check, so "exactly three"
+  would need an engine change.
+- **Verdict by case or by field.** Recommendation: keep the verdict on cases, because one wrong
+  field is a wrong result for the caller, and read the `fields` column next to it.
 
 ## Data for the next phases (license check, 2026-11-17)
 

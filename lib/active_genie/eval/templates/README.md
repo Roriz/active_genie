@@ -51,7 +51,8 @@ Every run goes through the same four steps:
 
 With `EVAL=all` (or `EVAL=a,b`), every eval shows its plan, and a total is added. One question
 covers them all. Then each report prints, and the run ends with a summary table. It has one row per
-eval (and per variant), with its rate, its delta against its baseline and its verdict, and then the
+eval (and per variant), with its rate, its share of fields right (for a `fields` eval, where a case
+passes only when every field is right), its delta against its baseline and its verdict, and then the
 mean of the rates. Each eval counts the same in that mean, however many cases it has.
 
 ### Reading the report

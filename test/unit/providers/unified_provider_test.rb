@@ -261,6 +261,40 @@ module ActiveGenie
           assert_equal 'valid_value', result[:field_valid]
         end
       end
+
+      def test_response_normalization_of_placeholders_wrapped_in_punctuation
+        config = Configuration.new({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
+        mock_provider_instance = Minitest::Mock.new
+        mock_response = { 'colon' => ':null', 'quoted' => '"None"', 'parens' => '(unknown)', 'dot' => 'null.',
+                          'spaced' => '  ', 'phrase' => 'None of the above', 'dash' => '-' }
+        mock_provider_instance.expect(:function_calling, mock_response, [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        result = ActiveGenie::Providers::OpenaiProvider.stub(:new, mock_provider_instance) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_equal({ 'colon' => nil, 'quoted' => nil, 'parens' => nil, 'dot' => nil, 'spaced' => nil,
+                       'phrase' => 'None of the above', 'dash' => '-' }, result)
+      end
+
+      def test_response_normalization_keeps_a_placeholder_the_schema_declares_as_an_enum_value
+        config = Configuration.new({ llm: { provider_name: 'openai' }, providers: { openai: { api_key: 'secret' } } })
+        function = { name: 'triage', description: 'Triage a patient note', parameters: {
+          type: 'object',
+          properties: { allergy: { type: 'string', enum: %w[none mild severe] },
+                        'smoker' => { 'type' => %w[string null], 'enum' => ['unknown', 'yes', 'no', nil] },
+                        notes: { type: 'string' } }
+        } }
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'allergy' => 'none', 'smoker' => 'unknown', 'notes' => 'none' },
+                                      [EXAMPLE_MESSAGES, function])
+
+        result = ActiveGenie::Providers::OpenaiProvider.stub(:new, mock_provider_instance) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, function, config:)
+        end
+
+        assert_equal({ 'allergy' => 'none', 'smoker' => 'unknown', 'notes' => nil }, result)
+      end
     end
   end
 end

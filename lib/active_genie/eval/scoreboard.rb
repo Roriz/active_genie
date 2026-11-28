@@ -22,11 +22,12 @@ module ActiveGenie
       def markdown = document.to_markdown
 
       # One line per variant (one for an eval without variants), for a suite's summary table:
-      # { name:, cases:, rate:, delta: } where delta is nil without a baseline.
+      # { name:, cases:, rate:, fields:, delta: } where fields (the share of fields right) is nil for an
+      # eval without the fields grader, and delta is nil without a baseline.
       def summary_rows
         by_variant.map do |variant, rows|
           { name: [@definition.name, variant].compact.join('/'), cases: rows.size, rate: rate(rows),
-            delta: Stats.mean(deltas(paired_for(variant))) }
+            fields: Stats.mean(field_clusters(rows).flatten), delta: Stats.mean(deltas(paired_for(variant))) }
         end
       end
 
@@ -182,11 +183,16 @@ module ActiveGenie
         @fixed ||= paired.select { |cur, base| !base.pass? && cur.pass? }.map(&:first)
       end
 
-      def fields_right(rows = @current.rows, variant = nil)
-        outcomes = rows.filter_map { |r| Matrices.fields(r) }
-        return Report.new if outcomes.empty?
+      # Per case, 1 for each field right and 0 for each field wrong.
+      def field_clusters(rows)
+        rows.filter_map { |r| Matrices.fields(r) }
+            .map { |fields| fields.values.map { |o| Graders::Fields::RIGHT.include?(o) ? 1 : 0 } }
+      end
 
-        clusters = outcomes.map { |fields| fields.values.map { |o| Graders::Fields::RIGHT.include?(o) ? 1 : 0 } }
+      def fields_right(rows = @current.rows, variant = nil)
+        clusters = field_clusters(rows)
+        return Report.new if clusters.empty?
+
         Report.new.line("#{"#{variant}: " if variant}fields: #{pct(Stats.mean(clusters.flatten))} right " \
                         "#{interval(Stats.bootstrap_ci(clusters:))} (CI resamples whole cases)")
       end

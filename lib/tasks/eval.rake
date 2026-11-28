@@ -85,12 +85,13 @@ module ActiveGenieEvalTasks
   def summary(boards, mode)
     rows = boards.flat_map { |board| board.summary_rows.map { |row| row.merge(verdict: board.verdict) } }
     pct = ->(v) { v.nil? ? '-' : format('%.1f%%', v * 100) }
+    # `fields` is the share of fields right, next to the case rate, for the evals graded by fields.
     table = rows.map do |row|
-      [row[:name], row[:cases], pct.call(row[:rate]), row[:delta] ? format('%+.1f', row[:delta] * 100) : '-',
-       mode == 'quick' ? row[:verdict] : '']
+      [row[:name], row[:cases], pct.call(row[:rate]), pct.call(row[:fields]),
+       row[:delta] ? format('%+.1f', row[:delta] * 100) : '-', mode == 'quick' ? row[:verdict] : '']
     end
     rates = rows.filter_map { |row| row[:rate] }
-    report = eval_lib::Report.new.heading("Summary (#{mode})").table(%w[eval cases rate delta verdict], table)
+    report = eval_lib::Report.new.heading("Summary (#{mode})").table(%w[eval cases rate fields delta verdict], table)
     report.line("mean of #{rates.size} rates: #{pct.call(rates.sum / rates.size)}") if rates.any?
     puts '', report.to_text
     exit 1 if mode == 'quick' && boards.any? { |b| b.verdict == 'STOP' }
