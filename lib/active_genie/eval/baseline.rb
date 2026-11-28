@@ -15,22 +15,21 @@ module ActiveGenie
       end
 
       def validate!(system, items, force:)
-        if system.replicates.empty?
-          raise Error, "no run of #{system.definition.name} for this code; run `active_genie:eval:full` first"
-        end
+        name = system.definition.name
+        raise NoRunToBaselineError, name if system.replicates.empty?
 
         system.replicates.each do |r|
           results = Results.load(system.definition, system.run_root, items, replicate: r)
           bad = results.missing + results.errors
-          raise Error, "replicate r#{r} is incomplete (#{bad.size} missing or errored, e.g. #{bad.first.key})" if bad.any?
+          raise IncompleteRunError.new(name, replicate: r, count: bad.size, example: bad.first.key) if bad.any?
           next if force
 
           unjudged = results.rows.count { |row| row.grade.unjudged? }
-          raise Error, "replicate r#{r} has #{unjudged} case(s) waiting for the judge; run the eval again to judge them (FORCE=1 overrides)" if unjudged.positive?
+          raise UnjudgedRunError.new(name, replicate: r, count: unjudged) if unjudged.positive?
         end
         return if force || !system.git['dirty']
 
-        raise Error, 'the watched files have uncommitted changes; a baseline must match a commit (FORCE=1 overrides)'
+        raise DirtyWorktreeError, name
       end
 
       def meta(system, items, saved_by)

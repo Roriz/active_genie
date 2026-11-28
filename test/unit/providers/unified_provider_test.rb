@@ -33,12 +33,112 @@ module ActiveGenie
         mock_provider_instance.verify
       end
 
-      def test_unknown_provider_raises_without_available_provider
+      def test_unknown_provider_raises_invalid_provider
         config = Configuration.new({ llm: { model: 'command-r' }, providers: { default: 'cohere' } })
 
-        assert_raises(ActiveGenie::WithoutAvailableProviderError) do
+        error = assert_raises(ActiveGenie::InvalidProviderError) do
           ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
         end
+
+        assert_includes error.message, 'Unknown provider "cohere"'
+      end
+
+      def test_unknown_default_provider_raises_even_when_another_provider_has_a_key
+        config = Configuration.new({ providers: { default: 'cohere', openai: { api_key: 'secret' } } })
+
+        assert_raises(ActiveGenie::InvalidProviderError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+      end
+
+      # It used to fall back to any provider with a key without a word.
+      def test_a_default_provider_without_an_api_key_raises
+        config = Configuration.new({ providers: { default: 'anthropic', openai: { api_key: 'secret' } } })
+
+        error = assert_raises(ActiveGenie::ProviderWithoutApiKeyError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, 'The default provider "anthropic" has no API key'
+        assert_includes error.message, 'Set the ANTHROPIC_API_KEY environment variable'
+        assert_includes error.message, "config.providers.anthropic.api_key = ENV.fetch('ANTHROPIC_API_KEY')"
+        assert_includes error.message, 'a provider that has a key (openai)'
+      end
+
+      # It used to say the removed provider had no API key, though its key was set.
+      def test_a_default_provider_that_was_removed_says_so
+        config = Configuration.new({ providers: { default: 'anthropic', anthropic: { api_key: 'secret' },
+                                                  openai: { api_key: 'secret' } } })
+        config.providers.remove(:anthropic)
+
+        error = assert_raises(ActiveGenie::DefaultProviderRemovedError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, 'The default provider "anthropic" was removed from config.providers'
+        assert_includes error.message, 'drop config.providers.remove(:anthropic)'
+        assert_includes error.message, "still configured\n  with a key (openai)"
+      end
+
+      def test_a_default_provider_from_provider_name_without_an_api_key_raises
+        previous = ENV.fetch('PROVIDER_NAME', nil)
+        ENV['PROVIDER_NAME'] = 'google'
+        config = Configuration.new({ providers: { openai: { api_key: 'secret' } } })
+
+        error = assert_raises(ActiveGenie::ProviderWithoutApiKeyError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, 'GEMINI_API_KEY'
+      ensure
+        ENV['PROVIDER_NAME'] = previous
+      end
+
+      def test_a_per_call_default_provider_without_an_api_key_raises
+        assert_raises(ActiveGenie::ProviderWithoutApiKeyError) do
+          ActiveGenie::Scorer.call('text', 'criteria',
+                                   config: { providers: { default: 'deepseek', openai: { api_key: 'secret' } } })
+        end
+      end
+
+      # Only the user's default raises: Comparator recommends a Claude model, Anthropic has no key here.
+      def test_a_recommended_model_whose_provider_has_no_key_falls_back_to_one_that_has
+        config = Configuration.new({ llm: { recommended_model: 'claude-haiku-5-5' },
+                                     providers: { openai: { api_key: 'secret' } } })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gpt-4o-mini', received_config.llm.model
+      end
+
+      def test_no_credentialed_provider_raises_without_available_provider
+        assert_raises(ActiveGenie::WithoutAvailableProviderError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION,
+                                                                   config: Configuration.new({}))
+        end
+      end
+
+      # It used to fall back to another provider's default model without a word.
+      def test_a_model_no_credentialed_provider_runs_raises_invalid_model
+        config = Configuration.new({ llm: { model: 'command-r' }, providers: { openai: { api_key: 'secret' } } })
+
+        error = assert_raises(ActiveGenie::InvalidModelError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, '"command-r" (providers with a key: openai)'
       end
 
       def test_choose_openai_by_model_name

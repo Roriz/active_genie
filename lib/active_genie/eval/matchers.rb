@@ -64,7 +64,7 @@ module ActiveGenie
         when 'gte', 'lte', 'between', 'near' then numeric?(spec, number(value))
         when 'nonempty' then !absent?(value)
         when 'date' then date(value)&.iso8601 == expected
-        else raise Error, "unknown check #{spec['check'].inspect}"
+        else raise UnknownCheckError, spec['check']
         end
       end
 

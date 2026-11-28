@@ -10,6 +10,7 @@ module ActiveGenie
   module Providers
     # Provider for interacting with the Anthropic (Claude) API with json response
     class AnthropicProvider < BaseProvider
+      LABEL = 'Anthropic'
       USAGE_KEYS = { input: 'input_tokens', output: 'output_tokens' }.freeze
 
       # Requests structured JSON output from the Anthropic Claude model based on a schema.
@@ -92,17 +93,19 @@ module ActiveGenie
       # tool_use block by type. A refusal or a cut-off answer has no usable input.
       def tool_input(response)
         stop_reason = response['stop_reason']
-        if stop_reason == 'refusal'
-          details = response['stop_details'] || {}
-          raise RefusalError, "Anthropic declined the request (category: #{details['category'].inspect}). " \
-                              "#{details['explanation']}".strip
-        end
+        raise provider_error(RefusalError, detail: refusal_detail(response)) if stop_reason == 'refusal'
         if stop_reason == 'max_tokens'
-          raise InvalidResponseError, 'Answer cut off at max_tokens; raise config.llm.max_tokens.'
+          raise provider_error(TruncatedResponseError, detail: 'stop_reason: max_tokens',
+                                                       max_tokens: @config.llm.max_tokens)
         end
 
         tool_use_block(response)&.dig('input') ||
-          raise(InvalidResponseError, "No tool_use block in response (stop_reason: #{stop_reason.inspect}).")
+          raise(provider_error(InvalidResponseError, detail: "no tool_use block (stop_reason: #{stop_reason.inspect})"))
+      end
+
+      def refusal_detail(response)
+        details = response['stop_details'] || {}
+        "stop_reason refusal, category #{details['category'].inspect}. #{details['explanation']}".strip
       end
 
       def tool_use_block(response)

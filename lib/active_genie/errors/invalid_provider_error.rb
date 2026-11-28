@@ -1,45 +1,26 @@
 # frozen_string_literal: true
 
+require_relative 'error'
+
 module ActiveGenie
-  class InvalidProviderError < StandardError
-    TEXT = <<~TEXT
-      Invalid provider: %<provider>s
+  # A provider name ActiveGenie can't call, in `config.providers.default`, PROVIDER_NAME or
+  # `config.providers.add`.
+  class InvalidProviderError < Error
+    CODE = 'AG-E002'
+    MESSAGE = 'Unknown provider %<provider>s. ActiveGenie can call: %<known>s.'
+    FIX = <<~FIX
+      Set config.providers.default (or the PROVIDER_NAME environment variable) to one of those names:
 
-      To configure ActiveGenie, you can either:
-      1. Set up global configuration:
-         ```ruby
-         ActiveGenie.configure do |config|
-           config.providers.default = 'openai'
-           config.providers.openai.api_key = 'your_api_key'
-           # ... other configuration options
-         end
-         ```
+        ActiveGenie.configure do |config|
+          config.providers.default = 'openai'
+        end
 
-      2. Or pass configuration directly to the method call:
-         ```ruby
-         ActiveGenie::Extraction.call(
-           arg1,
-           arg2,
-           config: {
-             providers: {
-               default: 'openai',
-               openai: {
-                 api_key: 'your_api_key'
-               }
-             }
-           }
-         )
-         ```
-
-      Available providers: %<available_providers>s
-    TEXT
+      To call another OpenAI-compatible API, replace a built-in provider's config instead:
+      config.providers.add(:openai, MyGatewayConfig).
+    FIX
 
     def initialize(provider)
-      super(format(TEXT, provider:, available_providers:))
-    end
-
-    def available_providers
-      ActiveGenie.configuration.providers.valid.keys.join(', ')
+      super(provider: provider.to_s.inspect, known: Config::ProvidersConfig::BUILT_IN.keys.join(', '))
     end
   end
 end

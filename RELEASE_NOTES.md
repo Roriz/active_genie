@@ -25,6 +25,54 @@
   `Scorer.by_jury_bench` no longer sets `logprobs_used`, `continuous_final_score`,
   `final_score_expected_value`, `final_score_normalized`, `juries_raw_expected_reward` or
   `juries_normalized_score`. The fields the model writes are still in the metadata.
+- **One error tree with codes (breaking).** Every error ActiveGenie raises now inherits
+  `ActiveGenie::Error < StandardError`, has a stable code (`e.code`, such as `"AG-E104"`), and a
+  message in three parts: what went wrong with the values involved, `How to fix:`, and a link to its
+  entry in the new [errors reference](https://activegenie.ai/reference/errors). Each class lives in
+  `lib/active_genie/errors/`. Rescue `ActiveGenie::Error` to catch them all.
+  - **Provider errors moved.** `ActiveGenie::Providers::BaseProvider::ProviderUnknownError`,
+    `ProviderTransientError`, `InvalidResponseError` and `RefusalError` (also reachable as
+    `OpenaiProvider::...` and the like) are now `ActiveGenie::ProviderUnknownError`,
+    `ActiveGenie::ProviderTransientError`, `ActiveGenie::InvalidResponseError` and
+    `ActiveGenie::RefusalError`. Update your `rescue` clauses; there are no aliases.
+  - **New provider errors.** An answer cut off at the token limit raises
+    `ActiveGenie::TruncatedResponseError`, a subclass of `InvalidResponseError`. A network failure
+    (`Net::OpenTimeout`, `Net::ReadTimeout`, `Errno::ECONNREFUSED`) that survives every retry raises
+    `ActiveGenie::ProviderConnectionError`, with the network error as `cause`, instead of the bare
+    network error. A 2xx body that isn't JSON raises `InvalidResponseError`, not
+    `ProviderUnknownError`. Which errors are retried, and how often, is unchanged.
+  - **Messages changed.** `ProviderUnknownError` reads `OpenAI answered HTTP 401 for model "gpt-5":
+    <body>` instead of `Unexpected response: 401 - <body>`, plus a hint for the status. Match on the
+    class or `e.code`, not on the text.
+  - **`ArgumentError` and `NotImplementedError` are gone.** `config.providers.add` with a name
+    ActiveGenie can't call raises `ActiveGenie::InvalidProviderError`. A non-Hash `scope:` for
+    `config.log.add_observer` raises `ActiveGenie::InvalidLogScopeError`. A `BaseModule` subclass
+    without `call` raises `ActiveGenie::CallNotImplementedError`.
+  - **`ActiveGenie::ProviderServerError` is removed.** Nothing raised it.
+  - **Eval errors split.** `ActiveGenie::Eval::Error` is now the base of 25 specific classes, such as
+    `Eval::ConfigMissingError` and `Eval::UnknownEvalError`, each with its own code (`AG-E2xx`).
+    `rescue ActiveGenie::Eval::Error` still catches them all. The eval rake tasks print any
+    `ActiveGenie::Error` without a backtrace.
+- **An unknown `providers.default` raises `InvalidProviderError` (breaking).** Before, a name such as
+  `'cohere'` (in `config.providers.default` or `PROVIDER_NAME`) fell through to another provider with
+  a key, or to `WithoutAvailableProviderError` when none had one.
+- **A default provider without an API key raises `ProviderWithoutApiKeyError` (breaking).** Before,
+  `config.providers.default = 'anthropic'` (or `PROVIDER_NAME=anthropic`, or a call's
+  `providers: { default: 'anthropic' }`) with no `ANTHROPIC_API_KEY` silently called whichever other
+  provider had a key. It now raises `ActiveGenie::ProviderWithoutApiKeyError` (`AG-E007`), which names
+  the missing environment variable. A default that `config.providers.remove` took out raises
+  `ActiveGenie::DefaultProviderRemovedError` (`AG-E008`), which says it was removed. With no default
+  set, ActiveGenie still uses the first provider with a key, and a module's recommended model whose
+  provider has no key is still skipped. `rake active_genie:eval` (and `Eval::Runner#run!`) checks the
+  pinned provider, and the judge's when a case needs it, before it asks to spend, so a missing key
+  stops the run once instead of failing every case.
+- **A model no provider recognises raises `InvalidModelError` (breaking).** When `config.llm.model`
+  is set without `config.providers.default`, ActiveGenie picks the provider from the model name. If no
+  provider with a key recognises it (`o3`, a fine-tune, a gateway model), the call used to swap in
+  another provider's default model without a word. It now raises `InvalidModelError`, which shows the
+  `providers.default` to set. A provider's own `default_model` now always resolves to that provider.
+- **Fix: `InvalidLogOutputError` was a `NameError`.** Its file was never loaded, so setting
+  `config.log.output` to something that can't be called raised `NameError` instead.
 
 ---
 

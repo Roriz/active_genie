@@ -23,7 +23,7 @@ module ActiveGenieEvalTasks
 
   def guard
     yield
-  rescue ActiveGenie::Eval::Error => e
+  rescue ActiveGenie::Error => e # the eval engine's errors and any other error the gem raises
     abort e.message
   end
 
@@ -54,6 +54,7 @@ module ActiveGenieEvalTasks
     definitions.each { |definition| check!(definition.name) }
     plans = definitions.filter_map { |definition| plan(definition, mode, replicates) }
     abort "No #{mode} cases to run." if plans.empty?
+    plans.flat_map(&:runners).each(&:check_providers!) # a provider without a key stops here, before the question
     puts "All #{plans.size} evals: #{eval_lib::Overview.cost(plans.flat_map(&:runners).map(&:estimate))}", '' if plans.size > 1
     return unless confirmed?(plans.flat_map(&:runners))
 

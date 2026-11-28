@@ -1,39 +1,19 @@
 # frozen_string_literal: true
 
+require_relative 'error'
+
 module ActiveGenie
-  class WithoutAvailableProviderError < StandardError
-    TEXT = <<~TEXT
-      Missing at least one credentialed provider to proceed.
+  # No provider has an API key, so a module call has nowhere to go.
+  class WithoutAvailableProviderError < Error
+    CODE = 'AG-E001'
+    MESSAGE = 'No provider has an API key, so ActiveGenie has no model to call.'
+    FIX = <<~FIX
+      Set the API key of at least one provider, from its environment variable
+      (OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY or DEEPSEEK_API_KEY) or in the config:
 
-      To configure ActiveGenie, you can either:
-      1. Set up global configuration:
-         ```ruby
-         ActiveGenie.configure do |config|
-           config.providers.default = 'openai'
-           config.providers.openai.api_key = 'your_api_key'
-           # ... other configuration options
-         end
-         ```
-
-      2. Or pass configuration directly to the method call:
-         ```ruby
-         ActiveGenie::Extractor.call(
-           arg1,
-           arg2,
-           config: {
-             providers: {
-               default: 'openai',
-               openai: {
-                 api_key: 'your_api_key'
-               }
-             }
-           }
-         )
-         ```
-    TEXT
-
-    def initialize
-      super(TEXT)
-    end
+        ActiveGenie.configure do |config|
+          config.providers.openai.api_key = ENV.fetch('OPENAI_API_KEY')
+        end
+    FIX
   end
 end

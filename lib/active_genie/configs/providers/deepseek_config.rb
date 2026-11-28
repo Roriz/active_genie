@@ -8,11 +8,13 @@ module ActiveGenie
       # Configuration class for the DeepSeek API client.
       # Manages API keys, organization IDs, URLs, model selections, and client instantiation.
       class DeepseekConfig < ProviderBase
+        API_KEY_ENV = 'DEEPSEEK_API_KEY'
+
         # Retrieves the API key.
         # Falls back to the DEEPSEEK_API_KEY environment variable if not set.
         # @return [String, nil] The API key.
         def api_key
-          @api_key || ENV.fetch('DEEPSEEK_API_KEY', nil)
+          @api_key || ENV.fetch(API_KEY_ENV, nil)
         end
 
         # Retrieves the base API URL for DeepSeek API.

@@ -8,11 +8,13 @@ module ActiveGenie
       # Configuration class for the OpenAI API client.
       # Manages API keys, organization IDs, URLs, model selections, and client instantiation.
       class OpenaiConfig < ProviderBase
+        API_KEY_ENV = 'OPENAI_API_KEY'
+
         # Retrieves the API key.
         # Falls back to the OPENAI_API_KEY environment variable if not set.
         # @return [String, nil] The API key.
         def api_key
-          @api_key || ENV.fetch('OPENAI_API_KEY', nil)
+          @api_key || ENV.fetch(API_KEY_ENV, nil)
         end
 
         # Retrieves the base API URL for OpenAI API.

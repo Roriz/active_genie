@@ -62,11 +62,7 @@ module ActiveGenie
         judge = Eval.config['judge']
         return if judge.is_a?(Hash) && judge['provider'] && judge['model']
 
-        judged = definition.grader == 'rubric' || Store.rows(definition).any? do |row|
-          fields = row.dig('gold', 'fields') if row['gold'].is_a?(Hash)
-          fields.is_a?(Hash) && fields.values.any? { |spec| spec.is_a?(Hash) && spec['judge'] }
-        end
-        return unless judged
+        return unless Store.rows(definition).any? { |row| Judge.asks?(definition, row['gold']) }
 
         @errors << "#{definition.name}: grades with the judge, but evals/config.yml has no judge: { provider, model }"
       end

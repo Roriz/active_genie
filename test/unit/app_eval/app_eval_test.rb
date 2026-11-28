@@ -67,7 +67,7 @@ class AppEvalTest < Minitest::Test
       ActiveGenie::Eval.define('other') { call { |input| input } }
     RUBY
 
-    assert_raises(Eval::Error) { Eval.load! }
+    assert_raises(Eval::EvalNameMismatchError) { Eval.load! }
   end
 
   def test_run_report_baseline_and_a_canary_regression
@@ -171,13 +171,56 @@ class AppEvalTest < Minitest::Test
     assert_equal 1, answerer.calls, 'the verdict is read back from evals/judge/'
   end
 
+  # Every case used to fail on its own call with AG-E007. Now the run stops once, before it asks to spend.
+  def test_a_run_pinned_to_a_provider_without_a_key_stops_before_the_question
+    define_router(call: ->(_input) { flunk 'the feature was called' })
+    require 'rake'
+    load File.expand_path('../../../lib/tasks/eval.rake', __dir__)
+    previous = ENV.fetch('EVAL', nil)
+    ENV['EVAL'] = 'router' # evals/config.yml pins the run to openai, which has no key here
+
+    error = nil
+    ActiveGenieEvalTasks.stub(:confirmed?, ->(_runners) { flunk 'it asked to spend' }) do
+      capture_io { error = assert_raises(ActiveGenie::ProviderWithoutApiKeyError) { ActiveGenieEvalTasks.run('quick') } }
+    end
+
+    assert_includes error.message, 'The default provider "openai" has no API key'
+    refute_path_exists Eval::System.from_env(router).run_root, 'nothing ran'
+  ensure
+    ENV['EVAL'] = previous
+  end
+
+  def test_a_run_whose_judge_provider_has_no_key_raises_before_any_case_runs
+    write_eval('reply', <<~RUBY)
+      ActiveGenie::Eval.define('reply') do
+        call { |input| "Sorry about \#{input['text']}" }
+        grader :rubric
+        watch 'router.rb'
+      end
+    RUBY
+    write_dataset('reply', [{ 'id' => 'late', 'pool' => 'dev', 'input' => { 'text' => 'the delay' },
+                              'gold' => { 'rubric' => 'Apologizes', 'band' => [70, 100] } }])
+    definition = Eval.fetch('reply')
+    runner = Eval::Runner.new(system: Eval::System.new(definition:, provider: nil, model: nil),
+                              items: Eval::Selection.call(definition, 'quick'), io: @io)
+
+    error = assert_raises(ActiveGenie::ProviderWithoutApiKeyError) { runner.run!(judge: true) }
+
+    assert_includes error.message, 'The default provider "anthropic" has no API key' # the judge's, from config.yml
+    assert_equal 1, runner.pending.size, 'no case ran'
+
+    runner.run!(judge: false) # a run that won't call the judge doesn't need its key
+
+    assert_empty runner.pending
+  end
+
   def test_a_malformed_judge_answer_is_not_cached
     Eval::Judge.current = Eval::Judge.new(provider: 'fake', model: 'fake-judge',
                                           answerer: FakeAnswerer.new('equivalence' => { 'match' => 'yes' }))
     Eval::Judge.online = true
     spec = { 'present' => true, 'check' => 'eq', 'value' => 'refund', 'judge' => true, 'question' => 'What is asked?' }
 
-    assert_raises(Eval::Error) { Eval::Graders::Fields.outcome(spec, 'money back') }
+    assert_raises(Eval::MalformedJudgeAnswerError) { Eval::Graders::Fields.outcome(spec, 'money back') }
     refute_path_exists File.join(@app, 'evals', 'judge', 'fake-judge.jsonl')
   end
 

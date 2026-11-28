@@ -59,7 +59,7 @@ module ActiveGenie
         stub_anthropic(content: [], stop_reason: 'refusal',
                        stop_details: { type: 'refusal', category: 'cyber', explanation: 'declined' })
 
-        error = assert_raises(AnthropicProvider::RefusalError) { provider.function_calling(MESSAGES, FUNCTION) }
+        error = assert_raises(ActiveGenie::RefusalError) { provider.function_calling(MESSAGES, FUNCTION) }
 
         assert_includes error.message, 'cyber'
       end
@@ -67,9 +67,10 @@ module ActiveGenie
       def test_raises_when_the_answer_was_cut_off_by_max_tokens
         stub_anthropic(content: [TOOL_USE], stop_reason: 'max_tokens')
 
-        error = assert_raises(AnthropicProvider::InvalidResponseError) { provider.function_calling(MESSAGES, FUNCTION) }
+        error = assert_raises(ActiveGenie::TruncatedResponseError) { provider.function_calling(MESSAGES, FUNCTION) }
 
         assert_includes error.message, 'max_tokens'
+        assert_includes error.message, 'Raise config.llm.max_tokens (it was 16000)'
       end
 
       private

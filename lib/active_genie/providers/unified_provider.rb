@@ -4,9 +4,6 @@ require_relative 'openai_provider'
 require_relative 'anthropic_provider'
 require_relative 'google_provider'
 require_relative 'deepseek_provider'
-require_relative '../errors/invalid_provider_error'
-require_relative '../errors/invalid_model_error'
-require_relative '../errors/without_available_provider_error'
 
 module ActiveGenie
   module Providers
@@ -44,6 +41,11 @@ module ActiveGenie
           model, provider_name = module_recommendation(config) if model.nil? && provider_name.nil?
 
           model, provider_name = infer_from_partial(config, model, provider_name) if model.nil? || provider_name.nil?
+          # An explicit model no credentialed provider runs is an error, not a cue to swap in another model.
+          if model && provider_name.nil? && config.providers.valid.any?
+            raise InvalidModelError.new(model, config.providers.valid.keys)
+          end
+
           model, provider_name = any_available(config) if model.nil? || provider_name.nil?
 
           [model, provider_name]
@@ -51,14 +53,15 @@ module ActiveGenie
         # rubocop:enable Metrics/AbcSize, Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
 
         def provider_class(provider_name)
-          PROVIDER_NAME_TO_PROVIDER[provider_name&.to_sym] || raise(ActiveGenie::WithoutAvailableProviderError)
+          PROVIDER_NAME_TO_PROVIDER[provider_name&.to_sym] || raise(WithoutAvailableProviderError)
         end
 
+        # Only the user's own default raises when it can't be called: a module's recommended model whose
+        # provider has no key still falls through to a provider that has one.
         def explicit_choice(config)
-          model = config.llm.model
-          provider_name = config.providers.default
+          config.providers.check_default!
 
-          [model, provider_name]
+          [config.llm.model, config.providers.default]
         end
 
         def global_default(config)

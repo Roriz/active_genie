@@ -10,6 +10,7 @@ module ActiveGenie
   module Providers
     # Provider for interacting with the Google Generative Language API.
     class GoogleProvider < BaseProvider
+      LABEL = 'Google'
       USAGE_KEYS = { input: 'promptTokenCount', output: 'candidatesTokenCount', total: 'totalTokenCount' }.freeze
 
       # Requests structured JSON output from the Google Generative Language model based on a schema.
@@ -63,24 +64,29 @@ module ActiveGenie
         text = candidate.dig('content', 'parts', 0, 'text')
         return text unless text.nil? || text.empty?
 
-        raise InvalidResponseError, "Google returned no answer text (finishReason: #{candidate['finishReason'].inspect})."
+        raise provider_error(InvalidResponseError,
+                             detail: "no answer text (finishReason: #{candidate['finishReason'].inspect})")
       end
 
       # Gemini reports blocks and truncation in the body of a 200 response
       # (promptFeedback, finishReason), so check them before reading the text.
       def raise_if_unusable(response, finish_reason)
         block_reason = response&.dig('promptFeedback', 'blockReason')
-        raise RefusalError, "Google blocked the prompt (blockReason: #{block_reason})." if block_reason
+        raise provider_error(RefusalError, detail: "it blocked the prompt (blockReason: #{block_reason})") if block_reason
 
         if BLOCKED_FINISH_REASONS.include?(finish_reason)
-          raise RefusalError, "Google blocked the answer (finishReason: #{finish_reason})."
+          raise provider_error(RefusalError, detail: "it blocked the answer (finishReason: #{finish_reason})")
         end
-        raise InvalidResponseError, 'Answer cut off (finishReason: MAX_TOKENS).' if finish_reason == 'MAX_TOKENS'
+        return unless finish_reason == 'MAX_TOKENS'
+
+        raise provider_error(TruncatedResponseError, detail: 'finishReason: MAX_TOKENS')
       end
 
       def normalize_response(json_string)
         output = unwrap_array(parse_json(json_string))
-        raise InvalidResponseError, "Google answer is not a JSON object: #{json_string[0, 200]}" unless output.is_a?(Hash)
+        unless output.is_a?(Hash)
+          raise provider_error(InvalidResponseError, detail: "an answer that is not a JSON object: #{json_string[0, 200]}")
+        end
 
         output.dig('input_schema', 'properties') || output
       end
@@ -88,7 +94,7 @@ module ActiveGenie
       def parse_json(json_string)
         JSON.parse(json_string)
       rescue JSON::ParserError
-        raise InvalidResponseError, "Google answer is not valid JSON: #{json_string[0, 200]}"
+        raise provider_error(InvalidResponseError, detail: "an answer that is not valid JSON: #{json_string[0, 200]}")
       end
 
       # Gemini sometimes wraps the object in an array, or answers with the schema shape itself.

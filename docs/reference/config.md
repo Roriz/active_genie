@@ -53,7 +53,7 @@ ActiveGenie ships with four providers: OpenAI, Anthropic, DeepSeek, and Google. 
 
 ### Choosing a provider
 
-`config.providers.default` selects which provider to use when a call doesn't specify one. If you never set it, ActiveGenie uses the first provider that has a valid API key.
+`config.providers.default` selects which provider to use when a call doesn't specify one. If you never set it, ActiveGenie uses the first provider that has a valid API key. If you set it to a provider without an API key, ActiveGenie raises [`ProviderWithoutApiKeyError`](/reference/errors#ag-e007) instead of switching to another provider.
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -94,8 +94,8 @@ end
 
 ### Methods
 
-- `config.providers.add(name, provider_config)` replaces a built-in provider's configuration with your own class or instance. `name` must be one of `:openai`, `:google`, `:anthropic` or `:deepseek`; any other name raises `ArgumentError`, because ActiveGenie can only call those four APIs.
-- `config.providers.remove(names)` removes providers by name (a symbol, a string, or a list), so they are never chosen for a call.
+- `config.providers.add(name, provider_config)` replaces a built-in provider's configuration with your own class or instance. `name` must be one of `:openai`, `:google`, `:anthropic` or `:deepseek`; any other name raises [`InvalidProviderError`](/reference/errors#ag-e002), because ActiveGenie can only call those four APIs.
+- `config.providers.remove(names)` removes providers by name (a symbol, a string, or a list), so they are never chosen for a call. Removing the provider `config.providers.default` names raises [`DefaultProviderRemovedError`](/reference/errors#ag-e008) on the next call.
 - `config.providers.valid` returns the providers that currently have a usable API key.
 - `config.providers.provider_name_by_model(model)` returns the provider a given model name resolves to.
 
@@ -155,10 +155,10 @@ ActiveGenie resolves the model and provider in this order, stopping at the first
 1. Explicit configuration: `config.llm.model` together with `config.providers.default`.
 2. Global default: `config.providers.default`, when no model is set.
 3. Module recommendation: the module's `recommended_model`, with the provider inferred from the model name.
-4. Partial inference: whichever of the two is still missing gets filled in, either the provider from the model name or the provider's `default_model`.
+4. Partial inference: whichever of the two is still missing gets filled in, either the provider from the model name (or the provider whose `default_model` it is) or the provider's `default_model`.
 5. Any available provider: the first one holding a valid API key, plus that provider's `default_model`.
 
-If none of these produce a credentialed provider, ActiveGenie raises `WithoutAvailableProviderError`.
+If no provider has an API key, ActiveGenie raises [`WithoutAvailableProviderError`](/reference/errors#ag-e001). If `config.llm.model` is set but no provider is, and no credentialed provider recognises the model, it raises [`InvalidModelError`](/reference/errors#ag-e003) rather than swapping in another model: set `config.providers.default` next to a model such as `o3`. A `config.providers.default` ActiveGenie can't call raises [`InvalidProviderError`](/reference/errors#ag-e002), one without an API key raises [`ProviderWithoutApiKeyError`](/reference/errors#ag-e007), and one that was removed raises [`DefaultProviderRemovedError`](/reference/errors#ag-e008). A module's recommended model whose provider has no key is skipped, not an error.
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -228,10 +228,10 @@ end
 | :--- | :--- | :--- | :--- |
 | `file_path` | String | `'log/active_genie.log'` | Main log file. |
 | `fine_tune_file_path` | String | `'log/active_genie_fine_tune.log'` | Log file for fine-tuning data. |
-| `output` | Proc | `->(log) { $stdout.puts log }` | Handler for each log entry. It must respond to `call`, otherwise ActiveGenie raises `InvalidLogOutputError`. |
+| `output` | Proc | `->(log) { $stdout.puts log }` | Handler for each log entry. It must respond to `call`, otherwise ActiveGenie raises [`InvalidLogOutputError`](/reference/errors#ag-e004). |
 | `additional_context` | Hash | `{}` | Extra key-value pairs merged into every log entry. |
 
-Methods: `add_observer(observers: [], scope: {}, &block)`, `remove_observer(observers)`, `clear_observers`.
+Methods: `add_observer(observers: [], scope: {}, &block)`, `remove_observer(observers)`, `clear_observers`. A `scope` that isn't a Hash raises [`InvalidLogScopeError`](/reference/errors#ag-e005).
 
 ```ruby
 ActiveGenie.configure do |config|

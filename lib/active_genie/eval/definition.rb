@@ -37,8 +37,8 @@ module ActiveGenie
         # One of several subjects run on the same cases; the report compares them pair by pair.
         def variant(name, &block)
           name = name.to_s
-          raise Error, "#{@definition.name}: variant names are snake_case, not #{name.inspect}" unless name.match?(NAME)
-          raise Error, "#{@definition.name}: variant #{name} needs a block to run" unless block
+          raise InvalidVariantNameError.new(@definition.name, name) unless name.match?(NAME)
+          raise VariantWithoutBlockError.new(@definition.name, name) unless block
 
           @definition.variants[name] = block
         end

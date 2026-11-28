@@ -1,42 +1,27 @@
 # frozen_string_literal: true
 
+require_relative 'error'
+
 module ActiveGenie
-  class InvalidModelError < StandardError
-    TEXT = <<~TEXT
-      Invalid model: %<model>s
+  # `config.llm.model` names a model that no provider with an API key recognises, and no provider is
+  # named next to it.
+  class InvalidModelError < Error
+    CODE = 'AG-E003'
+    MESSAGE = 'No provider with an API key runs the model %<model>s (providers with a key: %<providers>s).'
+    FIX = <<~FIX
+      ActiveGenie picks the provider from the model name (gpt, claude, gemini, deepseek). For any
+      other name, set the provider next to the model:
 
-      To configure ActiveGenie, you can either:
-      1. Set up global configuration:
-         ```ruby
-         ActiveGenie.configure do |config|
-          config.providers.openai.api_key = 'your_api_key'
-           config.llm.model = 'gpt-5'
-           # ... other configuration options
-         end
-         ```
+        ActiveGenie.configure do |config|
+          config.providers.default = 'openai'
+          config.llm.model = %<model>s
+        end
 
-      2. Or pass configuration directly to the method call:
-         ```ruby
-         ActiveGenie::Extraction.call(
-           arg1,
-           arg2,
-           config: {
-             providers: {
-               openai: {
-                 api_key: 'your_api_key'
-               }
-             },
-             llm: {
-               model: 'gpt-5'
-             }
-           }
-         )
-         ```
+      Or per call: config: { providers: { default: 'openai' }, llm: { model: %<model>s } }.
+    FIX
 
-    TEXT
-
-    def initialize(model)
-      super(format(TEXT, model:))
+    def initialize(model, providers)
+      super(model: model.to_s.inspect, providers: providers.join(', '))
     end
   end
 end

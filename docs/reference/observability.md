@@ -60,29 +60,34 @@ Use `remove_observer(observers)` to drop specific ones, or `clear_observers` to 
 
 ### What gets raised
 
-| Error | Raised when |
-| :--- | :--- |
-| `ActiveGenie::Providers::BaseProvider::ProviderUnknownError` | Any non-2xx response from a provider, or a response body that isn't valid JSON. This is the error you will see most: bad API key, exhausted credits, rate limiting, model not found, provider outage. |
-| `ActiveGenie::Providers::BaseProvider::ProviderTransientError` | A subclass of `ProviderUnknownError` for rate limits (429), request timeouts (408) and server errors (5xx) that were still failing after all retries. Rescue it to treat these differently from permanent failures. |
-| `ActiveGenie::Providers::BaseProvider::RefusalError` | The provider declined the request: an Anthropic `refusal` stop reason, or a Google prompt or answer blocked by its safety filters. The message names the category or block reason. Not retried. |
-| `ActiveGenie::Providers::BaseProvider::InvalidResponseError` | The provider answered, but not with a usable result: no tool call or text, an answer cut off by the token limit, or malformed JSON. Not retried. |
-| `ActiveGenie::WithoutAvailableProviderError` | No configured provider has a usable API key. |
-| `ActiveGenie::InvalidLogOutputError` | `config.log.output` was set to something that doesn't respond to `call`. |
-| `Net::OpenTimeout`, `Net::ReadTimeout`, `Errno::ECONNREFUSED` | Network-level failure that survived all retries. |
+Every error inherits `ActiveGenie::Error` and has a stable code (`e.code`, such as `"AG-E101"`) to log
+and group by. Its message says what went wrong, how to fix it, and links its entry in the
+[errors reference](/reference/errors), which lists every code. The ones a module call raises:
+
+| Error | Code | Raised when |
+| :--- | :--- | :--- |
+| `ActiveGenie::ProviderUnknownError` | [AG-E101](/reference/errors#ag-e101) | Any non-2xx response a retry won't fix. This is the error you will see most: bad API key, exhausted credits, model not found. |
+| `ActiveGenie::ProviderTransientError` | [AG-E102](/reference/errors#ag-e102) | A subclass of `ProviderUnknownError` for rate limits (429), request timeouts (408) and server errors (5xx) that were still failing after all retries. Rescue it to treat these differently from permanent failures. |
+| `ActiveGenie::ProviderConnectionError` | [AG-E103](/reference/errors#ag-e103) | A network failure (`Net::OpenTimeout`, `Net::ReadTimeout`, `Errno::ECONNREFUSED`) that survived all retries. `e.cause` is the last one. |
+| `ActiveGenie::RefusalError` | [AG-E104](/reference/errors#ag-e104) | The provider declined the request: an OpenAI refusal or content filter, an Anthropic `refusal` stop reason, or a Google prompt or answer blocked by its safety filters. The message names the category or block reason. Not retried. |
+| `ActiveGenie::InvalidResponseError` | [AG-E105](/reference/errors#ag-e105) | The provider answered, but not with a usable result: no tool call or text, or malformed JSON. Not retried. |
+| `ActiveGenie::TruncatedResponseError` | [AG-E106](/reference/errors#ag-e106) | A subclass of `InvalidResponseError` for an answer cut off by the token limit. Not retried. |
+| `ActiveGenie::WithoutAvailableProviderError` | [AG-E001](/reference/errors#ag-e001) | No configured provider has a usable API key. |
+| `ActiveGenie::InvalidProviderError` | [AG-E002](/reference/errors#ag-e002) | `config.providers.default` names a provider ActiveGenie can't call. |
+| `ActiveGenie::ProviderWithoutApiKeyError` | [AG-E007](/reference/errors#ag-e007) | `config.providers.default` names a provider with no API key. |
+| `ActiveGenie::DefaultProviderRemovedError` | [AG-E008](/reference/errors#ag-e008) | `config.providers.default` names a provider `config.providers.remove` took out. |
+| `ActiveGenie::InvalidModelError` | [AG-E003](/reference/errors#ag-e003) | `config.llm.model` names a model no credentialed provider runs, and no provider is set. |
 
 `ProviderUnknownError` carries the status code and the raw body, so you still get the provider's own message:
 
 ```ruby
 begin
   ActiveGenie::Scorer.call(text, criteria)
-rescue ActiveGenie::Providers::BaseProvider::ProviderUnknownError => e
-  # "Unexpected response: 400 - {"error":"Your credit balance is too low..."}"
-  Rails.logger.error(e.message)
+rescue ActiveGenie::ProviderUnknownError => e
+  # Anthropic answered HTTP 400 for model "claude-haiku-5-5": {"error":"Your credit balance is too low..."}
+  Rails.logger.error(code: e.code, error: e.message)
 end
 ```
-
-> [!NOTE]
-> `ActiveGenie::ProviderServerError`, `ActiveGenie::InvalidModelError`, and `ActiveGenie::InvalidProviderError` are defined but are not raised by any code path in the current version. Rescuing them has no effect.
 
 ### Retries
 

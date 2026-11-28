@@ -8,11 +8,13 @@ module ActiveGenie
       # Configuration class for the Google Generative Language API client.
       # Manages API keys, URLs, model selections, and client instantiation.
       class GoogleConfig < ProviderBase
+        API_KEY_ENV = 'GEMINI_API_KEY'
+
         # Retrieves the API key.
         # Falls back to the GENERATIVE_LANGUAGE_GOOGLE_API_KEY environment variable if not set.
         # @return [String, nil] The API key.
         def api_key
-          @api_key || ENV['GENERATIVE_LANGUAGE_GOOGLE_API_KEY'] || ENV.fetch('GEMINI_API_KEY', nil)
+          @api_key || ENV['GENERATIVE_LANGUAGE_GOOGLE_API_KEY'] || ENV.fetch(API_KEY_ENV, nil)
         end
 
         # Retrieves the base API URL for Google Generative Language API.

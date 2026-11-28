@@ -42,6 +42,18 @@ module ActiveGenie
         @all ||= {}
       end
 
+      # Raises unless ActiveGenie can call the default: a known provider, still configured, with an API
+      # key. A default it can't call is an error, never a cue to call another provider.
+      def check_default!
+        name = default&.to_sym
+        return if name.nil?
+        raise InvalidProviderError, name unless BUILT_IN.key?(name)
+
+        with_key = valid.keys
+        raise DefaultProviderRemovedError.new(name, with_key) unless all.key?(name)
+        raise ProviderWithoutApiKeyError.new(name, with_key) unless with_key.include?(name)
+      end
+
       def valid
         valid_provider_keys = @all.keys.select { |k| @all[k].valid? }
         @all.slice(*valid_provider_keys)
@@ -51,10 +63,7 @@ module ActiveGenie
       # an OpenAI-compatible gateway. Accepts a config class or instance.
       def add(name, provider_config)
         name = name.to_sym
-        unless BUILT_IN.key?(name)
-          raise ArgumentError, "Unknown provider #{name.inspect}. ActiveGenie can call: " \
-                               "#{BUILT_IN.keys.join(', ')}. `add` replaces one of their configs."
-        end
+        raise InvalidProviderError, name unless BUILT_IN.key?(name)
 
         @all[name] = provider_config.is_a?(Class) ? provider_config.new : provider_config
         self
@@ -69,7 +78,7 @@ module ActiveGenie
       def provider_name_by_model(model)
         return nil if model.nil?
 
-        valid.find { |_, config| config.valid_model?(model) }&.first
+        valid.find { |_, config| config.valid_model?(model) || config.default_model == model }&.first
       end
 
       def method_missing(method_name, *args, &)
