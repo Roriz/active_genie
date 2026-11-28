@@ -10,6 +10,7 @@ require_relative 'tool_arguments'
 module ActiveGenie
   module Providers
     class DeepseekProvider < BaseProvider
+      LABEL = 'DeepSeek'
       USAGE_KEYS = { input: 'prompt_tokens', output: 'completion_tokens', total: 'total_tokens' }.freeze
 
       # Thinking-mode models reject a forced tool_choice. The error text names
@@ -34,7 +35,9 @@ module ActiveGenie
 
         response = request_allowing_tool_choice_fallback(payload)
 
-        raise InvalidResponseError, "Invalid response: #{response}" if response.nil? || response.empty?
+        if response.nil? || response.empty?
+          raise provider_error(InvalidResponseError, detail: "no tool arguments: #{response.inspect}")
+        end
 
         ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: }, config: @config)
 
@@ -77,7 +80,7 @@ module ActiveGenie
         begin
           JSON.parse(quote_bare_values(body_str))
         rescue JSON::ParserError
-          raise InvalidResponseError, "Invalid response: #{body_str}"
+          raise provider_error(InvalidResponseError, detail: "tool arguments that are not JSON: #{body_str[0, 200]}")
         end
       end
 

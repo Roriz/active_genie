@@ -164,7 +164,7 @@ module ActiveGenie
 
       def call(item, input, twin:, shared:)
         subject = system.definition.subject_for(item.variant)
-        raise(Error, "#{system.definition.name}: eval.rb has no `call` block") unless subject
+        raise MissingCallBlockError, system.definition.name unless subject
 
         context = Context.new(provider: system.provider, model: system.model, row: item.case, variant: item.variant,
                               twin:, shared:)

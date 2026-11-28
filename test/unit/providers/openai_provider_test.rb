@@ -69,7 +69,7 @@ module ActiveGenie
       def test_answer_without_a_tool_call_raises_invalid_response
         stub_openai(message: { content: nil }, finish_reason: 'stop')
 
-        error = assert_raises(BaseProvider::InvalidResponseError) { call_openai }
+        error = assert_raises(ActiveGenie::InvalidResponseError) { call_openai }
 
         assert_includes error.message, 'no tool call'
       end
@@ -77,13 +77,13 @@ module ActiveGenie
       def test_tool_arguments_that_are_not_json_raise_invalid_response
         stub_openai(message: { tool_calls: [tool_call('{"score": ')] }, finish_reason: 'stop')
 
-        assert_raises(BaseProvider::InvalidResponseError) { call_openai }
+        assert_raises(ActiveGenie::InvalidResponseError) { call_openai }
       end
 
-      def test_answer_cut_off_by_the_token_limit_raises_invalid_response
+      def test_answer_cut_off_by_the_token_limit_raises_truncated_response
         stub_openai(message: { tool_calls: [tool_call('{"score": 8}')] }, finish_reason: 'length')
 
-        error = assert_raises(BaseProvider::InvalidResponseError) { call_openai }
+        error = assert_raises(ActiveGenie::TruncatedResponseError) { call_openai }
 
         assert_includes error.message, 'length'
       end
@@ -91,7 +91,7 @@ module ActiveGenie
       def test_model_refusal_raises_a_refusal_error
         stub_openai(message: { content: nil, refusal: 'I cannot help with that.' }, finish_reason: 'stop')
 
-        error = assert_raises(BaseProvider::RefusalError) { call_openai }
+        error = assert_raises(ActiveGenie::RefusalError) { call_openai }
 
         assert_includes error.message, 'I cannot help with that.'
       end
@@ -99,7 +99,7 @@ module ActiveGenie
       def test_content_filter_raises_a_refusal_error
         stub_openai(message: { content: nil }, finish_reason: 'content_filter')
 
-        assert_raises(BaseProvider::RefusalError) { call_openai }
+        assert_raises(ActiveGenie::RefusalError) { call_openai }
       end
 
       # A schema field named `message` must come back as a field, not be unwrapped.

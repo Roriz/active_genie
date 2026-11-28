@@ -86,7 +86,7 @@ class AppEvalVariantsTwinsTest < Minitest::Test
     assert_equal [1, 1], Eval::Labeling.merge(Eval.fetch('picker')).values_at(:confirmed, :queued)
 
     Eval::Store.write_jsonl(File.join(@app, 'evals', 'picker', 'gold.jsonl'), [label.call('one', 'a', 'A')])
-    assert_raises(Eval::Error, 'a broken label is not a silent disagreement') do
+    assert_raises(Eval::InvalidWinnerLabelError, 'a broken label is not a silent disagreement') do
       Eval::Labeling.merge(Eval.fetch('picker'))
     end
 

@@ -51,10 +51,7 @@ module ActiveGenie
       # an OpenAI-compatible gateway. Accepts a config class or instance.
       def add(name, provider_config)
         name = name.to_sym
-        unless BUILT_IN.key?(name)
-          raise ArgumentError, "Unknown provider #{name.inspect}. ActiveGenie can call: " \
-                               "#{BUILT_IN.keys.join(', ')}. `add` replaces one of their configs."
-        end
+        raise InvalidProviderError, name unless BUILT_IN.key?(name)
 
         @all[name] = provider_config.is_a?(Class) ? provider_config.new : provider_config
         self
@@ -69,7 +66,7 @@ module ActiveGenie
       def provider_name_by_model(model)
         return nil if model.nil?
 
-        valid.find { |_, config| config.valid_model?(model) }&.first
+        valid.find { |_, config| config.valid_model?(model) || config.default_model == model }&.first
       end
 
       def method_missing(method_name, *args, &)

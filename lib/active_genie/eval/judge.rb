@@ -41,8 +41,11 @@ module ActiveGenie
 
         def current
           @current ||= begin
-            judge = Eval.config.fetch('judge') { raise Error, 'evals/config.yml has no judge: { provider, model }' }
-            new(provider: judge.fetch('provider'), model: judge.fetch('model'))
+            judge = Eval.config['judge']
+            missing = %w[provider model].reject { |key| judge.is_a?(Hash) && judge[key] }
+            raise JudgeConfigMissingError, "judge: { #{missing.join(', ')} }" if missing.any?
+
+            new(provider: judge['provider'], model: judge['model'])
           end
         end
       end
@@ -84,7 +87,7 @@ module ActiveGenie
 
         answer = @answerer.call(kind, payload)
         verdict = parse.call(answer)
-        raise Error, "judge #{model} gave a malformed #{kind} answer: #{answer.inspect[0, 200]}" unless verdict
+        raise MalformedJudgeAnswerError.new(model:, kind:, answer:) unless verdict
 
         record('key' => key, 'kind' => kind, 'payload' => payload, 'answer' => answer, 'at' => Time.now.utc.iso8601)
         verdict

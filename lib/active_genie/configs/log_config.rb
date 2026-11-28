@@ -44,7 +44,7 @@ module ActiveGenie
       def add_observer(observers: [], scope: {}, &block)
         @observers ||= []
 
-        raise ArgumentError, 'Scope must be a hash' if scope && !scope.is_a?(Hash)
+        raise InvalidLogScopeError, scope if scope && !scope.is_a?(Hash)
 
         Array(observers).each do |observer|
           next unless observer.respond_to?(:call)

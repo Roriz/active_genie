@@ -43,7 +43,7 @@ module ActiveGenie
         case mode.to_s
         when 'quick' then items.select { |i| i.pool == 'dev' }
         when 'full' then items
-        else raise Error, "unknown mode #{mode}"
+        else raise UnknownModeError, mode
         end
       end
     end

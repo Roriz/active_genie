@@ -47,7 +47,7 @@ module ActiveGenie
         when 'list' then List.grade(gold, output)
         when 'rubric' then Rubric.grade(gold, output)
         when 'winner' then Winner.grade(gold, output)
-        else raise Error, "#{definition.name}: unknown grader #{definition.grader.inspect}"
+        else raise UnknownGraderError.new(definition.name, definition.grader)
         end
       end
 
@@ -222,7 +222,7 @@ module ActiveGenie
           when 'no_item' then items.none?(&hit)
           when 'min_items' then items.size >= check.fetch('n')
           when 'max_items' then items.size <= check.fetch('n')
-          else raise Error, "unknown list check #{check['type'].inspect}"
+          else raise UnknownListCheckError, check['type']
           end
         end
 

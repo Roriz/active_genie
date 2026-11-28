@@ -67,7 +67,7 @@ class AppEvalTest < Minitest::Test
       ActiveGenie::Eval.define('other') { call { |input| input } }
     RUBY
 
-    assert_raises(Eval::Error) { Eval.load! }
+    assert_raises(Eval::EvalNameMismatchError) { Eval.load! }
   end
 
   def test_run_report_baseline_and_a_canary_regression
@@ -177,7 +177,7 @@ class AppEvalTest < Minitest::Test
     Eval::Judge.online = true
     spec = { 'present' => true, 'check' => 'eq', 'value' => 'refund', 'judge' => true, 'question' => 'What is asked?' }
 
-    assert_raises(Eval::Error) { Eval::Graders::Fields.outcome(spec, 'money back') }
+    assert_raises(Eval::MalformedJudgeAnswerError) { Eval::Graders::Fields.outcome(spec, 'money back') }
     refute_path_exists File.join(@app, 'evals', 'judge', 'fake-judge.jsonl')
   end
 

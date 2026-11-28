@@ -33,12 +33,40 @@ module ActiveGenie
         mock_provider_instance.verify
       end
 
-      def test_unknown_provider_raises_without_available_provider
+      def test_unknown_provider_raises_invalid_provider
         config = Configuration.new({ llm: { model: 'command-r' }, providers: { default: 'cohere' } })
 
-        assert_raises(ActiveGenie::WithoutAvailableProviderError) do
+        error = assert_raises(ActiveGenie::InvalidProviderError) do
           ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
         end
+
+        assert_includes error.message, 'Unknown provider "cohere"'
+      end
+
+      def test_unknown_default_provider_raises_even_when_another_provider_has_a_key
+        config = Configuration.new({ providers: { default: 'cohere', openai: { api_key: 'secret' } } })
+
+        assert_raises(ActiveGenie::InvalidProviderError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+      end
+
+      def test_no_credentialed_provider_raises_without_available_provider
+        assert_raises(ActiveGenie::WithoutAvailableProviderError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION,
+                                                                   config: Configuration.new({}))
+        end
+      end
+
+      # It used to fall back to another provider's default model without a word.
+      def test_a_model_no_credentialed_provider_runs_raises_invalid_model
+        config = Configuration.new({ llm: { model: 'command-r' }, providers: { openai: { api_key: 'secret' } } })
+
+        error = assert_raises(ActiveGenie::InvalidModelError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, '"command-r" (providers with a key: openai)'
       end
 
       def test_choose_openai_by_model_name

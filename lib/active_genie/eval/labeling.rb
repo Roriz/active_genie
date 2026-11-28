@@ -62,7 +62,7 @@ module ActiveGenie
       def passes(definition)
         labels = Store.labels(definition).reject { |r| r['error'] }
         odd = labels.map { |r| r['pass'] }.uniq - %w[a b]
-        raise Error, "#{definition.name}/gold.jsonl: pass must be a or b, not #{odd.map(&:inspect).join(', ')}" if odd.any?
+        raise InvalidLabelPassError.new(definition.name, odd) if odd.any?
 
         %w[a b].to_h { |p| [p, labels.select { |r| r['pass'] == p }.to_h { |r| [r['id'], r] }] }
       end
@@ -95,10 +95,7 @@ module ActiveGenie
       # gold's own field names, `score` for band and rubric (a number, or {"text", "twin"} numbers for a
       # twin row), `list` for list, `winner` for winner ("a", "b" or "either", in the row's own terms).
       def fields(definition, gold)
-        if definition.custom_grader?
-          raise Error,
-                "#{definition.name}: a custom grader's rows can't be labeled; set their status by hand"
-        end
+        raise CustomGraderLabelingError, definition.name if definition.custom_grader?
 
         case definition.grader
         when 'fields' then gold.fetch('fields')
@@ -114,13 +111,13 @@ module ActiveGenie
         when 'band', 'rubric' then scored_within?(spec, value, twin:)
         when 'winner'
           unless value.nil? || Graders::Winner::SIDES.include?(value)
-            raise Error, "a pass gave winner #{value.inspect}; it takes #{Graders::Winner::SIDES.join(', ')}"
+            raise InvalidWinnerLabelError.new(definition.name, value)
           end
 
           value == spec['winner']
         when 'list'
           return false if Matchers.absent?(value)
-          raise Error, "a pass gave list #{value.inspect}; it takes an array of answers" unless value.is_a?(Array)
+          raise InvalidListLabelError.new(definition.name, value) unless value.is_a?(Array)
 
           Graders::List.pass?(spec, value)
         else

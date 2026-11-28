@@ -33,7 +33,7 @@ module ActiveGenie
       def test_raises_invalid_response_error_when_arguments_cannot_be_repaired
         stub_arguments('{"score": [8,')
 
-        error = assert_raises(DeepseekProvider::InvalidResponseError) { provider.function_calling(MESSAGES, FUNCTION) }
+        error = assert_raises(ActiveGenie::InvalidResponseError) { provider.function_calling(MESSAGES, FUNCTION) }
 
         assert_includes error.message, '{"score": [8,'
       end

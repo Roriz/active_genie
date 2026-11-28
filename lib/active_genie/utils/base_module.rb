@@ -15,7 +15,7 @@ module ActiveGenie
     end
 
     def call
-      raise NotImplementedError, 'Subclasses must implement the `call` method'
+      raise CallNotImplementedError, self.class
     end
 
     def config

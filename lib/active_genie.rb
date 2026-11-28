@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Every error the runtime raises, one file each (the eval engine loads its own from errors/eval/).
+Dir[File.join(__dir__, 'active_genie/errors/*.rb')].each { |file| require file }
 require_relative 'active_genie/logger'
 require_relative 'active_genie/configuration'
 

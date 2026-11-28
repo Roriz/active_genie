@@ -11,6 +11,7 @@ module ActiveGenie
   module Providers
     # Provider for interacting with OpenAI Chat Completions API.
     class OpenaiProvider < BaseProvider
+      LABEL = 'OpenAI'
       USAGE_KEYS = { input: 'prompt_tokens', output: 'completion_tokens', total: 'total_tokens' }.freeze
 
       # Reasoning models reject function tools on /v1/chat/completions unless
@@ -29,7 +30,9 @@ module ActiveGenie
         payload = build_payload(messages, function)
         raw_response = request_allowing_reasoning_fallback(payload)
 
-        raise InvalidResponseError, "Invalid response: #{raw_response}" if raw_response.nil? || raw_response.keys.empty?
+        if raw_response.nil? || raw_response.keys.empty?
+          raise provider_error(InvalidResponseError, detail: "an empty body: #{raw_response.inspect}")
+        end
 
         parsed_data = parse_arguments(raw_response, function)
         ActiveGenie.logger.call({ code: :function_calling, fine_tune: true, payload:, response: raw_response },
@@ -85,16 +88,18 @@ module ActiveGenie
         return ToolArguments.unwrap(parsed, function) if parsed
 
         detail = arguments.to_s.empty? ? 'no tool call' : "tool arguments that are not a JSON object: #{arguments[0, 200]}"
-        raise InvalidResponseError, "OpenAI returned #{detail} (finish_reason: #{choice['finish_reason'].inspect})."
+        raise provider_error(InvalidResponseError, detail: "#{detail} (finish_reason: #{choice['finish_reason'].inspect})")
       end
 
       def raise_if_unusable(choice, message)
-        refusal = message['refusal']
-        raise RefusalError, "OpenAI declined the request: #{refusal}" unless refusal.to_s.empty?
-        raise RefusalError, 'OpenAI content filter blocked the answer.' if choice['finish_reason'] == 'content_filter'
+        declined = message['refusal']
+        raise provider_error(RefusalError, detail: declined) unless declined.to_s.empty?
+        if choice['finish_reason'] == 'content_filter'
+          raise provider_error(RefusalError, detail: 'its content filter blocked the answer (content_filter)')
+        end
         return unless choice['finish_reason'] == 'length'
 
-        raise InvalidResponseError, 'Answer cut off at the token limit (finish_reason: length).'
+        raise provider_error(TruncatedResponseError, detail: 'finish_reason: length')
       end
 
       def json_object(text)

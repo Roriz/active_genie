@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 require 'net/http'
-require_relative '../errors/provider_server_error'
-require_relative 'errors'
+require_relative 'provider_errors'
 
 module ActiveGenie
   module Providers
     class BaseProvider
+      include ProviderErrors
+
       DEFAULT_HEADERS = {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -95,8 +96,8 @@ module ActiveGenie
       def raise_for_status(response)
         # 5xx, 408 Request Timeout, 429 Too Many Requests
         transient = response.is_a?(Net::HTTPServerError) || [408, 429].include?(response.code.to_i)
-        raise(transient ? ProviderTransientError : ProviderUnknownError,
-              "Unexpected response: #{response.code} - #{response.body}")
+        error = transient ? ProviderTransientError : ProviderUnknownError
+        raise provider_error(error, status: response.code, body: response.body, max_retries:)
       end
 
       # Create and configure an HTTP client
@@ -150,7 +151,8 @@ module ActiveGenie
         begin
           JSON.parse(response.body)
         rescue JSON::ParserError => e
-          raise ProviderUnknownError, "Failed to parse JSON response: #{e.message}"
+          raise provider_error(InvalidResponseError,
+                               detail: "HTTP #{response.code} with a body that is not JSON (#{e.message})")
         end
       end
 
@@ -180,7 +182,7 @@ module ActiveGenie
           yield
         rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, ProviderTransientError,
                JSON::ParserError => e
-          raise if retries >= max_retries
+          raise exhausted(e, retries + 1) if retries >= max_retries
 
           sleep_time = retry_delay * (2**retries)
           retries += 1

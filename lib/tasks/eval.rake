@@ -23,7 +23,7 @@ module ActiveGenieEvalTasks
 
   def guard
     yield
-  rescue ActiveGenie::Eval::Error => e
+  rescue ActiveGenie::Error => e # the eval engine's errors and any other error the gem raises
     abort e.message
   end
 

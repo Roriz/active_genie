@@ -47,9 +47,9 @@ module ActiveGenie
       end
 
       def test_add_rejects_providers_activegenie_cannot_call
-        error = assert_raises(ArgumentError) { build_config.providers.add(:mistral, GatewayConfig) }
+        error = assert_raises(ActiveGenie::InvalidProviderError) { build_config.providers.add(:mistral, GatewayConfig) }
 
-        assert_includes error.message, 'openai'
+        assert_includes error.message, 'Unknown provider "mistral". ActiveGenie can call: openai'
       end
 
       def test_removed_provider_is_never_used_by_module_calls

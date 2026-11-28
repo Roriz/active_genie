@@ -96,7 +96,7 @@ ActiveGenie::Comparator.call("a fresh apple", "a rotten apple", "which is better
 # => "a fresh apple"
 ```
 
-If you have not set a key for any provider, the call raises `ActiveGenie::WithoutAvailableProviderError`. See [Observability & errors](/reference/observability) for the full list of failures and how to handle them.
+If you have not set a key for any provider, the call raises `ActiveGenie::WithoutAvailableProviderError` ([AG-E001](/reference/errors#ag-e001)). See [Errors](/reference/errors) for every error ActiveGenie raises and how to fix it.
 
 ## Next steps
 

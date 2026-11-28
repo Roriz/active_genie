@@ -24,7 +24,7 @@ module ActiveGenie
 
           JSON.parse(line)
         rescue JSON::ParserError => e
-          raise Error, "#{file}:#{index + 1}: #{e.message}"
+          raise InvalidJsonlError.new(file, index + 1, e.message)
         end
       end
 

@@ -65,6 +65,7 @@ export default defineConfig({
         items: [
           { text: 'Configuration', link: '/reference/config' },
           { text: 'Observability & errors', link: '/reference/observability' },
+          { text: 'Errors', link: '/reference/errors' },
         ]
       },
     ],

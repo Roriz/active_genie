@@ -6,6 +6,8 @@ require 'digest'
 require 'fileutils'
 require 'time'
 
+Dir[File.join(__dir__, 'errors/eval/*.rb')].each { |file| require file }
+
 module ActiveGenie
   # Evals for your own LLM features: run your real code (prompt building, the LLM call, parsing) on
   # cases you keep in `evals/<name>/`, grade every answer against its gold, and compare each change
@@ -15,8 +17,6 @@ module ActiveGenie
   # baselines); this module is the engine that runs it. Start with `rake active_genie:eval:install`
   # and `rake "active_genie:eval:new[name]"`, then read the README it writes into evals/.
   module Eval
-    class Error < StandardError; end
-
     class << self
       attr_writer :app_root
 
@@ -40,21 +40,19 @@ module ActiveGenie
       def config
         @config ||= begin
           file = path('config.yml')
-          raise Error, 'evals/config.yml is missing; run `rake active_genie:eval:install`' unless File.exist?(file)
+          raise ConfigMissingError, file unless File.exist?(file)
 
           YAML.safe_load_file(file) || {}
         rescue Psych::Exception => e
-          raise Error, "evals/config.yml: #{e.message}"
+          raise ConfigSyntaxError.new(file, e.message)
         end
       end
 
       # Registers an eval. Called from evals/<name>/eval.rb, which `load!` reads.
       def define(name, &)
-        dir = @loading || raise(Error, "define #{name} from evals/#{name}/eval.rb, which load! reads")
+        dir = @loading || raise(DefineOutsideLoadError, name)
         name = name.to_s
-        unless name == File.basename(dir)
-          raise Error, "evals/#{File.basename(dir)}/eval.rb defines #{name.inspect}; name it after its folder"
-        end
+        raise EvalNameMismatchError.new(folder: File.basename(dir), name:) unless name == File.basename(dir)
 
         definition = Definition.new(name:, dir:)
         Definition::Builder.new(definition).instance_eval(&)
@@ -80,9 +78,7 @@ module ActiveGenie
       end
 
       def fetch(name)
-        load!.fetch(name.to_s) do
-          raise Error, "no eval #{name.inspect} in evals/ (evals: #{definitions.keys.sort.join(', ')})"
-        end
+        load!.fetch(name.to_s) { raise UnknownEvalError.new(name, definitions.keys) }
       end
 
       # Forgets the loaded evals and config; tests point app_root at a temporary app.
