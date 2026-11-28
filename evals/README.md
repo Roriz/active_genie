@@ -31,7 +31,7 @@ passes. A prompt is one part of the harness: change it, then measure what the me
 | `extractor_with_litote` | `Extractor.with_litote` | `fields` | 6 + 30 |
 | `comparator` | `Comparator.by_debate` and `by_fight`, as two variants | `winner`, both orders | 20 + 50 |
 | `lister_with_feud` | `Lister.with_feud` | `list` | 10 + 30 |
-| `lister_with_juries` | `Lister.with_juries` | `list` | 10 |
+| `lister_with_juries` | `Lister.with_juries` | `list` | 10 + 15 |
 | `scorer_by_jury_bench` | `Scorer.by_jury_bench` | `band`, bias pairs as twin rows | 20 + 25 |
 
 The headline is the mean of the eight rates in the `EVAL=all` summary (the extractor and the
@@ -89,6 +89,11 @@ MIT-only rule. Both are allowed again (see
   answers are near-certain common knowledge. Each gold asks for one of the crowd's top answers in the first two items (`top_k_any`), and at least three groups
   of the usual answers (`min_groups`). 18 of the 30 also forbid a few correct but unusual answers
   (`no_item`), which catches listing like an expert instead of like the crowd.
+- **lister_with_juries**: 15 drafted test cases, each a text and criteria from a different domain.
+  Each gold asks for the experts the criteria need (`any_item`), forbids experts the text invites
+  but the criteria don't need (`no_item`, such as a food critic for allergen labelling), and asks
+  for exactly three juries (`min_items` and `max_items` of 3), the count the prompt asks for. All
+  15 passed labeling. The quality of the juries is still judged through the scorer.
 
 ## Tests
 

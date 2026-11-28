@@ -305,6 +305,7 @@ are:
 - `any_item`: some item matches.
 - `no_item`: no item matches.
 - `min_items`: at least `n` items.
+- `max_items`: at most `n` items. With `min_items` of the same `n`, exactly `n` items.
 - `min_groups`: at least `min` of the groups are filled, each by a different item.
 
 ### `winner`: a pick between two

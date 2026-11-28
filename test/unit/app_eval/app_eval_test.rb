@@ -251,6 +251,19 @@ class AppEvalTest < Minitest::Test
     refute_includes Eval::Store.cases(router).map { |r| r['id'] }, 'odd_status', 'a status typo keeps the row out'
   end
 
+  def test_check_rejects_a_list_count_no_output_can_meet
+    write_eval('lister', "ActiveGenie::Eval.define('lister') { call { |i| [] }\n grader :list\n watch 'router.rb' }\n")
+    count = ->(min, max) { { 'checks' => [{ 'type' => 'min_items', 'n' => min }, { 'type' => 'max_items', 'n' => max }] } }
+    write_dataset('lister', [{ 'id' => 'exactly_three', 'pool' => 'dev', 'input' => {}, 'gold' => count.call(3, 3) },
+                             { 'id' => 'never', 'pool' => 'dev', 'input' => {}, 'gold' => count.call(4, 3) },
+                             { 'id' => 'zero', 'pool' => 'dev', 'input' => {}, 'gold' => count.call(1, 0) }])
+    errors = Eval::Check.new.run.errors.join("\n")
+
+    refute_match %r{lister/exactly_three}, errors
+    assert_match %r{lister/never: min_items 4 is more than max_items 3}, errors
+    assert_match %r{lister/zero: max_items needs a well-formed n}, errors
+  end
+
   def test_a_call_block_raising_a_script_error_is_recorded_not_a_crash
     define_router(call: ->(_input) { raise NotImplementedError, 'call your feature' })
     items = Eval::Selection.call(router, 'quick')

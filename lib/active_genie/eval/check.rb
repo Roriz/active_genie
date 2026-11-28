@@ -226,7 +226,14 @@ module ActiveGenie
         unknown = checks.map { |c| c['type'] } - Graders::List::CHECKS.keys
         return "unknown list checks #{unknown.join(', ')}" if unknown.any?
 
-        checks.filter_map { |c| list_check_problem(c) }.first
+        checks.filter_map { |c| list_check_problem(c) }.first || list_size_problem(checks)
+      end
+
+      # A min_items above a max_items fails every output, so the row could never pass.
+      def list_size_problem(checks)
+        least = checks.filter_map { |c| c['n'] if c['type'] == 'min_items' }.max
+        most = checks.filter_map { |c| c['n'] if c['type'] == 'max_items' }.min
+        "min_items #{least} is more than max_items #{most}" if least && most && least > most
       end
 
       # A check takes exactly its settings: a misspelled key would otherwise be ignored by the grader.
