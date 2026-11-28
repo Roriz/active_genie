@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'values/players'
+
 module ActiveGenie
   module Ranker
     class FreeForAll

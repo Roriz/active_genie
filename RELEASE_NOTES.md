@@ -49,7 +49,7 @@
     `config.log.add_observer` raises `ActiveGenie::InvalidLogScopeError`. A `BaseModule` subclass
     without `call` raises `ActiveGenie::CallNotImplementedError`.
   - **`ActiveGenie::ProviderServerError` is removed.** Nothing raised it.
-  - **Eval errors split.** `ActiveGenie::Eval::Error` is now the base of 25 specific classes, such as
+  - **Eval errors split.** `ActiveGenie::Eval::Error` is now the base of 26 specific classes, such as
     `Eval::ConfigMissingError` and `Eval::UnknownEvalError`, each with its own code (`AG-E2xx`).
     `rescue ActiveGenie::Eval::Error` still catches them all. The eval rake tasks print any
     `ActiveGenie::Error` without a backtrace.
@@ -65,12 +65,20 @@
   set, ActiveGenie still uses the first provider with a key, and a module's recommended model whose
   provider has no key is still skipped. `rake active_genie:eval` (and `Eval::Runner#run!`) checks the
   pinned provider, and the judge's when a case needs it, before it asks to spend, so a missing key
-  stops the run once instead of failing every case.
+  stops the run once instead of failing every case. A judge's provider without a key raises
+  `ActiveGenie::Eval::JudgeProviderWithoutApiKeyError` (`AG-E226`), which points at `judge:` in
+  `evals/config.yml`.
 - **A model no provider recognises raises `InvalidModelError` (breaking).** When `config.llm.model`
   is set without `config.providers.default`, ActiveGenie picks the provider from the model name. If no
   provider with a key recognises it (`o3`, a fine-tune, a gateway model), the call used to swap in
   another provider's default model without a word. It now raises `InvalidModelError`, which shows the
   `providers.default` to set. A provider's own `default_model` now always resolves to that provider.
+- **`ActiveGenie::Eval::Scaffold` is removed.** It shipped in rc2. Write the starting files with
+  `rake active_genie:eval:install` and `rake "active_genie:eval:new[name]"`, which now live in
+  `lib/tasks/eval_install.rake` and which `ActiveGenie.load_tasks` loads. The templates moved from
+  `lib/active_genie/eval/templates/` to `lib/tasks/templates/eval/`. A name that isn't snake_case
+  raises `ActiveGenie::Eval::InvalidEvalNameError` (`AG-E206`), still an `Eval::Error`, and the task
+  prints it without a backtrace.
 - **Fix: `InvalidLogOutputError` was a `NameError`.** Its file was never loaded, so setting
   `config.log.output` to something that can't be called raised `NameError` instead.
 

@@ -184,9 +184,9 @@ class AppEvalTest < Minitest::Test
     runner = Eval::Runner.new(system: Eval::System.new(definition:, provider: nil, model: nil),
                               items: Eval::Selection.call(definition, 'quick'), io: @io)
 
-    error = assert_raises(ActiveGenie::ProviderWithoutApiKeyError) { runner.run!(judge: true) }
+    error = assert_raises(Eval::JudgeProviderWithoutApiKeyError) { runner.run!(judge: true) }
 
-    assert_includes error.message, 'The default provider "anthropic" has no API key' # the judge's, from config.yml
+    assert_includes error.message, 'The eval judge\'s provider "anthropic" (judge: in evals/config.yml) has no API key'
     assert_equal 1, runner.pending.size, 'no case ran'
 
     runner.run!(judge: false) # a run that won't call the judge doesn't need its key

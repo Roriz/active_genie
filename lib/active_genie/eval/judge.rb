@@ -137,8 +137,13 @@ module ActiveGenie
           kind == 'rubric' ? rubric(payload) : equivalence(payload)
         end
 
+        # The judge's provider comes from evals/config.yml, so a missing key says so (AG-E226), not
+        # that the default provider has none (AG-E007).
         def check_provider!
-          ActiveGenie.new_configuration(@config).providers.check_default!
+          providers = ActiveGenie.new_configuration(@config).providers
+          providers.check_default!
+        rescue ProviderWithoutApiKeyError
+          raise JudgeProviderWithoutApiKeyError.new(@config.dig(:providers, :default), providers.valid.keys)
         end
 
         private

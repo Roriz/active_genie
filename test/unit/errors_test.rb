@@ -54,7 +54,8 @@ module ActiveGenie
       Eval::NoRunToBaselineError => -> { Eval::NoRunToBaselineError.new('router') },
       Eval::IncompleteRunError => -> { Eval::IncompleteRunError.new('router', replicate: 1, count: 2, example: 'a') },
       Eval::UnjudgedRunError => -> { Eval::UnjudgedRunError.new('router', replicate: 1, count: 2) },
-      Eval::DirtyWorktreeError => -> { Eval::DirtyWorktreeError.new('router') }
+      Eval::DirtyWorktreeError => -> { Eval::DirtyWorktreeError.new('router') },
+      Eval::JudgeProviderWithoutApiKeyError => -> { Eval::JudgeProviderWithoutApiKeyError.new('anthropic', %i[openai]) }
     }.freeze
 
     def errors

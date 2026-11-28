@@ -20,10 +20,15 @@ module ActiveGenie
       to use the first provider with a key.
     FIX
 
-    def initialize(provider, providers)
+    # The template values, shared with Eval::JudgeProviderWithoutApiKeyError.
+    def self.values(provider, providers)
       name = provider.to_s
-      super(provider: name.inspect, name:, env: Config::ProvidersConfig::BUILT_IN.fetch(name.to_sym)::API_KEY_ENV,
-            providers: providers.any? ? providers.join(', ') : 'none has one yet')
+      { provider: name.inspect, name:, env: Config::ProvidersConfig::BUILT_IN.fetch(name.to_sym)::API_KEY_ENV,
+        providers: providers.any? ? providers.join(', ') : 'none has one yet' }
+    end
+
+    def initialize(provider, providers)
+      super(**self.class.values(provider, providers))
     end
   end
 end
