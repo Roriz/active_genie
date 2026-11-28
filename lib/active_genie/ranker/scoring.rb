@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../utils/fiber_by_batch'
+require_relative 'values/players'
 
 module ActiveGenie
   module Ranker
