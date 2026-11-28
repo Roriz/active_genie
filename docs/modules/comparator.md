@@ -108,7 +108,7 @@ Treat `metadata` as debugging output. Its keys track the prompt and can change b
 
 ```ruby
 ActiveGenie::Comparator.call(player_a, player_b, criteria,
-  config: { llm: { model: 'gpt-4o-mini' } })
+  config: { llm: { model: 'gpt-5.6-luna' } })
 ```
 
 See [Configuration](/reference/config) for the full set of options, and [Observability & errors](/reference/observability) for failure handling.

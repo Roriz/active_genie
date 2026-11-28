@@ -2,6 +2,11 @@
 
 ## Behavior changes to check before upgrading
 
+- **The OpenAI default model is now `gpt-5.6-luna` (was `gpt-4o-mini`).** Any call that runs on
+  OpenAI without `config.llm.model` set now uses it, including a call whose module's recommended
+  model falls back to OpenAI because that model's provider has no key. This brings OpenAI in line
+  with the other providers' current cheap tiers. To keep the old model, set
+  `config.llm.model = 'gpt-4o-mini'` or `config.providers.openai.default_model = 'gpt-4o-mini'`.
 - **`Ranker::Entities` is now `Ranker::Values`.** `ActiveGenie::Ranker::Entities::Player` and
   `ActiveGenie::Ranker::Entities::Players` are renamed to `ActiveGenie::Ranker::Values::Player` and
   `ActiveGenie::Ranker::Values::Players`, with no alias for the old names. Their behavior is the same.
