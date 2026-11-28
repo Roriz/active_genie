@@ -74,6 +74,7 @@ and group by. Its message says what went wrong, how to fix it, and links its ent
 | `ActiveGenie::TruncatedResponseError` | [AG-E106](/reference/errors#ag-e106) | A subclass of `InvalidResponseError` for an answer cut off by the token limit. Not retried. |
 | `ActiveGenie::WithoutAvailableProviderError` | [AG-E001](/reference/errors#ag-e001) | No configured provider has a usable API key. |
 | `ActiveGenie::InvalidProviderError` | [AG-E002](/reference/errors#ag-e002) | `config.providers.default` names a provider ActiveGenie can't call. |
+| `ActiveGenie::ProviderWithoutApiKeyError` | [AG-E007](/reference/errors#ag-e007) | `config.providers.default` names a provider with no API key. |
 | `ActiveGenie::InvalidModelError` | [AG-E003](/reference/errors#ag-e003) | `config.llm.model` names a model no credentialed provider runs, and no provider is set. |
 
 `ProviderUnknownError` carries the status code and the raw body, so you still get the provider's own message:

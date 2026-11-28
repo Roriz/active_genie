@@ -51,6 +51,63 @@ module ActiveGenie
         end
       end
 
+      # It used to fall back to any provider with a key without a word.
+      def test_a_default_provider_without_an_api_key_raises
+        config = Configuration.new({ providers: { default: 'anthropic', openai: { api_key: 'secret' } } })
+
+        error = assert_raises(ActiveGenie::ProviderWithoutApiKeyError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, 'The default provider "anthropic" has no API key'
+        assert_includes error.message, 'Set the ANTHROPIC_API_KEY environment variable'
+        assert_includes error.message, "config.providers.anthropic.api_key = ENV.fetch('ANTHROPIC_API_KEY')"
+        assert_includes error.message, 'a provider that has a key (openai)'
+      end
+
+      def test_a_default_provider_from_provider_name_without_an_api_key_raises
+        previous = ENV.fetch('PROVIDER_NAME', nil)
+        ENV['PROVIDER_NAME'] = 'google'
+        config = Configuration.new({ providers: { openai: { api_key: 'secret' } } })
+
+        error = assert_raises(ActiveGenie::ProviderWithoutApiKeyError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, 'GEMINI_API_KEY'
+      ensure
+        ENV['PROVIDER_NAME'] = previous
+      end
+
+      def test_a_per_call_default_provider_without_an_api_key_raises
+        assert_raises(ActiveGenie::ProviderWithoutApiKeyError) do
+          ActiveGenie::Scorer.call('text', 'criteria',
+                                   config: { providers: { default: 'deepseek', openai: { api_key: 'secret' } } })
+        end
+      end
+
+      # Only the user's default raises: Comparator recommends a Claude model, Anthropic has no key here.
+      def test_a_recommended_model_whose_provider_has_no_key_falls_back_to_one_that_has
+        config = Configuration.new({ llm: { recommended_model: 'claude-haiku-5-5' },
+                                     providers: { openai: { api_key: 'secret' } } })
+
+        mock_provider_instance = Minitest::Mock.new
+        mock_provider_instance.expect(:function_calling, { 'test_field' => 'value' },
+                                      [EXAMPLE_MESSAGES, EXAMPLE_FUNCTION])
+
+        received_config = nil
+        ActiveGenie::Providers::OpenaiProvider.stub(:new, lambda { |c|
+          received_config = c
+          mock_provider_instance
+        }) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        mock_provider_instance.verify
+
+        assert_equal 'gpt-4o-mini', received_config.llm.model
+      end
+
       def test_no_credentialed_provider_raises_without_available_provider
         assert_raises(ActiveGenie::WithoutAvailableProviderError) do
           ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION,

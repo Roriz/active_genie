@@ -56,6 +56,12 @@
 - **An unknown `providers.default` raises `InvalidProviderError` (breaking).** Before, a name such as
   `'cohere'` (in `config.providers.default` or `PROVIDER_NAME`) fell through to another provider with
   a key, or to `WithoutAvailableProviderError` when none had one.
+- **A default provider without an API key raises `ProviderWithoutApiKeyError` (breaking).** Before,
+  `config.providers.default = 'anthropic'` (or `PROVIDER_NAME=anthropic`, or a call's
+  `providers: { default: 'anthropic' }`) with no `ANTHROPIC_API_KEY` silently called whichever other
+  provider had a key. It now raises `ActiveGenie::ProviderWithoutApiKeyError` (`AG-E007`), which names
+  the missing environment variable. With no default set, ActiveGenie still uses the first provider
+  with a key, and a module's recommended model whose provider has no key is still skipped.
 - **A model no provider recognises raises `InvalidModelError` (breaking).** When `config.llm.model`
   is set without `config.providers.default`, ActiveGenie picks the provider from the model name. If no
   provider with a key recognises it (`o3`, a fine-tune, a gateway model), the call used to swap in

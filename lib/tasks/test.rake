@@ -117,4 +117,5 @@ def reset_environment_variables
   ENV['GEMINI_API_KEY'] = nil
   ENV['ANTHROPIC_API_KEY'] = nil
   ENV['DEEPSEEK_API_KEY'] = nil
+  ENV['PROVIDER_NAME'] = nil # a default without its key now raises
 end

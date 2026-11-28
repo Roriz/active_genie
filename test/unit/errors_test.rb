@@ -18,6 +18,7 @@ module ActiveGenie
       InvalidLogOutputError => -> { InvalidLogOutputError.new('stdout') },
       InvalidLogScopeError => -> { InvalidLogScopeError.new(:llm_usage) },
       CallNotImplementedError => -> { CallNotImplementedError.new(Class.new(BaseModule)) },
+      ProviderWithoutApiKeyError => -> { ProviderWithoutApiKeyError.new('anthropic', %i[openai]) },
       ProviderUnknownError => -> { ProviderUnknownError.new(provider: 'OpenAI', model: '"gpt-5"', status: 401, body: '') },
       ProviderTransientError => lambda {
         ProviderTransientError.new(provider: 'OpenAI', model: '"gpt-5"', status: 429, body: 'slow', max_retries: 3)

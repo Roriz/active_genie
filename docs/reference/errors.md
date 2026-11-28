@@ -38,6 +38,7 @@ The codes come in three groups: `AG-E0xx` for configuration, `AG-E1xx` for provi
 | [AG-E004](#ag-e004) | `InvalidLogOutputError` | `config.log.output` doesn't respond to `call`. |
 | [AG-E005](#ag-e005) | `InvalidLogScopeError` | `add_observer` got a scope that isn't a Hash. |
 | [AG-E006](#ag-e006) | `CallNotImplementedError` | A `BaseModule` subclass doesn't define `call`. |
+| [AG-E007](#ag-e007) | `ProviderWithoutApiKeyError` | `config.providers.default` names a provider with no API key. |
 | [AG-E101](#ag-e101) | `ProviderUnknownError` | The provider answered with an HTTP error a retry won't fix. |
 | [AG-E102](#ag-e102) | `ProviderTransientError` | A 408, 429 or 5xx still failing after every retry. |
 | [AG-E103](#ag-e103) | `ProviderConnectionError` | The network failed on every attempt. |
@@ -144,6 +145,26 @@ leave `scope:` out to observe every entry. See [observers](/reference/observabil
 **How to fix:** define `call`. It sends its messages through
 `ActiveGenie::Providers::UnifiedProvider.function_calling` and returns an `ActiveGenie::Result`;
 `lib/active_genie/comparator/debate.rb` is a complete example.
+
+### AG-E007 ProviderWithoutApiKeyError {#ag-e007}
+
+`ActiveGenie::ProviderWithoutApiKeyError`
+
+**Raised when** `config.providers.default`, the `PROVIDER_NAME` environment variable or a call's
+`config: { providers: { default: ... } }` names a provider that has no API key. ActiveGenie doesn't
+switch to another provider that has one, so a missing key never sends your data somewhere you didn't
+choose. With no default set, it still uses the first provider with a key.
+
+**How to fix:** set that provider's key, from its environment variable (`OPENAI_API_KEY`,
+`ANTHROPIC_API_KEY`, `GEMINI_API_KEY` or `DEEPSEEK_API_KEY`) or in the config. Or set the default to
+a provider that has a key, or leave it unset.
+
+```ruby
+ActiveGenie.configure do |config|
+  config.providers.default = 'anthropic'
+  config.providers.anthropic.api_key = ENV.fetch('ANTHROPIC_API_KEY')
+end
+```
 
 ## Provider calls
 

@@ -53,7 +53,7 @@ ActiveGenie ships with four providers: OpenAI, Anthropic, DeepSeek, and Google. 
 
 ### Choosing a provider
 
-`config.providers.default` selects which provider to use when a call doesn't specify one. If you never set it, ActiveGenie uses the first provider that has a valid API key.
+`config.providers.default` selects which provider to use when a call doesn't specify one. If you never set it, ActiveGenie uses the first provider that has a valid API key. If you set it to a provider without an API key, ActiveGenie raises [`ProviderWithoutApiKeyError`](/reference/errors#ag-e007) instead of switching to another provider.
 
 ```ruby
 ActiveGenie.configure do |config|
@@ -158,7 +158,7 @@ ActiveGenie resolves the model and provider in this order, stopping at the first
 4. Partial inference: whichever of the two is still missing gets filled in, either the provider from the model name (or the provider whose `default_model` it is) or the provider's `default_model`.
 5. Any available provider: the first one holding a valid API key, plus that provider's `default_model`.
 
-If no provider has an API key, ActiveGenie raises [`WithoutAvailableProviderError`](/reference/errors#ag-e001). If `config.llm.model` is set but no provider is, and no credentialed provider recognises the model, it raises [`InvalidModelError`](/reference/errors#ag-e003) rather than swapping in another model: set `config.providers.default` next to a model such as `o3`. A `config.providers.default` ActiveGenie can't call raises [`InvalidProviderError`](/reference/errors#ag-e002).
+If no provider has an API key, ActiveGenie raises [`WithoutAvailableProviderError`](/reference/errors#ag-e001). If `config.llm.model` is set but no provider is, and no credentialed provider recognises the model, it raises [`InvalidModelError`](/reference/errors#ag-e003) rather than swapping in another model: set `config.providers.default` next to a model such as `o3`. A `config.providers.default` ActiveGenie can't call raises [`InvalidProviderError`](/reference/errors#ag-e002), and one without an API key raises [`ProviderWithoutApiKeyError`](/reference/errors#ag-e007). A module's recommended model whose provider has no key is skipped, not an error.
 
 ```ruby
 ActiveGenie.configure do |config|
