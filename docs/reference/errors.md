@@ -71,6 +71,7 @@ The codes come in three groups: `AG-E0xx` for configuration, `AG-E1xx` for provi
 | [AG-E223](#ag-e223) | `Eval::IncompleteRunError` | Saving a baseline from a run with missing or errored cases. |
 | [AG-E224](#ag-e224) | `Eval::UnjudgedRunError` | Saving a baseline with cases waiting for the judge. |
 | [AG-E225](#ag-e225) | `Eval::DirtyWorktreeError` | Saving a baseline with uncommitted changes to watched files. |
+| [AG-E226](#ag-e226) | `Eval::JudgeProviderWithoutApiKeyError` | A case needs the judge and the judge's provider has no API key. |
 
 ## Configuration
 
@@ -168,8 +169,9 @@ end
 ```
 
 `rake active_genie:eval` raises it once, before it asks to spend, when the provider a run is pinned
-to (`dev: { provider }` in `evals/config.yml` or `PROVIDER=`), or the judge's provider when a case
-needs the judge, has no key. Otherwise every case would fail with it on its own call.
+to (`dev: { provider }` in `evals/config.yml` or `PROVIDER=`) has no key. Otherwise every case would
+fail with it on its own call. A judge's provider without a key raises
+[AG-E226](#ag-e226) instead.
 
 ### AG-E008 DefaultProviderRemovedError {#ag-e008}
 
@@ -506,3 +508,20 @@ errored cases, and a baseline needs every case.
 changes, so the baseline would not match a commit.
 
 **How to fix:** commit the changes and save again, or pass `FORCE=1` to save anyway.
+
+### AG-E226 JudgeProviderWithoutApiKeyError {#ag-e226}
+
+`ActiveGenie::Eval::JudgeProviderWithoutApiKeyError`
+
+**Raised when** a case needs the LLM judge and the provider `evals/config.yml` pins it to
+(`judge: { provider }`) has no API key. `rake active_genie:eval` raises it once, before it asks to
+spend, so no case runs.
+
+**How to fix:** set that provider's key, from its environment variable or in the config. Or pin a
+judge whose provider has a key, and keep it fixed: a new judge means a new baseline.
+
+```yaml
+judge:
+  provider: anthropic
+  model: claude-sonnet-5-5
+```
