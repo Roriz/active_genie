@@ -39,6 +39,7 @@ The codes come in three groups: `AG-E0xx` for configuration, `AG-E1xx` for provi
 | [AG-E005](#ag-e005) | `InvalidLogScopeError` | `add_observer` got a scope that isn't a Hash. |
 | [AG-E006](#ag-e006) | `CallNotImplementedError` | A `BaseModule` subclass doesn't define `call`. |
 | [AG-E007](#ag-e007) | `ProviderWithoutApiKeyError` | `config.providers.default` names a provider with no API key. |
+| [AG-E008](#ag-e008) | `DefaultProviderRemovedError` | `config.providers.default` names a provider `config.providers.remove` took out. |
 | [AG-E101](#ag-e101) | `ProviderUnknownError` | The provider answered with an HTTP error a retry won't fix. |
 | [AG-E102](#ag-e102) | `ProviderTransientError` | A 408, 429 or 5xx still failing after every retry. |
 | [AG-E103](#ag-e103) | `ProviderConnectionError` | The network failed on every attempt. |
@@ -163,6 +164,29 @@ a provider that has a key, or leave it unset.
 ActiveGenie.configure do |config|
   config.providers.default = 'anthropic'
   config.providers.anthropic.api_key = ENV.fetch('ANTHROPIC_API_KEY')
+end
+```
+
+`rake active_genie:eval` raises it once, before it asks to spend, when the provider a run is pinned
+to (`dev: { provider }` in `evals/config.yml` or `PROVIDER=`), or the judge's provider when a case
+needs the judge, has no key. Otherwise every case would fail with it on its own call.
+
+### AG-E008 DefaultProviderRemovedError {#ag-e008}
+
+`ActiveGenie::DefaultProviderRemovedError`
+
+**Raised when** `config.providers.default`, the `PROVIDER_NAME` environment variable or a call's
+`config: { providers: { default: ... } }` names a provider that `config.providers.remove` took out
+(or a call's config set to `nil`). ActiveGenie doesn't switch to another provider. The eval runner
+raises it before it asks to spend, like [AG-E007](#ag-e007).
+
+**How to fix:** don't remove the provider you set as the default. Or set the default to a provider
+that is still configured with a key, or leave it unset to use the first provider with a key.
+
+```ruby
+ActiveGenie.configure do |config|
+  config.providers.remove(:deepseek)
+  config.providers.default = 'openai' # not 'deepseek'
 end
 ```
 

@@ -56,20 +56,12 @@ module ActiveGenie
           PROVIDER_NAME_TO_PROVIDER[provider_name&.to_sym] || raise(WithoutAvailableProviderError)
         end
 
-        # A default ActiveGenie can't call, or one without an API key, is an error, not a cue to pick
-        # another provider. Only the user's own default raises: a module's recommended model whose
+        # Only the user's own default raises when it can't be called: a module's recommended model whose
         # provider has no key still falls through to a provider that has one.
         def explicit_choice(config)
-          model = config.llm.model
-          provider_name = config.providers.default
-          return [model, nil] if provider_name.nil?
+          config.providers.check_default!
 
-          raise InvalidProviderError, provider_name unless PROVIDER_NAME_TO_PROVIDER.key?(provider_name.to_sym)
-
-          valid = config.providers.valid
-          raise ProviderWithoutApiKeyError.new(provider_name, valid.keys) unless valid.key?(provider_name.to_sym)
-
-          [model, provider_name]
+          [config.llm.model, config.providers.default]
         end
 
         def global_default(config)

@@ -60,8 +60,12 @@
   `config.providers.default = 'anthropic'` (or `PROVIDER_NAME=anthropic`, or a call's
   `providers: { default: 'anthropic' }`) with no `ANTHROPIC_API_KEY` silently called whichever other
   provider had a key. It now raises `ActiveGenie::ProviderWithoutApiKeyError` (`AG-E007`), which names
-  the missing environment variable. With no default set, ActiveGenie still uses the first provider
-  with a key, and a module's recommended model whose provider has no key is still skipped.
+  the missing environment variable. A default that `config.providers.remove` took out raises
+  `ActiveGenie::DefaultProviderRemovedError` (`AG-E008`), which says it was removed. With no default
+  set, ActiveGenie still uses the first provider with a key, and a module's recommended model whose
+  provider has no key is still skipped. `rake active_genie:eval` (and `Eval::Runner#run!`) checks the
+  pinned provider, and the judge's when a case needs it, before it asks to spend, so a missing key
+  stops the run once instead of failing every case.
 - **A model no provider recognises raises `InvalidModelError` (breaking).** When `config.llm.model`
   is set without `config.providers.default`, ActiveGenie picks the provider from the model name. If no
   provider with a key recognises it (`o3`, a fine-tune, a gateway model), the call used to swap in

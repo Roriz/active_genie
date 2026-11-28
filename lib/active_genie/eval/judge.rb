@@ -48,6 +48,16 @@ module ActiveGenie
             new(provider: judge['provider'], model: judge['model'])
           end
         end
+
+        # Whether grading this gold can ask the judge: every rubric row, and a `fields` gold with a
+        # `judge: true` field (asked when its check fails).
+        def asks?(definition, gold)
+          return false if definition.custom_grader?
+          return true if definition.grader == 'rubric'
+
+          fields = gold['fields'] if gold.is_a?(Hash)
+          fields.is_a?(Hash) && fields.values.any? { |spec| spec.is_a?(Hash) && spec['judge'] }
+        end
       end
 
       attr_reader :model
@@ -58,6 +68,12 @@ module ActiveGenie
         @model = model
         @answerer = answerer || ApiAnswerer.new(provider:, model:)
         @mutex = Mutex.new
+      end
+
+      # Raises when the judge's provider can't be called (no API key, or removed from config.providers).
+      # A fake answerer calls no provider, so it has nothing to check.
+      def check_provider!
+        @answerer.check_provider! if @answerer.respond_to?(:check_provider!)
       end
 
       def equivalent(question:, reference:, candidate:)
@@ -119,6 +135,10 @@ module ActiveGenie
 
         def call(kind, payload)
           kind == 'rubric' ? rubric(payload) : equivalence(payload)
+        end
+
+        def check_provider!
+          ActiveGenie.new_configuration(@config).providers.check_default!
         end
 
         private

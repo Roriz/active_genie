@@ -65,6 +65,21 @@ module ActiveGenie
         assert_includes error.message, 'a provider that has a key (openai)'
       end
 
+      # It used to say the removed provider had no API key, though its key was set.
+      def test_a_default_provider_that_was_removed_says_so
+        config = Configuration.new({ providers: { default: 'anthropic', anthropic: { api_key: 'secret' },
+                                                  openai: { api_key: 'secret' } } })
+        config.providers.remove(:anthropic)
+
+        error = assert_raises(ActiveGenie::DefaultProviderRemovedError) do
+          ActiveGenie::Providers::UnifiedProvider.function_calling(EXAMPLE_MESSAGES, EXAMPLE_FUNCTION, config:)
+        end
+
+        assert_includes error.message, 'The default provider "anthropic" was removed from config.providers'
+        assert_includes error.message, 'drop config.providers.remove(:anthropic)'
+        assert_includes error.message, "still configured\n  with a key (openai)"
+      end
+
       def test_a_default_provider_from_provider_name_without_an_api_key_raises
         previous = ENV.fetch('PROVIDER_NAME', nil)
         ENV['PROVIDER_NAME'] = 'google'

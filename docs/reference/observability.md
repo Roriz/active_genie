@@ -75,6 +75,7 @@ and group by. Its message says what went wrong, how to fix it, and links its ent
 | `ActiveGenie::WithoutAvailableProviderError` | [AG-E001](/reference/errors#ag-e001) | No configured provider has a usable API key. |
 | `ActiveGenie::InvalidProviderError` | [AG-E002](/reference/errors#ag-e002) | `config.providers.default` names a provider ActiveGenie can't call. |
 | `ActiveGenie::ProviderWithoutApiKeyError` | [AG-E007](/reference/errors#ag-e007) | `config.providers.default` names a provider with no API key. |
+| `ActiveGenie::DefaultProviderRemovedError` | [AG-E008](/reference/errors#ag-e008) | `config.providers.default` names a provider `config.providers.remove` took out. |
 | `ActiveGenie::InvalidModelError` | [AG-E003](/reference/errors#ag-e003) | `config.llm.model` names a model no credentialed provider runs, and no provider is set. |
 
 `ProviderUnknownError` carries the status code and the raw body, so you still get the provider's own message:

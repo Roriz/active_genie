@@ -95,7 +95,7 @@ end
 ### Methods
 
 - `config.providers.add(name, provider_config)` replaces a built-in provider's configuration with your own class or instance. `name` must be one of `:openai`, `:google`, `:anthropic` or `:deepseek`; any other name raises [`InvalidProviderError`](/reference/errors#ag-e002), because ActiveGenie can only call those four APIs.
-- `config.providers.remove(names)` removes providers by name (a symbol, a string, or a list), so they are never chosen for a call.
+- `config.providers.remove(names)` removes providers by name (a symbol, a string, or a list), so they are never chosen for a call. Removing the provider `config.providers.default` names raises [`DefaultProviderRemovedError`](/reference/errors#ag-e008) on the next call.
 - `config.providers.valid` returns the providers that currently have a usable API key.
 - `config.providers.provider_name_by_model(model)` returns the provider a given model name resolves to.
 
@@ -158,7 +158,7 @@ ActiveGenie resolves the model and provider in this order, stopping at the first
 4. Partial inference: whichever of the two is still missing gets filled in, either the provider from the model name (or the provider whose `default_model` it is) or the provider's `default_model`.
 5. Any available provider: the first one holding a valid API key, plus that provider's `default_model`.
 
-If no provider has an API key, ActiveGenie raises [`WithoutAvailableProviderError`](/reference/errors#ag-e001). If `config.llm.model` is set but no provider is, and no credentialed provider recognises the model, it raises [`InvalidModelError`](/reference/errors#ag-e003) rather than swapping in another model: set `config.providers.default` next to a model such as `o3`. A `config.providers.default` ActiveGenie can't call raises [`InvalidProviderError`](/reference/errors#ag-e002), and one without an API key raises [`ProviderWithoutApiKeyError`](/reference/errors#ag-e007). A module's recommended model whose provider has no key is skipped, not an error.
+If no provider has an API key, ActiveGenie raises [`WithoutAvailableProviderError`](/reference/errors#ag-e001). If `config.llm.model` is set but no provider is, and no credentialed provider recognises the model, it raises [`InvalidModelError`](/reference/errors#ag-e003) rather than swapping in another model: set `config.providers.default` next to a model such as `o3`. A `config.providers.default` ActiveGenie can't call raises [`InvalidProviderError`](/reference/errors#ag-e002), one without an API key raises [`ProviderWithoutApiKeyError`](/reference/errors#ag-e007), and one that was removed raises [`DefaultProviderRemovedError`](/reference/errors#ag-e008). A module's recommended model whose provider has no key is skipped, not an error.
 
 ```ruby
 ActiveGenie.configure do |config|

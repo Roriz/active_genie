@@ -64,8 +64,20 @@ module ActiveGenie
         price && (((input_tokens * price['input']) + (output_tokens * price['output'])) / 1_000_000.0)
       end
 
+      # Raises once, before anything is asked or spent, when the run can't call its pinned provider, or
+      # the judge it needs: no API key, or removed from config.providers. Without it, every case would
+      # fail on its own call with the same error.
+      def check_providers!(judge: true)
+        todo = pending
+        if system.provider && todo.any?
+          ActiveGenie.new_configuration(providers: { default: system.provider }).providers.check_default!
+        end
+        Judge.current.check_provider! if judge && needs_judge?(todo)
+      end
+
       # `judge`: whether to call the (paid) judge too; the rake tasks pass it once the run is confirmed.
       def run!(judge: true)
+        check_providers!(judge:)
         todo = pending
         configure!
         if todo.empty?
@@ -108,6 +120,11 @@ module ActiveGenie
       end
 
       private
+
+      # New cases whose gold can ask the judge, or cached ones still waiting for a verdict.
+      def needs_judge?(todo)
+        todo.any? { |item| Judge.asks?(system.definition, item.gold) } || unjudged.any?
+      end
 
       # Points ActiveGenie at the run's provider and model (when the app's feature uses ActiveGenie) and
       # counts its token usage. The app's own log observers and output are kept.
