@@ -18,17 +18,14 @@ module ActiveGenie
       #   Each hash should have :role ('user' or 'model') and :content (String).
       #   Google Generative Language uses 'user' and 'model' roles.
       # @param function [Hash] A JSON schema definition describing the desired output format.
-      # @param logprobs [Boolean] Whether to request and return token log probabilities.
-      # @param top_logprobs [Integer] Number of top candidate log probabilities per token step.
-      # @return [Hash] The parsed JSON object, or { data: Hash, logprobs: Hash } if logprobs requested.
+      # @return [Hash] The parsed JSON object.
       # @raise [RefusalError] when Gemini blocks the prompt or the answer.
       # @raise [InvalidResponseError] when the answer is missing, cut off, or not a JSON object.
-      def function_calling(messages, function, logprobs: false, top_logprobs: 5)
+      def function_calling(messages, function, **)
         contents = convert_messages_to_contents(messages, function) << output_as_json_schema(function)
-        generation_config = build_generation_config(logprobs ? { responseLogprobs: true, logprobs: top_logprobs } : {})
-        payload = { contents:, generationConfig: generation_config }
+        payload = { contents:, generationConfig: { response_mime_type: 'application/json', temperature: 0.1 } }
 
-        response = execute_function_calling_request(payload, generation_config, logprobs)
+        response = retry_with_backoff { request(payload) }
         json_string = answer_text(response)
 
         ActiveGenie.logger.call(
@@ -36,29 +33,7 @@ module ActiveGenie
           config: @config
         )
 
-        parsed_data = normalize_response(json_string)
-        return parsed_data unless logprobs
-
-        { data: parsed_data, logprobs: response&.dig('candidates', 0, 'logprobsResult') }
-      end
-
-      # Extracts field candidates from logprobsResult.
-      def extract_field_logprobs(logprobs_result, field_name, token_map: nil)
-        ActiveGenie::Utils::LogprobsCalculator.extract_field_candidates(logprobs_result, field_name, token_map:)
-      end
-
-      # Computes expected value and normalized score from candidate logprobs.
-      def calculate_continuous_score(candidates, min_score: nil, max_score: nil, token_map: nil)
-        ActiveGenie::Utils::LogprobsCalculator.calculate_continuous_score(
-          candidates, min_score:, max_score:, token_map:
-        )
-      end
-
-      # Aggregates raw expected rewards across multiple evaluation criteria (C) and repetitions (K).
-      def aggregate_expected_rewards(expected_rewards, min_score: 1.0, max_score: 5.0)
-        ActiveGenie::Utils::LogprobsCalculator.aggregate_expected_rewards(
-          expected_rewards, min_score:, max_score:
-        )
+        normalize_response(json_string)
       end
 
       API_VERSION_PATH = 'v1beta/models'
@@ -70,25 +45,6 @@ module ActiveGenie
       }.freeze
 
       private
-
-      # A fresh hash per call: the logprobs fallback deletes keys from it.
-      def build_generation_config(logprobs_options)
-        { response_mime_type: 'application/json', temperature: 0.1, **logprobs_options }
-      end
-
-      def execute_function_calling_request(payload, generation_config, logprobs_requested)
-        retry_with_backoff do
-          request(payload)
-        end
-      rescue ActiveGenie::Providers::BaseProvider::ProviderUnknownError => e
-        raise unless logprobs_requested && e.message.include?('Logprobs is not enabled')
-
-        generation_config.delete(:responseLogprobs)
-        generation_config.delete(:logprobs)
-        retry_with_backoff do
-          request(payload)
-        end
-      end
 
       # The API key travels in a header, never the query string, so it cannot
       # leak through logged URLs, proxies, or error messages.

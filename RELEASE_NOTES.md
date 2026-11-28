@@ -7,6 +7,24 @@
   `ActiveGenie::Ranker::Values::Players`, with no alias for the old names. Their behavior is the same.
   The files moved from `lib/active_genie/entities/` to `lib/active_genie/ranker/values/`, and
   `ActiveGenie::Result` keeps its name but now lives in `lib/active_genie/values/result.rb`.
+- **Logprobs scoring is removed.** The latest models have mostly dropped token log probabilities, so
+  the modules no longer request them and every result comes from what the model wrote.
+  `ActiveGenie::Utils::LogprobsCalculator` is gone, along with the `extract_field_logprobs`,
+  `calculate_continuous_score` and `aggregate_expected_rewards` helpers on `OpenaiProvider` and
+  `GoogleProvider`. `UnifiedProvider.function_calling` no longer takes `logprobs:` or `top_logprobs:`,
+  and providers return the parsed answer, never a `{ data:, logprobs: }` pair.
+- **`Comparator.by_debate`'s winner is always the judge's written `impartial_judge_winner`.** Before,
+  on OpenAI and Google, the per-player expected rewards (or the judge token's probabilities) could
+  override it. Anthropic and DeepSeek already used the written pick.
+- **`Scorer.by_jury_bench`'s score is always the written `final_score`.** It is the number the model
+  wrote, usually an integer, not a continuous expected value over the score tokens. A missing
+  `final_score` still reads as 0.
+- **Removed metadata keys.** `Comparator.by_debate` no longer sets `logprobs_used`, `logprobs_winner`,
+  `player_a_expected_reward`, `player_b_expected_reward`, `player_a_normalized_score`,
+  `player_b_normalized_score`, `player_a_winner_probability` or `player_b_winner_probability`.
+  `Scorer.by_jury_bench` no longer sets `logprobs_used`, `continuous_final_score`,
+  `final_score_expected_value`, `final_score_normalized`, `juries_raw_expected_reward` or
+  `juries_normalized_score`. The fields the model writes are still in the metadata.
 
 ---
 
