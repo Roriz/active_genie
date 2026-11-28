@@ -1,3 +1,112 @@
+# ActiveGenie v1.0.0.rc2 Release Notes
+
+The second release candidate for 1.0. The eval engine the gem uses on itself now ships in the gem, so
+a Rails app can measure its own LLM features the same way. The gem's own evals run on that engine.
+
+## Evals for your Rails app
+
+- **`ActiveGenie::Eval` (#97, #98, #99).** Define an eval of any LLM feature in your app, whether or
+  not it uses ActiveGenie. The engine lives in the gem, so `bundle update` brings its fixes. The data
+  lives in your app's `evals/` and is versioned with it.
+
+  ```ruby
+  ActiveGenie::Eval.define 'ticket_router' do
+    call { |input, context| TicketRouter.new(model: context.model).call(input['text']) }
+    grader :fields          # or :band, :list, :winner, :rubric, or a block
+    watch 'app/services/ticket_router.rb'
+  end
+  ```
+
+- **Rake tasks.** Add `ActiveGenie.load_tasks` to your `Rakefile`, then:
+  - `active_genie:eval:install` writes `evals/config.yml`, `evals/README.md` (the method guide) and
+    `evals/.gitignore`. `active_genie:eval:new[name]` starts an eval. Neither overwrites a file.
+  - `active_genie:eval:check` and `active_genie:eval:status` are free.
+  - `active_genie:eval EVAL=<name>` (or `a,b`, or `all`) shows the cases and the cost estimate, asks
+    `Run it? [y/N]`, runs, and reports. `MODE=quick` (the default) runs the dev pool against the
+    baseline and answers GO, LOOK or STOP. `MODE=full` runs every case, and `REPEAT=n` measures the
+    noise floor. `active_genie:eval:quick` and `active_genie:eval:full` are shortcuts.
+  - `active_genie:eval:report` re-prints a report from cached outputs, and `active_genie:eval:save`
+    promotes a full run to the committed baseline.
+  - `active_genie:eval:blind` prints the drafts without their gold for a blind labeler, and
+    `active_genie:eval:label` compares the labels with the gold and writes each draft's `status`.
+- **What a run gives you.** Nothing is called without a yes (or `YES=1` off a terminal). Outputs are
+  cached per case and keyed by a hash of the watched files. The report has the pass rate with a CI,
+  McNemar against the baseline, and confusion matrices (field outcomes, each categorical field, score
+  bands, winners). It is also written as markdown you can paste into a pull request. Variants compare
+  several methods on the same cases. Twin rows check that a change that shouldn't matter doesn't move
+  the answer. A pinned LLM judge is used only as a fallback, and its verdicts are cached in a
+  committed file.
+- **One file per eval (#104).** Each eval is `evals/<name>/eval.rb`, `datasets.jsonl` (the cases, with
+  their gold) and `gold.jsonl` (the blind labeling passes). There are no `sets/` or `labels/`
+  folders, and `blind` and `label` take only `EVAL=` (`SET=` is gone).
+- **Evals measure the harness (#105).** An eval grades what your code returns: the code plus the LLM
+  call. It never grades a prompt or the raw model text on its own. If your code repairs the model's
+  answer into the right result, the case passes.
+- **`EVAL=all` summary (#102).** A `fields` column (the share of fields right) sits next to the
+  all-or-nothing case rate.
+- **Fix: `ActiveGenie.load_tasks` loads only `install.rake` and `eval.rake` (#97).** Before, apps also
+  got the gem's `test.rake`, which hooked `rake test` and cleared the API keys.
+
+See `docs/guides/evals.md`, and the `evals/README.md` that `install` writes.
+
+## Behavior changes to check before upgrading
+
+- **Placeholders wrapped in punctuation become `nil` (#102).** `UnifiedProvider` now strips the
+  surrounding punctuation before it matches a placeholder, so `":null"`, `"\"None\""`, `"(unknown)"`
+  and `"null."` come back as `nil`. `"None of the above"` and `"-"` stay values.
+- **Enum values that look like placeholders are kept (#102).** With `enum: %w[none mild severe]`, an
+  answer of `"none"` used to become `nil`, and `Extractor.data` dropped the field. A value the field's
+  own enum lists is now kept.
+- **Two edge cases in `LogprobsCalculator` (#111),** both on input no provider sends:
+  `extract_field_candidates` reads symbol keys before string keys (it matters only when a hash has
+  both with different values), and an index whose step is `nil` returns `nil` instead of raising
+  `NoMethodError`.
+- **No layout migration for the eval engine.** It wasn't in rc1, so nothing released changes. If you
+  tried it from `main`, move `sets/<name>.jsonl` to `datasets.jsonl` and `labels/<name>.jsonl` to
+  `gold.jsonl` (#104).
+
+## Refactors
+
+- **RuboCop todo cleared (#111).** `.rubocop_todo.yml` is gone, and every offense it hid is fixed with
+  no raised limits or `rubocop:disable` comments. The logprobs calculator, the OpenAI, Google and
+  unified providers, the Debate comparator, the JuryBench scorer, `Lister::Juries`, `Explanation`,
+  `Litote`, Elo and free-for-all are split into named methods. Behavior is the same apart from the two
+  edges above. 38 new unit tests cover them.
+
+## The gem's own evals and repo
+
+- **The gem's evals run on `ActiveGenie::Eval` (#99).** `eval/` is now `evals/`, one eval per method,
+  run with `rake active_genie:eval`.
+- **One extractor eval (#103).** `extractor_data` and `extractor_with_explanation` are joined into
+  `extractor`, with `data` and `with_explanation` as variants on the same 74 cases.
+- **hh-rlhf is committed (#101).** The comparator's source split is a verbatim copy in
+  `evals/comparator/sources/hh_rlhf/data/`, checked against its pinned SHA-256, instead of a download.
+  It isn't shipped in the gem.
+- **License rule (#100).** Eval data and dependencies can use any clear open license (MIT,
+  Apache-2.0, BSD, CC BY, ...), credited in a `NOTICE.md`. Data with no license, NC terms or
+  share-alike terms that would reach users is still out.
+- **`prompts:check` is removed (#105).** Its file checks are now a unit test,
+  `test/unit/prompt_files_test.rb`.
+- **Known issues triaged (#102).** `evals/NEXT_FOCUS.md` says where each open item stands.
+- **The Eval workflow is removed (#108).** Evals run locally. The release models and their commands
+  are listed in `evals/README.md`.
+- **Cleanup.** The unused dev container (#107) and `.rspec` / `rubocop-rspec` (#110) are removed.
+  Agent rules moved to `AGENTS.md` (#109) and `test/AGENTS.md` (#106).
+- **Gemspec.** `changelog_uri` and `spec.files` now point at `RELEASE_NOTES.md`, not a
+  `CHANGELOG.md` that didn't exist.
+
+## Upgrading
+
+This is a prerelease, so Bundler needs the exact version:
+
+```ruby
+gem 'active_genie', '1.0.0.rc2'
+```
+
+**Full Changelog**: https://github.com/Roriz/active_genie/compare/v1.0.0.rc1...v1.0.0.rc2
+
+---
+
 # ActiveGenie v1.0.0.rc1 Release Notes
 
 The first release candidate for 1.0. The major version marks a new way of measuring the gem: a

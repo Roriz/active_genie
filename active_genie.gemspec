@@ -20,12 +20,12 @@ Gem::Specification.new do |spec|
   spec.metadata = {
     'homepage_uri' => 'https://github.com/Roriz/active_genie',
     'documentation_uri' => 'https://github.com/Roriz/active_genie/wiki',
-    'changelog_uri' => 'https://github.com/Roriz/active_genie/blob/master/CHANGELOG.md',
+    'changelog_uri' => 'https://github.com/Roriz/active_genie/blob/main/RELEASE_NOTES.md',
     'bug_tracker_uri' => 'https://github.com/Roriz/active_genie/issues',
     'rubygems_mfa_required' => 'true'
   }
 
-  spec.files         = Dir['{lib,ext}/**/*', 'VERSION', 'README.md', 'LICENSE', 'CHANGELOG.md']
+  spec.files         = Dir['{lib,ext}/**/*', 'VERSION', 'README.md', 'LICENSE', 'RELEASE_NOTES.md']
   spec.require_paths = ['lib']
 
   spec.add_dependency 'async', '~> 2.0'
